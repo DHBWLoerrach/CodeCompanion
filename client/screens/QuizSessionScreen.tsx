@@ -14,14 +14,13 @@ import Animated, {
   useAnimatedStyle,
   useSharedValue,
   withSpring,
-  withSequence,
-  withTiming,
 } from "react-native-reanimated";
 import * as Haptics from "expo-haptics";
 
 import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
 import { useTheme } from "@/hooks/useTheme";
+import { useTranslation } from "@/hooks/useTranslation";
 import { Spacing, BorderRadius, Shadows, Fonts } from "@/constants/theme";
 import { getApiUrl, apiRequest } from "@/lib/query-client";
 import { storage } from "@/lib/storage";
@@ -171,6 +170,7 @@ function CodeBlock({ code }: { code: string }) {
 
 export default function QuizSessionScreen() {
   const { theme } = useTheme();
+  const { t, language } = useTranslation();
   const insets = useSafeAreaInsets();
   const navigation = useNavigation<NavigationProp>();
   const route = useRoute<RouteProp>();
@@ -193,8 +193,11 @@ export default function QuizSessionScreen() {
       setLoading(true);
       setError(null);
 
+      const settings = await storage.getSettings();
       const endpoint = topicId ? "/api/quiz/generate" : "/api/quiz/generate-mixed";
-      const body = topicId ? { topicId, count: 10 } : { count: 10 };
+      const body = topicId 
+        ? { topicId, count: 10, language: settings.language } 
+        : { count: 10, language: settings.language };
 
       const response = await apiRequest("POST", endpoint, body);
       const data = await response.json();
@@ -202,11 +205,11 @@ export default function QuizSessionScreen() {
       if (data.questions && data.questions.length > 0) {
         setQuestions(data.questions);
       } else {
-        setError("No questions received. Please try again.");
+        setError(t("unableToLoadQuiz"));
       }
     } catch (err) {
       console.error("Error loading questions:", err);
-      setError("Failed to load questions. Please try again.");
+      setError(t("unableToLoadQuiz"));
     } finally {
       setLoading(false);
     }
@@ -283,7 +286,7 @@ export default function QuizSessionScreen() {
       <ThemedView style={styles.loadingContainer}>
         <ActivityIndicator size="large" color={theme.primary} />
         <ThemedText type="body" style={styles.loadingText}>
-          Generating quiz questions...
+          {t("generatingQuiz")}
         </ThemedText>
       </ThemedView>
     );
@@ -294,10 +297,10 @@ export default function QuizSessionScreen() {
       <ThemedView style={styles.errorContainer}>
         <Feather name="alert-circle" size={48} color={theme.error} />
         <ThemedText type="h4" style={styles.errorTitle}>
-          Unable to Load Quiz
+          {t("unableToLoadQuiz")}
         </ThemedText>
         <ThemedText type="body" style={styles.errorText}>
-          {error || "Something went wrong. Please check your connection and try again."}
+          {error || t("unableToLoadQuiz")}
         </ThemedText>
         <Pressable
           style={[styles.retryButton, { backgroundColor: theme.primary }]}
@@ -305,7 +308,7 @@ export default function QuizSessionScreen() {
         >
           <Feather name="refresh-cw" size={18} color="#FFFFFF" style={{ marginRight: Spacing.sm }} />
           <ThemedText type="body" style={{ color: "#FFFFFF", fontWeight: "600" }}>
-            Try Again
+            {t("tryAgain")}
           </ThemedText>
         </Pressable>
         <Pressable
@@ -313,7 +316,7 @@ export default function QuizSessionScreen() {
           onPress={handleClose}
         >
           <ThemedText type="body" style={{ color: theme.tabIconDefault }}>
-            Cancel
+            {t("cancel")}
           </ThemedText>
         </Pressable>
       </ThemedView>
@@ -380,7 +383,7 @@ export default function QuizSessionScreen() {
         {showResult ? (
           <View style={[styles.explanationCard, { backgroundColor: theme.backgroundDefault }]}>
             <ThemedText type="label" style={{ color: theme.secondary, marginBottom: Spacing.sm }}>
-              Explanation
+              {t("explanation")}
             </ThemedText>
             <ThemedText type="body">{currentQuestion.explanation}</ThemedText>
           </View>
@@ -399,7 +402,7 @@ export default function QuizSessionScreen() {
             onPress={handleNext}
           >
             <ThemedText type="body" style={{ color: "#FFFFFF", fontWeight: "600" }}>
-              {currentIndex < questions.length - 1 ? "Next Question" : "View Results"}
+              {currentIndex < questions.length - 1 ? t("nextQuestion") : t("viewResults")}
             </ThemedText>
           </Pressable>
         ) : (
@@ -414,7 +417,7 @@ export default function QuizSessionScreen() {
             disabled={selectedAnswer === null}
           >
             <ThemedText type="body" style={{ color: "#FFFFFF", fontWeight: "600" }}>
-              Submit Answer
+              {t("submitAnswer")}
             </ThemedText>
           </Pressable>
         )}

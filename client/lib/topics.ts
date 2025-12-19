@@ -1,70 +1,72 @@
+import { type Language, type TranslationKey, translations } from "./i18n";
+
 export interface Topic {
   id: string;
-  name: string;
+  nameKey: TranslationKey;
+  descKey: TranslationKey;
   category: string;
-  description: string;
 }
 
 export interface Category {
   id: string;
-  name: string;
+  nameKey: TranslationKey;
   topics: Topic[];
 }
 
 export const CATEGORIES: Category[] = [
   {
     id: "fundamentals",
-    name: "Fundamentals",
+    nameKey: "fundamentals",
     topics: [
-      { id: "variables", name: "Variables", category: "fundamentals", description: "var, let, const declarations" },
-      { id: "data-types", name: "Data Types", category: "fundamentals", description: "Primitives and type checking" },
-      { id: "operators", name: "Operators", category: "fundamentals", description: "Arithmetic, comparison, logical" },
+      { id: "variables", nameKey: "variables", descKey: "variablesDesc", category: "fundamentals" },
+      { id: "data-types", nameKey: "dataTypes", descKey: "dataTypesDesc", category: "fundamentals" },
+      { id: "operators", nameKey: "operators", descKey: "operatorsDesc", category: "fundamentals" },
     ],
   },
   {
     id: "control-flow",
-    name: "Control Flow",
+    nameKey: "controlFlow",
     topics: [
-      { id: "conditionals", name: "Conditionals", category: "control-flow", description: "if/else, ternary operator" },
-      { id: "loops", name: "Loops", category: "control-flow", description: "for, while, do-while, for...of" },
-      { id: "switch", name: "Switch", category: "control-flow", description: "Switch statements and cases" },
+      { id: "conditionals", nameKey: "conditionals", descKey: "conditionalsDesc", category: "control-flow" },
+      { id: "loops", nameKey: "loops", descKey: "loopsDesc", category: "control-flow" },
+      { id: "switch", nameKey: "switch", descKey: "switchDesc", category: "control-flow" },
     ],
   },
   {
     id: "functions",
-    name: "Functions",
+    nameKey: "functions",
     topics: [
-      { id: "declarations", name: "Declarations", category: "functions", description: "Function declarations and expressions" },
-      { id: "arrow-functions", name: "Arrow Functions", category: "functions", description: "ES6 arrow function syntax" },
-      { id: "callbacks", name: "Callbacks", category: "functions", description: "Callback functions and patterns" },
+      { id: "declarations", nameKey: "declarations", descKey: "declarationsDesc", category: "functions" },
+      { id: "arrow-functions", nameKey: "arrowFunctions", descKey: "arrowFunctionsDesc", category: "functions" },
+      { id: "callbacks", nameKey: "callbacks", descKey: "callbacksDesc", category: "functions" },
     ],
   },
   {
     id: "objects-arrays",
-    name: "Objects & Arrays",
+    nameKey: "objectsArrays",
     topics: [
-      { id: "objects", name: "Objects", category: "objects-arrays", description: "Object literals and methods" },
-      { id: "arrays", name: "Arrays", category: "objects-arrays", description: "Array methods and manipulation" },
-      { id: "destructuring", name: "Destructuring", category: "objects-arrays", description: "Object and array destructuring" },
+      { id: "objects", nameKey: "objects", descKey: "objectsDesc", category: "objects-arrays" },
+      { id: "arrays", nameKey: "arrays", descKey: "arraysDesc", category: "objects-arrays" },
+      { id: "destructuring", nameKey: "destructuring", descKey: "destructuringDesc", category: "objects-arrays" },
     ],
   },
   {
     id: "async",
-    name: "Async",
+    nameKey: "async",
     topics: [
-      { id: "promises", name: "Promises", category: "async", description: "Promise creation and chaining" },
-      { id: "async-await", name: "Async/Await", category: "async", description: "Modern async syntax" },
-      { id: "error-handling", name: "Error Handling", category: "async", description: "try/catch and error management" },
+      { id: "promises", nameKey: "promises", descKey: "promisesDesc", category: "async" },
+      { id: "async-await", nameKey: "asyncAwait", descKey: "asyncAwaitDesc", category: "async" },
+      { id: "error-handling", nameKey: "errorHandling", descKey: "errorHandlingDesc", category: "async" },
     ],
   },
   {
     id: "advanced",
-    name: "Advanced",
+    nameKey: "advanced",
     topics: [
-      { id: "closures", name: "Closures", category: "advanced", description: "Lexical scope and closures" },
-      { id: "prototypes", name: "Prototypes", category: "advanced", description: "Prototype chain and inheritance" },
-      { id: "classes", name: "Classes", category: "advanced", description: "ES6 class syntax" },
-      { id: "modules", name: "Modules", category: "advanced", description: "import/export and module patterns" },
+      { id: "closures", nameKey: "closures", descKey: "closuresDesc", category: "advanced" },
+      { id: "prototypes", nameKey: "prototypes", descKey: "prototypesDesc", category: "advanced" },
+      { id: "classes", nameKey: "classes", descKey: "classesDesc", category: "advanced" },
+      { id: "modules", nameKey: "modules", descKey: "modulesDesc", category: "advanced" },
     ],
   },
 ];
@@ -85,4 +87,16 @@ export function getRandomTopics(count: number): Topic[] {
   const allTopics = getAllTopics();
   const shuffled = [...allTopics].sort(() => Math.random() - 0.5);
   return shuffled.slice(0, count);
+}
+
+export function getTopicName(topic: Topic, language: Language): string {
+  return translations[language][topic.nameKey] || translations.en[topic.nameKey] || topic.id;
+}
+
+export function getTopicDescription(topic: Topic, language: Language): string {
+  return translations[language][topic.descKey] || translations.en[topic.descKey] || "";
+}
+
+export function getCategoryName(category: Category, language: Language): string {
+  return translations[language][category.nameKey] || translations.en[category.nameKey] || category.id;
 }

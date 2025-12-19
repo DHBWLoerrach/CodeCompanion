@@ -18,6 +18,7 @@ import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
 import { KeyboardAwareScrollViewCompat } from "@/components/KeyboardAwareScrollViewCompat";
 import { useTheme } from "@/hooks/useTheme";
+import { useTranslation } from "@/hooks/useTranslation";
 import { Spacing, BorderRadius, Shadows } from "@/constants/theme";
 import {
   storage,
@@ -83,6 +84,7 @@ function SettingRow({ icon, label, children }: SettingRowProps) {
 
 export default function SettingsScreen() {
   const { theme } = useTheme();
+  const { t, language, refreshLanguage } = useTranslation();
   const insets = useSafeAreaInsets();
   const navigation = useNavigation<NavigationProp>();
 
@@ -119,6 +121,7 @@ export default function SettingsScreen() {
         storage.setProfile(profile),
         storage.setSettings(settings),
       ]);
+      await refreshLanguage();
       navigation.goBack();
     } catch (error) {
       console.error("Error saving settings:", error);
@@ -133,7 +136,7 @@ export default function SettingsScreen() {
       "Reset Progress",
       "This will delete all your progress, streaks, and achievements. This cannot be undone.",
       [
-        { text: "Cancel", style: "cancel" },
+        { text: t("cancel"), style: "cancel" },
         {
           text: "Reset",
           style: "destructive",
@@ -148,6 +151,15 @@ export default function SettingsScreen() {
 
   const handleOpenDHBW = async () => {
     await WebBrowser.openBrowserAsync("https://www.dhbw-loerrach.de");
+  };
+
+  const getDifficultyLabel = (difficulty: string) => {
+    switch (difficulty) {
+      case "beginner": return t("beginner");
+      case "intermediate": return t("intermediate");
+      case "advanced": return t("advanced");
+      default: return difficulty;
+    }
   };
 
   if (loading || !profile || !settings) {
@@ -169,11 +181,11 @@ export default function SettingsScreen() {
       >
         <View style={styles.section}>
           <ThemedText type="label" style={[styles.sectionTitle, { color: theme.tabIconDefault }]}>
-            Profile
+            {t("profile")}
           </ThemedText>
           <View style={[styles.card, { backgroundColor: theme.backgroundDefault }]}>
             <ThemedText type="label" style={styles.fieldLabel}>
-              Avatar
+              {t("avatar")}
             </ThemedText>
             <AvatarSelector
               selectedIndex={profile.avatarIndex}
@@ -181,7 +193,7 @@ export default function SettingsScreen() {
             />
 
             <ThemedText type="label" style={[styles.fieldLabel, { marginTop: Spacing.lg }]}>
-              Display Name
+              {t("displayName")}
             </ThemedText>
             <TextInput
               style={[
@@ -194,7 +206,7 @@ export default function SettingsScreen() {
               ]}
               value={profile.displayName}
               onChangeText={(text) => setProfile({ ...profile, displayName: text })}
-              placeholder="Enter your name"
+              placeholder={t("enterYourName")}
               placeholderTextColor={theme.tabIconDefault}
             />
           </View>
@@ -202,10 +214,10 @@ export default function SettingsScreen() {
 
         <View style={styles.section}>
           <ThemedText type="label" style={[styles.sectionTitle, { color: theme.tabIconDefault }]}>
-            Preferences
+            {t("preferences")}
           </ThemedText>
           <View style={styles.settingsGroup}>
-            <SettingRow icon="bell" label="Notifications">
+            <SettingRow icon="bell" label={t("notifications")}>
               <Switch
                 value={settings.notificationsEnabled}
                 onValueChange={(value) =>
@@ -215,7 +227,7 @@ export default function SettingsScreen() {
                 thumbColor="#FFFFFF"
               />
             </SettingRow>
-            <SettingRow icon="globe" label="Language">
+            <SettingRow icon="globe" label={t("language")}>
               <Pressable
                 style={[styles.optionButton, { backgroundColor: theme.backgroundSecondary }]}
                 onPress={() =>
@@ -226,11 +238,11 @@ export default function SettingsScreen() {
                 }
               >
                 <ThemedText type="label">
-                  {settings.language === "en" ? "English" : "Deutsch"}
+                  {settings.language === "en" ? t("english") : t("german")}
                 </ThemedText>
               </Pressable>
             </SettingRow>
-            <SettingRow icon="sliders" label="Difficulty">
+            <SettingRow icon="sliders" label={t("difficulty")}>
               <Pressable
                 style={[styles.optionButton, { backgroundColor: theme.backgroundSecondary }]}
                 onPress={() => {
@@ -244,8 +256,8 @@ export default function SettingsScreen() {
                   setSettings({ ...settings, difficulty: levels[nextIndex] });
                 }}
               >
-                <ThemedText type="label" style={{ textTransform: "capitalize" }}>
-                  {settings.difficulty}
+                <ThemedText type="label">
+                  {getDifficultyLabel(settings.difficulty)}
                 </ThemedText>
               </Pressable>
             </SettingRow>
@@ -254,7 +266,7 @@ export default function SettingsScreen() {
 
         <View style={styles.section}>
           <ThemedText type="label" style={[styles.sectionTitle, { color: theme.tabIconDefault }]}>
-            About
+            {t("about")}
           </ThemedText>
           <View style={styles.settingsGroup}>
             <Pressable
@@ -264,7 +276,7 @@ export default function SettingsScreen() {
               <View style={styles.settingLeft}>
                 <Feather name="external-link" size={20} color={theme.secondary} />
                 <ThemedText type="body" style={{ color: theme.secondary }}>
-                  DHBW Loerrach Website
+                  {t("dhbwLorrachProject")}
                 </ThemedText>
               </View>
               <Feather name="chevron-right" size={20} color={theme.tabIconDefault} />
@@ -272,7 +284,7 @@ export default function SettingsScreen() {
             <View style={[styles.settingRow, { backgroundColor: theme.backgroundDefault }]}>
               <View style={styles.settingLeft}>
                 <Feather name="info" size={20} color={theme.tabIconDefault} />
-                <ThemedText type="body">Version</ThemedText>
+                <ThemedText type="body">{t("version")}</ThemedText>
               </View>
               <ThemedText type="body" style={{ color: theme.tabIconDefault }}>
                 1.0.0
@@ -310,7 +322,7 @@ export default function SettingsScreen() {
             <ActivityIndicator color="#FFFFFF" />
           ) : (
             <ThemedText type="body" style={{ color: "#FFFFFF", fontWeight: "600" }}>
-              Save Changes
+              {t("saveChanges")}
             </ThemedText>
           )}
         </Pressable>

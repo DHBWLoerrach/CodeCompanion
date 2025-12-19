@@ -10,15 +10,11 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useNavigation } from "@react-navigation/native";
 import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { Feather } from "@expo/vector-icons";
-import Animated, {
-  useAnimatedStyle,
-  useSharedValue,
-  withSpring,
-} from "react-native-reanimated";
 
 import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
 import { useTheme } from "@/hooks/useTheme";
+import { useTranslation } from "@/hooks/useTranslation";
 import { Spacing, BorderRadius, Shadows } from "@/constants/theme";
 import {
   storage,
@@ -32,15 +28,6 @@ type NavigationProp = NativeStackNavigationProp<RootStackParamList>;
 
 const AVATARS = ["monitor", "award", "code", "zap"] as const;
 const AVATAR_COLORS = ["#E2001A", "#4A90E2", "#34C759", "#FFB800"];
-
-const ACHIEVEMENTS = [
-  { id: "first-quiz", name: "First Quiz", icon: "star", threshold: 1 },
-  { id: "streak-7", name: "7-Day Streak", icon: "zap", threshold: 7 },
-  { id: "streak-30", name: "30-Day Streak", icon: "award", threshold: 30 },
-  { id: "questions-100", name: "100 Questions", icon: "check-circle", threshold: 100 },
-  { id: "js-novice", name: "JS Novice", icon: "book", threshold: 50 },
-  { id: "js-master", name: "JS Master", icon: "award", threshold: 200 },
-];
 
 interface StatCardProps {
   title: string;
@@ -90,11 +77,12 @@ function DayIndicator({ practiced, isToday }: DayIndicatorProps) {
 }
 
 interface AchievementBadgeProps {
-  achievement: typeof ACHIEVEMENTS[0];
+  name: string;
+  icon: string;
   unlocked: boolean;
 }
 
-function AchievementBadge({ achievement, unlocked }: AchievementBadgeProps) {
+function AchievementBadge({ name, icon, unlocked }: AchievementBadgeProps) {
   const { theme } = useTheme();
 
   return (
@@ -109,7 +97,7 @@ function AchievementBadge({ achievement, unlocked }: AchievementBadgeProps) {
         ]}
       >
         {unlocked ? (
-          <Feather name={achievement.icon as any} size={24} color="#FFFFFF" />
+          <Feather name={icon as any} size={24} color="#FFFFFF" />
         ) : (
           <Feather name="lock" size={20} color={theme.tabIconDefault} />
         )}
@@ -119,7 +107,7 @@ function AchievementBadge({ achievement, unlocked }: AchievementBadgeProps) {
         style={[styles.achievementName, { opacity: unlocked ? 1 : 0.5 }]}
         numberOfLines={1}
       >
-        {achievement.name}
+        {name}
       </ThemedText>
     </View>
   );
@@ -127,12 +115,22 @@ function AchievementBadge({ achievement, unlocked }: AchievementBadgeProps) {
 
 export default function ProgressScreen() {
   const { theme } = useTheme();
+  const { t, refreshLanguage } = useTranslation();
   const insets = useSafeAreaInsets();
   const navigation = useNavigation<NavigationProp>();
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [progress, setProgress] = useState<ProgressData | null>(null);
   const [streak, setStreak] = useState<StreakData | null>(null);
   const [loading, setLoading] = useState(true);
+
+  const ACHIEVEMENTS = [
+    { id: "first-quiz", nameKey: "firstQuiz" as const, icon: "star", threshold: 1 },
+    { id: "streak-7", nameKey: "streak7Days" as const, icon: "zap", threshold: 7 },
+    { id: "streak-30", nameKey: "streak30Days" as const, icon: "award", threshold: 30 },
+    { id: "questions-100", nameKey: "questions100" as const, icon: "check-circle", threshold: 100 },
+    { id: "js-novice", nameKey: "jsNovice" as const, icon: "book", threshold: 50 },
+    { id: "js-master", nameKey: "jsMaster" as const, icon: "award", threshold: 200 },
+  ];
 
   useEffect(() => {
     loadData();
@@ -141,9 +139,10 @@ export default function ProgressScreen() {
   useEffect(() => {
     const unsubscribe = navigation.addListener("focus", () => {
       loadData();
+      refreshLanguage();
     });
     return unsubscribe;
-  }, [navigation]);
+  }, [navigation, refreshLanguage]);
 
   const loadData = async () => {
     try {
@@ -196,7 +195,7 @@ export default function ProgressScreen() {
   return (
     <ThemedView style={styles.container}>
       <View style={[styles.header, { paddingTop: insets.top + Spacing.lg }]}>
-        <ThemedText type="h3">Your Progress</ThemedText>
+        <ThemedText type="h3">{t("yourProgress")}</ThemedText>
         <Pressable
           style={styles.settingsButton}
           onPress={() => navigation.navigate("Settings")}
@@ -230,7 +229,7 @@ export default function ProgressScreen() {
             {profile.displayName}
           </ThemedText>
           <Pressable onPress={() => navigation.navigate("Settings")}>
-            <ThemedText type="link">Edit Profile</ThemedText>
+            <ThemedText type="link">{t("profile")}</ThemedText>
           </Pressable>
         </View>
 
@@ -240,7 +239,7 @@ export default function ProgressScreen() {
               <ThemedText type="h1" style={{ color: theme.accent }}>
                 {streak.currentStreak}
               </ThemedText>
-              <ThemedText type="body">day streak</ThemedText>
+              <ThemedText type="body">{t("days")}</ThemedText>
             </View>
             <Feather name="zap" size={40} color={theme.accent} />
           </View>
@@ -262,25 +261,25 @@ export default function ProgressScreen() {
 
         <View style={styles.statsGrid}>
           <StatCard
-            title="Total Questions"
+            title={t("totalQuestions")}
             value={progress.totalQuestions}
             icon="help-circle"
             color={theme.secondary}
           />
           <StatCard
-            title="Topics Mastered"
+            title={t("topicsMastered")}
             value={getTopicsMastered()}
             icon="check-square"
             color={theme.success}
           />
           <StatCard
-            title="Current Streak"
+            title={t("currentStreak")}
             value={streak.currentStreak}
             icon="zap"
             color={theme.accent}
           />
           <StatCard
-            title="Best Streak"
+            title={t("bestStreak")}
             value={streak.bestStreak}
             icon="award"
             color={theme.primary}
@@ -289,7 +288,7 @@ export default function ProgressScreen() {
 
         <View style={styles.achievementsSection}>
           <ThemedText type="h4" style={styles.sectionTitle}>
-            Achievements
+            {t("achievements")}
           </ThemedText>
           <ScrollView
             horizontal
@@ -299,7 +298,8 @@ export default function ProgressScreen() {
             {ACHIEVEMENTS.map((achievement) => (
               <AchievementBadge
                 key={achievement.id}
-                achievement={achievement}
+                name={t(achievement.nameKey)}
+                icon={achievement.icon}
                 unlocked={unlockedAchievements.includes(achievement.id)}
               />
             ))}

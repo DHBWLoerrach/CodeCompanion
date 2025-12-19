@@ -38,10 +38,16 @@ const TOPIC_PROMPTS: Record<string, string> = {
   modules: "JavaScript ES6 import/export and module patterns",
 };
 
-async function generateQuizQuestions(topicId: string, count: number = 5): Promise<QuizQuestion[]> {
+async function generateQuizQuestions(topicId: string, count: number = 5, language: string = "en"): Promise<QuizQuestion[]> {
   const topicDescription = TOPIC_PROMPTS[topicId] || "general JavaScript programming concepts";
 
+  const languageInstruction = language === "de" 
+    ? "Write all questions, answer options, and explanations in German (Deutsch). Keep code examples and JavaScript syntax in English as they are programming terms."
+    : "Write all questions, answer options, and explanations in English.";
+
   const prompt = `Generate ${count} multiple-choice quiz questions about ${topicDescription} for computer science students learning JavaScript programming.
+
+${languageInstruction}
 
 Each question should:
 - Test understanding of the concept, not just memorization
@@ -74,7 +80,7 @@ Important:
       messages: [
         { 
           role: "system", 
-          content: "You are a JavaScript programming tutor creating quiz questions. Always respond with valid JSON containing a 'questions' array." 
+          content: `You are a JavaScript programming tutor creating quiz questions. ${language === "de" ? "Respond in German." : "Respond in English."} Always respond with valid JSON containing a 'questions' array.` 
         },
         { role: "user", content: prompt }
       ],
@@ -85,7 +91,6 @@ Important:
     const content = response.choices[0]?.message?.content || "{}";
     console.log("OpenAI response content:", content.substring(0, 200));
     
-    // Clean up potential markdown code blocks
     let cleanContent = content.trim();
     if (cleanContent.startsWith("```json")) {
       cleanContent = cleanContent.slice(7);
@@ -101,11 +106,11 @@ Important:
     const parsed = JSON.parse(cleanContent);
     
     if (Array.isArray(parsed)) {
-      console.log(`Generated ${parsed.length} questions for topic ${topicId}`);
+      console.log(`Generated ${parsed.length} questions for topic ${topicId} in ${language}`);
       return parsed;
     }
     if (parsed.questions && Array.isArray(parsed.questions)) {
-      console.log(`Generated ${parsed.questions.length} questions for topic ${topicId}`);
+      console.log(`Generated ${parsed.questions.length} questions for topic ${topicId} in ${language}`);
       return parsed.questions;
     }
     
@@ -120,13 +125,13 @@ Important:
 export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/quiz/generate", async (req, res) => {
     try {
-      const { topicId, count = 5 } = req.body;
+      const { topicId, count = 5, language = "en" } = req.body;
       
       if (!topicId) {
         return res.status(400).json({ error: "topicId is required" });
       }
 
-      const questions = await generateQuizQuestions(topicId, count);
+      const questions = await generateQuizQuestions(topicId, count, language);
       res.json({ questions });
     } catch (error) {
       console.error("Quiz generation error:", error);
@@ -136,7 +141,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.post("/api/quiz/generate-mixed", async (req, res) => {
     try {
-      const { count = 10 } = req.body;
+      const { count = 10, language = "en" } = req.body;
       const topics = Object.keys(TOPIC_PROMPTS);
       const randomTopics = topics.sort(() => Math.random() - 0.5).slice(0, 3);
       
@@ -144,7 +149,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const allQuestions: QuizQuestion[] = [];
 
       for (const topicId of randomTopics) {
-        const questions = await generateQuizQuestions(topicId, questionsPerTopic);
+        const questions = await generateQuizQuestions(topicId, questionsPerTopic, language);
         allQuestions.push(...questions);
       }
 

@@ -20,8 +20,9 @@ import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
 import { HeaderTitle } from "@/components/HeaderTitle";
 import { useTheme } from "@/hooks/useTheme";
+import { useTranslation } from "@/hooks/useTranslation";
 import { Spacing, BorderRadius, Shadows } from "@/constants/theme";
-import { CATEGORIES, type Topic } from "@/lib/topics";
+import { CATEGORIES, type Topic, type Category, getTopicName, getCategoryName } from "@/lib/topics";
 import { storage, type TopicProgress } from "@/lib/storage";
 import type { RootStackParamList } from "@/navigation/RootStackNavigator";
 
@@ -33,9 +34,10 @@ interface TopicChipProps {
   topic: Topic;
   progress?: TopicProgress;
   onPress: () => void;
+  topicName: string;
 }
 
-function TopicChip({ topic, progress, onPress }: TopicChipProps) {
+function TopicChip({ topic, progress, onPress, topicName }: TopicChipProps) {
   const { theme } = useTheme();
   const scale = useSharedValue(1);
 
@@ -77,19 +79,21 @@ function TopicChip({ topic, progress, onPress }: TopicChipProps) {
         style={[styles.chipText, { color: textColor }]}
         numberOfLines={1}
       >
-        {topic.name}
+        {topicName}
       </ThemedText>
     </AnimatedPressable>
   );
 }
 
 interface CategoryCardProps {
-  category: { id: string; name: string; topics: Topic[] };
+  category: Category;
+  categoryName: string;
   topicProgress: Record<string, TopicProgress>;
-  onTopicPress: (topic: Topic) => void;
+  onTopicPress: (topic: Topic, topicName: string) => void;
+  getTopicDisplayName: (topic: Topic) => string;
 }
 
-function CategoryCard({ category, topicProgress, onTopicPress }: CategoryCardProps) {
+function CategoryCard({ category, categoryName, topicProgress, onTopicPress, getTopicDisplayName }: CategoryCardProps) {
   const { theme } = useTheme();
 
   const completedCount = category.topics.filter(
@@ -100,7 +104,7 @@ function CategoryCard({ category, topicProgress, onTopicPress }: CategoryCardPro
   return (
     <View style={[styles.categoryCard, { backgroundColor: theme.backgroundDefault }]}>
       <View style={styles.categoryHeader}>
-        <ThemedText type="h4">{category.name}</ThemedText>
+        <ThemedText type="h4">{categoryName}</ThemedText>
         <ThemedText type="caption" style={{ color: theme.tabIconDefault }}>
           {completedCount}/{category.topics.length}
         </ThemedText>
@@ -120,14 +124,18 @@ function CategoryCard({ category, topicProgress, onTopicPress }: CategoryCardPro
         showsHorizontalScrollIndicator={false}
         contentContainerStyle={styles.topicsContainer}
       >
-        {category.topics.map((topic) => (
-          <TopicChip
-            key={topic.id}
-            topic={topic}
-            progress={topicProgress[topic.id]}
-            onPress={() => onTopicPress(topic)}
-          />
-        ))}
+        {category.topics.map((topic) => {
+          const topicDisplayName = getTopicDisplayName(topic);
+          return (
+            <TopicChip
+              key={topic.id}
+              topic={topic}
+              topicName={topicDisplayName}
+              progress={topicProgress[topic.id]}
+              onPress={() => onTopicPress(topic, topicDisplayName)}
+            />
+          );
+        })}
       </ScrollView>
     </View>
   );
@@ -135,6 +143,7 @@ function CategoryCard({ category, topicProgress, onTopicPress }: CategoryCardPro
 
 export default function LearnScreen() {
   const { theme } = useTheme();
+  const { t, language, refreshLanguage } = useTranslation();
   const insets = useSafeAreaInsets();
   const navigation = useNavigation<NavigationProp>();
   const [topicProgress, setTopicProgress] = useState<Record<string, TopicProgress>>({});
@@ -147,9 +156,10 @@ export default function LearnScreen() {
   useEffect(() => {
     const unsubscribe = navigation.addListener("focus", () => {
       loadProgress();
+      refreshLanguage();
     });
     return unsubscribe;
-  }, [navigation]);
+  }, [navigation, refreshLanguage]);
 
   const loadProgress = async () => {
     try {
@@ -162,8 +172,8 @@ export default function LearnScreen() {
     }
   };
 
-  const handleTopicPress = (topic: Topic) => {
-    navigation.navigate("TopicDetail", { topicId: topic.id, topicName: topic.name });
+  const handleTopicPress = (topic: Topic, topicName: string) => {
+    navigation.navigate("TopicDetail", { topicId: topic.id, topicName });
   };
 
   if (loading) {
@@ -177,7 +187,7 @@ export default function LearnScreen() {
   return (
     <ThemedView style={styles.container}>
       <View style={[styles.header, { paddingTop: insets.top + Spacing.lg }]}>
-        <HeaderTitle title="Learn JavaScript" />
+        <HeaderTitle title={t("learnJavaScript")} />
         <Pressable
           style={styles.filterButton}
           onPress={() => navigation.navigate("Settings")}
@@ -198,8 +208,10 @@ export default function LearnScreen() {
           <CategoryCard
             key={category.id}
             category={category}
+            categoryName={getCategoryName(category, language)}
             topicProgress={topicProgress}
             onTopicPress={handleTopicPress}
+            getTopicDisplayName={(topic) => getTopicName(topic, language)}
           />
         ))}
       </ScrollView>

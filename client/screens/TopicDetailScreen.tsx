@@ -19,8 +19,9 @@ import Animated, {
 import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
 import { useTheme } from "@/hooks/useTheme";
+import { useTranslation } from "@/hooks/useTranslation";
 import { Spacing, BorderRadius, Shadows } from "@/constants/theme";
-import { getTopicById, type Topic } from "@/lib/topics";
+import { getTopicById, getTopicName, getTopicDescription, type Topic } from "@/lib/topics";
 import { storage, type TopicProgress } from "@/lib/storage";
 import type { RootStackParamList } from "@/navigation/RootStackNavigator";
 
@@ -31,6 +32,7 @@ const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
 
 export default function TopicDetailScreen() {
   const { theme } = useTheme();
+  const { t, language, refreshLanguage } = useTranslation();
   const insets = useSafeAreaInsets();
   const navigation = useNavigation<NavigationProp>();
   const route = useRoute<RouteProp>();
@@ -65,9 +67,10 @@ export default function TopicDetailScreen() {
   useEffect(() => {
     const unsubscribe = navigation.addListener("focus", () => {
       loadData();
+      refreshLanguage();
     });
     return unsubscribe;
-  }, [navigation]);
+  }, [navigation, refreshLanguage]);
 
   const loadData = async () => {
     try {
@@ -99,7 +102,7 @@ export default function TopicDetailScreen() {
     return (
       <ThemedView style={styles.errorContainer}>
         <Feather name="alert-circle" size={48} color={theme.error} />
-        <ThemedText type="body">Topic not found</ThemedText>
+        <ThemedText type="body">{t("topicNotFound")}</ThemedText>
       </ThemedView>
     );
   }
@@ -107,6 +110,8 @@ export default function TopicDetailScreen() {
   const questionsAnswered = progress?.questionsAnswered || 0;
   const correctAnswers = progress?.correctAnswers || 0;
   const accuracy = questionsAnswered > 0 ? Math.round((correctAnswers / questionsAnswered) * 100) : 0;
+  const displayName = getTopicName(topic, language);
+  const displayDescription = getTopicDescription(topic, language);
 
   return (
     <ThemedView style={styles.container}>
@@ -123,16 +128,16 @@ export default function TopicDetailScreen() {
             <Feather name="code" size={32} color={theme.primary} />
           </View>
           <ThemedText type="h3" style={styles.topicTitle}>
-            {topic.name}
+            {displayName}
           </ThemedText>
           <ThemedText type="body" style={{ color: theme.tabIconDefault, textAlign: "center" }}>
-            {topic.description}
+            {displayDescription}
           </ThemedText>
           {progress?.completed ? (
             <View style={[styles.completedBadge, { backgroundColor: theme.success }]}>
               <Feather name="check" size={14} color="#FFFFFF" />
               <ThemedText type="label" style={{ color: "#FFFFFF" }}>
-                Completed
+                {t("completed")}
               </ThemedText>
             </View>
           ) : null}
@@ -144,7 +149,7 @@ export default function TopicDetailScreen() {
               {questionsAnswered}
             </ThemedText>
             <ThemedText type="caption" style={{ color: theme.tabIconDefault }}>
-              Questions
+              {t("totalQuestions")}
             </ThemedText>
           </View>
           <View style={[styles.statCard, { backgroundColor: theme.backgroundDefault }]}>
@@ -152,7 +157,7 @@ export default function TopicDetailScreen() {
               {correctAnswers}
             </ThemedText>
             <ThemedText type="caption" style={{ color: theme.tabIconDefault }}>
-              Correct
+              {t("correctAnswers")}
             </ThemedText>
           </View>
           <View style={[styles.statCard, { backgroundColor: theme.backgroundDefault }]}>
@@ -160,16 +165,7 @@ export default function TopicDetailScreen() {
               {accuracy}%
             </ThemedText>
             <ThemedText type="caption" style={{ color: theme.tabIconDefault }}>
-              Accuracy
-            </ThemedText>
-          </View>
-        </View>
-
-        <View style={[styles.infoCard, { backgroundColor: theme.backgroundDefault }]}>
-          <View style={styles.infoRow}>
-            <Feather name="info" size={20} color={theme.secondary} />
-            <ThemedText type="body" style={{ flex: 1 }}>
-              Practice this topic to improve your JavaScript skills. Each quiz session includes 10 AI-generated questions.
+              {t("accuracy")}
             </ThemedText>
           </View>
         </View>
@@ -179,7 +175,7 @@ export default function TopicDetailScreen() {
             <View style={styles.infoRow}>
               <Feather name="clock" size={20} color={theme.tabIconDefault} />
               <ThemedText type="body" style={{ color: theme.tabIconDefault }}>
-                Last practiced: {new Date(progress.lastPracticed).toLocaleDateString()}
+                {new Date(progress.lastPracticed).toLocaleDateString()}
               </ThemedText>
             </View>
           </View>
@@ -200,7 +196,7 @@ export default function TopicDetailScreen() {
         >
           <Feather name="play" size={20} color="#FFFFFF" />
           <ThemedText type="body" style={{ color: "#FFFFFF", fontWeight: "600" }}>
-            Start Quiz
+            {t("startQuiz")}
           </ThemedText>
         </AnimatedPressable>
       </View>
