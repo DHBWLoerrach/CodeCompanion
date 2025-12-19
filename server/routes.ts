@@ -17,7 +17,7 @@ interface QuizQuestion {
 }
 
 const TOPIC_PROMPTS: Record<string, string> = {
-  variables: "JavaScript variable declarations using var, let, and const, including hoisting and scope",
+  variables: "JavaScript variable declarations using let and const only (do not include var), including block scope and when to use each",
   "data-types": "JavaScript primitive data types (string, number, boolean, null, undefined, symbol, bigint) and type checking",
   operators: "JavaScript arithmetic, comparison, and logical operators",
   conditionals: "JavaScript if/else statements and ternary operators",
