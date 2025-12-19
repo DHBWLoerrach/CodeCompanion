@@ -28,7 +28,7 @@ import type { RootStackParamList } from "@/navigation/RootStackNavigator";
 
 type NavigationProp = NativeStackNavigationProp<RootStackParamList>;
 
-const AVATARS = ["laptop", "award", "code", "zap"] as const;
+const AVATARS = ["monitor", "award", "code", "zap"] as const;
 const AVATAR_COLORS = ["#E2001A", "#4A90E2", "#34C759", "#FFB800"];
 
 interface AvatarSelectorProps {

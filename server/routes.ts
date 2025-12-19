@@ -70,22 +70,46 @@ Important:
 
   try {
     const response = await openai.chat.completions.create({
-      model: "gpt-5",
-      messages: [{ role: "user", content: prompt }],
-      max_completion_tokens: 4096,
-      response_format: { type: "json_object" },
+      model: "gpt-4o",
+      messages: [
+        { 
+          role: "system", 
+          content: "You are a JavaScript programming tutor creating quiz questions. Always respond with valid JSON containing a 'questions' array." 
+        },
+        { role: "user", content: prompt }
+      ],
+      max_tokens: 4096,
+      temperature: 0.7,
     });
 
     const content = response.choices[0]?.message?.content || "{}";
-    const parsed = JSON.parse(content);
+    console.log("OpenAI response content:", content.substring(0, 200));
+    
+    // Clean up potential markdown code blocks
+    let cleanContent = content.trim();
+    if (cleanContent.startsWith("```json")) {
+      cleanContent = cleanContent.slice(7);
+    }
+    if (cleanContent.startsWith("```")) {
+      cleanContent = cleanContent.slice(3);
+    }
+    if (cleanContent.endsWith("```")) {
+      cleanContent = cleanContent.slice(0, -3);
+    }
+    cleanContent = cleanContent.trim();
+    
+    const parsed = JSON.parse(cleanContent);
     
     if (Array.isArray(parsed)) {
+      console.log(`Generated ${parsed.length} questions for topic ${topicId}`);
       return parsed;
     }
     if (parsed.questions && Array.isArray(parsed.questions)) {
+      console.log(`Generated ${parsed.questions.length} questions for topic ${topicId}`);
       return parsed.questions;
     }
     
+    console.log("Unexpected response format:", Object.keys(parsed));
     return [];
   } catch (error) {
     console.error("Error generating quiz questions:", error);
