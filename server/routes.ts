@@ -1,5 +1,6 @@
 import type { Express } from "express";
 import { createServer, type Server } from "node:http";
+import crypto from "node:crypto";
 import OpenAI from "openai";
 
 const openai = new OpenAI({
@@ -105,17 +106,29 @@ Important:
     
     const parsed = JSON.parse(cleanContent);
     
+    let questions: QuizQuestion[] = [];
     if (Array.isArray(parsed)) {
-      console.log(`Generated ${parsed.length} questions for topic ${topicId} in ${language}`);
-      return parsed;
-    }
-    if (parsed.questions && Array.isArray(parsed.questions)) {
-      console.log(`Generated ${parsed.questions.length} questions for topic ${topicId} in ${language}`);
-      return parsed.questions;
+      questions = parsed;
+    } else if (parsed.questions && Array.isArray(parsed.questions)) {
+      questions = parsed.questions;
     }
     
-    console.log("Unexpected response format:", Object.keys(parsed));
-    return [];
+    // Generate stable unique IDs based on question content hash
+    // IDs are deterministic for identical question content, enabling progress tracking
+    questions = questions.map((q, index) => {
+      const contentHash = crypto
+        .createHash('md5')
+        .update(`${topicId}-${q.question}-${JSON.stringify(q.options)}-${index}`)
+        .digest('hex')
+        .substring(0, 12);
+      return {
+        ...q,
+        id: `${topicId}-${contentHash}`,
+      };
+    });
+    
+    console.log(`Generated ${questions.length} questions for topic ${topicId} in ${language}`);
+    return questions;
   } catch (error) {
     console.error("Error generating quiz questions:", error);
     throw error;

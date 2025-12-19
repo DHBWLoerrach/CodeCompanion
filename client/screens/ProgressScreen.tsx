@@ -15,7 +15,7 @@ import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
 import { useTheme } from "@/hooks/useTheme";
 import { useTranslation } from "@/hooks/useTranslation";
-import { Spacing, BorderRadius, Shadows } from "@/constants/theme";
+import { Spacing, BorderRadius, Shadows, AvatarColors } from "@/constants/theme";
 import {
   storage,
   type UserProfile,
@@ -27,7 +27,6 @@ import type { RootStackParamList } from "@/navigation/RootStackNavigator";
 type NavigationProp = NativeStackNavigationProp<RootStackParamList>;
 
 const AVATARS = ["monitor", "award", "code", "zap"] as const;
-const AVATAR_COLORS = ["#E2001A", "#4A90E2", "#34C759", "#FFB800"];
 
 interface StatCardProps {
   title: string;
@@ -190,7 +189,15 @@ export default function ProgressScreen() {
 
   const unlockedAchievements = getUnlockedAchievements();
   const today = new Date().getDay();
-  const dayLabels = ["S", "M", "T", "W", "T", "F", "S"];
+  const dayLabels = [
+    t("sunday"),
+    t("monday"),
+    t("tuesday"),
+    t("wednesday"),
+    t("thursday"),
+    t("friday"),
+    t("saturday"),
+  ];
 
   return (
     <ThemedView style={styles.container}>
@@ -216,7 +223,7 @@ export default function ProgressScreen() {
           <View
             style={[
               styles.avatar,
-              { backgroundColor: AVATAR_COLORS[profile.avatarIndex] },
+              { backgroundColor: AvatarColors[profile.avatarIndex] },
             ]}
           >
             <Feather
@@ -226,10 +233,10 @@ export default function ProgressScreen() {
             />
           </View>
           <ThemedText type="h4" style={styles.displayName}>
-            {profile.displayName}
+            {profile.displayName || t("student")}
           </ThemedText>
           <Pressable onPress={() => navigation.navigate("Settings")}>
-            <ThemedText type="link">{t("profile")}</ThemedText>
+            <ThemedText type="link">{t("editProfile")}</ThemedText>
           </Pressable>
         </View>
 
@@ -239,7 +246,7 @@ export default function ProgressScreen() {
               <ThemedText type="h1" style={{ color: theme.accent }}>
                 {streak.currentStreak}
               </ThemedText>
-              <ThemedText type="body">{t("days")}</ThemedText>
+              <ThemedText type="body">{t("dayStreak")}</ThemedText>
             </View>
             <Feather name="zap" size={40} color={theme.accent} />
           </View>

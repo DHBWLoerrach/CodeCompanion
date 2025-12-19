@@ -19,7 +19,7 @@ import { ThemedView } from "@/components/ThemedView";
 import { KeyboardAwareScrollViewCompat } from "@/components/KeyboardAwareScrollViewCompat";
 import { useTheme } from "@/hooks/useTheme";
 import { useTranslation } from "@/hooks/useTranslation";
-import { Spacing, BorderRadius, Shadows } from "@/constants/theme";
+import { Spacing, BorderRadius, Shadows, AvatarColors } from "@/constants/theme";
 import {
   storage,
   type UserProfile,
@@ -30,7 +30,6 @@ import type { RootStackParamList } from "@/navigation/RootStackNavigator";
 type NavigationProp = NativeStackNavigationProp<RootStackParamList>;
 
 const AVATARS = ["monitor", "award", "code", "zap"] as const;
-const AVATAR_COLORS = ["#E2001A", "#4A90E2", "#34C759", "#FFB800"];
 
 interface AvatarSelectorProps {
   selectedIndex: number;
@@ -48,7 +47,7 @@ function AvatarSelector({ selectedIndex, onSelect }: AvatarSelectorProps) {
           style={[
             styles.avatarOption,
             {
-              backgroundColor: AVATAR_COLORS[index],
+              backgroundColor: AvatarColors[index],
               borderWidth: selectedIndex === index ? 3 : 0,
               borderColor: theme.text,
             },
@@ -125,7 +124,7 @@ export default function SettingsScreen() {
       navigation.goBack();
     } catch (error) {
       console.error("Error saving settings:", error);
-      Alert.alert("Error", "Failed to save settings");
+      Alert.alert(t("error"), t("failedToSaveSettings"));
     } finally {
       setSaving(false);
     }
@@ -133,12 +132,12 @@ export default function SettingsScreen() {
 
   const handleResetProgress = () => {
     Alert.alert(
-      "Reset Progress",
-      "This will delete all your progress, streaks, and achievements. This cannot be undone.",
+      t("resetProgress"),
+      t("resetProgressMessage"),
       [
         { text: t("cancel"), style: "cancel" },
         {
-          text: "Reset",
+          text: t("reset"),
           style: "destructive",
           onPress: async () => {
             await storage.clearAllData();
@@ -206,7 +205,7 @@ export default function SettingsScreen() {
               ]}
               value={profile.displayName}
               onChangeText={(text) => setProfile({ ...profile, displayName: text })}
-              placeholder={t("enterYourName")}
+              placeholder={t("student")}
               placeholderTextColor={theme.tabIconDefault}
             />
           </View>
@@ -299,7 +298,7 @@ export default function SettingsScreen() {
         >
           <Feather name="trash-2" size={18} color={theme.error} />
           <ThemedText type="body" style={{ color: theme.error }}>
-            Reset All Progress
+            {t("resetAllProgress")}
           </ThemedText>
         </Pressable>
       </KeyboardAwareScrollViewCompat>

@@ -41,7 +41,7 @@ export interface SettingsData {
 }
 
 const defaultProfile: UserProfile = {
-  displayName: "Student",
+  displayName: "",
   avatarIndex: 0,
 };
 

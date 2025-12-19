@@ -146,3 +146,10 @@ export const Shadows = {
     elevation: 4,
   },
 };
+
+export const AvatarColors = [
+  "#E2001A",
+  "#4A90E2",
+  "#34C759",
+  "#FFB800",
+];

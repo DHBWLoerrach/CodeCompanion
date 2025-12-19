@@ -1,11 +1,11 @@
-import React from "react";
+import React, { useEffect, useCallback } from "react";
 import { View, StyleSheet, Pressable } from "react-native";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import { Feather } from "@expo/vector-icons";
 import { BlurView } from "expo-blur";
 import { Platform } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { useNavigation } from "@react-navigation/native";
+import { useNavigation, useFocusEffect } from "@react-navigation/native";
 import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import Animated, {
   useAnimatedStyle,
@@ -16,6 +16,7 @@ import Animated, {
 import LearnScreen from "@/screens/LearnScreen";
 import ProgressScreen from "@/screens/ProgressScreen";
 import { useTheme } from "@/hooks/useTheme";
+import { useTranslation } from "@/hooks/useTranslation";
 import { Colors, Spacing, Shadows } from "@/constants/theme";
 import type { RootStackParamList } from "@/navigation/RootStackNavigator";
 
@@ -68,10 +69,18 @@ function EmptyScreen() {
 
 export default function MainTabNavigator() {
   const { theme, isDark } = useTheme();
+  const { t, language, refreshLanguage } = useTranslation();
   const insets = useSafeAreaInsets();
+
+  useFocusEffect(
+    useCallback(() => {
+      refreshLanguage();
+    }, [refreshLanguage])
+  );
 
   return (
     <Tab.Navigator
+      key={language}
       initialRouteName="LearnTab"
       screenOptions={{
         tabBarActiveTintColor: theme.primary,
@@ -106,7 +115,7 @@ export default function MainTabNavigator() {
         name="LearnTab"
         component={LearnScreen}
         options={{
-          title: "Learn",
+          title: t("learn"),
           tabBarIcon: ({ color, size }) => (
             <Feather name="book-open" size={size} color={color} />
           ),
@@ -129,7 +138,7 @@ export default function MainTabNavigator() {
         name="ProgressTab"
         component={ProgressScreen}
         options={{
-          title: "Progress",
+          title: t("progress"),
           tabBarIcon: ({ color, size }) => (
             <Feather name="bar-chart-2" size={size} color={color} />
           ),

@@ -61,16 +61,20 @@ export default function TopicDetailScreen() {
   }, []);
 
   useEffect(() => {
-    navigation.setOptions({ headerTitle: topicName });
-  }, [topicName]);
-
-  useEffect(() => {
-    const unsubscribe = navigation.addListener("focus", () => {
+    const unsubscribe = navigation.addListener("focus", async () => {
+      await refreshLanguage();
       loadData();
-      refreshLanguage();
     });
     return unsubscribe;
   }, [navigation, refreshLanguage]);
+
+  // Update header title based on current language
+  useEffect(() => {
+    const topicData = getTopicById(topicId);
+    if (topicData) {
+      navigation.setOptions({ headerTitle: getTopicName(topicData, language) });
+    }
+  }, [topicId, language, navigation]);
 
   const loadData = async () => {
     try {
