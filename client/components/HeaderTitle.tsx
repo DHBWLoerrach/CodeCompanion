@@ -2,21 +2,24 @@ import React from "react";
 import { View, StyleSheet, Image } from "react-native";
 
 import { ThemedText } from "@/components/ThemedText";
+import { useTheme } from "@/hooks/useTheme";
 import { Spacing } from "@/constants/theme";
 
 interface HeaderTitleProps {
-  title: string;
+  title?: string;
 }
 
-export function HeaderTitle({ title }: HeaderTitleProps) {
+export function HeaderTitle({ title = "Learn JavaScript" }: HeaderTitleProps) {
+  const { theme } = useTheme();
+
   return (
     <View style={styles.container}>
-      <Image
-        source={require("../../assets/images/icon.png")}
-        style={styles.icon}
-        resizeMode="contain"
-      />
-      <ThemedText style={styles.title}>{title}</ThemedText>
+      <View style={[styles.iconContainer, { backgroundColor: theme.primary }]}>
+        <ThemedText style={styles.iconText} lightColor="#FFFFFF" darkColor="#FFFFFF">
+          JS
+        </ThemedText>
+      </View>
+      <ThemedText type="h4" style={styles.title}>{title}</ThemedText>
     </View>
   );
 }
@@ -27,10 +30,17 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "flex-start",
   },
-  icon: {
-    width: 28,
-    height: 28,
+  iconContainer: {
+    width: 32,
+    height: 32,
+    borderRadius: 8,
+    alignItems: "center",
+    justifyContent: "center",
     marginRight: Spacing.sm,
+  },
+  iconText: {
+    fontSize: 14,
+    fontWeight: "700",
   },
   title: {
     fontSize: 17,

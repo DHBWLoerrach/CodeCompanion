@@ -1,11 +1,141 @@
 import type { Express } from "express";
 import { createServer, type Server } from "node:http";
+import OpenAI from "openai";
+
+const openai = new OpenAI({
+  apiKey: process.env.AI_INTEGRATIONS_OPENAI_API_KEY,
+  baseURL: process.env.AI_INTEGRATIONS_OPENAI_BASE_URL,
+});
+
+interface QuizQuestion {
+  id: string;
+  question: string;
+  code?: string;
+  options: string[];
+  correctIndex: number;
+  explanation: string;
+}
+
+const TOPIC_PROMPTS: Record<string, string> = {
+  variables: "JavaScript variable declarations using var, let, and const, including hoisting and scope",
+  "data-types": "JavaScript primitive data types (string, number, boolean, null, undefined, symbol, bigint) and type checking",
+  operators: "JavaScript arithmetic, comparison, and logical operators",
+  conditionals: "JavaScript if/else statements and ternary operators",
+  loops: "JavaScript for, while, do-while, and for...of loops",
+  switch: "JavaScript switch statements and case handling",
+  declarations: "JavaScript function declarations and function expressions",
+  "arrow-functions": "JavaScript ES6 arrow function syntax and behavior",
+  callbacks: "JavaScript callback functions and callback patterns",
+  objects: "JavaScript object literals, properties, and methods",
+  arrays: "JavaScript array methods like map, filter, reduce, find, forEach",
+  destructuring: "JavaScript object and array destructuring syntax",
+  promises: "JavaScript Promises, then/catch chaining, and Promise.all",
+  "async-await": "JavaScript async/await syntax for handling asynchronous code",
+  "error-handling": "JavaScript try/catch blocks and error management",
+  closures: "JavaScript closures and lexical scope",
+  prototypes: "JavaScript prototype chain and prototype-based inheritance",
+  classes: "JavaScript ES6 class syntax, constructors, and methods",
+  modules: "JavaScript ES6 import/export and module patterns",
+};
+
+async function generateQuizQuestions(topicId: string, count: number = 5): Promise<QuizQuestion[]> {
+  const topicDescription = TOPIC_PROMPTS[topicId] || "general JavaScript programming concepts";
+
+  const prompt = `Generate ${count} multiple-choice quiz questions about ${topicDescription} for computer science students learning JavaScript programming.
+
+Each question should:
+- Test understanding of the concept, not just memorization
+- Include a short code snippet when appropriate (keep code under 10 lines)
+- Have exactly 4 answer options
+- Have only one correct answer
+- Include a brief explanation of why the correct answer is right
+
+Return a JSON array with this exact structure:
+[
+  {
+    "id": "unique-id-1",
+    "question": "What will be the output of this code?",
+    "code": "const x = 5;\\nlet y = x;\\ny = 10;\\nconsole.log(x);",
+    "options": ["5", "10", "undefined", "Error"],
+    "correctIndex": 0,
+    "explanation": "Primitives are copied by value, so changing y doesn't affect x."
+  }
+]
+
+Important:
+- Make questions progressively challenging
+- Use realistic code examples students would encounter
+- Avoid web/HTML/CSS context - focus purely on JavaScript language concepts
+- Return ONLY valid JSON, no markdown or extra text`;
+
+  try {
+    const response = await openai.chat.completions.create({
+      model: "gpt-5",
+      messages: [{ role: "user", content: prompt }],
+      max_completion_tokens: 4096,
+      response_format: { type: "json_object" },
+    });
+
+    const content = response.choices[0]?.message?.content || "{}";
+    const parsed = JSON.parse(content);
+    
+    if (Array.isArray(parsed)) {
+      return parsed;
+    }
+    if (parsed.questions && Array.isArray(parsed.questions)) {
+      return parsed.questions;
+    }
+    
+    return [];
+  } catch (error) {
+    console.error("Error generating quiz questions:", error);
+    throw error;
+  }
+}
 
 export async function registerRoutes(app: Express): Promise<Server> {
-  // put application routes here
-  // prefix all routes with /api
+  app.post("/api/quiz/generate", async (req, res) => {
+    try {
+      const { topicId, count = 5 } = req.body;
+      
+      if (!topicId) {
+        return res.status(400).json({ error: "topicId is required" });
+      }
+
+      const questions = await generateQuizQuestions(topicId, count);
+      res.json({ questions });
+    } catch (error) {
+      console.error("Quiz generation error:", error);
+      res.status(500).json({ error: "Failed to generate quiz questions" });
+    }
+  });
+
+  app.post("/api/quiz/generate-mixed", async (req, res) => {
+    try {
+      const { count = 10 } = req.body;
+      const topics = Object.keys(TOPIC_PROMPTS);
+      const randomTopics = topics.sort(() => Math.random() - 0.5).slice(0, 3);
+      
+      const questionsPerTopic = Math.ceil(count / randomTopics.length);
+      const allQuestions: QuizQuestion[] = [];
+
+      for (const topicId of randomTopics) {
+        const questions = await generateQuizQuestions(topicId, questionsPerTopic);
+        allQuestions.push(...questions);
+      }
+
+      const shuffled = allQuestions.sort(() => Math.random() - 0.5).slice(0, count);
+      res.json({ questions: shuffled });
+    } catch (error) {
+      console.error("Mixed quiz generation error:", error);
+      res.status(500).json({ error: "Failed to generate quiz questions" });
+    }
+  });
+
+  app.get("/api/health", (req, res) => {
+    res.json({ status: "ok" });
+  });
 
   const httpServer = createServer(app);
-
   return httpServer;
 }

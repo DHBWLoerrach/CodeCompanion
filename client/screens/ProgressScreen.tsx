@@ -1,0 +1,434 @@
+import React, { useState, useEffect } from "react";
+import {
+  View,
+  ScrollView,
+  StyleSheet,
+  Pressable,
+  ActivityIndicator,
+} from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { useNavigation } from "@react-navigation/native";
+import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
+import { Feather } from "@expo/vector-icons";
+import Animated, {
+  useAnimatedStyle,
+  useSharedValue,
+  withSpring,
+} from "react-native-reanimated";
+
+import { ThemedText } from "@/components/ThemedText";
+import { ThemedView } from "@/components/ThemedView";
+import { useTheme } from "@/hooks/useTheme";
+import { Spacing, BorderRadius, Shadows } from "@/constants/theme";
+import {
+  storage,
+  type UserProfile,
+  type ProgressData,
+  type StreakData,
+} from "@/lib/storage";
+import type { RootStackParamList } from "@/navigation/RootStackNavigator";
+
+type NavigationProp = NativeStackNavigationProp<RootStackParamList>;
+
+const AVATARS = ["laptop", "award", "code", "zap"] as const;
+const AVATAR_COLORS = ["#E2001A", "#4A90E2", "#34C759", "#FFB800"];
+
+const ACHIEVEMENTS = [
+  { id: "first-quiz", name: "First Quiz", icon: "star", threshold: 1 },
+  { id: "streak-7", name: "7-Day Streak", icon: "zap", threshold: 7 },
+  { id: "streak-30", name: "30-Day Streak", icon: "award", threshold: 30 },
+  { id: "questions-100", name: "100 Questions", icon: "check-circle", threshold: 100 },
+  { id: "js-novice", name: "JS Novice", icon: "book", threshold: 50 },
+  { id: "js-master", name: "JS Master", icon: "award", threshold: 200 },
+];
+
+interface StatCardProps {
+  title: string;
+  value: string | number;
+  icon: string;
+  color: string;
+}
+
+function StatCard({ title, value, icon, color }: StatCardProps) {
+  const { theme } = useTheme();
+
+  return (
+    <View style={[styles.statCard, { backgroundColor: theme.backgroundDefault }]}>
+      <View style={[styles.statIconContainer, { backgroundColor: color + "20" }]}>
+        <Feather name={icon as any} size={20} color={color} />
+      </View>
+      <ThemedText type="h3" style={styles.statValue}>
+        {value}
+      </ThemedText>
+      <ThemedText type="caption" style={{ color: theme.tabIconDefault }}>
+        {title}
+      </ThemedText>
+    </View>
+  );
+}
+
+interface DayIndicatorProps {
+  practiced: boolean;
+  isToday: boolean;
+}
+
+function DayIndicator({ practiced, isToday }: DayIndicatorProps) {
+  const { theme } = useTheme();
+
+  return (
+    <View
+      style={[
+        styles.dayIndicator,
+        {
+          backgroundColor: practiced ? theme.success : theme.cardBorder,
+          borderWidth: isToday ? 2 : 0,
+          borderColor: theme.secondary,
+        },
+      ]}
+    />
+  );
+}
+
+interface AchievementBadgeProps {
+  achievement: typeof ACHIEVEMENTS[0];
+  unlocked: boolean;
+}
+
+function AchievementBadge({ achievement, unlocked }: AchievementBadgeProps) {
+  const { theme } = useTheme();
+
+  return (
+    <View style={styles.achievementContainer}>
+      <View
+        style={[
+          styles.achievementBadge,
+          {
+            backgroundColor: unlocked ? theme.accent : theme.cardBorder,
+            opacity: unlocked ? 1 : 0.5,
+          },
+        ]}
+      >
+        {unlocked ? (
+          <Feather name={achievement.icon as any} size={24} color="#FFFFFF" />
+        ) : (
+          <Feather name="lock" size={20} color={theme.tabIconDefault} />
+        )}
+      </View>
+      <ThemedText
+        type="caption"
+        style={[styles.achievementName, { opacity: unlocked ? 1 : 0.5 }]}
+        numberOfLines={1}
+      >
+        {achievement.name}
+      </ThemedText>
+    </View>
+  );
+}
+
+export default function ProgressScreen() {
+  const { theme } = useTheme();
+  const insets = useSafeAreaInsets();
+  const navigation = useNavigation<NavigationProp>();
+  const [profile, setProfile] = useState<UserProfile | null>(null);
+  const [progress, setProgress] = useState<ProgressData | null>(null);
+  const [streak, setStreak] = useState<StreakData | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    loadData();
+  }, []);
+
+  useEffect(() => {
+    const unsubscribe = navigation.addListener("focus", () => {
+      loadData();
+    });
+    return unsubscribe;
+  }, [navigation]);
+
+  const loadData = async () => {
+    try {
+      const [profileData, progressData, streakData] = await Promise.all([
+        storage.getProfile(),
+        storage.getProgress(),
+        storage.getStreak(),
+      ]);
+      setProfile(profileData);
+      setProgress(progressData);
+      setStreak(streakData);
+    } catch (error) {
+      console.error("Error loading data:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const getTopicsMastered = () => {
+    if (!progress) return 0;
+    return Object.values(progress.topicProgress).filter((t) => t.completed).length;
+  };
+
+  const getUnlockedAchievements = () => {
+    if (!progress || !streak) return [];
+    const unlocked: string[] = [];
+
+    if (progress.totalQuestions >= 1) unlocked.push("first-quiz");
+    if (streak.currentStreak >= 7) unlocked.push("streak-7");
+    if (streak.currentStreak >= 30) unlocked.push("streak-30");
+    if (progress.totalQuestions >= 100) unlocked.push("questions-100");
+    if (progress.correctAnswers >= 50) unlocked.push("js-novice");
+    if (progress.correctAnswers >= 200) unlocked.push("js-master");
+
+    return unlocked;
+  };
+
+  if (loading || !profile || !progress || !streak) {
+    return (
+      <ThemedView style={[styles.loadingContainer, { paddingTop: insets.top }]}>
+        <ActivityIndicator size="large" color={theme.primary} />
+      </ThemedView>
+    );
+  }
+
+  const unlockedAchievements = getUnlockedAchievements();
+  const today = new Date().getDay();
+  const dayLabels = ["S", "M", "T", "W", "T", "F", "S"];
+
+  return (
+    <ThemedView style={styles.container}>
+      <View style={[styles.header, { paddingTop: insets.top + Spacing.lg }]}>
+        <ThemedText type="h3">Your Progress</ThemedText>
+        <Pressable
+          style={styles.settingsButton}
+          onPress={() => navigation.navigate("Settings")}
+        >
+          <Feather name="settings" size={22} color={theme.tabIconDefault} />
+        </Pressable>
+      </View>
+
+      <ScrollView
+        style={styles.scrollView}
+        contentContainerStyle={[
+          styles.scrollContent,
+          { paddingBottom: 100 + insets.bottom },
+        ]}
+        showsVerticalScrollIndicator={false}
+      >
+        <View style={[styles.profileCard, { backgroundColor: theme.backgroundDefault }]}>
+          <View
+            style={[
+              styles.avatar,
+              { backgroundColor: AVATAR_COLORS[profile.avatarIndex] },
+            ]}
+          >
+            <Feather
+              name={AVATARS[profile.avatarIndex] as any}
+              size={36}
+              color="#FFFFFF"
+            />
+          </View>
+          <ThemedText type="h4" style={styles.displayName}>
+            {profile.displayName}
+          </ThemedText>
+          <Pressable onPress={() => navigation.navigate("Settings")}>
+            <ThemedText type="link">Edit Profile</ThemedText>
+          </Pressable>
+        </View>
+
+        <View style={[styles.streakCard, { backgroundColor: theme.backgroundDefault }]}>
+          <View style={styles.streakHeader}>
+            <View style={styles.streakInfo}>
+              <ThemedText type="h1" style={{ color: theme.accent }}>
+                {streak.currentStreak}
+              </ThemedText>
+              <ThemedText type="body">day streak</ThemedText>
+            </View>
+            <Feather name="zap" size={40} color={theme.accent} />
+          </View>
+
+          <View style={styles.weekRow}>
+            {dayLabels.map((label, index) => (
+              <View key={index} style={styles.dayColumn}>
+                <ThemedText type="caption" style={{ color: theme.tabIconDefault }}>
+                  {label}
+                </ThemedText>
+                <DayIndicator
+                  practiced={streak.weekHistory[index]}
+                  isToday={index === today}
+                />
+              </View>
+            ))}
+          </View>
+        </View>
+
+        <View style={styles.statsGrid}>
+          <StatCard
+            title="Total Questions"
+            value={progress.totalQuestions}
+            icon="help-circle"
+            color={theme.secondary}
+          />
+          <StatCard
+            title="Topics Mastered"
+            value={getTopicsMastered()}
+            icon="check-square"
+            color={theme.success}
+          />
+          <StatCard
+            title="Current Streak"
+            value={streak.currentStreak}
+            icon="zap"
+            color={theme.accent}
+          />
+          <StatCard
+            title="Best Streak"
+            value={streak.bestStreak}
+            icon="award"
+            color={theme.primary}
+          />
+        </View>
+
+        <View style={styles.achievementsSection}>
+          <ThemedText type="h4" style={styles.sectionTitle}>
+            Achievements
+          </ThemedText>
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={styles.achievementsRow}
+          >
+            {ACHIEVEMENTS.map((achievement) => (
+              <AchievementBadge
+                key={achievement.id}
+                achievement={achievement}
+                unlocked={unlockedAchievements.includes(achievement.id)}
+              />
+            ))}
+          </ScrollView>
+        </View>
+      </ScrollView>
+    </ThemedView>
+  );
+}
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+  },
+  loadingContainer: {
+    flex: 1,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  header: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    paddingHorizontal: Spacing.lg,
+    paddingBottom: Spacing.lg,
+  },
+  settingsButton: {
+    padding: Spacing.sm,
+  },
+  scrollView: {
+    flex: 1,
+  },
+  scrollContent: {
+    paddingHorizontal: Spacing.lg,
+    gap: Spacing.lg,
+  },
+  profileCard: {
+    borderRadius: BorderRadius.lg,
+    padding: Spacing.xl,
+    alignItems: "center",
+    ...Shadows.card,
+  },
+  avatar: {
+    width: 80,
+    height: 80,
+    borderRadius: 40,
+    alignItems: "center",
+    justifyContent: "center",
+    marginBottom: Spacing.md,
+  },
+  displayName: {
+    marginBottom: Spacing.sm,
+  },
+  streakCard: {
+    borderRadius: BorderRadius.lg,
+    padding: Spacing.lg,
+    ...Shadows.card,
+  },
+  streakHeader: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginBottom: Spacing.lg,
+  },
+  streakInfo: {
+    flexDirection: "row",
+    alignItems: "baseline",
+    gap: Spacing.sm,
+  },
+  weekRow: {
+    flexDirection: "row",
+    justifyContent: "space-around",
+  },
+  dayColumn: {
+    alignItems: "center",
+    gap: Spacing.xs,
+  },
+  dayIndicator: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+  },
+  statsGrid: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: Spacing.md,
+  },
+  statCard: {
+    flex: 1,
+    minWidth: "45%",
+    borderRadius: BorderRadius.md,
+    padding: Spacing.lg,
+    alignItems: "center",
+    ...Shadows.card,
+  },
+  statIconContainer: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    alignItems: "center",
+    justifyContent: "center",
+    marginBottom: Spacing.sm,
+  },
+  statValue: {
+    marginBottom: Spacing.xs,
+  },
+  achievementsSection: {
+    gap: Spacing.md,
+  },
+  sectionTitle: {
+    marginBottom: Spacing.sm,
+  },
+  achievementsRow: {
+    flexDirection: "row",
+    gap: Spacing.md,
+  },
+  achievementContainer: {
+    alignItems: "center",
+    width: 72,
+  },
+  achievementBadge: {
+    width: 64,
+    height: 64,
+    borderRadius: 32,
+    alignItems: "center",
+    justifyContent: "center",
+    marginBottom: Spacing.xs,
+  },
+  achievementName: {
+    textAlign: "center",
+  },
+});

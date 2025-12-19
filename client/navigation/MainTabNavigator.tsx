@@ -1,27 +1,80 @@
 import React from "react";
+import { View, StyleSheet, Pressable } from "react-native";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import { Feather } from "@expo/vector-icons";
 import { BlurView } from "expo-blur";
-import { Platform, StyleSheet } from "react-native";
-import HomeStackNavigator from "@/navigation/HomeStackNavigator";
-import ProfileStackNavigator from "@/navigation/ProfileStackNavigator";
+import { Platform } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { useNavigation } from "@react-navigation/native";
+import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
+import Animated, {
+  useAnimatedStyle,
+  useSharedValue,
+  withSpring,
+} from "react-native-reanimated";
+
+import LearnScreen from "@/screens/LearnScreen";
+import ProgressScreen from "@/screens/ProgressScreen";
 import { useTheme } from "@/hooks/useTheme";
+import { Colors, Spacing, Shadows } from "@/constants/theme";
+import type { RootStackParamList } from "@/navigation/RootStackNavigator";
 
 export type MainTabParamList = {
-  HomeTab: undefined;
-  ProfileTab: undefined;
+  LearnTab: undefined;
+  PracticeTab: undefined;
+  ProgressTab: undefined;
 };
 
 const Tab = createBottomTabNavigator<MainTabParamList>();
 
+function PracticeButton() {
+  const { theme } = useTheme();
+  const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
+  const scale = useSharedValue(1);
+
+  const animatedStyle = useAnimatedStyle(() => ({
+    transform: [{ scale: scale.value }],
+  }));
+
+  const handlePressIn = () => {
+    scale.value = withSpring(0.92, { damping: 15, stiffness: 150 });
+  };
+
+  const handlePressOut = () => {
+    scale.value = withSpring(1, { damping: 15, stiffness: 150 });
+  };
+
+  const handlePress = () => {
+    navigation.navigate("QuizSession", { topicId: undefined });
+  };
+
+  return (
+    <Animated.View style={[styles.practiceButtonContainer, animatedStyle]}>
+      <Pressable
+        onPress={handlePress}
+        onPressIn={handlePressIn}
+        onPressOut={handlePressOut}
+        style={[styles.practiceButton, { backgroundColor: theme.primary }]}
+      >
+        <Feather name="edit-3" size={28} color="#FFFFFF" />
+      </Pressable>
+    </Animated.View>
+  );
+}
+
+function EmptyScreen() {
+  return <View style={{ flex: 1 }} />;
+}
+
 export default function MainTabNavigator() {
   const { theme, isDark } = useTheme();
+  const insets = useSafeAreaInsets();
 
   return (
     <Tab.Navigator
-      initialRouteName="HomeTab"
+      initialRouteName="LearnTab"
       screenOptions={{
-        tabBarActiveTintColor: theme.tabIconSelected,
+        tabBarActiveTintColor: theme.primary,
         tabBarInactiveTintColor: theme.tabIconDefault,
         tabBarStyle: {
           position: "absolute",
@@ -31,6 +84,8 @@ export default function MainTabNavigator() {
           }),
           borderTopWidth: 0,
           elevation: 0,
+          height: 60 + insets.bottom,
+          paddingBottom: insets.bottom,
         },
         tabBarBackground: () =>
           Platform.OS === "ios" ? (
@@ -41,28 +96,61 @@ export default function MainTabNavigator() {
             />
           ) : null,
         headerShown: false,
+        tabBarLabelStyle: {
+          fontSize: 12,
+          fontWeight: "500",
+        },
       }}
     >
       <Tab.Screen
-        name="HomeTab"
-        component={HomeStackNavigator}
+        name="LearnTab"
+        component={LearnScreen}
         options={{
-          title: "Home",
+          title: "Learn",
           tabBarIcon: ({ color, size }) => (
-            <Feather name="home" size={size} color={color} />
+            <Feather name="book-open" size={size} color={color} />
           ),
         }}
       />
       <Tab.Screen
-        name="ProfileTab"
-        component={ProfileStackNavigator}
+        name="PracticeTab"
+        component={EmptyScreen}
         options={{
-          title: "Profile",
+          title: "",
+          tabBarButton: () => <PracticeButton />,
+        }}
+        listeners={{
+          tabPress: (e) => {
+            e.preventDefault();
+          },
+        }}
+      />
+      <Tab.Screen
+        name="ProgressTab"
+        component={ProgressScreen}
+        options={{
+          title: "Progress",
           tabBarIcon: ({ color, size }) => (
-            <Feather name="user" size={size} color={color} />
+            <Feather name="bar-chart-2" size={size} color={color} />
           ),
         }}
       />
     </Tab.Navigator>
   );
 }
+
+const styles = StyleSheet.create({
+  practiceButtonContainer: {
+    position: "absolute",
+    top: -20,
+    alignSelf: "center",
+    ...Shadows.floatingButton,
+  },
+  practiceButton: {
+    width: 64,
+    height: 64,
+    borderRadius: 32,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+});
