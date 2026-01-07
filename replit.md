@@ -51,6 +51,12 @@ server/
 - The Express API runs on port 5000
 
 ## Recent Changes
+- January 7, 2026: Dark mode and instant settings
+  - Added dark mode with auto/light/dark options (auto follows system preference)
+  - Settings changes (language, theme) now apply immediately without saving
+  - ThemeProvider context manages app-wide theme state
+  - Header styling adapts to dark mode properly
+
 - December 19, 2025: Initial MVP with core learning features
   - Created 3-tab navigation (Learn, Practice, Progress)
   - Implemented AI quiz generation with OpenAI
@@ -58,6 +64,7 @@ server/
   - Designed DHBW-branded UI with custom theme
 
 ## User Preferences
-- German and English language support (preference stored locally)
+- German and English language support (preference stored locally, changes apply instantly)
+- Theme mode: Auto (system), Light, Dark (changes apply instantly)
 - Difficulty levels: Beginner, Intermediate, Advanced
 - 4 avatar presets for profile customization
