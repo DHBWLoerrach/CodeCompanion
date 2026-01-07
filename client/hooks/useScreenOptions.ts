@@ -18,6 +18,7 @@ export function useScreenOptions({
     headerTransparent: transparent,
     headerBlurEffect: isDark ? "dark" : "light",
     headerTintColor: theme.text,
+    headerBackTitle: "",
     headerStyle: {
       backgroundColor: transparent
         ? Platform.select({

@@ -67,7 +67,6 @@ export default function RootStackNavigator() {
         options={{
           ...opaqueScreenOptions,
           headerTitle: t("settings"),
-          headerBackTitle: "",
         }}
       />
       <Stack.Screen
