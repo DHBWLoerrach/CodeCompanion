@@ -34,10 +34,13 @@ export interface StreakData {
   weekHistory: boolean[];
 }
 
+export type ThemeMode = "auto" | "light" | "dark";
+
 export interface SettingsData {
   notificationsEnabled: boolean;
   language: "en" | "de";
   difficulty: "beginner" | "intermediate" | "advanced";
+  themeMode: ThemeMode;
 }
 
 const defaultProfile: UserProfile = {
@@ -63,6 +66,7 @@ const defaultSettings: SettingsData = {
   notificationsEnabled: false,
   language: "en",
   difficulty: "beginner",
+  themeMode: "auto",
 };
 
 export const storage = {

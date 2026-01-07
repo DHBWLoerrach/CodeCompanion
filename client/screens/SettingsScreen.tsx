@@ -24,6 +24,7 @@ import {
   storage,
   type UserProfile,
   type SettingsData,
+  type ThemeMode,
 } from "@/lib/storage";
 import type { RootStackParamList } from "@/navigation/RootStackNavigator";
 
@@ -82,7 +83,7 @@ function SettingRow({ icon, label, children }: SettingRowProps) {
 }
 
 export default function SettingsScreen() {
-  const { theme } = useTheme();
+  const { theme, refreshTheme } = useTheme();
   const { t, language, refreshLanguage } = useTranslation();
   const insets = useSafeAreaInsets();
   const navigation = useNavigation<NavigationProp>();
@@ -120,7 +121,7 @@ export default function SettingsScreen() {
         storage.setProfile(profile),
         storage.setSettings(settings),
       ]);
-      await refreshLanguage();
+      await Promise.all([refreshLanguage(), refreshTheme()]);
       navigation.goBack();
     } catch (error) {
       console.error("Error saving settings:", error);
@@ -158,6 +159,15 @@ export default function SettingsScreen() {
       case "intermediate": return t("intermediate");
       case "advanced": return t("advanced");
       default: return difficulty;
+    }
+  };
+
+  const getThemeModeLabel = (mode: ThemeMode) => {
+    switch (mode) {
+      case "auto": return t("themeAuto");
+      case "light": return t("themeLight");
+      case "dark": return t("themeDark");
+      default: return mode;
     }
   };
 
@@ -257,6 +267,21 @@ export default function SettingsScreen() {
               >
                 <ThemedText type="label">
                   {getDifficultyLabel(settings.difficulty)}
+                </ThemedText>
+              </Pressable>
+            </SettingRow>
+            <SettingRow icon="moon" label={t("theme")}>
+              <Pressable
+                style={[styles.optionButton, { backgroundColor: theme.backgroundSecondary }]}
+                onPress={() => {
+                  const modes: ThemeMode[] = ["auto", "light", "dark"];
+                  const currentIndex = modes.indexOf(settings.themeMode);
+                  const nextIndex = (currentIndex + 1) % modes.length;
+                  setSettings({ ...settings, themeMode: modes[nextIndex] });
+                }}
+              >
+                <ThemedText type="label">
+                  {getThemeModeLabel(settings.themeMode)}
                 </ThemedText>
               </Pressable>
             </SettingRow>

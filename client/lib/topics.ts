@@ -34,7 +34,7 @@ export const CATEGORIES: Category[] = [
   },
   {
     id: "functions",
-    nameKey: "functions",
+    nameKey: "functionsCategory",
     topics: [
       { id: "declarations", nameKey: "declarations", descKey: "declarationsDesc", category: "functions" },
       { id: "arrow-functions", nameKey: "arrowFunctions", descKey: "arrowFunctionsDesc", category: "functions" },
@@ -52,7 +52,7 @@ export const CATEGORIES: Category[] = [
   },
   {
     id: "async",
-    nameKey: "async",
+    nameKey: "asyncCategory",
     topics: [
       { id: "promises", nameKey: "promises", descKey: "promisesDesc", category: "async" },
       { id: "async-await", nameKey: "asyncAwait", descKey: "asyncAwaitDesc", category: "async" },
@@ -61,7 +61,7 @@ export const CATEGORIES: Category[] = [
   },
   {
     id: "advanced",
-    nameKey: "advanced",
+    nameKey: "advancedCategory",
     topics: [
       { id: "closures", nameKey: "closures", descKey: "closuresDesc", category: "advanced" },
       { id: "prototypes", nameKey: "prototypes", descKey: "prototypesDesc", category: "advanced" },

@@ -9,18 +9,16 @@ import {
   Modal,
 } from "react-native";
 import { Feather } from "@expo/vector-icons";
-import { ThemedView } from "@/components/ThemedView";
-import { ThemedText } from "@/components/ThemedText";
-import { useTheme } from "@/hooks/useTheme";
-import { Spacing, BorderRadius, Fonts } from "@/constants/theme";
+import { Spacing, BorderRadius, Fonts, Colors } from "@/constants/theme";
 
 export type ErrorFallbackProps = {
   error: Error;
   resetError: () => void;
 };
 
+const fallbackTheme = Colors.light;
+
 export function ErrorFallback({ error, resetError }: ErrorFallbackProps) {
-  const { theme } = useTheme();
   const [isModalVisible, setIsModalVisible] = useState(false);
 
   const handleRestart = async () => {
@@ -41,48 +39,45 @@ export function ErrorFallback({ error, resetError }: ErrorFallbackProps) {
   };
 
   return (
-    <ThemedView style={styles.container}>
+    <View style={[styles.container, { backgroundColor: fallbackTheme.backgroundRoot }]}>
       {__DEV__ ? (
         <Pressable
           onPress={() => setIsModalVisible(true)}
           style={({ pressed }) => [
             styles.topButton,
             {
-              backgroundColor: theme.backgroundDefault,
+              backgroundColor: fallbackTheme.backgroundDefault,
               opacity: pressed ? 0.8 : 1,
             },
           ]}
         >
-          <Feather name="alert-circle" size={20} color={theme.text} />
+          <Feather name="alert-circle" size={20} color={fallbackTheme.text} />
         </Pressable>
       ) : null}
 
       <View style={styles.content}>
-        <ThemedText type="h1" style={styles.title}>
+        <Text style={[styles.title, { color: fallbackTheme.text }]}>
           Oops!
-        </ThemedText>
+        </Text>
 
-        <ThemedText type="body" style={styles.message}>
+        <Text style={[styles.message, { color: fallbackTheme.text }]}>
           DHBW Learn encountered an unexpected issue. Tap below to get back to learning!
-        </ThemedText>
+        </Text>
 
         <Pressable
           onPress={handleRestart}
           style={({ pressed }) => [
             styles.button,
             {
-              backgroundColor: theme.link,
+              backgroundColor: fallbackTheme.primary,
               opacity: pressed ? 0.9 : 1,
               transform: [{ scale: pressed ? 0.98 : 1 }],
             },
           ]}
         >
-          <ThemedText
-            type="body"
-            style={[styles.buttonText, { color: theme.buttonText }]}
-          >
+          <Text style={[styles.buttonText, { color: fallbackTheme.buttonText }]}>
             Back to Learning
-          </ThemedText>
+          </Text>
         </Pressable>
       </View>
 
@@ -94,11 +89,11 @@ export function ErrorFallback({ error, resetError }: ErrorFallbackProps) {
           onRequestClose={() => setIsModalVisible(false)}
         >
           <View style={styles.modalOverlay}>
-            <ThemedView style={styles.modalContainer}>
+            <View style={[styles.modalContainer, { backgroundColor: fallbackTheme.backgroundRoot }]}>
               <View style={styles.modalHeader}>
-                <ThemedText type="h2" style={styles.modalTitle}>
+                <Text style={[styles.modalTitle, { color: fallbackTheme.text }]}>
                   Error Details
-                </ThemedText>
+                </Text>
                 <Pressable
                   onPress={() => setIsModalVisible(false)}
                   style={({ pressed }) => [
@@ -106,7 +101,7 @@ export function ErrorFallback({ error, resetError }: ErrorFallbackProps) {
                     { opacity: pressed ? 0.6 : 1 },
                   ]}
                 >
-                  <Feather name="x" size={24} color={theme.text} />
+                  <Feather name="x" size={24} color={fallbackTheme.text} />
                 </Pressable>
               </View>
 
@@ -118,14 +113,14 @@ export function ErrorFallback({ error, resetError }: ErrorFallbackProps) {
                 <View
                   style={[
                     styles.errorContainer,
-                    { backgroundColor: theme.backgroundDefault },
+                    { backgroundColor: fallbackTheme.backgroundDefault },
                   ]}
                 >
                   <Text
                     style={[
                       styles.errorText,
                       {
-                        color: theme.text,
+                        color: fallbackTheme.text,
                         fontFamily: Fonts?.mono || "monospace",
                       },
                     ]}
@@ -135,11 +130,11 @@ export function ErrorFallback({ error, resetError }: ErrorFallbackProps) {
                   </Text>
                 </View>
               </ScrollView>
-            </ThemedView>
+            </View>
           </View>
         </Modal>
       ) : null}
-    </ThemedView>
+    </View>
   );
 }
 
@@ -162,11 +157,14 @@ const styles = StyleSheet.create({
   title: {
     textAlign: "center",
     lineHeight: 40,
+    fontSize: 32,
+    fontWeight: "700",
   },
   message: {
     textAlign: "center",
     opacity: 0.7,
     lineHeight: 24,
+    fontSize: 16,
   },
   topButton: {
     position: "absolute",
@@ -222,6 +220,7 @@ const styles = StyleSheet.create({
   },
   modalTitle: {
     fontWeight: "600",
+    fontSize: 28,
   },
   closeButton: {
     padding: Spacing.xs,
