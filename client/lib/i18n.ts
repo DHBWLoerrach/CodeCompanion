@@ -10,6 +10,10 @@ export const translations = {
     settings: "Settings",
     
     startQuiz: "Start Quiz",
+    explainTopic: "Explain Topic",
+    generatingExplanation: "Generating explanation...",
+    topicExplanation: "Topic Explanation",
+    closeExplanation: "Close",
     continueQuiz: "Continue",
     questionsAnswered: "questions answered",
     completed: "Completed",
@@ -153,6 +157,10 @@ export const translations = {
     settings: "Einstellungen",
     
     startQuiz: "Quiz starten",
+    explainTopic: "Thema erklären",
+    generatingExplanation: "Erklärung wird generiert...",
+    topicExplanation: "Themen-Erklärung",
+    closeExplanation: "Schließen",
     continueQuiz: "Fortsetzen",
     questionsAnswered: "Fragen beantwortet",
     completed: "Abgeschlossen",

@@ -174,6 +174,58 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  app.post("/api/topic/explain", async (req, res) => {
+    try {
+      const { topicId, language = "en" } = req.body;
+      
+      if (!topicId) {
+        return res.status(400).json({ error: "topicId is required" });
+      }
+
+      const topicDescription = TOPIC_PROMPTS[topicId] || "general JavaScript programming concepts";
+
+      const languageInstruction = language === "de" 
+        ? "Write the entire explanation in German (Deutsch). Keep code examples and JavaScript syntax in English as they are programming terms."
+        : "Write the entire explanation in English.";
+
+      const prompt = `Explain the following JavaScript topic for computer science students: ${topicDescription}
+
+${languageInstruction}
+
+Structure your explanation as follows:
+1. **Introduction** - A brief overview of what this concept is and why it's important
+2. **Key Concepts** - The main points students need to understand
+3. **Code Examples** - 2-3 practical code examples with explanations
+4. **Common Mistakes** - Things to avoid when using this concept
+5. **Best Practices** - Tips for using this concept effectively
+
+Format the response in Markdown. Use code blocks with \`\`\`javascript for code examples.
+Keep the total length to about 500-700 words.
+Focus purely on JavaScript language concepts - avoid web/HTML/CSS context.`;
+
+      const response = await openai.chat.completions.create({
+        model: "gpt-4o",
+        messages: [
+          { 
+            role: "system", 
+            content: `You are an experienced JavaScript programming tutor explaining concepts to university students. ${language === "de" ? "Respond in German." : "Respond in English."} Use clear, concise language and practical examples.` 
+          },
+          { role: "user", content: prompt }
+        ],
+        max_tokens: 2048,
+        temperature: 0.7,
+      });
+
+      const explanation = response.choices[0]?.message?.content || "";
+      console.log(`Generated explanation for topic ${topicId} in ${language}`);
+      
+      res.json({ explanation });
+    } catch (error) {
+      console.error("Topic explanation error:", error);
+      res.status(500).json({ error: "Failed to generate topic explanation" });
+    }
+  });
+
   app.get("/api/health", (req, res) => {
     res.json({ status: "ok" });
   });

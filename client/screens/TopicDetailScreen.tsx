@@ -5,6 +5,7 @@ import {
   StyleSheet,
   Pressable,
   ActivityIndicator,
+  Modal,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useNavigation, useRoute } from "@react-navigation/native";
@@ -23,6 +24,7 @@ import { useTranslation } from "@/hooks/useTranslation";
 import { Spacing, BorderRadius, Shadows } from "@/constants/theme";
 import { getTopicById, getTopicName, getTopicDescription, type Topic } from "@/lib/topics";
 import { storage, type TopicProgress } from "@/lib/storage";
+import { getApiUrl } from "@/lib/query-client";
 import type { RootStackParamList } from "@/navigation/RootStackNavigator";
 
 type NavigationProp = NativeStackNavigationProp<RootStackParamList>;
@@ -41,11 +43,19 @@ export default function TopicDetailScreen() {
   const [topic, setTopic] = useState<Topic | null>(null);
   const [progress, setProgress] = useState<TopicProgress | null>(null);
   const [loading, setLoading] = useState(true);
+  const [explanationModalVisible, setExplanationModalVisible] = useState(false);
+  const [explanation, setExplanation] = useState<string>("");
+  const [loadingExplanation, setLoadingExplanation] = useState(false);
 
   const scale = useSharedValue(1);
+  const explainScale = useSharedValue(1);
 
   const animatedStyle = useAnimatedStyle(() => ({
     transform: [{ scale: scale.value }],
+  }));
+
+  const explainAnimatedStyle = useAnimatedStyle(() => ({
+    transform: [{ scale: explainScale.value }],
   }));
 
   const handlePressIn = () => {
@@ -54,6 +64,14 @@ export default function TopicDetailScreen() {
 
   const handlePressOut = () => {
     scale.value = withSpring(1, { damping: 15, stiffness: 150 });
+  };
+
+  const handleExplainPressIn = () => {
+    explainScale.value = withSpring(0.98, { damping: 15, stiffness: 150 });
+  };
+
+  const handleExplainPressOut = () => {
+    explainScale.value = withSpring(1, { damping: 15, stiffness: 150 });
   };
 
   useEffect(() => {
@@ -92,6 +110,33 @@ export default function TopicDetailScreen() {
 
   const handleStartQuiz = () => {
     navigation.navigate("QuizSession", { topicId });
+  };
+
+  const handleExplainTopic = async () => {
+    setExplanationModalVisible(true);
+    setLoadingExplanation(true);
+    setExplanation("");
+    
+    try {
+      const apiUrl = getApiUrl();
+      const response = await fetch(new URL("/api/topic/explain", apiUrl).toString(), {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ topicId, language }),
+      });
+      
+      if (!response.ok) {
+        throw new Error("Failed to generate explanation");
+      }
+      
+      const data = await response.json();
+      setExplanation(data.explanation);
+    } catch (error) {
+      console.error("Error generating explanation:", error);
+      setExplanation("Failed to load explanation. Please try again.");
+    } finally {
+      setLoadingExplanation(false);
+    }
   };
 
   if (loading) {
@@ -192,18 +237,68 @@ export default function TopicDetailScreen() {
           { paddingBottom: insets.bottom + Spacing.lg, backgroundColor: theme.backgroundRoot },
         ]}
       >
-        <AnimatedPressable
-          style={[styles.startButton, { backgroundColor: theme.primary }, animatedStyle]}
-          onPress={handleStartQuiz}
-          onPressIn={handlePressIn}
-          onPressOut={handlePressOut}
-        >
-          <Feather name="play" size={20} color="#FFFFFF" />
-          <ThemedText type="body" style={{ color: "#FFFFFF", fontWeight: "600" }}>
-            {t("startQuiz")}
-          </ThemedText>
-        </AnimatedPressable>
+        <View style={styles.buttonRow}>
+          <AnimatedPressable
+            style={[styles.secondaryButton, { backgroundColor: theme.secondary }, explainAnimatedStyle]}
+            onPress={handleExplainTopic}
+            onPressIn={handleExplainPressIn}
+            onPressOut={handleExplainPressOut}
+          >
+            <Feather name="book-open" size={20} color="#FFFFFF" />
+            <ThemedText type="body" style={{ color: "#FFFFFF", fontWeight: "600" }}>
+              {t("explainTopic")}
+            </ThemedText>
+          </AnimatedPressable>
+          <AnimatedPressable
+            style={[styles.primaryButton, { backgroundColor: theme.primary }, animatedStyle]}
+            onPress={handleStartQuiz}
+            onPressIn={handlePressIn}
+            onPressOut={handlePressOut}
+          >
+            <Feather name="play" size={20} color="#FFFFFF" />
+            <ThemedText type="body" style={{ color: "#FFFFFF", fontWeight: "600" }}>
+              {t("startQuiz")}
+            </ThemedText>
+          </AnimatedPressable>
+        </View>
       </View>
+
+      <Modal
+        visible={explanationModalVisible}
+        animationType="slide"
+        presentationStyle="pageSheet"
+        onRequestClose={() => setExplanationModalVisible(false)}
+      >
+        <View style={[styles.modalContainer, { backgroundColor: theme.backgroundRoot }]}>
+          <View style={[styles.modalHeader, { borderBottomColor: theme.cardBorder }]}>
+            <ThemedText type="h3">{t("topicExplanation")}</ThemedText>
+            <Pressable
+              style={[styles.closeButton, { backgroundColor: theme.backgroundDefault }]}
+              onPress={() => setExplanationModalVisible(false)}
+            >
+              <Feather name="x" size={24} color={theme.text} />
+            </Pressable>
+          </View>
+          <ScrollView
+            style={styles.modalScrollView}
+            contentContainerStyle={styles.modalContent}
+            showsVerticalScrollIndicator={true}
+          >
+            {loadingExplanation ? (
+              <View style={styles.loadingExplanation}>
+                <ActivityIndicator size="large" color={theme.primary} />
+                <ThemedText type="body" style={{ color: theme.tabIconDefault, marginTop: Spacing.lg }}>
+                  {t("generatingExplanation")}
+                </ThemedText>
+              </View>
+            ) : (
+              <ThemedText type="body" style={styles.explanationText}>
+                {explanation}
+              </ThemedText>
+            )}
+          </ScrollView>
+        </View>
+      </Modal>
     </ThemedView>
   );
 }
@@ -287,12 +382,59 @@ const styles = StyleSheet.create({
     borderTopWidth: 1,
     borderTopColor: "rgba(0,0,0,0.05)",
   },
-  startButton: {
+  buttonRow: {
+    flexDirection: "row",
+    gap: Spacing.md,
+  },
+  secondaryButton: {
+    flex: 1,
     height: 56,
     borderRadius: BorderRadius.md,
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
     gap: Spacing.sm,
+  },
+  primaryButton: {
+    flex: 1,
+    height: 56,
+    borderRadius: BorderRadius.md,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: Spacing.sm,
+  },
+  modalContainer: {
+    flex: 1,
+  },
+  modalHeader: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    padding: Spacing.lg,
+    borderBottomWidth: 1,
+  },
+  closeButton: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  modalScrollView: {
+    flex: 1,
+  },
+  modalContent: {
+    padding: Spacing.lg,
+    paddingBottom: Spacing.xl * 2,
+  },
+  loadingExplanation: {
+    flex: 1,
+    alignItems: "center",
+    justifyContent: "center",
+    paddingVertical: Spacing.xl * 3,
+  },
+  explanationText: {
+    lineHeight: 24,
   },
 });
