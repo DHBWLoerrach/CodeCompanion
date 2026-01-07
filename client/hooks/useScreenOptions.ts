@@ -19,11 +19,13 @@ export function useScreenOptions({
     headerBlurEffect: isDark ? "dark" : "light",
     headerTintColor: theme.text,
     headerStyle: {
-      backgroundColor: Platform.select({
-        ios: undefined,
-        android: theme.backgroundRoot,
-        web: theme.backgroundRoot,
-      }),
+      backgroundColor: transparent
+        ? Platform.select({
+            ios: undefined,
+            android: theme.backgroundRoot,
+            web: theme.backgroundRoot,
+          })
+        : theme.backgroundDefault,
     },
     gestureEnabled: true,
     gestureDirection: "horizontal",
