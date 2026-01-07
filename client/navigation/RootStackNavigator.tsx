@@ -40,7 +40,7 @@ export default function RootStackNavigator() {
       <Stack.Screen
         name="Main"
         component={MainTabNavigator}
-        options={{ headerShown: false }}
+        options={{ headerShown: false, title: "" }}
       />
       <Stack.Screen
         name="QuizSession"
