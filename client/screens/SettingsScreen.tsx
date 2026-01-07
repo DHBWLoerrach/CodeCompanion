@@ -239,12 +239,13 @@ export default function SettingsScreen() {
             <SettingRow icon="globe" label={t("language")}>
               <Pressable
                 style={[styles.optionButton, { backgroundColor: theme.backgroundSecondary }]}
-                onPress={() =>
-                  setSettings({
-                    ...settings,
-                    language: settings.language === "en" ? "de" : "en",
-                  })
-                }
+                onPress={async () => {
+                  const newLanguage: "en" | "de" = settings.language === "en" ? "de" : "en";
+                  const newSettings: SettingsData = { ...settings, language: newLanguage };
+                  setSettings(newSettings);
+                  await storage.setSettings(newSettings);
+                  await refreshLanguage();
+                }}
               >
                 <ThemedText type="label">
                   {settings.language === "en" ? t("english") : t("german")}
@@ -273,11 +274,14 @@ export default function SettingsScreen() {
             <SettingRow icon="moon" label={t("theme")}>
               <Pressable
                 style={[styles.optionButton, { backgroundColor: theme.backgroundSecondary }]}
-                onPress={() => {
+                onPress={async () => {
                   const modes: ThemeMode[] = ["auto", "light", "dark"];
                   const currentIndex = modes.indexOf(settings.themeMode);
                   const nextIndex = (currentIndex + 1) % modes.length;
-                  setSettings({ ...settings, themeMode: modes[nextIndex] });
+                  const newSettings = { ...settings, themeMode: modes[nextIndex] };
+                  setSettings(newSettings);
+                  await storage.setSettings(newSettings);
+                  await refreshTheme();
                 }}
               >
                 <ThemedText type="label">
