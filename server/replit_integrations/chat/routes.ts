@@ -83,7 +83,7 @@ export function registerChatRoutes(app: Express): void {
 
       // Stream response from OpenAI using Responses API
       const stream = await openai.responses.create({
-        model: "gpt-4.1",
+        model: "gpt-5.2",
         input: inputItems,
         stream: true,
         max_output_tokens: 2048,

@@ -55,7 +55,7 @@ server/
   - Updated openai library from 6.15.0 to 6.17.0
   - Migrated from Chat Completions API to the new Responses API
   - Uses `openai.responses.create()` with `instructions` and `input` parameters
-  - Default model changed to gpt-4.1
+  - Default model changed to gpt-5.2
   - Streaming for chat uses Responses API event format
 
 - January 7, 2026: Dark mode and instant settings
