@@ -124,7 +124,7 @@ function CategoryCard({ category, categoryName, topicProgress, onTopicPress, get
   const { t } = useTranslation();
 
   const dueCount = category.topics.filter(
-    (t) => isTopicDue(topicProgress[t.id])
+    (topic) => isTopicDue(topicProgress[topic.id])
   ).length;
   
   const avgSkillLevel = category.topics.reduce((sum, topic) => {
