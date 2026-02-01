@@ -86,7 +86,7 @@ Important:
 
   try {
     const response = await openai.chat.completions.create({
-      model: "gpt-5-mini",
+      model: process.env.OPENAI_MODEL || "gpt-5-mini",
       messages: [
         { 
           role: "system", 
@@ -214,7 +214,7 @@ Keep the total length to about 500-700 words.
 Focus purely on JavaScript language concepts - avoid web/HTML/CSS context.`;
 
       const response = await openai.chat.completions.create({
-        model: "gpt-5-mini",
+        model: process.env.OPENAI_MODEL || "gpt-5-mini",
         messages: [
           { 
             role: "system", 
