@@ -121,11 +121,6 @@ interface CategoryCardProps {
 
 function CategoryCard({ category, categoryName, topicProgress, onTopicPress, getTopicDisplayName }: CategoryCardProps) {
   const { theme } = useTheme();
-  const { t } = useTranslation();
-
-  const dueCount = category.topics.filter(
-    (topic) => isTopicDue(topicProgress[topic.id])
-  ).length;
   
   const avgSkillLevel = category.topics.reduce((sum, topic) => {
     return sum + (topicProgress[topic.id]?.skillLevel ?? 0);
@@ -135,12 +130,7 @@ function CategoryCard({ category, categoryName, topicProgress, onTopicPress, get
 
   return (
     <View style={[styles.categoryCard, { backgroundColor: theme.backgroundDefault }]}>
-      <View style={styles.categoryHeader}>
-        <ThemedText type="h4">{categoryName}</ThemedText>
-        <ThemedText type="caption" style={{ color: dueCount > 0 ? theme.accent : theme.tabIconDefault }}>
-          {dueCount > 0 ? `${dueCount} ${t("dueForReview")}` : t("allCaughtUp")}
-        </ThemedText>
-      </View>
+      <ThemedText type="h4" style={styles.categoryName}>{categoryName}</ThemedText>
 
       <View style={[styles.progressBar, { backgroundColor: theme.cardBorder }]}>
         <View
@@ -319,10 +309,7 @@ const styles = StyleSheet.create({
     padding: Spacing.lg,
     ...Shadows.card,
   },
-  categoryHeader: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
+  categoryName: {
     marginBottom: Spacing.md,
   },
   progressBar: {
