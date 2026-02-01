@@ -39,16 +39,25 @@ const TOPIC_PROMPTS: Record<string, string> = {
   modules: "JavaScript ES6 import/export and module patterns",
 };
 
-async function generateQuizQuestions(topicId: string, count: number = 5, language: string = "en"): Promise<QuizQuestion[]> {
+async function generateQuizQuestions(topicId: string, count: number = 5, language: string = "en", skillLevel: 1 | 2 | 3 = 1): Promise<QuizQuestion[]> {
   const topicDescription = TOPIC_PROMPTS[topicId] || "general JavaScript programming concepts";
 
   const languageInstruction = language === "de" 
     ? "Write all questions, answer options, and explanations in German (Deutsch). Keep code examples and JavaScript syntax in English as they are programming terms."
     : "Write all questions, answer options, and explanations in English.";
 
+  const difficultyInstruction = skillLevel === 1
+    ? "Create BEGINNER level questions: Focus on basic syntax, simple examples, and fundamental concepts. Use straightforward code snippets under 5 lines."
+    : skillLevel === 2
+    ? "Create INTERMEDIATE level questions: Include more complex scenarios, edge cases, and require deeper understanding. Use code snippets of 5-8 lines with subtle behavior."
+    : "Create ADVANCED level questions: Focus on tricky edge cases, performance considerations, and expert-level understanding. Use complex code with multiple concepts combined.";
+
   const prompt = `Generate ${count} multiple-choice quiz questions about ${topicDescription} for computer science students learning JavaScript programming.
 
 ${languageInstruction}
+
+DIFFICULTY LEVEL: ${skillLevel === 1 ? "Beginner" : skillLevel === 2 ? "Intermediate" : "Advanced"}
+${difficultyInstruction}
 
 Each question should:
 - Test understanding of the concept, not just memorization
@@ -138,13 +147,14 @@ Important:
 export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/quiz/generate", async (req, res) => {
     try {
-      const { topicId, count = 5, language = "en" } = req.body;
+      const { topicId, count = 5, language = "en", skillLevel = 1 } = req.body;
       
       if (!topicId) {
         return res.status(400).json({ error: "topicId is required" });
       }
 
-      const questions = await generateQuizQuestions(topicId, count, language);
+      const validSkillLevel = Math.min(3, Math.max(1, skillLevel)) as 1 | 2 | 3;
+      const questions = await generateQuizQuestions(topicId, count, language, validSkillLevel);
       res.json({ questions });
     } catch (error) {
       console.error("Quiz generation error:", error);
