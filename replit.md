@@ -51,6 +51,13 @@ server/
 - The Express API runs on port 5000
 
 ## Recent Changes
+- February 1, 2026: Migrated to OpenAI Responses API
+  - Updated openai library from 6.15.0 to 6.17.0
+  - Migrated from Chat Completions API to the new Responses API
+  - Uses `openai.responses.create()` with `instructions` and `input` parameters
+  - Default model changed to gpt-4.1
+  - Streaming for chat uses Responses API event format
+
 - January 7, 2026: Dark mode and instant settings
   - Added dark mode with auto/light/dark options (auto follows system preference)
   - Settings changes (language, theme) now apply immediately without saving

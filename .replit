@@ -53,5 +53,5 @@ ensurePreviewReachable = "/status"
 [userenv]
 
 [userenv.shared]
-OPENAI_MODEL = "gpt-5-mini"
+OPENAI_MODEL = "gpt-5"
 

@@ -92,8 +92,17 @@ Important:
       max_output_tokens: 4096,
     });
 
-    const outputText = response.output?.find((item: any) => item.type === "message")?.content?.find((c: any) => c.type === "output_text")?.text;
-    const content = outputText || "{}";
+    let content = "{}";
+    for (const item of response.output || []) {
+      if (item.type === "message" && "content" in item) {
+        for (const c of (item as any).content || []) {
+          if (c.type === "output_text" && c.text) {
+            content = c.text;
+            break;
+          }
+        }
+      }
+    }
     console.log("OpenAI response content:", content.substring(0, 200));
     
     let cleanContent = content.trim();
@@ -215,8 +224,17 @@ Focus purely on JavaScript language concepts - avoid web/HTML/CSS context.`;
         max_output_tokens: 2048,
       });
 
-      const outputText = response.output?.find((item: any) => item.type === "message")?.content?.find((c: any) => c.type === "output_text")?.text;
-      const explanation = outputText || "";
+      let explanation = "";
+      for (const item of response.output || []) {
+        if (item.type === "message" && "content" in item) {
+          for (const c of (item as any).content || []) {
+            if (c.type === "output_text" && c.text) {
+              explanation = c.text;
+              break;
+            }
+          }
+        }
+      }
       console.log(`Generated explanation for topic ${topicId} in ${language}`);
       
       res.json({ explanation });
