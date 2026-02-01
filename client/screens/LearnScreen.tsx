@@ -208,6 +208,12 @@ export default function LearnScreen() {
     navigation.navigate("TopicDetail", { topicId: topic.id, topicName });
   };
 
+  const allTopics = CATEGORIES.flatMap((cat) => cat.topics);
+  const dueTopics = allTopics.filter((topic) => {
+    const progress = topicProgress[topic.id];
+    return progress && progress.questionsAnswered > 0 && isTopicDue(progress);
+  });
+
   if (loading) {
     return (
       <ThemedView style={[styles.loadingContainer, { paddingTop: insets.top }]}>
@@ -236,6 +242,37 @@ export default function LearnScreen() {
         ]}
         showsVerticalScrollIndicator={false}
       >
+        {dueTopics.length > 0 ? (
+          <View style={[styles.dueSection, { backgroundColor: theme.accent + "15" }]}>
+            <View style={styles.dueSectionHeader}>
+              <View style={styles.dueSectionTitleRow}>
+                <Feather name="clock" size={20} color={theme.accent} />
+                <ThemedText type="h4" style={{ color: theme.accent }}>
+                  {t("dueForReview")}
+                </ThemedText>
+              </View>
+              <ThemedText type="caption" style={{ color: theme.accent }}>
+                {dueTopics.length} {dueTopics.length === 1 ? t("topic") : t("topics")}
+              </ThemedText>
+            </View>
+            <ScrollView
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              contentContainerStyle={styles.topicsContainer}
+            >
+              {dueTopics.map((topic) => (
+                <TopicChip
+                  key={topic.id}
+                  topic={topic}
+                  topicName={getTopicName(topic, language)}
+                  progress={topicProgress[topic.id]}
+                  onPress={() => handleTopicPress(topic, getTopicName(topic, language))}
+                />
+              ))}
+            </ScrollView>
+          </View>
+        ) : null}
+
         {CATEGORIES.map((category) => (
           <CategoryCard
             key={category.id}
@@ -325,5 +362,20 @@ const styles = StyleSheet.create({
     width: 6,
     height: 6,
     borderRadius: 3,
+  },
+  dueSection: {
+    borderRadius: BorderRadius.lg,
+    padding: Spacing.lg,
+  },
+  dueSectionHeader: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginBottom: Spacing.md,
+  },
+  dueSectionTitleRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: Spacing.sm,
   },
 });
