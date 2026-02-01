@@ -85,21 +85,20 @@ Important:
 - Return ONLY valid JSON, no markdown or extra text`;
 
   try {
-    const response = await openai.responses.create({
+    const stream = await openai.responses.create({
       model: process.env.OPENAI_MODEL || "gpt-5.2",
       instructions: `You are a JavaScript programming tutor creating quiz questions. ${language === "de" ? "Respond in German." : "Respond in English."} Always respond with valid JSON containing a 'questions' array.`,
       input: prompt,
       max_output_tokens: 4096,
+      stream: true,
     });
 
-    let content = "{}";
-    for (const item of response.output || []) {
-      if (item.type === "message" && "content" in item) {
-        for (const c of (item as any).content || []) {
-          if (c.type === "output_text" && c.text) {
-            content = c.text;
-            break;
-          }
+    let content = "";
+    for await (const event of stream) {
+      if (event.type === "response.output_text.delta") {
+        const delta = (event as any).delta || "";
+        if (delta) {
+          content += delta;
         }
       }
     }
@@ -217,21 +216,20 @@ Format the response in Markdown. Use code blocks with \`\`\`javascript for code 
 Keep the total length to about 500-700 words.
 Focus purely on JavaScript language concepts - avoid web/HTML/CSS context.`;
 
-      const response = await openai.responses.create({
+      const stream = await openai.responses.create({
         model: process.env.OPENAI_MODEL || "gpt-5.2",
         instructions: `You are an experienced JavaScript programming tutor explaining concepts to university students. ${language === "de" ? "Respond in German." : "Respond in English."} Use clear, concise language and practical examples.`,
         input: prompt,
         max_output_tokens: 2048,
+        stream: true,
       });
 
       let explanation = "";
-      for (const item of response.output || []) {
-        if (item.type === "message" && "content" in item) {
-          for (const c of (item as any).content || []) {
-            if (c.type === "output_text" && c.text) {
-              explanation = c.text;
-              break;
-            }
+      for await (const event of stream) {
+        if (event.type === "response.output_text.delta") {
+          const content = (event as any).delta || "";
+          if (content) {
+            explanation += content;
           }
         }
       }
