@@ -18,6 +18,7 @@ export interface TopicProgress {
   correctAnswers: number;
   lastPracticed?: string;
   completed: boolean;
+  skillLevel: 1 | 2 | 3;
 }
 
 export interface ProgressData {
@@ -105,6 +106,7 @@ export const storage = {
       questionsAnswered: 0,
       correctAnswers: 0,
       completed: false,
+      skillLevel: 1 as const,
     };
 
     progress.topicProgress[topicId] = {
@@ -207,6 +209,36 @@ export const storage = {
       progress.achievements.push(achievementId);
       await this.setProgress(progress);
     }
+  },
+
+  async getTopicSkillLevel(topicId: string): Promise<1 | 2 | 3> {
+    const progress = await this.getProgress();
+    return progress.topicProgress[topicId]?.skillLevel ?? 1;
+  },
+
+  async updateTopicSkillLevel(topicId: string, scorePercent: number): Promise<void> {
+    const progress = await this.getProgress();
+    const existing = progress.topicProgress[topicId] || {
+      topicId,
+      questionsAnswered: 0,
+      correctAnswers: 0,
+      completed: false,
+      skillLevel: 1 as const,
+    };
+
+    let newLevel = existing.skillLevel;
+    if (scorePercent >= 80 && existing.skillLevel < 3) {
+      newLevel = (existing.skillLevel + 1) as 1 | 2 | 3;
+    } else if (scorePercent < 50 && existing.skillLevel > 1) {
+      newLevel = (existing.skillLevel - 1) as 1 | 2 | 3;
+    }
+
+    progress.topicProgress[topicId] = {
+      ...existing,
+      skillLevel: newLevel,
+    };
+
+    await this.setProgress(progress);
   },
 
   async clearAllData(): Promise<void> {
