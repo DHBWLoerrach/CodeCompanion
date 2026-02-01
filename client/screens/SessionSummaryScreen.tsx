@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect } from "react";
 import {
   View,
   ScrollView,
@@ -18,6 +18,7 @@ import { useTranslation } from "@/hooks/useTranslation";
 import { Spacing, BorderRadius, Shadows } from "@/constants/theme";
 import type { RootStackParamList } from "@/navigation/RootStackNavigator";
 import { getTopicById, getTopicName } from "@/lib/topics";
+import { storage } from "@/lib/storage";
 
 type NavigationProp = NativeStackNavigationProp<RootStackParamList>;
 type RouteProp = NativeStackScreenProps<RootStackParamList, "SessionSummary">["route"];
@@ -122,6 +123,12 @@ export default function SessionSummaryScreen() {
 
   const percentage = (score / total) * 100;
   const topic = topicId ? getTopicById(topicId) : null;
+
+  useEffect(() => {
+    if (topicId) {
+      storage.updateTopicSkillLevel(topicId, percentage);
+    }
+  }, [topicId, percentage]);
 
   const getFeedbackMessage = (pct: number): string => {
     if (pct === 100) return t("excellentWork");
