@@ -70,7 +70,8 @@ export function registerChatRoutes(app: Express): void {
 
       // Get conversation history for context
       const messages = await chatStorage.getMessagesByConversation(conversationId);
-      const chatMessages = messages.map((m) => ({
+      const inputItems = messages.map((m) => ({
+        type: "message" as const,
         role: m.role as "user" | "assistant",
         content: m.content,
       }));
@@ -80,21 +81,23 @@ export function registerChatRoutes(app: Express): void {
       res.setHeader("Cache-Control", "no-cache");
       res.setHeader("Connection", "keep-alive");
 
-      // Stream response from OpenAI
-      const stream = await openai.chat.completions.create({
-        model: "gpt-5.1",
-        messages: chatMessages,
+      // Stream response from OpenAI using Responses API
+      const stream = await openai.responses.create({
+        model: "gpt-4.1",
+        input: inputItems,
         stream: true,
-        max_completion_tokens: 2048,
+        max_output_tokens: 2048,
       });
 
       let fullResponse = "";
 
-      for await (const chunk of stream) {
-        const content = chunk.choices[0]?.delta?.content || "";
-        if (content) {
-          fullResponse += content;
-          res.write(`data: ${JSON.stringify({ content })}\n\n`);
+      for await (const event of stream) {
+        if (event.type === "response.output_text.delta") {
+          const content = (event as any).delta || "";
+          if (content) {
+            fullResponse += content;
+            res.write(`data: ${JSON.stringify({ content })}\n\n`);
+          }
         }
       }
 
