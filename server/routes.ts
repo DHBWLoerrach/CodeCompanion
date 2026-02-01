@@ -94,7 +94,7 @@ Important:
         },
         { role: "user", content: prompt }
       ],
-      max_tokens: 4096,
+      max_completion_tokens: 4096,
       temperature: 0.7,
     });
 
@@ -222,7 +222,7 @@ Focus purely on JavaScript language concepts - avoid web/HTML/CSS context.`;
           },
           { role: "user", content: prompt }
         ],
-        max_tokens: 2048,
+        max_completion_tokens: 2048,
         temperature: 0.7,
       });
 
