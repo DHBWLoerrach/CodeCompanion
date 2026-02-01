@@ -194,9 +194,10 @@ export default function QuizSessionScreen() {
       setError(null);
 
       const settings = await storage.getSettings();
+      const skillLevel = topicId ? await storage.getTopicSkillLevel(topicId) : 1;
       const endpoint = topicId ? "/api/quiz/generate" : "/api/quiz/generate-mixed";
       const body = topicId 
-        ? { topicId, count: 10, language: settings.language } 
+        ? { topicId, count: 10, language: settings.language, skillLevel } 
         : { count: 10, language: settings.language };
 
       const response = await apiRequest("POST", endpoint, body);
