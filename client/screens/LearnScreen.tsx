@@ -37,6 +37,22 @@ interface TopicChipProps {
   topicName: string;
 }
 
+function SkillLevelIndicator({ level, color }: { level: 1 | 2 | 3; color: string }) {
+  return (
+    <View style={styles.levelIndicator}>
+      {[1, 2, 3].map((i) => (
+        <View
+          key={i}
+          style={[
+            styles.levelDot,
+            { backgroundColor: i <= level ? color : color + "40" },
+          ]}
+        />
+      ))}
+    </View>
+  );
+}
+
 function TopicChip({ topic, progress, onPress, topicName }: TopicChipProps) {
   const { theme } = useTheme();
   const scale = useSharedValue(1);
@@ -55,6 +71,7 @@ function TopicChip({ topic, progress, onPress, topicName }: TopicChipProps) {
 
   const isCompleted = progress?.completed;
   const isInProgress = progress && !progress.completed && progress.questionsAnswered > 0;
+  const skillLevel = progress?.skillLevel ?? 1;
 
   const chipStyle = isCompleted
     ? { backgroundColor: theme.success, borderColor: theme.success }
@@ -63,6 +80,7 @@ function TopicChip({ topic, progress, onPress, topicName }: TopicChipProps) {
     : { backgroundColor: "transparent", borderColor: theme.cardBorder };
 
   const textColor = isCompleted ? "#FFFFFF" : theme.text;
+  const levelColor = isCompleted ? "#FFFFFF" : theme.accent;
 
   return (
     <AnimatedPressable
@@ -81,6 +99,9 @@ function TopicChip({ topic, progress, onPress, topicName }: TopicChipProps) {
       >
         {topicName}
       </ThemedText>
+      {(isInProgress || isCompleted) ? (
+        <SkillLevelIndicator level={skillLevel} color={levelColor} />
+      ) : null}
     </AnimatedPressable>
   );
 }
@@ -283,5 +304,15 @@ const styles = StyleSheet.create({
   },
   chipText: {
     fontWeight: "500",
+  },
+  levelIndicator: {
+    flexDirection: "row",
+    marginLeft: Spacing.xs,
+    gap: 2,
+  },
+  levelDot: {
+    width: 6,
+    height: 6,
+    borderRadius: 3,
   },
 });
