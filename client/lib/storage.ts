@@ -12,13 +12,48 @@ export interface UserProfile {
   avatarIndex: number;
 }
 
+export type SkillLevel = 1 | 2 | 3 | 4 | 5;
+
 export interface TopicProgress {
   topicId: string;
   questionsAnswered: number;
   correctAnswers: number;
   lastPracticed?: string;
-  completed: boolean;
-  skillLevel: 1 | 2 | 3;
+  skillLevel: SkillLevel;
+}
+
+export const SKILL_LEVEL_INTERVALS: Record<SkillLevel, number> = {
+  1: 1,
+  2: 3,
+  3: 7,
+  4: 14,
+  5: 30,
+};
+
+export function isTopicDue(progress: TopicProgress | undefined): boolean {
+  if (!progress || !progress.lastPracticed) return true;
+  
+  const lastPracticed = new Date(progress.lastPracticed);
+  const now = new Date();
+  const daysSinceLastPractice = Math.floor(
+    (now.getTime() - lastPracticed.getTime()) / (1000 * 60 * 60 * 24)
+  );
+  
+  const interval = SKILL_LEVEL_INTERVALS[progress.skillLevel];
+  return daysSinceLastPractice >= interval;
+}
+
+export function getDaysUntilDue(progress: TopicProgress | undefined): number {
+  if (!progress || !progress.lastPracticed) return 0;
+  
+  const lastPracticed = new Date(progress.lastPracticed);
+  const now = new Date();
+  const daysSinceLastPractice = Math.floor(
+    (now.getTime() - lastPracticed.getTime()) / (1000 * 60 * 60 * 24)
+  );
+  
+  const interval = SKILL_LEVEL_INTERVALS[progress.skillLevel];
+  return Math.max(0, interval - daysSinceLastPractice);
 }
 
 export interface ProgressData {
@@ -103,8 +138,7 @@ export const storage = {
       topicId,
       questionsAnswered: 0,
       correctAnswers: 0,
-      completed: false,
-      skillLevel: 1 as const,
+      skillLevel: 1 as SkillLevel,
     };
 
     progress.topicProgress[topicId] = {
@@ -112,7 +146,6 @@ export const storage = {
       questionsAnswered: existing.questionsAnswered + questionsAnswered,
       correctAnswers: existing.correctAnswers + correctAnswers,
       lastPracticed: new Date().toISOString(),
-      completed: existing.correctAnswers + correctAnswers >= 10,
     };
 
     progress.totalQuestions += questionsAnswered;
@@ -209,7 +242,7 @@ export const storage = {
     }
   },
 
-  async getTopicSkillLevel(topicId: string): Promise<1 | 2 | 3> {
+  async getTopicSkillLevel(topicId: string): Promise<SkillLevel> {
     const progress = await this.getProgress();
     return progress.topicProgress[topicId]?.skillLevel ?? 1;
   },
@@ -220,15 +253,14 @@ export const storage = {
       topicId,
       questionsAnswered: 0,
       correctAnswers: 0,
-      completed: false,
-      skillLevel: 1 as const,
+      skillLevel: 1 as SkillLevel,
     };
 
     let newLevel = existing.skillLevel;
-    if (scorePercent >= 80 && existing.skillLevel < 3) {
-      newLevel = (existing.skillLevel + 1) as 1 | 2 | 3;
+    if (scorePercent >= 80 && existing.skillLevel < 5) {
+      newLevel = (existing.skillLevel + 1) as SkillLevel;
     } else if (scorePercent < 50 && existing.skillLevel > 1) {
-      newLevel = (existing.skillLevel - 1) as 1 | 2 | 3;
+      newLevel = (existing.skillLevel - 1) as SkillLevel;
     }
 
     progress.topicProgress[topicId] = {
