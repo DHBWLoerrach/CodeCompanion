@@ -289,6 +289,14 @@ export default function QuizSessionScreen() {
         <ThemedText type="body" style={styles.loadingText}>
           {t("generatingQuiz")}
         </ThemedText>
+        <Pressable
+          style={[styles.cancelButton, { borderColor: theme.tabIconDefault }]}
+          onPress={handleClose}
+        >
+          <ThemedText type="body" style={{ color: theme.tabIconDefault }}>
+            {t("cancel")}
+          </ThemedText>
+        </Pressable>
       </ThemedView>
     );
   }
