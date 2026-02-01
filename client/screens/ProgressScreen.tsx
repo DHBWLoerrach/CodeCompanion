@@ -162,7 +162,7 @@ export default function ProgressScreen() {
 
   const getTopicsMastered = () => {
     if (!progress) return 0;
-    return Object.values(progress.topicProgress).filter((t) => t.completed).length;
+    return Object.values(progress.topicProgress).filter((t) => t.skillLevel === 5).length;
   };
 
   const getUnlockedAchievements = () => {

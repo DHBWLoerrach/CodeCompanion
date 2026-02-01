@@ -23,7 +23,7 @@ import { useTheme } from "@/hooks/useTheme";
 import { useTranslation } from "@/hooks/useTranslation";
 import { Spacing, BorderRadius, Shadows } from "@/constants/theme";
 import { getTopicById, getTopicName, getTopicDescription, type Topic } from "@/lib/topics";
-import { storage, type TopicProgress } from "@/lib/storage";
+import { storage, type TopicProgress, isTopicDue, getDaysUntilDue, SKILL_LEVEL_INTERVALS } from "@/lib/storage";
 import { getApiUrl } from "@/lib/query-client";
 import type { RootStackParamList } from "@/navigation/RootStackNavigator";
 
@@ -182,11 +182,22 @@ export default function TopicDetailScreen() {
           <ThemedText type="body" style={{ color: theme.tabIconDefault, textAlign: "center" }}>
             {displayDescription}
           </ThemedText>
-          {progress?.completed ? (
-            <View style={[styles.completedBadge, { backgroundColor: theme.success }]}>
-              <Feather name="check" size={14} color="#FFFFFF" />
+          {progress ? (
+            <View style={[
+              styles.completedBadge, 
+              { backgroundColor: progress.skillLevel === 5 ? theme.success : isTopicDue(progress) ? theme.accent : theme.secondary }
+            ]}>
+              <Feather 
+                name={progress.skillLevel === 5 ? "award" : isTopicDue(progress) ? "clock" : "trending-up"} 
+                size={14} 
+                color="#FFFFFF" 
+              />
               <ThemedText type="label" style={{ color: "#FFFFFF" }}>
-                {t("completed")}
+                {progress.skillLevel === 5 
+                  ? t("mastered") 
+                  : isTopicDue(progress) 
+                    ? t("dueForReview") 
+                    : `${t("level")} ${progress.skillLevel}/5`}
               </ThemedText>
             </View>
           ) : null}

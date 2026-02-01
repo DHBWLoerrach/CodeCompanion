@@ -17,6 +17,10 @@ export const translations = {
     continueQuiz: "Continue",
     questionsAnswered: "questions answered",
     completed: "Completed",
+    dueForReview: "due for review",
+    allCaughtUp: "All caught up!",
+    mastered: "Mastered",
+    level: "Level",
     
     generatingQuiz: "Generating quiz questions...",
     unableToLoadQuiz: "Unable to Load Quiz",
@@ -159,6 +163,10 @@ export const translations = {
     continueQuiz: "Fortsetzen",
     questionsAnswered: "Fragen beantwortet",
     completed: "Abgeschlossen",
+    dueForReview: "zur Wiederholung",
+    allCaughtUp: "Alles erledigt!",
+    mastered: "Gemeistert",
+    level: "Level",
     
     generatingQuiz: "Quiz-Fragen werden generiert...",
     unableToLoadQuiz: "Quiz konnte nicht geladen werden",

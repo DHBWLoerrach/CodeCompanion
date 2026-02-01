@@ -23,7 +23,7 @@ import { useTheme } from "@/hooks/useTheme";
 import { useTranslation } from "@/hooks/useTranslation";
 import { Spacing, BorderRadius, Shadows } from "@/constants/theme";
 import { CATEGORIES, type Topic, type Category, getTopicName, getCategoryName } from "@/lib/topics";
-import { storage, type TopicProgress } from "@/lib/storage";
+import { storage, type TopicProgress, type SkillLevel, isTopicDue, SKILL_LEVEL_INTERVALS } from "@/lib/storage";
 import type { RootStackParamList } from "@/navigation/RootStackNavigator";
 
 type NavigationProp = NativeStackNavigationProp<RootStackParamList>;
@@ -37,10 +37,10 @@ interface TopicChipProps {
   topicName: string;
 }
 
-function SkillLevelIndicator({ level, color }: { level: 1 | 2 | 3; color: string }) {
+function SkillLevelIndicator({ level, color }: { level: SkillLevel; color: string }) {
   return (
     <View style={styles.levelIndicator}>
-      {[1, 2, 3].map((i) => (
+      {[1, 2, 3, 4, 5].map((i) => (
         <View
           key={i}
           style={[
@@ -69,18 +69,21 @@ function TopicChip({ topic, progress, onPress, topicName }: TopicChipProps) {
     scale.value = withSpring(1, { damping: 15, stiffness: 150 });
   };
 
-  const isCompleted = progress?.completed;
-  const isInProgress = progress && !progress.completed && progress.questionsAnswered > 0;
+  const isMastered = progress?.skillLevel === 5;
+  const isDue = isTopicDue(progress);
+  const hasStarted = progress && progress.questionsAnswered > 0;
   const skillLevel = progress?.skillLevel ?? 1;
 
-  const chipStyle = isCompleted
+  const chipStyle = isMastered
     ? { backgroundColor: theme.success, borderColor: theme.success }
-    : isInProgress
+    : isDue && hasStarted
+    ? { backgroundColor: "transparent", borderColor: theme.accent }
+    : hasStarted
     ? { backgroundColor: "transparent", borderColor: theme.secondary }
     : { backgroundColor: "transparent", borderColor: theme.cardBorder };
 
-  const textColor = isCompleted ? "#FFFFFF" : theme.text;
-  const levelColor = isCompleted ? "#FFFFFF" : theme.accent;
+  const textColor = isMastered ? "#FFFFFF" : theme.text;
+  const levelColor = isMastered ? "#FFFFFF" : theme.accent;
 
   return (
     <AnimatedPressable
@@ -89,8 +92,10 @@ function TopicChip({ topic, progress, onPress, topicName }: TopicChipProps) {
       onPressOut={handlePressOut}
       style={[styles.topicChip, chipStyle, animatedStyle]}
     >
-      {isCompleted ? (
-        <Feather name="check" size={14} color="#FFFFFF" style={styles.chipIcon} />
+      {isMastered ? (
+        <Feather name="award" size={14} color="#FFFFFF" style={styles.chipIcon} />
+      ) : isDue && hasStarted ? (
+        <Feather name="clock" size={14} color={theme.accent} style={styles.chipIcon} />
       ) : null}
       <ThemedText
         type="label"
@@ -99,7 +104,7 @@ function TopicChip({ topic, progress, onPress, topicName }: TopicChipProps) {
       >
         {topicName}
       </ThemedText>
-      {(isInProgress || isCompleted) ? (
+      {hasStarted ? (
         <SkillLevelIndicator level={skillLevel} color={levelColor} />
       ) : null}
     </AnimatedPressable>
@@ -116,18 +121,24 @@ interface CategoryCardProps {
 
 function CategoryCard({ category, categoryName, topicProgress, onTopicPress, getTopicDisplayName }: CategoryCardProps) {
   const { theme } = useTheme();
+  const { t } = useTranslation();
 
-  const completedCount = category.topics.filter(
-    (t) => topicProgress[t.id]?.completed
+  const dueCount = category.topics.filter(
+    (t) => isTopicDue(topicProgress[t.id])
   ).length;
-  const progressPercent = (completedCount / category.topics.length) * 100;
+  
+  const avgSkillLevel = category.topics.reduce((sum, topic) => {
+    return sum + (topicProgress[topic.id]?.skillLevel ?? 0);
+  }, 0) / category.topics.length;
+  
+  const progressPercent = (avgSkillLevel / 5) * 100;
 
   return (
     <View style={[styles.categoryCard, { backgroundColor: theme.backgroundDefault }]}>
       <View style={styles.categoryHeader}>
         <ThemedText type="h4">{categoryName}</ThemedText>
-        <ThemedText type="caption" style={{ color: theme.tabIconDefault }}>
-          {completedCount}/{category.topics.length}
+        <ThemedText type="caption" style={{ color: dueCount > 0 ? theme.accent : theme.tabIconDefault }}>
+          {dueCount > 0 ? `${dueCount} ${t("dueForReview")}` : t("allCaughtUp")}
         </ThemedText>
       </View>
 
