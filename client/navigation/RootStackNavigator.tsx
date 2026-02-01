@@ -1,6 +1,5 @@
-import React, { useCallback } from "react";
+import React from "react";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
-import { useFocusEffect } from "@react-navigation/native";
 import MainTabNavigator from "@/navigation/MainTabNavigator";
 import QuizSessionScreen from "@/screens/QuizSessionScreen";
 import SessionSummaryScreen from "@/screens/SessionSummaryScreen";
@@ -27,13 +26,7 @@ const Stack = createNativeStackNavigator<RootStackParamList>();
 export default function RootStackNavigator() {
   const screenOptions = useScreenOptions();
   const opaqueScreenOptions = useScreenOptions({ transparent: false });
-  const { t, language, refreshLanguage } = useTranslation();
-
-  useFocusEffect(
-    useCallback(() => {
-      refreshLanguage();
-    }, [refreshLanguage])
-  );
+  const { t, language } = useTranslation();
 
   return (
     <Stack.Navigator key={language} screenOptions={screenOptions}>
