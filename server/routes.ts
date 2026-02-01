@@ -198,19 +198,27 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const topicDescription = TOPIC_PROMPTS[topicId] || "general JavaScript programming concepts";
 
       const languageInstruction = language === "de" 
-        ? "Write the entire explanation in German (Deutsch). Keep code examples and JavaScript syntax in English as they are programming terms."
+        ? "Write the ENTIRE explanation in German (Deutsch), including ALL headings and section titles. Keep only code examples and JavaScript syntax in English as they are programming terms."
         : "Write the entire explanation in English.";
+
+      const sectionHeadings = language === "de"
+        ? `1. **Einführung** - Ein kurzer Überblick, was dieses Konzept ist und warum es wichtig ist
+2. **Kernkonzepte** - Die wichtigsten Punkte, die Studierende verstehen müssen
+3. **Code-Beispiele** - 2-3 praktische Code-Beispiele mit Erklärungen
+4. **Häufige Fehler** - Was man bei diesem Konzept vermeiden sollte
+5. **Best Practices** - Tipps für den effektiven Einsatz dieses Konzepts`
+        : `1. **Introduction** - A brief overview of what this concept is and why it's important
+2. **Key Concepts** - The main points students need to understand
+3. **Code Examples** - 2-3 practical code examples with explanations
+4. **Common Mistakes** - Things to avoid when using this concept
+5. **Best Practices** - Tips for using this concept effectively`;
 
       const prompt = `Explain the following JavaScript topic for computer science students: ${topicDescription}
 
 ${languageInstruction}
 
 Structure your explanation as follows:
-1. **Introduction** - A brief overview of what this concept is and why it's important
-2. **Key Concepts** - The main points students need to understand
-3. **Code Examples** - 2-3 practical code examples with explanations
-4. **Common Mistakes** - Things to avoid when using this concept
-5. **Best Practices** - Tips for using this concept effectively
+${sectionHeadings}
 
 Format the response in Markdown. Use code blocks with \`\`\`javascript for code examples.
 Keep the total length to about 500-700 words.
