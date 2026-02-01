@@ -153,15 +153,6 @@ export default function SettingsScreen() {
     await WebBrowser.openBrowserAsync("https://www.dhbw-loerrach.de");
   };
 
-  const getDifficultyLabel = (difficulty: string) => {
-    switch (difficulty) {
-      case "beginner": return t("beginner");
-      case "intermediate": return t("intermediate");
-      case "advanced": return t("advanced");
-      default: return difficulty;
-    }
-  };
-
   const getThemeModeLabel = (mode: ThemeMode) => {
     switch (mode) {
       case "auto": return t("themeAuto");
@@ -239,25 +230,6 @@ export default function SettingsScreen() {
               >
                 <ThemedText type="label">
                   {settings.language === "en" ? t("english") : t("german")}
-                </ThemedText>
-              </Pressable>
-            </SettingRow>
-            <SettingRow icon="sliders" label={t("difficulty")}>
-              <Pressable
-                style={[styles.optionButton, { backgroundColor: theme.backgroundSecondary }]}
-                onPress={() => {
-                  const levels: SettingsData["difficulty"][] = [
-                    "beginner",
-                    "intermediate",
-                    "advanced",
-                  ];
-                  const currentIndex = levels.indexOf(settings.difficulty);
-                  const nextIndex = (currentIndex + 1) % levels.length;
-                  setSettings({ ...settings, difficulty: levels[nextIndex] });
-                }}
-              >
-                <ThemedText type="label">
-                  {getDifficultyLabel(settings.difficulty)}
                 </ThemedText>
               </Pressable>
             </SettingRow>
