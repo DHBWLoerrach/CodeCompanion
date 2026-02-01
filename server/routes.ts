@@ -95,7 +95,6 @@ Important:
         { role: "user", content: prompt }
       ],
       max_completion_tokens: 4096,
-      temperature: 0.7,
     });
 
     const content = response.choices[0]?.message?.content || "{}";
@@ -223,7 +222,6 @@ Focus purely on JavaScript language concepts - avoid web/HTML/CSS context.`;
           { role: "user", content: prompt }
         ],
         max_completion_tokens: 2048,
-        temperature: 0.7,
       });
 
       const explanation = response.choices[0]?.message?.content || "";
