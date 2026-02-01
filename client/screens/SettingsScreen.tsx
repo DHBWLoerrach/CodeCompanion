@@ -226,16 +226,6 @@ export default function SettingsScreen() {
             {t("preferences")}
           </ThemedText>
           <View style={styles.settingsGroup}>
-            <SettingRow icon="bell" label={t("notifications")}>
-              <Switch
-                value={settings.notificationsEnabled}
-                onValueChange={(value) =>
-                  setSettings({ ...settings, notificationsEnabled: value })
-                }
-                trackColor={{ false: theme.cardBorder, true: theme.primary }}
-                thumbColor="#FFFFFF"
-              />
-            </SettingRow>
             <SettingRow icon="globe" label={t("language")}>
               <Pressable
                 style={[styles.optionButton, { backgroundColor: theme.backgroundSecondary }]}
