@@ -19,6 +19,7 @@ import Animated, {
 
 import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
+import { MarkdownView } from "@/components/MarkdownView";
 import { useTheme } from "@/hooks/useTheme";
 import { useTranslation } from "@/hooks/useTranslation";
 import { Spacing, BorderRadius, Shadows } from "@/constants/theme";
@@ -303,9 +304,7 @@ export default function TopicDetailScreen() {
                 </ThemedText>
               </View>
             ) : (
-              <ThemedText type="body" style={styles.explanationText}>
-                {explanation}
-              </ThemedText>
+              <MarkdownView content={explanation} />
             )}
           </ScrollView>
         </View>
@@ -444,8 +443,5 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
     paddingVertical: Spacing.xl * 3,
-  },
-  explanationText: {
-    lineHeight: 24,
   },
 });
