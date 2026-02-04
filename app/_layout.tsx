@@ -17,7 +17,7 @@ function RootStack() {
 
   return (
     <Stack screenOptions={screenOptions}>
-      <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+      <Stack.Screen name="(tabs)" options={{ headerShown: false, title: "" }} />
       <Stack.Screen
         name="quiz-session"
         options={{

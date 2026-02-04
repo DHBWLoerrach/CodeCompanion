@@ -22,6 +22,8 @@ export function useScreenOptions({
     headerBlurEffect: isDark ? "dark" : "light",
     headerTintColor: theme.text,
     headerBackTitle: "",
+    headerBackTitleVisible: false,
+    headerBackButtonDisplayMode: "minimal",
     headerStyle: {
       backgroundColor: transparent
         ? Platform.select({
