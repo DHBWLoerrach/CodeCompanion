@@ -5,13 +5,32 @@ import { QueryClient, QueryFunction } from "@tanstack/react-query";
  * @returns {string} The API base URL
  */
 export function getApiUrl(): string {
+  const explicitUrl = process.env.EXPO_PUBLIC_API_URL;
+  if (explicitUrl) {
+    return new URL(explicitUrl).href;
+  }
+
   let host = process.env.EXPO_PUBLIC_DOMAIN;
 
   if (!host) {
     throw new Error("EXPO_PUBLIC_DOMAIN is not set");
   }
 
-  let url = new URL(`https://${host}`);
+  if (/^https?:\/\//i.test(host)) {
+    return new URL(host).href;
+  }
+
+  const isLocalHost =
+    host.includes("localhost") ||
+    host.startsWith("127.") ||
+    host.startsWith("10.") ||
+    host.startsWith("192.168.") ||
+    /^172\.(1[6-9]|2\d|3[0-1])\./.test(host);
+
+  const protocol =
+    process.env.EXPO_PUBLIC_PROTOCOL || (isLocalHost ? "http" : "https");
+
+  let url = new URL(`${protocol}://${host}`);
 
   return url.href;
 }
