@@ -1,5 +1,4 @@
 import type { Express } from "express";
-import { createServer, type Server } from "node:http";
 import crypto from "node:crypto";
 import OpenAI from "openai";
 
@@ -15,6 +14,32 @@ interface QuizQuestion {
   options: string[];
   correctIndex: number;
   explanation: string;
+}
+
+function getResponseText(response: any): string {
+  if (typeof response?.output_text === "string") {
+    return response.output_text;
+  }
+
+  const output = response?.output;
+  if (!Array.isArray(output)) {
+    return "";
+  }
+
+  const parts: string[] = [];
+  for (const item of output) {
+    const content = item?.content;
+    if (!Array.isArray(content)) continue;
+    for (const block of content) {
+      if (block?.type === "output_text" && typeof block.text === "string") {
+        parts.push(block.text);
+      } else if (typeof block?.text === "string") {
+        parts.push(block.text);
+      }
+    }
+  }
+
+  return parts.join("");
 }
 
 const TOPIC_PROMPTS: Record<string, string> = {
@@ -85,22 +110,16 @@ Important:
 - Return ONLY valid JSON, no markdown or extra text`;
 
   try {
-    const stream = await openai.responses.create({
+    const response = await openai.responses.create({
       model: process.env.OPENAI_MODEL || "gpt-5.2",
       instructions: `You are a JavaScript programming tutor creating quiz questions. ${language === "de" ? "Respond in German." : "Respond in English."} Always respond with valid JSON containing a 'questions' array.`,
       input: prompt,
       max_output_tokens: 4096,
-      stream: true,
     });
 
-    let content = "";
-    for await (const event of stream) {
-      if (event.type === "response.output_text.delta") {
-        const delta = (event as any).delta || "";
-        if (delta) {
-          content += delta;
-        }
-      }
+    const content = getResponseText(response);
+    if (!content) {
+      throw new Error("Empty response from OpenAI");
     }
     console.log("OpenAI response content:", content.substring(0, 200));
     
@@ -147,7 +166,7 @@ Important:
   }
 }
 
-export async function registerRoutes(app: Express): Promise<Server> {
+export async function registerRoutes(app: Express): Promise<void> {
   app.post("/api/quiz/generate", async (req, res) => {
     try {
       const { topicId, count = 5, language = "en", skillLevel = 1 } = req.body;
@@ -224,22 +243,16 @@ Format the response in Markdown. Use code blocks with \`\`\`javascript for code 
 Keep the total length to about 500-700 words.
 Focus purely on JavaScript language concepts - avoid web/HTML/CSS context.`;
 
-      const stream = await openai.responses.create({
+      const response = await openai.responses.create({
         model: process.env.OPENAI_MODEL || "gpt-5.2",
         instructions: `You are an experienced JavaScript programming tutor explaining concepts to university students. ${language === "de" ? "Respond in German." : "Respond in English."} Use clear, concise language and practical examples.`,
         input: prompt,
         max_output_tokens: 2048,
-        stream: true,
       });
 
-      let explanation = "";
-      for await (const event of stream) {
-        if (event.type === "response.output_text.delta") {
-          const content = (event as any).delta || "";
-          if (content) {
-            explanation += content;
-          }
-        }
+      const explanation = getResponseText(response);
+      if (!explanation) {
+        throw new Error("Empty response from OpenAI");
       }
       console.log(`Generated explanation for topic ${topicId} in ${language}`);
       
@@ -250,10 +263,5 @@ Focus purely on JavaScript language concepts - avoid web/HTML/CSS context.`;
     }
   });
 
-  app.get("/api/health", (req, res) => {
-    res.json({ status: "ok" });
-  });
-
-  const httpServer = createServer(app);
-  return httpServer;
+  return;
 }
