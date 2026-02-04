@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useCallback } from "react";
 import {
   View,
   ScrollView,
@@ -8,8 +8,7 @@ import {
   Modal,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { useNavigation, useRoute } from "@react-navigation/native";
-import type { NativeStackNavigationProp, NativeStackScreenProps } from "@react-navigation/native-stack";
+import { useFocusEffect, useNavigation, useLocalSearchParams, useRouter } from "expo-router";
 import { Feather } from "@expo/vector-icons";
 import Animated, {
   useAnimatedStyle,
@@ -26,10 +25,6 @@ import { Spacing, BorderRadius, Shadows } from "@/constants/theme";
 import { getTopicById, getTopicName, getTopicDescription, type Topic } from "@/lib/topics";
 import { storage, type TopicProgress, isTopicDue, getDaysUntilDue, SKILL_LEVEL_INTERVALS } from "@/lib/storage";
 import { getApiUrl } from "@/lib/query-client";
-import type { RootStackParamList } from "@/navigation/RootStackNavigator";
-
-type NavigationProp = NativeStackNavigationProp<RootStackParamList>;
-type RouteProp = NativeStackScreenProps<RootStackParamList, "TopicDetail">["route"];
 
 const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
 
@@ -37,9 +32,10 @@ export default function TopicDetailScreen() {
   const { theme } = useTheme();
   const { t, language, refreshLanguage } = useTranslation();
   const insets = useSafeAreaInsets();
-  const navigation = useNavigation<NavigationProp>();
-  const route = useRoute<RouteProp>();
-  const { topicId, topicName } = route.params;
+  const navigation = useNavigation();
+  const router = useRouter();
+  const { topicId } = useLocalSearchParams<{ topicId?: string }>();
+  const resolvedTopicId = Array.isArray(topicId) ? topicId[0] : topicId;
 
   const [topic, setTopic] = useState<Topic | null>(null);
   const [progress, setProgress] = useState<TopicProgress | null>(null);
@@ -75,45 +71,47 @@ export default function TopicDetailScreen() {
     explainScale.value = withSpring(1, { damping: 15, stiffness: 150 });
   };
 
-  useEffect(() => {
-    loadData();
-  }, []);
-
-  useEffect(() => {
-    const unsubscribe = navigation.addListener("focus", async () => {
-      await refreshLanguage();
-      loadData();
-    });
-    return unsubscribe;
-  }, [navigation, refreshLanguage]);
-
-  // Update header title based on current language
-  useEffect(() => {
-    const topicData = getTopicById(topicId);
-    if (topicData) {
-      navigation.setOptions({ headerTitle: getTopicName(topicData, language) });
-    }
-  }, [topicId, language, navigation]);
-
-  const loadData = async () => {
+  const loadData = useCallback(async () => {
     try {
-      const topicData = getTopicById(topicId);
+      if (!resolvedTopicId) {
+        setTopic(null);
+        setProgress(null);
+        navigation.setOptions({ headerTitle: "" });
+        return;
+      }
+
+      const topicData = getTopicById(resolvedTopicId);
       setTopic(topicData || null);
+      navigation.setOptions({
+        headerTitle: topicData ? getTopicName(topicData, language) : "",
+      });
 
       const progressData = await storage.getProgress();
-      setProgress(progressData.topicProgress[topicId] || null);
+      setProgress(progressData.topicProgress[resolvedTopicId] || null);
     } catch (error) {
       console.error("Error loading topic:", error);
     } finally {
       setLoading(false);
     }
-  };
+  }, [resolvedTopicId, navigation, language]);
+
+  useFocusEffect(
+    useCallback(() => {
+      refreshLanguage();
+      loadData();
+    }, [refreshLanguage, loadData])
+  );
 
   const handleStartQuiz = () => {
-    navigation.navigate("QuizSession", { topicId });
+    if (!resolvedTopicId) return;
+    router.push({
+      pathname: "/quiz-session",
+      params: { topicId: resolvedTopicId },
+    });
   };
 
   const handleExplainTopic = async () => {
+    if (!resolvedTopicId) return;
     setExplanationModalVisible(true);
     setLoadingExplanation(true);
     setExplanation("");
@@ -123,7 +121,7 @@ export default function TopicDetailScreen() {
       const response = await fetch(new URL("/api/topic/explain", apiUrl).toString(), {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ topicId, language }),
+        body: JSON.stringify({ topicId: resolvedTopicId, language }),
       });
       
       if (!response.ok) {

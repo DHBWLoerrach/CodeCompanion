@@ -1,5 +1,6 @@
+import type { ComponentProps } from "react";
 import { Platform } from "react-native";
-import { NativeStackNavigationOptions } from "@react-navigation/native-stack";
+import { Stack } from "expo-router";
 import { isLiquidGlassAvailable } from "expo-glass-effect";
 
 import { useTheme } from "@/hooks/useTheme";
@@ -8,9 +9,11 @@ interface UseScreenOptionsParams {
   transparent?: boolean;
 }
 
+type ScreenOptions = NonNullable<ComponentProps<typeof Stack>["screenOptions"]>;
+
 export function useScreenOptions({
   transparent = true,
-}: UseScreenOptionsParams = {}): NativeStackNavigationOptions {
+}: UseScreenOptionsParams = {}): ScreenOptions {
   const { theme, isDark } = useTheme();
 
   return {

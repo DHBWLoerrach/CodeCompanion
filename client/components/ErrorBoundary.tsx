@@ -30,9 +30,7 @@ export class ErrorBoundary extends Component<
   }
 
   componentDidCatch(error: Error, info: { componentStack: string }): void {
-    if (typeof this.props.onError === "function") {
-      this.props.onError(error, info.componentStack);
-    }
+    this.props.onError?.(error, info.componentStack);
   }
 
   resetError = (): void => {
