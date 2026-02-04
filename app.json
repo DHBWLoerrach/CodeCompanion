@@ -1,16 +1,16 @@
 {
   "expo": {
-    "name": "DHBW Learn",
-    "slug": "dhbw-learn",
+    "name": "DHBW Code Companion",
+    "slug": "dhbw-code-companion",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
-    "scheme": "dhbwlearn",
+    "scheme": "dhbwcodecompanion",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.dhbw.learn"
+      "bundleIdentifier": "de.dhbwloe.loerrach.CodeCompanion"
     },
     "android": {
       "adaptiveIcon": {
@@ -21,7 +21,7 @@
       },
       "edgeToEdgeEnabled": true,
       "predictiveBackGestureEnabled": false,
-      "package": "com.dhbw.learn"
+      "package": "de.dhbwloe.loerrach.CodeCompanion"
     },
     "web": {
       "output": "single",
