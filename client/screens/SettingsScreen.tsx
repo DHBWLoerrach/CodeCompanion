@@ -4,12 +4,12 @@ import {
   StyleSheet,
   Pressable,
   TextInput,
-  ActionSheetIOS,
   Alert,
   ActivityIndicator,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Stack, useRouter } from "expo-router";
+import SegmentedControl from "@react-native-segmented-control/segmented-control";
 import * as WebBrowser from "expo-web-browser";
 import Constants from "expo-constants";
 
@@ -62,44 +62,26 @@ function AvatarSelector({ selectedIndex, onSelect }: AvatarSelectorProps) {
 interface SettingRowProps {
   icon: string;
   label: string;
-  value?: string;
-  onPress?: () => void;
   children?: React.ReactNode;
 }
 
-function SettingRow({ icon, label, value, onPress, children }: SettingRowProps) {
+function SettingRow({ icon, label, children }: SettingRowProps) {
   const { theme } = useTheme();
 
   return (
-    <Pressable
-      onPress={onPress}
-      disabled={!onPress}
-      style={({ pressed }) => [
-        styles.settingRow,
-        { backgroundColor: theme.backgroundDefault, opacity: pressed && onPress ? 0.7 : 1 },
-      ]}
-    >
+    <View style={[styles.settingRow, { backgroundColor: theme.backgroundDefault }]}>
       <View style={styles.settingLeft}>
         <AppIcon name={icon} size={20} color={theme.tabIconDefault} />
         <ThemedText type="body">{label}</ThemedText>
       </View>
-      {children ?? (value ? (
-        <View style={styles.settingValue}>
-          <ThemedText type="label" style={{ color: theme.tabIconDefault }}>
-            {value}
-          </ThemedText>
-          {onPress ? (
-            <AppIcon name="chevron-right" size={16} color={theme.tabIconDefault} />
-          ) : null}
-        </View>
-      ) : null)}
-    </Pressable>
+      {children}
+    </View>
   );
 }
 
 export default function SettingsScreen() {
   const { theme, refreshTheme } = useTheme();
-  const { t, language, refreshLanguage } = useTranslation();
+  const { t, refreshLanguage } = useTranslation();
   const insets = useSafeAreaInsets();
   const router = useRouter();
 
@@ -107,7 +89,6 @@ export default function SettingsScreen() {
   const [settings, setSettings] = useState<SettingsData | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
-  const isIOS = process.env.EXPO_OS === "ios";
 
   useEffect(() => {
     loadData();
@@ -194,63 +175,6 @@ export default function SettingsScreen() {
     await refreshTheme();
   };
 
-  const showLanguagePicker = () => {
-    const options: Array<"en" | "de"> = ["en", "de"];
-    const labels = [t("english"), t("german")];
-
-    if (isIOS) {
-      ActionSheetIOS.showActionSheetWithOptions(
-        {
-          title: t("language"),
-          options: [...labels, t("cancel")],
-          cancelButtonIndex: labels.length,
-        },
-        (buttonIndex) => {
-          const selected = options[buttonIndex];
-          if (selected) {
-            applyLanguage(selected);
-          }
-        }
-      );
-      return;
-    }
-
-    Alert.alert(t("language"), "", [
-      { text: labels[0], onPress: () => applyLanguage("en") },
-      { text: labels[1], onPress: () => applyLanguage("de") },
-      { text: t("cancel"), style: "cancel" },
-    ]);
-  };
-
-  const showThemePicker = () => {
-    const options: ThemeMode[] = ["auto", "light", "dark"];
-    const labels = options.map(getThemeModeLabel);
-
-    if (isIOS) {
-      ActionSheetIOS.showActionSheetWithOptions(
-        {
-          title: t("theme"),
-          options: [...labels, t("cancel")],
-          cancelButtonIndex: labels.length,
-        },
-        (buttonIndex) => {
-          const selected = options[buttonIndex];
-          if (selected) {
-            applyThemeMode(selected);
-          }
-        }
-      );
-      return;
-    }
-
-    Alert.alert(t("theme"), "", [
-      { text: labels[0], onPress: () => applyThemeMode("auto") },
-      { text: labels[1], onPress: () => applyThemeMode("light") },
-      { text: labels[2], onPress: () => applyThemeMode("dark") },
-      { text: t("cancel"), style: "cancel" },
-    ]);
-  };
-
   if (loading || !profile || !settings) {
     return (
       <>
@@ -311,18 +235,44 @@ export default function SettingsScreen() {
               {t("preferences")}
             </ThemedText>
             <View style={styles.settingsGroup}>
-              <SettingRow
-                icon="globe"
-                label={t("language")}
-                value={settings.language === "en" ? t("english") : t("german")}
-                onPress={showLanguagePicker}
-              />
-              <SettingRow
-                icon="moon"
-                label={t("theme")}
-                value={getThemeModeLabel(settings.themeMode)}
-                onPress={showThemePicker}
-              />
+              {(() => {
+                const languageIndex = settings.language === "en" ? 0 : 1;
+                const themeModes: ThemeMode[] = ["auto", "light", "dark"];
+                const themeIndex = Math.max(0, themeModes.indexOf(settings.themeMode));
+
+                return (
+                  <>
+                    <SettingRow icon="globe" label={t("language")}>
+                      <SegmentedControl
+                        values={[t("english"), t("german")]}
+                        selectedIndex={languageIndex}
+                        onChange={({ nativeEvent }) => {
+                          const nextLanguage =
+                            nativeEvent.selectedSegmentIndex === 0 ? "en" : "de";
+                          applyLanguage(nextLanguage);
+                        }}
+                        style={styles.segmentedControl}
+                      />
+                    </SettingRow>
+                    <SettingRow icon="moon" label={t("theme")}>
+                      <SegmentedControl
+                        values={[
+                          getThemeModeLabel("auto"),
+                          getThemeModeLabel("light"),
+                          getThemeModeLabel("dark"),
+                        ]}
+                        selectedIndex={themeIndex}
+                        onChange={({ nativeEvent }) => {
+                          const nextMode =
+                            themeModes[nativeEvent.selectedSegmentIndex] ?? "auto";
+                          applyThemeMode(nextMode);
+                        }}
+                        style={styles.segmentedControlWide}
+                      />
+                    </SettingRow>
+                  </>
+                );
+              })()}
             </View>
           </View>
 
@@ -470,10 +420,17 @@ const styles = StyleSheet.create({
     alignItems: "center",
     gap: Spacing.md,
   },
-  settingValue: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: Spacing.xs,
+  segmentedControl: {
+    minWidth: 160,
+    maxWidth: 200,
+    alignSelf: "flex-end",
+    flexShrink: 1,
+  },
+  segmentedControlWide: {
+    minWidth: 200,
+    maxWidth: 240,
+    alignSelf: "flex-end",
+    flexShrink: 1,
   },
   dangerButton: {
     flexDirection: "row",
