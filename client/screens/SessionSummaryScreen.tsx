@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useMemo } from "react";
 import {
   View,
   ScrollView,
@@ -6,8 +6,7 @@ import {
   Pressable,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { useNavigation, useRoute } from "@react-navigation/native";
-import type { NativeStackNavigationProp, NativeStackScreenProps } from "@react-navigation/native-stack";
+import { useLocalSearchParams, useRouter } from "expo-router";
 import { Feather } from "@expo/vector-icons";
 import Svg, { Circle } from "react-native-svg";
 
@@ -16,12 +15,8 @@ import { ThemedView } from "@/components/ThemedView";
 import { useTheme } from "@/hooks/useTheme";
 import { useTranslation } from "@/hooks/useTranslation";
 import { Spacing, BorderRadius, Shadows } from "@/constants/theme";
-import type { RootStackParamList } from "@/navigation/RootStackNavigator";
 import { getTopicById, getTopicName } from "@/lib/topics";
 import { storage } from "@/lib/storage";
-
-type NavigationProp = NativeStackNavigationProp<RootStackParamList>;
-type RouteProp = NativeStackScreenProps<RootStackParamList, "SessionSummary">["route"];
 
 interface ScoreCircleProps {
   score: number;
@@ -30,7 +25,7 @@ interface ScoreCircleProps {
 
 function ScoreCircle({ score, total }: ScoreCircleProps) {
   const { theme } = useTheme();
-  const percentage = (score / total) * 100;
+  const percentage = total > 0 ? (score / total) * 100 : 0;
   const radius = 70;
   const circumference = 2 * Math.PI * radius;
   const strokeDashoffset = circumference - (percentage / 100) * circumference;
@@ -117,18 +112,42 @@ export default function SessionSummaryScreen() {
   const { theme } = useTheme();
   const { t, language } = useTranslation();
   const insets = useSafeAreaInsets();
-  const navigation = useNavigation<NavigationProp>();
-  const route = useRoute<RouteProp>();
-  const { score, total, topicId, answers } = route.params;
+  const router = useRouter();
+  const params = useLocalSearchParams<{
+    score?: string;
+    total?: string;
+    topicId?: string;
+    answers?: string;
+  }>();
 
-  const percentage = (score / total) * 100;
-  const topic = topicId ? getTopicById(topicId) : null;
+  const getParam = (value?: string | string[]) =>
+    Array.isArray(value) ? value[0] : value;
+
+  const scoreParam = getParam(params.score);
+  const totalParam = getParam(params.total);
+  const topicIdParam = getParam(params.topicId);
+  const answersParam = getParam(params.answers);
+
+  const score = Number(scoreParam ?? 0);
+  const total = Number(totalParam ?? 0);
+  const answers = useMemo(() => {
+    if (!answersParam) return [];
+    try {
+      const parsed = JSON.parse(answersParam);
+      return Array.isArray(parsed) ? parsed : [];
+    } catch {
+      return [];
+    }
+  }, [answersParam]);
+
+  const percentage = total > 0 ? (score / total) * 100 : 0;
+  const topic = topicIdParam ? getTopicById(topicIdParam) : null;
 
   useEffect(() => {
-    if (topicId) {
-      storage.updateTopicSkillLevel(topicId, percentage);
+    if (topicIdParam) {
+      storage.updateTopicSkillLevel(topicIdParam, percentage);
     }
-  }, [topicId, percentage]);
+  }, [topicIdParam, percentage]);
 
   const getFeedbackMessage = (pct: number): string => {
     if (pct === 100) return t("excellentWork");
@@ -139,11 +158,12 @@ export default function SessionSummaryScreen() {
   };
 
   const handlePracticeAgain = () => {
-    navigation.replace("QuizSession", { topicId });
+    const nextParams = topicIdParam ? { topicId: topicIdParam } : undefined;
+    router.replace({ pathname: "/quiz-session", params: nextParams });
   };
 
   const handleBackToTopics = () => {
-    navigation.popToTop();
+    router.dismissAll();
   };
 
   return (

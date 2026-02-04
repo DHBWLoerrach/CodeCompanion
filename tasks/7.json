@@ -1,0 +1,9 @@
+{
+  "id": "7",
+  "subject": "Remove stale @react-navigation dependencies from package.json",
+  "description": "After migrating all imports, remove @react-navigation/bottom-tabs, @react-navigation/elements, @react-navigation/native, @react-navigation/native-stack from package.json",
+  "activeForm": "Removing stale dependencies",
+  "status": "pending",
+  "blocks": [],
+  "blockedBy": []
+}

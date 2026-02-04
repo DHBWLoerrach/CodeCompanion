@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useCallback } from "react";
 import {
   View,
   ScrollView,
@@ -7,8 +7,7 @@ import {
   ActivityIndicator,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { useNavigation } from "@react-navigation/native";
-import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
+import { useFocusEffect, useRouter } from "expo-router";
 import { Feather } from "@expo/vector-icons";
 import Animated, {
   useAnimatedStyle,
@@ -24,9 +23,6 @@ import { useTranslation } from "@/hooks/useTranslation";
 import { Spacing, BorderRadius, Shadows } from "@/constants/theme";
 import { CATEGORIES, type Topic, type Category, getTopicName, getCategoryName } from "@/lib/topics";
 import { storage, type TopicProgress, type SkillLevel, isTopicDue, SKILL_LEVEL_INTERVALS } from "@/lib/storage";
-import type { RootStackParamList } from "@/navigation/RootStackNavigator";
-
-type NavigationProp = NativeStackNavigationProp<RootStackParamList>;
 
 const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
 
@@ -115,7 +111,7 @@ interface CategoryCardProps {
   category: Category;
   categoryName: string;
   topicProgress: Record<string, TopicProgress>;
-  onTopicPress: (topic: Topic, topicName: string) => void;
+  onTopicPress: (topic: Topic) => void;
   getTopicDisplayName: (topic: Topic) => string;
 }
 
@@ -154,7 +150,7 @@ function CategoryCard({ category, categoryName, topicProgress, onTopicPress, get
               topic={topic}
               topicName={topicDisplayName}
               progress={topicProgress[topic.id]}
-              onPress={() => onTopicPress(topic, topicDisplayName)}
+              onPress={() => onTopicPress(topic)}
             />
           );
         })}
@@ -167,23 +163,11 @@ export default function LearnScreen() {
   const { theme } = useTheme();
   const { t, language, refreshLanguage } = useTranslation();
   const insets = useSafeAreaInsets();
-  const navigation = useNavigation<NavigationProp>();
+  const router = useRouter();
   const [topicProgress, setTopicProgress] = useState<Record<string, TopicProgress>>({});
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    loadProgress();
-  }, []);
-
-  useEffect(() => {
-    const unsubscribe = navigation.addListener("focus", () => {
-      loadProgress();
-      refreshLanguage();
-    });
-    return unsubscribe;
-  }, [navigation, refreshLanguage]);
-
-  const loadProgress = async () => {
+  const loadProgress = useCallback(async () => {
     try {
       const progress = await storage.getProgress();
       setTopicProgress(progress.topicProgress);
@@ -192,10 +176,17 @@ export default function LearnScreen() {
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
 
-  const handleTopicPress = (topic: Topic, topicName: string) => {
-    navigation.navigate("TopicDetail", { topicId: topic.id, topicName });
+  useFocusEffect(
+    useCallback(() => {
+      loadProgress();
+      refreshLanguage();
+    }, [loadProgress, refreshLanguage])
+  );
+
+  const handleTopicPress = (topic: Topic) => {
+    router.push({ pathname: "/topic/[topicId]", params: { topicId: topic.id } });
   };
 
   const allTopics = CATEGORIES.flatMap((cat) => cat.topics);
@@ -218,7 +209,7 @@ export default function LearnScreen() {
         <HeaderTitle title={t("learnJavaScript")} />
         <Pressable
           style={styles.filterButton}
-          onPress={() => navigation.navigate("Settings")}
+          onPress={() => router.push("/settings")}
         >
           <Feather name="settings" size={22} color={theme.tabIconDefault} />
         </Pressable>
@@ -256,7 +247,7 @@ export default function LearnScreen() {
                   topic={topic}
                   topicName={getTopicName(topic, language)}
                   progress={topicProgress[topic.id]}
-                  onPress={() => handleTopicPress(topic, getTopicName(topic, language))}
+                  onPress={() => handleTopicPress(topic)}
                 />
               ))}
             </ScrollView>

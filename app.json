@@ -40,10 +40,12 @@
           }
         }
       ],
+      "expo-router",
       "expo-web-browser"
     ],
     "experiments": {
-      "reactCompiler": true
+      "reactCompiler": true,
+      "typedRoutes": true
     }
   }
 }

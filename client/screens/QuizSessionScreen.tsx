@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect } from "react";
 import {
   View,
   ScrollView,
@@ -7,8 +7,7 @@ import {
   ActivityIndicator,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { useNavigation, useRoute } from "@react-navigation/native";
-import type { NativeStackNavigationProp, NativeStackScreenProps } from "@react-navigation/native-stack";
+import { useLocalSearchParams, useRouter } from "expo-router";
 import { Feather } from "@expo/vector-icons";
 import Animated, {
   useAnimatedStyle,
@@ -24,10 +23,6 @@ import { useTranslation } from "@/hooks/useTranslation";
 import { Spacing, BorderRadius, Shadows, Fonts } from "@/constants/theme";
 import { getApiUrl, apiRequest } from "@/lib/query-client";
 import { storage } from "@/lib/storage";
-import type { RootStackParamList } from "@/navigation/RootStackNavigator";
-
-type NavigationProp = NativeStackNavigationProp<RootStackParamList>;
-type RouteProp = NativeStackScreenProps<RootStackParamList, "QuizSession">["route"];
 
 interface Question {
   id: string;
@@ -170,11 +165,11 @@ function CodeBlock({ code }: { code: string }) {
 
 export default function QuizSessionScreen() {
   const { theme } = useTheme();
-  const { t, language } = useTranslation();
+  const { t } = useTranslation();
   const insets = useSafeAreaInsets();
-  const navigation = useNavigation<NavigationProp>();
-  const route = useRoute<RouteProp>();
-  const { topicId } = route.params;
+  const router = useRouter();
+  const { topicId } = useLocalSearchParams<{ topicId?: string }>();
+  const resolvedTopicId = Array.isArray(topicId) ? topicId[0] : topicId;
 
   const [questions, setQuestions] = useState<Question[]>([]);
   const [currentIndex, setCurrentIndex] = useState(0);
@@ -194,10 +189,10 @@ export default function QuizSessionScreen() {
       setError(null);
 
       const settings = await storage.getSettings();
-      const skillLevel = topicId ? await storage.getTopicSkillLevel(topicId) : 1;
-      const endpoint = topicId ? "/api/quiz/generate" : "/api/quiz/generate-mixed";
-      const body = topicId 
-        ? { topicId, count: 10, language: settings.language, skillLevel } 
+      const skillLevel = resolvedTopicId ? await storage.getTopicSkillLevel(resolvedTopicId) : 1;
+      const endpoint = resolvedTopicId ? "/api/quiz/generate" : "/api/quiz/generate-mixed";
+      const body = resolvedTopicId
+        ? { topicId: resolvedTopicId, count: 10, language: settings.language, skillLevel }
         : { count: 10, language: settings.language };
 
       const response = await apiRequest("POST", endpoint, body);
@@ -261,25 +256,32 @@ export default function QuizSessionScreen() {
       ];
 
       await storage.recordPractice();
-      if (topicId) {
+      if (resolvedTopicId) {
         await storage.updateTopicProgress(
-          topicId,
+          resolvedTopicId,
           questions.length,
           finalAnswers.filter((a) => a.correct).length
         );
       }
 
-      navigation.replace("SessionSummary", {
-        score: finalAnswers.filter((a) => a.correct).length,
-        total: questions.length,
-        topicId,
-        answers: finalAnswers,
+      const params: Record<string, string> = {
+        score: String(finalAnswers.filter((a) => a.correct).length),
+        total: String(questions.length),
+        answers: JSON.stringify(finalAnswers),
+      };
+      if (resolvedTopicId) {
+        params.topicId = resolvedTopicId;
+      }
+
+      router.replace({
+        pathname: "/session-summary",
+        params,
       });
     }
   };
 
   const handleClose = () => {
-    navigation.goBack();
+    router.back();
   };
 
   if (loading) {

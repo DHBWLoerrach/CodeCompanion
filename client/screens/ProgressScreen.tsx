@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useCallback } from "react";
 import {
   View,
   ScrollView,
@@ -7,8 +7,7 @@ import {
   ActivityIndicator,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { useNavigation } from "@react-navigation/native";
-import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
+import { useFocusEffect, useRouter } from "expo-router";
 import { Feather } from "@expo/vector-icons";
 
 import { ThemedText } from "@/components/ThemedText";
@@ -22,9 +21,6 @@ import {
   type ProgressData,
   type StreakData,
 } from "@/lib/storage";
-import type { RootStackParamList } from "@/navigation/RootStackNavigator";
-
-type NavigationProp = NativeStackNavigationProp<RootStackParamList>;
 
 const AVATARS = ["monitor", "award", "code", "zap"] as const;
 
@@ -116,7 +112,7 @@ export default function ProgressScreen() {
   const { theme } = useTheme();
   const { t, refreshLanguage } = useTranslation();
   const insets = useSafeAreaInsets();
-  const navigation = useNavigation<NavigationProp>();
+  const router = useRouter();
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [progress, setProgress] = useState<ProgressData | null>(null);
   const [streak, setStreak] = useState<StreakData | null>(null);
@@ -131,19 +127,7 @@ export default function ProgressScreen() {
     { id: "js-master", nameKey: "jsMaster" as const, icon: "award", threshold: 200 },
   ];
 
-  useEffect(() => {
-    loadData();
-  }, []);
-
-  useEffect(() => {
-    const unsubscribe = navigation.addListener("focus", () => {
-      loadData();
-      refreshLanguage();
-    });
-    return unsubscribe;
-  }, [navigation, refreshLanguage]);
-
-  const loadData = async () => {
+  const loadData = useCallback(async () => {
     try {
       const [profileData, progressData, streakData] = await Promise.all([
         storage.getProfile(),
@@ -158,7 +142,14 @@ export default function ProgressScreen() {
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
+
+  useFocusEffect(
+    useCallback(() => {
+      loadData();
+      refreshLanguage();
+    }, [loadData, refreshLanguage])
+  );
 
   const getTopicsMastered = () => {
     if (!progress) return 0;
@@ -205,7 +196,7 @@ export default function ProgressScreen() {
         <ThemedText type="h3">{t("yourProgress")}</ThemedText>
         <Pressable
           style={styles.settingsButton}
-          onPress={() => navigation.navigate("Settings")}
+          onPress={() => router.push("/settings")}
         >
           <Feather name="settings" size={22} color={theme.tabIconDefault} />
         </Pressable>
@@ -235,7 +226,7 @@ export default function ProgressScreen() {
           <ThemedText type="h4" style={styles.displayName}>
             {profile.displayName || t("student")}
           </ThemedText>
-          <Pressable onPress={() => navigation.navigate("Settings")}>
+          <Pressable onPress={() => router.push("/settings")}>
             <ThemedText type="link">{t("editProfile")}</ThemedText>
           </Pressable>
         </View>

@@ -8,17 +8,17 @@ A mobile learning companion application for DHBW Lörrach students to practice a
 - **Backend**: Express.js with TypeScript
 - **AI**: OpenAI via Replit AI Integrations (no API key required, billed to credits)
 - **Storage**: AsyncStorage for local data persistence
-- **Navigation**: React Navigation 7
+- **Navigation**: Expo Router (React Navigation under the hood)
 
 ## Project Structure
 ```
+app/                  # Expo Router file-based routes
 client/
 ├── components/       # Reusable UI components
 ├── constants/        # Theme colors, spacing, typography
 ├── hooks/            # Custom React hooks
 ├── lib/              # Storage utilities, topics data, API client
-├── navigation/       # Tab and stack navigators
-└── screens/          # App screens (Learn, Progress, Quiz, Settings)
+└── screens/          # Screen implementations (used by routes)
 
 server/
 ├── replit_integrations/  # OpenAI integration modules

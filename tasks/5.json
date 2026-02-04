@@ -1,0 +1,9 @@
+{
+  "id": "5",
+  "subject": "Fix warnings: unused imports, hardcoded version, typeof guard, stack navigation",
+  "description": "Remove unused Switch import, use Constants version, remove typeof guard, fix router.replace vs popToTop, fix accessibility label",
+  "activeForm": "Fixing warnings",
+  "status": "in_progress",
+  "blocks": [],
+  "blockedBy": []
+}

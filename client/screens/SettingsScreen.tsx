@@ -4,15 +4,14 @@ import {
   StyleSheet,
   Pressable,
   TextInput,
-  Switch,
   Alert,
   ActivityIndicator,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { useNavigation } from "@react-navigation/native";
-import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
+import { useRouter } from "expo-router";
 import { Feather } from "@expo/vector-icons";
 import * as WebBrowser from "expo-web-browser";
+import Constants from "expo-constants";
 
 import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
@@ -26,9 +25,6 @@ import {
   type SettingsData,
   type ThemeMode,
 } from "@/lib/storage";
-import type { RootStackParamList } from "@/navigation/RootStackNavigator";
-
-type NavigationProp = NativeStackNavigationProp<RootStackParamList>;
 
 const AVATARS = ["monitor", "award", "code", "zap"] as const;
 
@@ -86,7 +82,7 @@ export default function SettingsScreen() {
   const { theme, refreshTheme } = useTheme();
   const { t, language, refreshLanguage } = useTranslation();
   const insets = useSafeAreaInsets();
-  const navigation = useNavigation<NavigationProp>();
+  const router = useRouter();
 
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [settings, setSettings] = useState<SettingsData | null>(null);
@@ -122,7 +118,7 @@ export default function SettingsScreen() {
         storage.setSettings(settings),
       ]);
       await Promise.all([refreshLanguage(), refreshTheme()]);
-      navigation.goBack();
+      router.back();
     } catch (error) {
       console.error("Error saving settings:", error);
       Alert.alert(t("error"), t("failedToSaveSettings"));
@@ -142,7 +138,7 @@ export default function SettingsScreen() {
           style: "destructive",
           onPress: async () => {
             await storage.clearAllData();
-            navigation.goBack();
+            router.back();
           },
         },
       ]
@@ -277,7 +273,7 @@ export default function SettingsScreen() {
                 <ThemedText type="body">{t("version")}</ThemedText>
               </View>
               <ThemedText type="body" style={{ color: theme.tabIconDefault }}>
-                1.0.0
+                {Constants.expoConfig?.version ?? "1.0.0"}
               </ThemedText>
             </View>
           </View>
