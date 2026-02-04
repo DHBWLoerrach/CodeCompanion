@@ -7,6 +7,7 @@ export const translations = {
     
     learn: "Learn",
     progress: "Progress",
+    practice: "Practice",
     settings: "Settings",
     
     startQuiz: "Start Quiz",
@@ -155,6 +156,7 @@ export const translations = {
     
     learn: "Lernen",
     progress: "Fortschritt",
+    practice: "Üben",
     settings: "Einstellungen",
     
     startQuiz: "Quiz starten",
