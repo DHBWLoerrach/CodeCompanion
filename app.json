@@ -24,7 +24,7 @@
       "package": "de.dhbwloe.loerrach.CodeCompanion"
     },
     "web": {
-      "output": "single",
+      "output": "server",
       "favicon": "./assets/images/favicon.png"
     },
     "plugins": [

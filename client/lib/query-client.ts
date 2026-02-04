@@ -1,7 +1,8 @@
 import { QueryClient, QueryFunction } from "@tanstack/react-query";
+import Constants from "expo-constants";
 
 /**
- * Gets the base URL for the Express API server (e.g., "http://localhost:3000")
+ * Gets the base URL for the Expo API routes (e.g., "http://localhost:8081")
  * @returns {string} The API base URL
  */
 export function getApiUrl(): string {
@@ -10,10 +11,17 @@ export function getApiUrl(): string {
     return new URL(explicitUrl).href;
   }
 
-  let host = process.env.EXPO_PUBLIC_DOMAIN;
+  const hostUri = Constants.expoConfig?.hostUri;
+  if (hostUri) {
+    if (/^https?:\/\//i.test(hostUri)) {
+      return new URL(hostUri).href;
+    }
+    return new URL(`http://${hostUri}`).href;
+  }
 
+  const host = process.env.EXPO_PUBLIC_DOMAIN;
   if (!host) {
-    throw new Error("EXPO_PUBLIC_DOMAIN is not set");
+    throw new Error("EXPO_PUBLIC_API_URL or EXPO_PUBLIC_DOMAIN is not set");
   }
 
   if (/^https?:\/\//i.test(host)) {
@@ -30,9 +38,7 @@ export function getApiUrl(): string {
   const protocol =
     process.env.EXPO_PUBLIC_PROTOCOL || (isLocalHost ? "http" : "https");
 
-  let url = new URL(`${protocol}://${host}`);
-
-  return url.href;
+  return new URL(`${protocol}://${host}`).href;
 }
 
 async function throwIfResNotOk(res: Response) {
