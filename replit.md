@@ -21,8 +21,7 @@ client/
 └── screens/          # Screen implementations (used by routes)
 
 server/
-├── replit_integrations/  # OpenAI integration modules
-├── routes.ts             # API endpoints for quiz generation
+├── routes.ts             # API endpoints for quiz generation and topic explanations
 └── index.ts              # Express server setup
 ```
 
@@ -43,6 +42,7 @@ server/
 ## API Endpoints
 - `POST /api/quiz/generate` - Generate quiz for specific topic
 - `POST /api/quiz/generate-mixed` - Generate mixed-topic quiz
+- `POST /api/topic/explain` - Generate topic explanation (Markdown)
 - `GET /api/health` - Health check
 
 ## Running the App
