@@ -30,6 +30,7 @@ interface TopicChipProps {
   progress?: TopicProgress;
   onPress: () => void;
   topicName: string;
+  isRecommended?: boolean;
 }
 
 function SkillLevelIndicator({ level, color }: { level: SkillLevel; color: string }) {
@@ -48,7 +49,48 @@ function SkillLevelIndicator({ level, color }: { level: SkillLevel; color: strin
   );
 }
 
-function TopicChip({ topic, progress, onPress, topicName }: TopicChipProps) {
+function getLastPracticedTime(progress: TopicProgress | undefined) {
+  if (!progress?.lastPracticed) return 0;
+  const timestamp = new Date(progress.lastPracticed).getTime();
+  return Number.isNaN(timestamp) ? 0 : timestamp;
+}
+
+function getRecommendedTopicId(
+  category: Category,
+  topicProgress: Record<string, TopicProgress>
+): string {
+  const startedTopics = category.topics.filter((topic) => {
+    const progress = topicProgress[topic.id];
+    return progress && progress.questionsAnswered > 0;
+  });
+
+  const dueStartedTopics = startedTopics.filter((topic) =>
+    isTopicDue(topicProgress[topic.id])
+  );
+
+  const candidates = dueStartedTopics.length > 0 ? dueStartedTopics : startedTopics;
+
+  if (candidates.length === 0) {
+    return category.topics[0]?.id ?? category.id;
+  }
+
+  const [selected] = [...candidates].sort((a, b) => {
+    const progressA = topicProgress[a.id];
+    const progressB = topicProgress[b.id];
+    const levelA = progressA?.skillLevel ?? 1;
+    const levelB = progressB?.skillLevel ?? 1;
+
+    if (levelA !== levelB) {
+      return levelA - levelB;
+    }
+
+    return getLastPracticedTime(progressA) - getLastPracticedTime(progressB);
+  });
+
+  return selected.id;
+}
+
+function TopicChip({ topic, progress, onPress, topicName, isRecommended }: TopicChipProps) {
   const { theme } = useTheme();
   const scale = useSharedValue(1);
 
@@ -71,14 +113,16 @@ function TopicChip({ topic, progress, onPress, topicName }: TopicChipProps) {
 
   const chipStyle = isMastered
     ? { backgroundColor: theme.success, borderColor: theme.success }
+    : isRecommended
+    ? { backgroundColor: "transparent", borderColor: theme.secondary, borderWidth: 1 }
     : isDue && hasStarted
     ? { backgroundColor: "transparent", borderColor: theme.accent }
     : hasStarted
     ? { backgroundColor: "transparent", borderColor: theme.secondary }
     : { backgroundColor: "transparent", borderColor: theme.cardBorder };
 
-  const textColor = isMastered ? "#FFFFFF" : theme.text;
-  const levelColor = isMastered ? "#FFFFFF" : theme.accent;
+  const textColor = isMastered ? "#FFFFFF" : isRecommended ? theme.secondary : theme.text;
+  const levelColor = isMastered ? "#FFFFFF" : isRecommended ? theme.secondary : theme.accent;
 
   return (
     <AnimatedPressable
@@ -89,6 +133,8 @@ function TopicChip({ topic, progress, onPress, topicName }: TopicChipProps) {
     >
       {isMastered ? (
         <AppIcon name="award" size={14} color="#FFFFFF" style={styles.chipIcon} />
+      ) : isRecommended ? (
+        <AppIcon name="star" size={14} color={theme.secondary} style={styles.chipIcon} />
       ) : isDue && hasStarted ? (
         <AppIcon name="clock" size={14} color={theme.accent} style={styles.chipIcon} />
       ) : null}
@@ -112,9 +158,17 @@ interface CategoryCardProps {
   topicProgress: Record<string, TopicProgress>;
   onTopicPress: (topic: Topic) => void;
   getTopicDisplayName: (topic: Topic) => string;
+  recommendedTopicId?: string;
 }
 
-function CategoryCard({ category, categoryName, topicProgress, onTopicPress, getTopicDisplayName }: CategoryCardProps) {
+function CategoryCard({
+  category,
+  categoryName,
+  topicProgress,
+  onTopicPress,
+  getTopicDisplayName,
+  recommendedTopicId,
+}: CategoryCardProps) {
   const { theme } = useTheme();
   
   const avgSkillLevel = category.topics.reduce((sum, topic) => {
@@ -149,6 +203,7 @@ function CategoryCard({ category, categoryName, topicProgress, onTopicPress, get
               topic={topic}
               topicName={topicDisplayName}
               progress={topicProgress[topic.id]}
+              isRecommended={topic.id === recommendedTopicId}
               onPress={() => onTopicPress(topic)}
             />
           );
@@ -193,6 +248,8 @@ export default function LearnScreen() {
     const progress = topicProgress[topic.id];
     return progress && progress.questionsAnswered > 0 && isTopicDue(progress);
   });
+
+  const showRecommendations = dueTopics.length === 0;
 
   if (loading) {
     return (
@@ -252,6 +309,11 @@ export default function LearnScreen() {
             topicProgress={topicProgress}
             onTopicPress={handleTopicPress}
             getTopicDisplayName={(topic) => getTopicName(topic, language)}
+            recommendedTopicId={
+              showRecommendations
+                ? getRecommendedTopicId(category, topicProgress)
+                : undefined
+            }
           />
         ))}
       </ScrollView>

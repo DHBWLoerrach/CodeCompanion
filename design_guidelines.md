@@ -74,6 +74,7 @@
   - Completed: Green + checkmark
   - In progress: Blue outline
   - Not started: Grey outline (#F8F9FA border)
+  - Recommended: Blue outline chip + star icon, no fill (only show when no due-for-review topics)
 - **Chips:** 8px radius rounded rectangles
 
 ### 2. Practice (Tab 2)
