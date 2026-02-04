@@ -1,5 +1,4 @@
 import type { ComponentProps } from "react";
-import { Platform } from "react-native";
 import { Stack } from "expo-router";
 import { isLiquidGlassAvailable } from "expo-glass-effect";
 
@@ -15,6 +14,7 @@ export function useScreenOptions({
   transparent = true,
 }: UseScreenOptionsParams = {}): ScreenOptions {
   const { theme, isDark } = useTheme();
+  const isIOS = process.env.EXPO_OS === "ios";
 
   return {
     headerTitleAlign: "center",
@@ -26,11 +26,9 @@ export function useScreenOptions({
     headerBackButtonDisplayMode: "minimal",
     headerStyle: {
       backgroundColor: transparent
-        ? Platform.select({
-            ios: undefined,
-            android: theme.backgroundRoot,
-            web: theme.backgroundRoot,
-          })
+        ? isIOS
+          ? undefined
+          : theme.backgroundRoot
         : theme.backgroundDefault,
     },
     gestureEnabled: true,

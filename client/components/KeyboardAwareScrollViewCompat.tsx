@@ -1,4 +1,4 @@
-import { Platform, ScrollView, ScrollViewProps } from "react-native";
+import { ScrollView, ScrollViewProps } from "react-native";
 import {
   KeyboardAwareScrollView,
   KeyboardAwareScrollViewProps,
@@ -13,12 +13,14 @@ type Props = KeyboardAwareScrollViewProps & ScrollViewProps;
 export function KeyboardAwareScrollViewCompat({
   children,
   keyboardShouldPersistTaps = "handled",
+  contentInsetAdjustmentBehavior = "automatic",
   ...props
 }: Props) {
-  if (Platform.OS === "web") {
+  if (process.env.EXPO_OS === "web") {
     return (
       <ScrollView
         keyboardShouldPersistTaps={keyboardShouldPersistTaps}
+        contentInsetAdjustmentBehavior={contentInsetAdjustmentBehavior}
         {...props}
       >
         {children}
@@ -29,6 +31,7 @@ export function KeyboardAwareScrollViewCompat({
   return (
     <KeyboardAwareScrollView
       keyboardShouldPersistTaps={keyboardShouldPersistTaps}
+      contentInsetAdjustmentBehavior={contentInsetAdjustmentBehavior}
       {...props}
     >
       {children}

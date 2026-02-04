@@ -8,10 +8,10 @@ import {
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useFocusEffect, useRouter } from "expo-router";
-import { Feather } from "@expo/vector-icons";
 
 import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
+import { AppIcon } from "@/components/AppIcon";
 import { useTheme } from "@/hooks/useTheme";
 import { useTranslation } from "@/hooks/useTranslation";
 import { Spacing, BorderRadius, Shadows, AvatarColors } from "@/constants/theme";
@@ -37,7 +37,7 @@ function StatCard({ title, value, icon, color }: StatCardProps) {
   return (
     <View style={[styles.statCard, { backgroundColor: theme.backgroundDefault }]}>
       <View style={[styles.statIconContainer, { backgroundColor: color + "20" }]}>
-        <Feather name={icon as any} size={20} color={color} />
+        <AppIcon name={icon} size={20} color={color} />
       </View>
       <ThemedText type="h3" style={styles.statValue}>
         {value}
@@ -92,9 +92,9 @@ function AchievementBadge({ name, icon, unlocked }: AchievementBadgeProps) {
         ]}
       >
         {unlocked ? (
-          <Feather name={icon as any} size={24} color="#FFFFFF" />
+          <AppIcon name={icon} size={24} color="#FFFFFF" />
         ) : (
-          <Feather name="lock" size={20} color={theme.tabIconDefault} />
+          <AppIcon name="lock" size={20} color={theme.tabIconDefault} />
         )}
       </View>
       <ThemedText
@@ -172,7 +172,7 @@ export default function ProgressScreen() {
 
   if (loading || !profile || !progress || !streak) {
     return (
-      <ThemedView style={[styles.loadingContainer, { paddingTop: insets.top }]}>
+      <ThemedView style={styles.loadingContainer}>
         <ActivityIndicator size="large" color={theme.primary} />
       </ThemedView>
     );
@@ -192,18 +192,9 @@ export default function ProgressScreen() {
 
   return (
     <ThemedView style={styles.container}>
-      <View style={[styles.header, { paddingTop: insets.top + Spacing.lg }]}>
-        <ThemedText type="h3">{t("yourProgress")}</ThemedText>
-        <Pressable
-          style={styles.settingsButton}
-          onPress={() => router.push("/settings")}
-        >
-          <Feather name="settings" size={22} color={theme.tabIconDefault} />
-        </Pressable>
-      </View>
-
       <ScrollView
         style={styles.scrollView}
+        contentInsetAdjustmentBehavior="automatic"
         contentContainerStyle={[
           styles.scrollContent,
           { paddingBottom: 100 + insets.bottom },
@@ -217,7 +208,7 @@ export default function ProgressScreen() {
               { backgroundColor: AvatarColors[profile.avatarIndex] },
             ]}
           >
-            <Feather
+            <AppIcon
               name={AVATARS[profile.avatarIndex] as any}
               size={36}
               color="#FFFFFF"
@@ -239,7 +230,7 @@ export default function ProgressScreen() {
               </ThemedText>
               <ThemedText type="body">{t("dayStreak")}</ThemedText>
             </View>
-            <Feather name="zap" size={40} color={theme.accent} />
+          <AppIcon name="zap" size={40} color={theme.accent} />
           </View>
 
           <View style={styles.weekRow}>
@@ -316,16 +307,6 @@ const styles = StyleSheet.create({
     flex: 1,
     alignItems: "center",
     justifyContent: "center",
-  },
-  header: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    paddingHorizontal: Spacing.lg,
-    paddingBottom: Spacing.lg,
-  },
-  settingsButton: {
-    padding: Spacing.sm,
   },
   scrollView: {
     flex: 1,

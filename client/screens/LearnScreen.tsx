@@ -8,7 +8,6 @@ import {
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useFocusEffect, useRouter } from "expo-router";
-import { Feather } from "@expo/vector-icons";
 import Animated, {
   useAnimatedStyle,
   useSharedValue,
@@ -17,7 +16,7 @@ import Animated, {
 
 import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
-import { HeaderTitle } from "@/components/HeaderTitle";
+import { AppIcon } from "@/components/AppIcon";
 import { useTheme } from "@/hooks/useTheme";
 import { useTranslation } from "@/hooks/useTranslation";
 import { Spacing, BorderRadius, Shadows } from "@/constants/theme";
@@ -89,9 +88,9 @@ function TopicChip({ topic, progress, onPress, topicName }: TopicChipProps) {
       style={[styles.topicChip, chipStyle, animatedStyle]}
     >
       {isMastered ? (
-        <Feather name="award" size={14} color="#FFFFFF" style={styles.chipIcon} />
+        <AppIcon name="award" size={14} color="#FFFFFF" style={styles.chipIcon} />
       ) : isDue && hasStarted ? (
-        <Feather name="clock" size={14} color={theme.accent} style={styles.chipIcon} />
+        <AppIcon name="clock" size={14} color={theme.accent} style={styles.chipIcon} />
       ) : null}
       <ThemedText
         type="label"
@@ -197,7 +196,7 @@ export default function LearnScreen() {
 
   if (loading) {
     return (
-      <ThemedView style={[styles.loadingContainer, { paddingTop: insets.top }]}>
+      <ThemedView style={styles.loadingContainer}>
         <ActivityIndicator size="large" color={theme.primary} />
       </ThemedView>
     );
@@ -205,18 +204,9 @@ export default function LearnScreen() {
 
   return (
     <ThemedView style={styles.container}>
-      <View style={[styles.header, { paddingTop: insets.top + Spacing.lg }]}>
-        <HeaderTitle title={t("learnJavaScript")} />
-        <Pressable
-          style={styles.filterButton}
-          onPress={() => router.push("/settings")}
-        >
-          <Feather name="settings" size={22} color={theme.tabIconDefault} />
-        </Pressable>
-      </View>
-
       <ScrollView
         style={styles.scrollView}
+        contentInsetAdjustmentBehavior="automatic"
         contentContainerStyle={[
           styles.scrollContent,
           { paddingBottom: 100 + insets.bottom },
@@ -227,7 +217,7 @@ export default function LearnScreen() {
           <View style={[styles.dueSection, { backgroundColor: theme.accent + "15" }]}>
             <View style={styles.dueSectionHeader}>
               <View style={styles.dueSectionTitleRow}>
-                <Feather name="clock" size={20} color={theme.accent} />
+                <AppIcon name="clock" size={20} color={theme.accent} />
                 <ThemedText type="h4" style={{ color: theme.accent }}>
                   {t("dueForReview")}
                 </ThemedText>
@@ -277,16 +267,6 @@ const styles = StyleSheet.create({
     flex: 1,
     alignItems: "center",
     justifyContent: "center",
-  },
-  header: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    paddingHorizontal: Spacing.lg,
-    paddingBottom: Spacing.lg,
-  },
-  filterButton: {
-    padding: Spacing.sm,
   },
   scrollView: {
     flex: 1,

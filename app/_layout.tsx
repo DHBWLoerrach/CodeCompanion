@@ -33,6 +33,12 @@ function RootStack() {
           headerBackVisible: false,
         }}
       />
+      <Stack.Screen
+        name="topic-explanation"
+        options={{
+          presentation: "modal",
+        }}
+      />
       <Stack.Screen name="settings" />
       <Stack.Screen name="topic/[topicId]" options={{ title: "" }} />
     </Stack>

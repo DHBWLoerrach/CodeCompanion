@@ -1,7 +1,6 @@
 import React from "react";
-import { Platform, Pressable, StyleSheet } from "react-native";
+import { Pressable, StyleSheet, View } from "react-native";
 import { Tabs, useRouter } from "expo-router";
-import { Feather } from "@expo/vector-icons";
 import { BlurView } from "expo-blur";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import Animated, {
@@ -12,7 +11,9 @@ import Animated, {
 
 import { useTheme } from "@/hooks/useTheme";
 import { useTranslation } from "@/hooks/useTranslation";
-import { Shadows } from "@/constants/theme";
+import { BorderRadius, Shadows, Spacing } from "@/constants/theme";
+import { AppIcon } from "@/components/AppIcon";
+import { ThemedText } from "@/components/ThemedText";
 
 const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
 
@@ -48,9 +49,28 @@ function PracticeButton() {
         accessibilityRole="button"
         accessibilityLabel={t("startPractice")}
       >
-        <Feather name="edit-3" size={28} color="#FFFFFF" />
+        <AppIcon name="edit-3" size={28} color="#FFFFFF" />
       </AnimatedPressable>
     </Animated.View>
+  );
+}
+
+function HeaderBrand() {
+  const { theme } = useTheme();
+
+  return (
+    <View style={styles.headerBrand}>
+      <View style={[styles.headerBadge, { backgroundColor: theme.primary }]}>
+        <ThemedText
+          type="label"
+          style={styles.headerBadgeText}
+          lightColor="#FFFFFF"
+          darkColor="#FFFFFF"
+        >
+          JS
+        </ThemedText>
+      </View>
+    </View>
   );
 }
 
@@ -58,27 +78,25 @@ export default function TabsLayout() {
   const { theme, isDark } = useTheme();
   const { t } = useTranslation();
   const insets = useSafeAreaInsets();
+  const router = useRouter();
+  const isIOS = process.env.EXPO_OS === "ios";
 
   return (
     <Tabs
       initialRouteName="learn"
       screenOptions={{
-        headerShown: false,
         tabBarActiveTintColor: theme.primary,
         tabBarInactiveTintColor: theme.tabIconDefault,
         tabBarStyle: {
           position: "absolute",
-          backgroundColor: Platform.select({
-            ios: "transparent",
-            android: theme.backgroundRoot,
-          }),
+          backgroundColor: isIOS ? "transparent" : theme.backgroundRoot,
           borderTopWidth: 0,
           elevation: 0,
           height: 60 + insets.bottom,
           paddingBottom: insets.bottom,
         },
         tabBarBackground: () =>
-          Platform.OS === "ios" ? (
+          isIOS ? (
             <BlurView
               intensity={100}
               tint={isDark ? "dark" : "light"}
@@ -95,8 +113,21 @@ export default function TabsLayout() {
         name="learn"
         options={{
           title: t("learn"),
+          headerShown: true,
+          headerTitle: t("learnJavaScript"),
+          headerTitleAlign: "left",
+          headerShadowVisible: false,
+          headerLeft: () => <HeaderBrand />,
+          headerRight: () => (
+            <Pressable
+              style={styles.headerButton}
+              onPress={() => router.push("/settings")}
+            >
+              <AppIcon name="settings" size={20} color={theme.tabIconDefault} />
+            </Pressable>
+          ),
           tabBarIcon: ({ color, size }) => (
-            <Feather name="book-open" size={size} color={color} />
+            <AppIcon name="book-open" size={size} color={color} />
           ),
         }}
       />
@@ -116,8 +147,20 @@ export default function TabsLayout() {
         name="progress"
         options={{
           title: t("progress"),
+          headerShown: true,
+          headerTitle: t("yourProgress"),
+          headerTitleAlign: "left",
+          headerShadowVisible: false,
+          headerRight: () => (
+            <Pressable
+              style={styles.headerButton}
+              onPress={() => router.push("/settings")}
+            >
+              <AppIcon name="settings" size={20} color={theme.tabIconDefault} />
+            </Pressable>
+          ),
           tabBarIcon: ({ color, size }) => (
-            <Feather name="bar-chart-2" size={size} color={color} />
+            <AppIcon name="bar-chart-2" size={size} color={color} />
           ),
         }}
       />
@@ -126,6 +169,23 @@ export default function TabsLayout() {
 }
 
 const styles = StyleSheet.create({
+  headerBrand: {
+    paddingLeft: Spacing.lg,
+  },
+  headerBadge: {
+    width: 34,
+    height: 34,
+    borderRadius: BorderRadius.sm,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  headerBadgeText: {
+    fontWeight: "700",
+  },
+  headerButton: {
+    padding: Spacing.sm,
+    marginRight: Spacing.sm,
+  },
   practiceButtonContainer: {
     position: "absolute",
     top: -20,

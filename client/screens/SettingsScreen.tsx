@@ -4,18 +4,19 @@ import {
   StyleSheet,
   Pressable,
   TextInput,
+  ActionSheetIOS,
   Alert,
   ActivityIndicator,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { useRouter } from "expo-router";
-import { Feather } from "@expo/vector-icons";
+import { Stack, useRouter } from "expo-router";
 import * as WebBrowser from "expo-web-browser";
 import Constants from "expo-constants";
 
 import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
 import { KeyboardAwareScrollViewCompat } from "@/components/KeyboardAwareScrollViewCompat";
+import { AppIcon } from "@/components/AppIcon";
 import { useTheme } from "@/hooks/useTheme";
 import { useTranslation } from "@/hooks/useTranslation";
 import { Spacing, BorderRadius, Shadows, AvatarColors } from "@/constants/theme";
@@ -51,7 +52,7 @@ function AvatarSelector({ selectedIndex, onSelect }: AvatarSelectorProps) {
           ]}
           onPress={() => onSelect(index)}
         >
-          <Feather name={icon as any} size={28} color="#FFFFFF" />
+          <AppIcon name={icon} size={28} color="#FFFFFF" />
         </Pressable>
       ))}
     </View>
@@ -61,20 +62,38 @@ function AvatarSelector({ selectedIndex, onSelect }: AvatarSelectorProps) {
 interface SettingRowProps {
   icon: string;
   label: string;
-  children: React.ReactNode;
+  value?: string;
+  onPress?: () => void;
+  children?: React.ReactNode;
 }
 
-function SettingRow({ icon, label, children }: SettingRowProps) {
+function SettingRow({ icon, label, value, onPress, children }: SettingRowProps) {
   const { theme } = useTheme();
 
   return (
-    <View style={[styles.settingRow, { backgroundColor: theme.backgroundDefault }]}>
+    <Pressable
+      onPress={onPress}
+      disabled={!onPress}
+      style={({ pressed }) => [
+        styles.settingRow,
+        { backgroundColor: theme.backgroundDefault, opacity: pressed && onPress ? 0.7 : 1 },
+      ]}
+    >
       <View style={styles.settingLeft}>
-        <Feather name={icon as any} size={20} color={theme.tabIconDefault} />
+        <AppIcon name={icon} size={20} color={theme.tabIconDefault} />
         <ThemedText type="body">{label}</ThemedText>
       </View>
-      {children}
-    </View>
+      {children ?? (value ? (
+        <View style={styles.settingValue}>
+          <ThemedText type="label" style={{ color: theme.tabIconDefault }}>
+            {value}
+          </ThemedText>
+          {onPress ? (
+            <AppIcon name="chevron-right" size={16} color={theme.tabIconDefault} />
+          ) : null}
+        </View>
+      ) : null)}
+    </Pressable>
   );
 }
 
@@ -88,6 +107,7 @@ export default function SettingsScreen() {
   const [settings, setSettings] = useState<SettingsData | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const isIOS = process.env.EXPO_OS === "ios";
 
   useEffect(() => {
     loadData();
@@ -158,162 +178,219 @@ export default function SettingsScreen() {
     }
   };
 
+  const applyLanguage = async (newLanguage: "en" | "de") => {
+    if (!settings) return;
+    const newSettings: SettingsData = { ...settings, language: newLanguage };
+    setSettings(newSettings);
+    await storage.setSettings(newSettings);
+    await refreshLanguage();
+  };
+
+  const applyThemeMode = async (mode: ThemeMode) => {
+    if (!settings) return;
+    const newSettings: SettingsData = { ...settings, themeMode: mode };
+    setSettings(newSettings);
+    await storage.setSettings(newSettings);
+    await refreshTheme();
+  };
+
+  const showLanguagePicker = () => {
+    const options: Array<"en" | "de"> = ["en", "de"];
+    const labels = [t("english"), t("german")];
+
+    if (isIOS) {
+      ActionSheetIOS.showActionSheetWithOptions(
+        {
+          title: t("language"),
+          options: [...labels, t("cancel")],
+          cancelButtonIndex: labels.length,
+        },
+        (buttonIndex) => {
+          const selected = options[buttonIndex];
+          if (selected) {
+            applyLanguage(selected);
+          }
+        }
+      );
+      return;
+    }
+
+    Alert.alert(t("language"), "", [
+      { text: labels[0], onPress: () => applyLanguage("en") },
+      { text: labels[1], onPress: () => applyLanguage("de") },
+      { text: t("cancel"), style: "cancel" },
+    ]);
+  };
+
+  const showThemePicker = () => {
+    const options: ThemeMode[] = ["auto", "light", "dark"];
+    const labels = options.map(getThemeModeLabel);
+
+    if (isIOS) {
+      ActionSheetIOS.showActionSheetWithOptions(
+        {
+          title: t("theme"),
+          options: [...labels, t("cancel")],
+          cancelButtonIndex: labels.length,
+        },
+        (buttonIndex) => {
+          const selected = options[buttonIndex];
+          if (selected) {
+            applyThemeMode(selected);
+          }
+        }
+      );
+      return;
+    }
+
+    Alert.alert(t("theme"), "", [
+      { text: labels[0], onPress: () => applyThemeMode("auto") },
+      { text: labels[1], onPress: () => applyThemeMode("light") },
+      { text: labels[2], onPress: () => applyThemeMode("dark") },
+      { text: t("cancel"), style: "cancel" },
+    ]);
+  };
+
   if (loading || !profile || !settings) {
     return (
-      <ThemedView style={[styles.loadingContainer, { paddingTop: insets.top }]}>
-        <ActivityIndicator size="large" color={theme.primary} />
-      </ThemedView>
+      <>
+        <Stack.Screen options={{ title: t("settings") }} />
+        <ThemedView style={styles.loadingContainer}>
+          <ActivityIndicator size="large" color={theme.primary} />
+        </ThemedView>
+      </>
     );
   }
 
   return (
-    <ThemedView style={styles.container}>
-      <KeyboardAwareScrollViewCompat
-        style={styles.scrollView}
-        contentContainerStyle={[
-          styles.scrollContent,
-          { paddingTop: Spacing.xl, paddingBottom: 100 + insets.bottom },
-        ]}
-      >
-        <View style={styles.section}>
-          <ThemedText type="label" style={[styles.sectionTitle, { color: theme.tabIconDefault }]}>
-            {t("profile")}
-          </ThemedText>
-          <View style={[styles.card, { backgroundColor: theme.backgroundDefault }]}>
-            <ThemedText type="label" style={styles.fieldLabel}>
-              {t("avatar")}
+    <>
+      <Stack.Screen options={{ title: t("settings") }} />
+      <ThemedView style={styles.container}>
+        <KeyboardAwareScrollViewCompat
+          style={styles.scrollView}
+          contentContainerStyle={[
+            styles.scrollContent,
+            { paddingTop: Spacing.xl, paddingBottom: 100 + insets.bottom },
+          ]}
+        >
+          <View style={styles.section}>
+            <ThemedText type="label" style={[styles.sectionTitle, { color: theme.tabIconDefault }]}>
+              {t("profile")}
             </ThemedText>
-            <AvatarSelector
-              selectedIndex={profile.avatarIndex}
-              onSelect={(index) => setProfile({ ...profile, avatarIndex: index })}
-            />
-
-            <ThemedText type="label" style={[styles.fieldLabel, { marginTop: Spacing.lg }]}>
-              {t("displayName")}
-            </ThemedText>
-            <TextInput
-              style={[
-                styles.textInput,
-                {
-                  backgroundColor: theme.backgroundSecondary,
-                  color: theme.text,
-                  borderColor: theme.cardBorder,
-                },
-              ]}
-              value={profile.displayName}
-              onChangeText={(text) => setProfile({ ...profile, displayName: text })}
-              placeholder={t("student")}
-              placeholderTextColor={theme.tabIconDefault}
-            />
-          </View>
-        </View>
-
-        <View style={styles.section}>
-          <ThemedText type="label" style={[styles.sectionTitle, { color: theme.tabIconDefault }]}>
-            {t("preferences")}
-          </ThemedText>
-          <View style={styles.settingsGroup}>
-            <SettingRow icon="globe" label={t("language")}>
-              <Pressable
-                style={[styles.optionButton, { backgroundColor: theme.backgroundSecondary }]}
-                onPress={async () => {
-                  const newLanguage: "en" | "de" = settings.language === "en" ? "de" : "en";
-                  const newSettings: SettingsData = { ...settings, language: newLanguage };
-                  setSettings(newSettings);
-                  await storage.setSettings(newSettings);
-                  await refreshLanguage();
-                }}
-              >
-                <ThemedText type="label">
-                  {settings.language === "en" ? t("english") : t("german")}
-                </ThemedText>
-              </Pressable>
-            </SettingRow>
-            <SettingRow icon="moon" label={t("theme")}>
-              <Pressable
-                style={[styles.optionButton, { backgroundColor: theme.backgroundSecondary }]}
-                onPress={async () => {
-                  const modes: ThemeMode[] = ["auto", "light", "dark"];
-                  const currentIndex = modes.indexOf(settings.themeMode);
-                  const nextIndex = (currentIndex + 1) % modes.length;
-                  const newSettings = { ...settings, themeMode: modes[nextIndex] };
-                  setSettings(newSettings);
-                  await storage.setSettings(newSettings);
-                  await refreshTheme();
-                }}
-              >
-                <ThemedText type="label">
-                  {getThemeModeLabel(settings.themeMode)}
-                </ThemedText>
-              </Pressable>
-            </SettingRow>
-          </View>
-        </View>
-
-        <View style={styles.section}>
-          <ThemedText type="label" style={[styles.sectionTitle, { color: theme.tabIconDefault }]}>
-            {t("about")}
-          </ThemedText>
-          <View style={styles.settingsGroup}>
-            <Pressable
-              style={[styles.linkRow, { backgroundColor: theme.backgroundDefault }]}
-              onPress={handleOpenDHBW}
-            >
-              <View style={styles.settingLeft}>
-                <Feather name="external-link" size={20} color={theme.secondary} />
-                <ThemedText type="body" style={{ color: theme.secondary }}>
-                  {t("dhbwLorrachProject")}
-                </ThemedText>
-              </View>
-              <Feather name="chevron-right" size={20} color={theme.tabIconDefault} />
-            </Pressable>
-            <View style={[styles.settingRow, { backgroundColor: theme.backgroundDefault }]}>
-              <View style={styles.settingLeft}>
-                <Feather name="info" size={20} color={theme.tabIconDefault} />
-                <ThemedText type="body">{t("version")}</ThemedText>
-              </View>
-              <ThemedText type="body" style={{ color: theme.tabIconDefault }}>
-                {Constants.expoConfig?.version ?? "1.0.0"}
+            <View style={[styles.card, { backgroundColor: theme.backgroundDefault }]}>
+              <ThemedText type="label" style={styles.fieldLabel}>
+                {t("avatar")}
               </ThemedText>
+              <AvatarSelector
+                selectedIndex={profile.avatarIndex}
+                onSelect={(index) => setProfile({ ...profile, avatarIndex: index })}
+              />
+
+              <ThemedText type="label" style={[styles.fieldLabel, { marginTop: Spacing.lg }]}>
+                {t("displayName")}
+              </ThemedText>
+              <TextInput
+                style={[
+                  styles.textInput,
+                  {
+                    backgroundColor: theme.backgroundSecondary,
+                    color: theme.text,
+                    borderColor: theme.cardBorder,
+                  },
+                ]}
+                value={profile.displayName}
+                onChangeText={(text) => setProfile({ ...profile, displayName: text })}
+                placeholder={t("student")}
+                placeholderTextColor={theme.tabIconDefault}
+              />
             </View>
           </View>
-        </View>
 
-        <Pressable
-          style={[styles.dangerButton, { borderColor: theme.error }]}
-          onPress={handleResetProgress}
-        >
-          <Feather name="trash-2" size={18} color={theme.error} />
-          <ThemedText type="body" style={{ color: theme.error }}>
-            {t("resetAllProgress")}
-          </ThemedText>
-        </Pressable>
-      </KeyboardAwareScrollViewCompat>
-
-      <View
-        style={[
-          styles.footer,
-          { paddingBottom: insets.bottom + Spacing.lg, backgroundColor: theme.backgroundRoot },
-        ]}
-      >
-        <Pressable
-          style={[
-            styles.saveButton,
-            { backgroundColor: saving ? theme.disabled : theme.primary },
-          ]}
-          onPress={handleSave}
-          disabled={saving}
-        >
-          {saving ? (
-            <ActivityIndicator color="#FFFFFF" />
-          ) : (
-            <ThemedText type="body" style={{ color: "#FFFFFF", fontWeight: "600" }}>
-              {t("saveChanges")}
+          <View style={styles.section}>
+            <ThemedText type="label" style={[styles.sectionTitle, { color: theme.tabIconDefault }]}>
+              {t("preferences")}
             </ThemedText>
-          )}
-        </Pressable>
-      </View>
-    </ThemedView>
+            <View style={styles.settingsGroup}>
+              <SettingRow
+                icon="globe"
+                label={t("language")}
+                value={settings.language === "en" ? t("english") : t("german")}
+                onPress={showLanguagePicker}
+              />
+              <SettingRow
+                icon="moon"
+                label={t("theme")}
+                value={getThemeModeLabel(settings.themeMode)}
+                onPress={showThemePicker}
+              />
+            </View>
+          </View>
+
+          <View style={styles.section}>
+            <ThemedText type="label" style={[styles.sectionTitle, { color: theme.tabIconDefault }]}>
+              {t("about")}
+            </ThemedText>
+            <View style={styles.settingsGroup}>
+              <Pressable
+                style={[styles.linkRow, { backgroundColor: theme.backgroundDefault }]}
+                onPress={handleOpenDHBW}
+              >
+                <View style={styles.settingLeft}>
+                  <AppIcon name="external-link" size={20} color={theme.secondary} />
+                  <ThemedText type="body" style={{ color: theme.secondary }}>
+                    {t("dhbwLorrachProject")}
+                  </ThemedText>
+                </View>
+                <AppIcon name="chevron-right" size={20} color={theme.tabIconDefault} />
+              </Pressable>
+              <View style={[styles.settingRow, { backgroundColor: theme.backgroundDefault }]}>
+                <View style={styles.settingLeft}>
+                  <AppIcon name="info" size={20} color={theme.tabIconDefault} />
+                  <ThemedText type="body">{t("version")}</ThemedText>
+                </View>
+                <ThemedText type="body" style={{ color: theme.tabIconDefault }}>
+                  {Constants.expoConfig?.version ?? "1.0.0"}
+                </ThemedText>
+              </View>
+            </View>
+          </View>
+
+          <Pressable
+            style={[styles.dangerButton, { borderColor: theme.error }]}
+            onPress={handleResetProgress}
+          >
+            <AppIcon name="trash-2" size={18} color={theme.error} />
+            <ThemedText type="body" style={{ color: theme.error }}>
+              {t("resetAllProgress")}
+            </ThemedText>
+          </Pressable>
+        </KeyboardAwareScrollViewCompat>
+
+        <View
+          style={[
+            styles.footer,
+            { paddingBottom: insets.bottom + Spacing.lg, backgroundColor: theme.backgroundRoot },
+          ]}
+        >
+          <Pressable
+            style={[
+              styles.saveButton,
+              { backgroundColor: saving ? theme.disabled : theme.primary },
+            ]}
+            onPress={handleSave}
+            disabled={saving}
+          >
+            {saving ? (
+              <ActivityIndicator color="#FFFFFF" />
+            ) : (
+              <ThemedText type="body" style={{ color: "#FFFFFF", fontWeight: "600" }}>
+                {t("saveChanges")}
+              </ThemedText>
+            )}
+          </Pressable>
+        </View>
+      </ThemedView>
+    </>
   );
 }
 
@@ -393,10 +470,10 @@ const styles = StyleSheet.create({
     alignItems: "center",
     gap: Spacing.md,
   },
-  optionButton: {
-    paddingHorizontal: Spacing.md,
-    paddingVertical: Spacing.sm,
-    borderRadius: BorderRadius.sm,
+  settingValue: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: Spacing.xs,
   },
   dangerButton: {
     flexDirection: "row",

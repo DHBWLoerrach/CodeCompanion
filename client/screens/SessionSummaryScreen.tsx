@@ -6,12 +6,12 @@ import {
   Pressable,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { useLocalSearchParams, useRouter } from "expo-router";
-import { Feather } from "@expo/vector-icons";
+import { Stack, useLocalSearchParams, useRouter } from "expo-router";
 import Svg, { Circle } from "react-native-svg";
 
 import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
+import { AppIcon } from "@/components/AppIcon";
 import { useTheme } from "@/hooks/useTheme";
 import { useTranslation } from "@/hooks/useTranslation";
 import { Spacing, BorderRadius, Shadows } from "@/constants/theme";
@@ -91,7 +91,7 @@ function AnswerItem({ index, correct, correctAnswer, questionLabel }: AnswerItem
             { backgroundColor: correct ? theme.success + "20" : theme.error + "20" },
           ]}
         >
-          <Feather
+          <AppIcon
             name={correct ? "check" : "x"}
             size={16}
             color={correct ? theme.success : theme.error}
@@ -167,26 +167,26 @@ export default function SessionSummaryScreen() {
   };
 
   return (
-    <ThemedView style={styles.container}>
-      <ScrollView
-        style={styles.scrollView}
-        contentContainerStyle={[
-          styles.scrollContent,
-          { paddingTop: insets.top + Spacing.xl, paddingBottom: 160 + insets.bottom },
-        ]}
-        showsVerticalScrollIndicator={false}
-      >
-        <View style={styles.header}>
-          <Feather name="award" size={32} color={theme.accent} />
-          <ThemedText type="h2" style={styles.title}>
-            {t("sessionComplete")}
-          </ThemedText>
-          {topic ? (
-            <ThemedText type="body" style={{ color: theme.tabIconDefault }}>
-              {getTopicName(topic, language)}
-            </ThemedText>
-          ) : null}
-        </View>
+    <>
+      <Stack.Screen options={{ title: t("sessionComplete") }} />
+      <ThemedView style={styles.container}>
+        <ScrollView
+          style={styles.scrollView}
+          contentInsetAdjustmentBehavior="automatic"
+          contentContainerStyle={[
+            styles.scrollContent,
+            { paddingTop: Spacing.xl, paddingBottom: 160 + insets.bottom },
+          ]}
+          showsVerticalScrollIndicator={false}
+        >
+          <View style={styles.header}>
+            <AppIcon name="award" size={32} color={theme.accent} />
+            {topic ? (
+              <ThemedText type="body" style={{ color: theme.tabIconDefault }}>
+                {getTopicName(topic, language)}
+              </ThemedText>
+            ) : null}
+          </View>
 
         <View style={[styles.scoreCard, { backgroundColor: theme.backgroundDefault }]}>
           <ScoreCircle score={score} total={total} />
@@ -211,36 +211,37 @@ export default function SessionSummaryScreen() {
             ))}
           </View>
         </View>
-      </ScrollView>
+        </ScrollView>
 
-      <View
-        style={[
-          styles.footer,
-          { paddingBottom: insets.bottom + Spacing.lg, backgroundColor: theme.backgroundRoot },
-        ]}
-      >
-        <Pressable
-          style={[styles.primaryButton, { backgroundColor: theme.primary }]}
-          onPress={handlePracticeAgain}
-        >
-          <Feather name="refresh-cw" size={20} color="#FFFFFF" />
-          <ThemedText type="body" style={{ color: "#FFFFFF", fontWeight: "600" }}>
-            {t("practiceAgain")}
-          </ThemedText>
-        </Pressable>
-        <Pressable
+        <View
           style={[
-            styles.secondaryButton,
-            { borderColor: theme.secondary },
+            styles.footer,
+            { paddingBottom: insets.bottom + Spacing.lg, backgroundColor: theme.backgroundRoot },
           ]}
-          onPress={handleBackToTopics}
         >
-          <ThemedText type="body" style={{ color: theme.secondary, fontWeight: "600" }}>
-            {t("backToTopics")}
-          </ThemedText>
-        </Pressable>
-      </View>
-    </ThemedView>
+          <Pressable
+            style={[styles.primaryButton, { backgroundColor: theme.primary }]}
+            onPress={handlePracticeAgain}
+          >
+            <AppIcon name="refresh-cw" size={20} color="#FFFFFF" />
+            <ThemedText type="body" style={{ color: "#FFFFFF", fontWeight: "600" }}>
+              {t("practiceAgain")}
+            </ThemedText>
+          </Pressable>
+          <Pressable
+            style={[
+              styles.secondaryButton,
+              { borderColor: theme.secondary },
+            ]}
+            onPress={handleBackToTopics}
+          >
+            <ThemedText type="body" style={{ color: theme.secondary, fontWeight: "600" }}>
+              {t("backToTopics")}
+            </ThemedText>
+          </Pressable>
+        </View>
+      </ThemedView>
+    </>
   );
 }
 
@@ -258,9 +259,6 @@ const styles = StyleSheet.create({
   header: {
     alignItems: "center",
     gap: Spacing.sm,
-  },
-  title: {
-    marginTop: Spacing.sm,
   },
   scoreCard: {
     borderRadius: BorderRadius.lg,

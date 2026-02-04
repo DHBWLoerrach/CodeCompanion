@@ -5,11 +5,9 @@ import {
   StyleSheet,
   Pressable,
   ActivityIndicator,
-  Modal,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useFocusEffect, useNavigation, useLocalSearchParams, useRouter } from "expo-router";
-import { Feather } from "@expo/vector-icons";
 import Animated, {
   useAnimatedStyle,
   useSharedValue,
@@ -18,13 +16,12 @@ import Animated, {
 
 import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
-import { MarkdownView } from "@/components/MarkdownView";
+import { AppIcon } from "@/components/AppIcon";
 import { useTheme } from "@/hooks/useTheme";
 import { useTranslation } from "@/hooks/useTranslation";
 import { Spacing, BorderRadius, Shadows } from "@/constants/theme";
 import { getTopicById, getTopicName, getTopicDescription, type Topic } from "@/lib/topics";
-import { storage, type TopicProgress, isTopicDue, getDaysUntilDue, SKILL_LEVEL_INTERVALS } from "@/lib/storage";
-import { getApiUrl } from "@/lib/query-client";
+import { storage, type TopicProgress, isTopicDue } from "@/lib/storage";
 
 const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
 
@@ -40,10 +37,6 @@ export default function TopicDetailScreen() {
   const [topic, setTopic] = useState<Topic | null>(null);
   const [progress, setProgress] = useState<TopicProgress | null>(null);
   const [loading, setLoading] = useState(true);
-  const [explanationModalVisible, setExplanationModalVisible] = useState(false);
-  const [explanation, setExplanation] = useState<string>("");
-  const [loadingExplanation, setLoadingExplanation] = useState(false);
-
   const scale = useSharedValue(1);
   const explainScale = useSharedValue(1);
 
@@ -110,37 +103,14 @@ export default function TopicDetailScreen() {
     });
   };
 
-  const handleExplainTopic = async () => {
+  const handleExplainTopic = () => {
     if (!resolvedTopicId) return;
-    setExplanationModalVisible(true);
-    setLoadingExplanation(true);
-    setExplanation("");
-    
-    try {
-      const apiUrl = getApiUrl();
-      const response = await fetch(new URL("/api/topic/explain", apiUrl).toString(), {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ topicId: resolvedTopicId, language }),
-      });
-      
-      if (!response.ok) {
-        throw new Error("Failed to generate explanation");
-      }
-      
-      const data = await response.json();
-      setExplanation(data.explanation);
-    } catch (error) {
-      console.error("Error generating explanation:", error);
-      setExplanation("Failed to load explanation. Please try again.");
-    } finally {
-      setLoadingExplanation(false);
-    }
+    router.push({ pathname: "/topic-explanation", params: { topicId: resolvedTopicId } });
   };
 
   if (loading) {
     return (
-      <ThemedView style={[styles.loadingContainer, { paddingTop: insets.top }]}>
+      <ThemedView style={styles.loadingContainer}>
         <ActivityIndicator size="large" color={theme.primary} />
       </ThemedView>
     );
@@ -149,7 +119,7 @@ export default function TopicDetailScreen() {
   if (!topic) {
     return (
       <ThemedView style={styles.errorContainer}>
-        <Feather name="alert-circle" size={48} color={theme.error} />
+        <AppIcon name="alert-circle" size={48} color={theme.error} />
         <ThemedText type="body">{t("topicNotFound")}</ThemedText>
       </ThemedView>
     );
@@ -165,6 +135,7 @@ export default function TopicDetailScreen() {
     <ThemedView style={styles.container}>
       <ScrollView
         style={styles.scrollView}
+        contentInsetAdjustmentBehavior="automatic"
         contentContainerStyle={[
           styles.scrollContent,
           { paddingTop: Spacing.xl, paddingBottom: 100 + insets.bottom },
@@ -173,7 +144,7 @@ export default function TopicDetailScreen() {
       >
         <View style={[styles.headerCard, { backgroundColor: theme.backgroundDefault }]}>
           <View style={[styles.topicIcon, { backgroundColor: theme.primary + "20" }]}>
-            <Feather name="code" size={32} color={theme.primary} />
+            <AppIcon name="code" size={32} color={theme.primary} />
           </View>
           <ThemedText type="h3" style={styles.topicTitle}>
             {displayName}
@@ -186,7 +157,7 @@ export default function TopicDetailScreen() {
               styles.completedBadge, 
               { backgroundColor: progress.skillLevel === 5 ? theme.success : isTopicDue(progress) ? theme.accent : theme.secondary }
             ]}>
-              <Feather 
+              <AppIcon 
                 name={progress.skillLevel === 5 ? "award" : isTopicDue(progress) ? "clock" : "trending-up"} 
                 size={14} 
                 color="#FFFFFF" 
@@ -232,7 +203,7 @@ export default function TopicDetailScreen() {
         {progress?.lastPracticed ? (
           <View style={[styles.infoCard, { backgroundColor: theme.backgroundDefault }]}>
             <View style={styles.infoRow}>
-              <Feather name="clock" size={20} color={theme.tabIconDefault} />
+              <AppIcon name="clock" size={20} color={theme.tabIconDefault} />
               <ThemedText type="body" style={{ color: theme.tabIconDefault }}>
                 {new Date(progress.lastPracticed).toLocaleDateString()}
               </ThemedText>
@@ -254,7 +225,7 @@ export default function TopicDetailScreen() {
             onPressIn={handleExplainPressIn}
             onPressOut={handleExplainPressOut}
           >
-            <Feather name="book-open" size={20} color="#FFFFFF" />
+            <AppIcon name="book-open" size={20} color="#FFFFFF" />
             <ThemedText type="body" style={{ color: "#FFFFFF", fontWeight: "600" }}>
               {t("explainTopic")}
             </ThemedText>
@@ -265,48 +236,13 @@ export default function TopicDetailScreen() {
             onPressIn={handlePressIn}
             onPressOut={handlePressOut}
           >
-            <Feather name="play" size={20} color="#FFFFFF" />
+            <AppIcon name="play" size={20} color="#FFFFFF" />
             <ThemedText type="body" style={{ color: "#FFFFFF", fontWeight: "600" }}>
               {t("startQuiz")}
             </ThemedText>
           </AnimatedPressable>
         </View>
       </View>
-
-      <Modal
-        visible={explanationModalVisible}
-        animationType="slide"
-        presentationStyle="pageSheet"
-        onRequestClose={() => setExplanationModalVisible(false)}
-      >
-        <View style={[styles.modalContainer, { backgroundColor: theme.backgroundRoot }]}>
-          <View style={[styles.modalHeader, { borderBottomColor: theme.cardBorder }]}>
-            <ThemedText type="h3">{t("topicExplanation")}</ThemedText>
-            <Pressable
-              style={[styles.closeButton, { backgroundColor: theme.backgroundDefault }]}
-              onPress={() => setExplanationModalVisible(false)}
-            >
-              <Feather name="x" size={24} color={theme.text} />
-            </Pressable>
-          </View>
-          <ScrollView
-            style={styles.modalScrollView}
-            contentContainerStyle={styles.modalContent}
-            showsVerticalScrollIndicator={true}
-          >
-            {loadingExplanation ? (
-              <View style={styles.loadingExplanation}>
-                <ActivityIndicator size="large" color={theme.primary} />
-                <ThemedText type="body" style={{ color: theme.tabIconDefault, marginTop: Spacing.lg }}>
-                  {t("generatingExplanation")}
-                </ThemedText>
-              </View>
-            ) : (
-              <MarkdownView content={explanation} />
-            )}
-          </ScrollView>
-        </View>
-      </Modal>
     </ThemedView>
   );
 }
@@ -411,35 +347,5 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
     gap: Spacing.sm,
-  },
-  modalContainer: {
-    flex: 1,
-  },
-  modalHeader: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    padding: Spacing.lg,
-    borderBottomWidth: 1,
-  },
-  closeButton: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  modalScrollView: {
-    flex: 1,
-  },
-  modalContent: {
-    padding: Spacing.lg,
-    paddingBottom: Spacing.xl * 2,
-  },
-  loadingExplanation: {
-    flex: 1,
-    alignItems: "center",
-    justifyContent: "center",
-    paddingVertical: Spacing.xl * 3,
   },
 });

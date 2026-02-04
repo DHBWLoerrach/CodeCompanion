@@ -7,8 +7,7 @@ import {
   ActivityIndicator,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { useLocalSearchParams, useRouter } from "expo-router";
-import { Feather } from "@expo/vector-icons";
+import { Stack, useLocalSearchParams, useRouter } from "expo-router";
 import Animated, {
   useAnimatedStyle,
   useSharedValue,
@@ -18,6 +17,7 @@ import * as Haptics from "expo-haptics";
 
 import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
+import { AppIcon } from "@/components/AppIcon";
 import { useTheme } from "@/hooks/useTheme";
 import { useTranslation } from "@/hooks/useTranslation";
 import { Spacing, BorderRadius, Shadows, Fonts } from "@/constants/theme";
@@ -135,10 +135,10 @@ function AnswerButton({
         {text}
       </ThemedText>
       {showResult && isCorrectAnswer ? (
-        <Feather name="check-circle" size={20} color="#FFFFFF" />
+        <AppIcon name="check-circle" size={20} color="#FFFFFF" />
       ) : null}
       {showResult && selected && !isCorrect ? (
-        <Feather name="x-circle" size={20} color="#FFFFFF" />
+        <AppIcon name="x-circle" size={20} color="#FFFFFF" />
       ) : null}
     </AnimatedPressable>
   );
@@ -284,87 +284,115 @@ export default function QuizSessionScreen() {
     router.back();
   };
 
+  const headerTitle = questions.length > 0 ? `${currentIndex + 1}/${questions.length}` : "";
+
+  const renderCloseButton = () => (
+    <Pressable style={styles.headerButton} onPress={handleClose}>
+      <AppIcon name="x" size={22} color={theme.text} />
+    </Pressable>
+  );
+
   if (loading) {
     return (
-      <ThemedView style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color={theme.primary} />
-        <ThemedText type="body" style={styles.loadingText}>
-          {t("generatingQuiz")}
-        </ThemedText>
-        <Pressable
-          style={[styles.cancelButton, { borderColor: theme.tabIconDefault }]}
-          onPress={handleClose}
-        >
-          <ThemedText type="body" style={{ color: theme.tabIconDefault }}>
-            {t("cancel")}
+      <>
+        <Stack.Screen
+          options={{
+            title: headerTitle,
+            headerLeft: renderCloseButton,
+            headerRight: () => <View style={styles.headerPlaceholder} />,
+            headerBackVisible: false,
+          }}
+        />
+        <ThemedView style={styles.loadingContainer}>
+          <ActivityIndicator size="large" color={theme.primary} />
+          <ThemedText type="body" style={styles.loadingText}>
+            {t("generatingQuiz")}
           </ThemedText>
-        </Pressable>
-      </ThemedView>
+          <Pressable
+            style={[styles.cancelButton, { borderColor: theme.tabIconDefault }]}
+            onPress={handleClose}
+          >
+            <ThemedText type="body" style={{ color: theme.tabIconDefault }}>
+              {t("cancel")}
+            </ThemedText>
+          </Pressable>
+        </ThemedView>
+      </>
     );
   }
 
   if (error || !currentQuestion) {
     return (
-      <ThemedView style={styles.errorContainer}>
-        <Feather name="alert-circle" size={48} color={theme.error} />
-        <ThemedText type="h4" style={styles.errorTitle}>
-          {t("unableToLoadQuiz")}
-        </ThemedText>
-        <ThemedText type="body" style={styles.errorText}>
-          {error || t("unableToLoadQuiz")}
-        </ThemedText>
-        <Pressable
-          style={[styles.retryButton, { backgroundColor: theme.primary }]}
-          onPress={loadQuestions}
-        >
-          <Feather name="refresh-cw" size={18} color="#FFFFFF" style={{ marginRight: Spacing.sm }} />
-          <ThemedText type="body" style={{ color: "#FFFFFF", fontWeight: "600" }}>
-            {t("tryAgain")}
+      <>
+        <Stack.Screen
+          options={{
+            title: headerTitle,
+            headerLeft: renderCloseButton,
+            headerRight: () => <View style={styles.headerPlaceholder} />,
+            headerBackVisible: false,
+          }}
+        />
+        <ThemedView style={styles.errorContainer}>
+          <AppIcon name="alert-circle" size={48} color={theme.error} />
+          <ThemedText type="h4" style={styles.errorTitle}>
+            {t("unableToLoadQuiz")}
           </ThemedText>
-        </Pressable>
-        <Pressable
-          style={[styles.cancelButton, { borderColor: theme.tabIconDefault }]}
-          onPress={handleClose}
-        >
-          <ThemedText type="body" style={{ color: theme.tabIconDefault }}>
-            {t("cancel")}
+          <ThemedText type="body" style={styles.errorText}>
+            {error || t("unableToLoadQuiz")}
           </ThemedText>
-        </Pressable>
-      </ThemedView>
+          <Pressable
+            style={[styles.retryButton, { backgroundColor: theme.primary }]}
+            onPress={loadQuestions}
+          >
+            <AppIcon name="refresh-cw" size={18} color="#FFFFFF" style={{ marginRight: Spacing.sm }} />
+            <ThemedText type="body" style={{ color: "#FFFFFF", fontWeight: "600" }}>
+              {t("tryAgain")}
+            </ThemedText>
+          </Pressable>
+          <Pressable
+            style={[styles.cancelButton, { borderColor: theme.tabIconDefault }]}
+            onPress={handleClose}
+          >
+            <ThemedText type="body" style={{ color: theme.tabIconDefault }}>
+              {t("cancel")}
+            </ThemedText>
+          </Pressable>
+        </ThemedView>
+      </>
     );
   }
 
   const progress = ((currentIndex + 1) / questions.length) * 100;
 
   return (
-    <ThemedView style={styles.container}>
-      <View style={[styles.header, { paddingTop: insets.top + Spacing.md }]}>
-        <Pressable style={styles.closeButton} onPress={handleClose}>
-          <Feather name="x" size={24} color={theme.text} />
-        </Pressable>
-        <ThemedText type="label">
-          {currentIndex + 1}/{questions.length}
-        </ThemedText>
-        <View style={styles.placeholder} />
-      </View>
+    <>
+      <Stack.Screen
+        options={{
+          title: headerTitle,
+          headerLeft: renderCloseButton,
+          headerRight: () => <View style={styles.headerPlaceholder} />,
+          headerBackVisible: false,
+        }}
+      />
+      <ThemedView style={styles.container}>
+        <View style={[styles.progressBar, { backgroundColor: theme.cardBorder }]}>
+          <View
+            style={[
+              styles.progressFill,
+              { width: `${progress}%`, backgroundColor: theme.secondary },
+            ]}
+          />
+        </View>
 
-      <View style={[styles.progressBar, { backgroundColor: theme.cardBorder }]}>
-        <View
-          style={[
-            styles.progressFill,
-            { width: `${progress}%`, backgroundColor: theme.secondary },
+        <ScrollView
+          style={styles.scrollView}
+          contentInsetAdjustmentBehavior="automatic"
+          contentContainerStyle={[
+            styles.scrollContent,
+            { paddingBottom: insets.bottom + Spacing.xl + 80 },
           ]}
-        />
-      </View>
-
-      <ScrollView
-        style={styles.scrollView}
-        contentContainerStyle={[
-          styles.scrollContent,
-          { paddingBottom: insets.bottom + Spacing.xl + 80 },
-        ]}
-        showsVerticalScrollIndicator={false}
-      >
+          showsVerticalScrollIndicator={false}
+        >
         <View style={[styles.questionCard, { backgroundColor: theme.backgroundDefault }]}>
           <ThemedText type="h4" style={styles.questionText}>
             {currentQuestion.question}
@@ -399,41 +427,42 @@ export default function QuizSessionScreen() {
             <ThemedText type="body">{currentQuestion.explanation}</ThemedText>
           </View>
         ) : null}
-      </ScrollView>
+        </ScrollView>
 
-      <View
-        style={[
-          styles.footer,
-          { paddingBottom: insets.bottom + Spacing.lg, backgroundColor: theme.backgroundRoot },
-        ]}
-      >
-        {showResult ? (
-          <Pressable
-            style={[styles.submitButton, { backgroundColor: theme.primary }]}
-            onPress={handleNext}
-          >
-            <ThemedText type="body" style={{ color: "#FFFFFF", fontWeight: "600" }}>
-              {currentIndex < questions.length - 1 ? t("nextQuestion") : t("viewResults")}
-            </ThemedText>
-          </Pressable>
-        ) : (
-          <Pressable
-            style={[
-              styles.submitButton,
-              {
-                backgroundColor: selectedAnswer !== null ? theme.primary : theme.disabled,
-              },
-            ]}
-            onPress={handleSubmit}
-            disabled={selectedAnswer === null}
-          >
-            <ThemedText type="body" style={{ color: "#FFFFFF", fontWeight: "600" }}>
-              {t("submitAnswer")}
-            </ThemedText>
-          </Pressable>
-        )}
-      </View>
-    </ThemedView>
+        <View
+          style={[
+            styles.footer,
+            { paddingBottom: insets.bottom + Spacing.lg, backgroundColor: theme.backgroundRoot },
+          ]}
+        >
+          {showResult ? (
+            <Pressable
+              style={[styles.submitButton, { backgroundColor: theme.primary }]}
+              onPress={handleNext}
+            >
+              <ThemedText type="body" style={{ color: "#FFFFFF", fontWeight: "600" }}>
+                {currentIndex < questions.length - 1 ? t("nextQuestion") : t("viewResults")}
+              </ThemedText>
+            </Pressable>
+          ) : (
+            <Pressable
+              style={[
+                styles.submitButton,
+                {
+                  backgroundColor: selectedAnswer !== null ? theme.primary : theme.disabled,
+                },
+              ]}
+              onPress={handleSubmit}
+              disabled={selectedAnswer === null}
+            >
+              <ThemedText type="body" style={{ color: "#FFFFFF", fontWeight: "600" }}>
+                {t("submitAnswer")}
+              </ThemedText>
+            </Pressable>
+          )}
+        </View>
+      </ThemedView>
+    </>
   );
 }
 
@@ -480,18 +509,10 @@ const styles = StyleSheet.create({
     borderRadius: BorderRadius.md,
     borderWidth: 1,
   },
-  header: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    paddingHorizontal: Spacing.lg,
-    paddingBottom: Spacing.md,
-  },
-  closeButton: {
+  headerButton: {
     padding: Spacing.sm,
-    marginLeft: -Spacing.sm,
   },
-  placeholder: {
+  headerPlaceholder: {
     width: 40,
   },
   progressBar: {
