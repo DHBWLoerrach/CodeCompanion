@@ -168,7 +168,11 @@ export default function QuizSessionScreen() {
   const { t } = useTranslation();
   const insets = useSafeAreaInsets();
   const router = useRouter();
-  const { topicId } = useLocalSearchParams<{ topicId?: string }>();
+  const { topicId, topicIds, count } = useLocalSearchParams<{
+    topicId?: string;
+    topicIds?: string;
+    count?: string;
+  }>();
   const resolvedTopicId = Array.isArray(topicId) ? topicId[0] : topicId;
 
   const [questions, setQuestions] = useState<Question[]>([]);
@@ -189,11 +193,23 @@ export default function QuizSessionScreen() {
       setError(null);
 
       const settings = await storage.getSettings();
+      const questionCount = count ? parseInt(count as string, 10) || 10 : 10;
       const skillLevel = resolvedTopicId ? await storage.getTopicSkillLevel(resolvedTopicId) : 1;
-      const endpoint = resolvedTopicId ? "/api/quiz/generate" : "/api/quiz/generate-mixed";
-      const body = resolvedTopicId
-        ? { topicId: resolvedTopicId, count: 10, language: settings.language, skillLevel }
-        : { count: 10, language: settings.language };
+
+      let endpoint: string;
+      let body: Record<string, unknown>;
+
+      if (resolvedTopicId) {
+        endpoint = "/api/quiz/generate";
+        body = { topicId: resolvedTopicId, count: questionCount, language: settings.language, skillLevel };
+      } else if (topicIds) {
+        const ids = (Array.isArray(topicIds) ? topicIds[0] : topicIds).split(",");
+        endpoint = "/api/quiz/generate-mixed";
+        body = { topicIds: ids, count: questionCount, language: settings.language };
+      } else {
+        endpoint = "/api/quiz/generate-mixed";
+        body = { count: questionCount, language: settings.language };
+      }
 
       const response = await apiRequest("POST", endpoint, body);
       const data = await response.json();

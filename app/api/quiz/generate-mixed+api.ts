@@ -14,17 +14,28 @@ export async function POST(request: Request) {
     const body = (await request.json()) as {
       count?: number;
       language?: string;
+      topicIds?: string[];
     };
 
     const count = toNumber(body?.count, 10);
     const language = typeof body?.language === "string" ? body.language : "en";
 
-    const topics = Object.keys(TOPIC_PROMPTS);
-    const randomTopics = topics.sort(() => Math.random() - 0.5).slice(0, 3);
-    const questionsPerTopic = Math.ceil(count / randomTopics.length);
+    const allTopicKeys = Object.keys(TOPIC_PROMPTS);
+    let selectedTopics: string[];
+    if (Array.isArray(body?.topicIds) && body.topicIds.length > 0) {
+      selectedTopics = body.topicIds.filter((id) => allTopicKeys.includes(id));
+      if (selectedTopics.length === 0) {
+        return Response.json({ error: "No valid topic IDs" }, { status: 400 });
+      }
+    } else {
+      selectedTopics = allTopicKeys
+        .sort(() => Math.random() - 0.5)
+        .slice(0, 3);
+    }
+    const questionsPerTopic = Math.ceil(count / selectedTopics.length);
     const allQuestions: QuizQuestion[] = [];
 
-    for (const topicId of randomTopics) {
+    for (const topicId of selectedTopics) {
       const questions = await generateQuizQuestions(
         topicId,
         questionsPerTopic,
