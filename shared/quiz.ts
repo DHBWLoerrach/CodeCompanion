@@ -103,9 +103,9 @@ function getOpenAIBaseUrl(): string {
 }
 
 async function requestOpenAI(payload: Record<string, unknown>) {
-  const apiKey = process.env.AI_INTEGRATIONS_OPENAI_API_KEY;
+  const apiKey = process.env.OPENAI_API_KEY;
   if (!apiKey) {
-    throw new Error("AI_INTEGRATIONS_OPENAI_API_KEY is not set");
+    throw new Error("OPENAI_API_KEY is not set");
   }
 
   const baseUrl = getOpenAIBaseUrl();

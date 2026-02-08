@@ -67,7 +67,7 @@ npm install
 
 ### Erforderlich für KI-Funktionen
 
-- `AI_INTEGRATIONS_OPENAI_API_KEY`  
+- `OPENAI_API_KEY`  
   API-Key für den Aufruf von `POST /v1/responses` in `shared/quiz.ts`.
 
 ### Optional
