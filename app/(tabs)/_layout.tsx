@@ -11,11 +11,21 @@ import { useTheme } from "@/hooks/useTheme";
 import { useTranslation } from "@/hooks/useTranslation";
 
 export default function TabsLayout() {
-  const { theme } = useTheme();
+  const { theme, isDark } = useTheme();
   const { t } = useTranslation();
+  const activeIndicatorColor = isDark ? `${theme.primary}4D` : `${theme.primary}1A`;
 
   return (
-    <NativeTabs tintColor={theme.primary}>
+    <NativeTabs
+      tintColor={theme.primary}
+      backgroundColor={theme.backgroundRoot}
+      indicatorColor={activeIndicatorColor}
+      iconColor={{ default: theme.tabIconDefault, selected: theme.primary }}
+      labelStyle={{
+        default: { color: theme.tabIconDefault },
+        selected: { color: theme.primary },
+      }}
+    >
       <NativeTabs.Trigger name="learn">
         <Label>{t("learn")}</Label>
         <Icon sf="book" androidSrc={<VectorIcon family={Feather} name="book-open" />} />
