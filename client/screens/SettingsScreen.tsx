@@ -6,7 +6,6 @@ import {
   TextInput,
   Alert,
   ActivityIndicator,
-  Modal,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Stack, useRouter } from "expo-router";
@@ -93,8 +92,6 @@ export default function SettingsScreen() {
   const [settings, setSettings] = useState<SettingsData | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
-  const [aboutAppModalVisible, setAboutAppModalVisible] = useState(false);
-  const [imprintModalVisible, setImprintModalVisible] = useState(false);
 
   useEffect(() => {
     loadData();
@@ -285,7 +282,7 @@ export default function SettingsScreen() {
             <View style={styles.settingsGroup}>
               <Pressable
                 style={[styles.aboutActionButton, { backgroundColor: theme.backgroundDefault }]}
-                onPress={() => setAboutAppModalVisible(true)}
+                onPress={() => router.push({ pathname: "/info-modal", params: { type: "about" } })}
               >
                 <View style={styles.settingLeft}>
                   <AppIcon name="info" size={20} color={theme.tabIconDefault} />
@@ -299,7 +296,7 @@ export default function SettingsScreen() {
                   styles.aboutActionButtonLast,
                   { backgroundColor: theme.backgroundDefault },
                 ]}
-                onPress={() => setImprintModalVisible(true)}
+                onPress={() => router.push({ pathname: "/info-modal", params: { type: "imprint" } })}
               >
                 <View style={styles.settingLeft}>
                   <AppIcon name="file-text" size={20} color={theme.tabIconDefault} />
@@ -354,69 +351,6 @@ export default function SettingsScreen() {
           </Pressable>
         </View>
 
-        <Modal
-          visible={aboutAppModalVisible}
-          transparent
-          animationType="fade"
-          onRequestClose={() => setAboutAppModalVisible(false)}
-        >
-          <View style={styles.modalBackdrop}>
-            <Pressable
-              style={StyleSheet.absoluteFill}
-              onPress={() => setAboutAppModalVisible(false)}
-            />
-            <View style={[styles.modalCard, { backgroundColor: theme.backgroundDefault }]}>
-              <ThemedText type="h4" style={styles.modalTitle}>
-                {t("aboutThisApp")}
-              </ThemedText>
-              <ThemedText type="body" style={{ color: theme.tabIconDefault, textAlign: "center" }}>
-                {t("aboutThisAppPlaceholder")}
-              </ThemedText>
-              <View style={styles.modalActions}>
-                <Pressable
-                  style={[styles.modalPrimaryButton, { backgroundColor: theme.primary }]}
-                  onPress={() => setAboutAppModalVisible(false)}
-                >
-                  <ThemedText type="body" style={{ color: "#FFFFFF", fontWeight: "600" }}>
-                    {t("cancel")}
-                  </ThemedText>
-                </Pressable>
-              </View>
-            </View>
-          </View>
-        </Modal>
-
-        <Modal
-          visible={imprintModalVisible}
-          transparent
-          animationType="fade"
-          onRequestClose={() => setImprintModalVisible(false)}
-        >
-          <View style={styles.modalBackdrop}>
-            <Pressable
-              style={StyleSheet.absoluteFill}
-              onPress={() => setImprintModalVisible(false)}
-            />
-            <View style={[styles.modalCard, { backgroundColor: theme.backgroundDefault }]}>
-              <ThemedText type="h4" style={styles.modalTitle}>
-                {t("imprint")}
-              </ThemedText>
-              <ThemedText type="body" style={{ color: theme.tabIconDefault, textAlign: "center" }}>
-                {t("imprintPlaceholder")}
-              </ThemedText>
-              <View style={styles.modalActions}>
-                <Pressable
-                  style={[styles.modalPrimaryButton, { backgroundColor: theme.primary }]}
-                  onPress={() => setImprintModalVisible(false)}
-                >
-                  <ThemedText type="body" style={{ color: "#FFFFFF", fontWeight: "600" }}>
-                    {t("cancel")}
-                  </ThemedText>
-                </Pressable>
-              </View>
-            </View>
-          </View>
-        </Modal>
       </ThemedView>
     </>
   );
@@ -542,30 +476,6 @@ const styles = StyleSheet.create({
   },
   saveButton: {
     height: 56,
-    borderRadius: BorderRadius.md,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  modalBackdrop: {
-    flex: 1,
-    justifyContent: "center",
-    padding: Spacing.lg,
-    backgroundColor: "rgba(0,0,0,0.35)",
-  },
-  modalCard: {
-    borderRadius: BorderRadius.lg,
-    padding: Spacing.lg,
-    gap: Spacing.md,
-    ...Shadows.card,
-  },
-  modalTitle: {
-    textAlign: "center",
-  },
-  modalActions: {
-    gap: Spacing.sm,
-  },
-  modalPrimaryButton: {
-    height: 48,
     borderRadius: BorderRadius.md,
     alignItems: "center",
     justifyContent: "center",
