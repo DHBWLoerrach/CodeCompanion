@@ -110,6 +110,13 @@ export default function InfoModalScreen() {
                     Üben alltagstauglich zu machen.
                   </ThemedText>
 
+                  <ThemedText type="h4">Datenschutz</ThemedText>
+                  <ThemedText type="body" selectable>
+                    Es werden keine benutzerbezogenen Daten auf Servern
+                    gespeichert. Nur der Lernfortschritt wird lokal auf dem
+                    Gerät gespeichert.
+                  </ThemedText>
+
                   <ThemedText type="h4">Entwicklung</ThemedText>
                   <ThemedText type="body" selectable>
                     Die App wurde am Studienzentrum IT-Management &
@@ -173,6 +180,12 @@ export default function InfoModalScreen() {
                     The app is designed to support self-directed learning,
                     improve retention through repetition, and make regular
                     practice easier in day-to-day student life.
+                  </ThemedText>
+
+                  <ThemedText type="h4">Privacy</ThemedText>
+                  <ThemedText type="body" selectable>
+                    No user-related personal data is stored on servers. Only
+                    learning progress is stored locally on the device.
                   </ThemedText>
 
                   <ThemedText type="h4">Development</ThemedText>
@@ -328,6 +341,13 @@ export default function InfoModalScreen() {
                   apps@dhbw-loerrach.de
                 </ThemedText>
               </Pressable>
+
+              <ThemedText type="h4">Datenschutz</ThemedText>
+              <ThemedText type="body" selectable>
+                Es werden keine benutzerbezogenen Daten auf Servern
+                gespeichert. Nur der Lernfortschritt wird lokal auf dem Gerät
+                gespeichert.
+              </ThemedText>
 
               <ThemedText type="h4">Haftungsbeschränkung</ThemedText>
               <ThemedText type="body" selectable>
