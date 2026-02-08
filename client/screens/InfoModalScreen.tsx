@@ -14,7 +14,7 @@ type InfoModalType = 'about' | 'imprint';
 
 export default function InfoModalScreen() {
   const { theme } = useTheme();
-  const { t } = useTranslation();
+  const { t, language } = useTranslation();
   const insets = useSafeAreaInsets();
   const router = useRouter();
   const { type } = useLocalSearchParams<{ type?: string }>();
@@ -72,7 +72,6 @@ export default function InfoModalScreen() {
           contentContainerStyle={[
             styles.content,
             { paddingBottom: insets.bottom + Spacing.xl, flexGrow: 1 },
-            resolvedType === 'about' ? styles.contentCentered : null,
           ]}
           showsVerticalScrollIndicator={false}
         >
@@ -83,15 +82,144 @@ export default function InfoModalScreen() {
                 { backgroundColor: theme.backgroundDefault },
               ]}
             >
-              <ThemedText type="h4" style={styles.title}>
+              <ThemedText type="h3" style={styles.imprintMainTitle}>
                 {title}
               </ThemedText>
-              <ThemedText
-                type="body"
-                style={{ color: theme.tabIconDefault, textAlign: 'center' }}
-              >
-                {t('aboutThisAppPlaceholder')}
-              </ThemedText>
+
+              {language === 'de' ? (
+                <>
+                  <ThemedText type="body" selectable>
+                    CodeCompanion ist eine mobile Lern- und Übungsapp für
+                    Studierende. Sie unterstützt dabei, Inhalte strukturiert zu
+                    lernen, Wissen mit Quizfragen zu überprüfen und den eigenen
+                    Fortschritt sichtbar zu machen.
+                  </ThemedText>
+
+                  <ThemedText type="h4">Funktionen</ThemedText>
+                  <ThemedText type="body" selectable>
+                    - Themenbasiertes Lernen mit kompakten Erklärungen{'\n'}-
+                    KI-gestützte Quizfragen für gezieltes Üben{'\n'}-
+                    Fortschrittsanzeige mit Kennzahlen und Lernverlauf{'\n'}-
+                    Mehrsprachige Oberfläche (Deutsch/Englisch)
+                  </ThemedText>
+
+                  <ThemedText type="h4">Ziele</ThemedText>
+                  <ThemedText type="body" selectable>
+                    Ziel der App ist es, das selbstgesteuerte Lernen im Studium
+                    zu verbessern, Wiederholung zu erleichtern und regelmäßiges
+                    Üben alltagstauglich zu machen.
+                  </ThemedText>
+
+                  <ThemedText type="h4">Entwicklung</ThemedText>
+                  <ThemedText type="body" selectable>
+                    Die App wurde am Studienzentrum IT-Management &
+                    Informatik (SZI) der DHBW Lörrach unter Leitung von
+                    Prof. Dr. Erik Behrends entwickelt.
+                  </ThemedText>
+                  <Pressable
+                    onPress={() =>
+                      void openWebsite('https://www.dhbw-loerrach.de/szi')
+                    }
+                    hitSlop={6}
+                  >
+                    <ThemedText type="link" selectable style={styles.linkText}>
+                      https://www.dhbw-loerrach.de/szi
+                    </ThemedText>
+                  </Pressable>
+
+                  <ThemedText type="h4">Quellcode</ThemedText>
+                  <Pressable
+                    onPress={() =>
+                      void openWebsite(
+                        'https://github.com/DHBWLoerrach/CodeCompanion',
+                      )
+                    }
+                    hitSlop={6}
+                  >
+                    <ThemedText type="link" selectable style={styles.linkText}>
+                      https://github.com/DHBWLoerrach/CodeCompanion
+                    </ThemedText>
+                  </Pressable>
+
+                  <ThemedText type="h4">Feedback</ThemedText>
+                  <Pressable
+                    onPress={() => void openEmail('apps@dhbw-loerrach.de')}
+                    hitSlop={6}
+                  >
+                    <ThemedText type="link" selectable style={styles.linkText}>
+                      apps@dhbw-loerrach.de
+                    </ThemedText>
+                  </Pressable>
+                </>
+              ) : (
+                <>
+                  <ThemedText type="body" selectable>
+                    CodeCompanion is a mobile learning and practice app for
+                    students. It helps learners study topics in a structured
+                    way, test knowledge with quizzes, and track their learning
+                    progress over time.
+                  </ThemedText>
+
+                  <ThemedText type="h4">Features</ThemedText>
+                  <ThemedText type="body" selectable>
+                    - Topic-based learning with concise explanations{'\n'}-
+                    AI-assisted quiz generation for targeted practice{'\n'}-
+                    Progress tracking with key metrics and history{'\n'}-
+                    Multilingual interface (German/English)
+                  </ThemedText>
+
+                  <ThemedText type="h4">Goals</ThemedText>
+                  <ThemedText type="body" selectable>
+                    The app is designed to support self-directed learning,
+                    improve retention through repetition, and make regular
+                    practice easier in day-to-day student life.
+                  </ThemedText>
+
+                  <ThemedText type="h4">Development</ThemedText>
+                  <ThemedText type="body" selectable>
+                    The app is developed at the Studienzentrum IT-Management &
+                    Informatik (SZI) at DHBW Lörrach under the supervision of
+                    Prof. Dr. Erik Behrends.
+                  </ThemedText>
+                  <ThemedText type="body" selectable>
+                    The official SZI page is provided in German:
+                  </ThemedText>
+                  <Pressable
+                    onPress={() =>
+                      void openWebsite('https://www.dhbw-loerrach.de/szi')
+                    }
+                    hitSlop={6}
+                  >
+                    <ThemedText type="link" selectable style={styles.linkText}>
+                      https://www.dhbw-loerrach.de/szi
+                    </ThemedText>
+                  </Pressable>
+
+                  <ThemedText type="h4">Source Code</ThemedText>
+                  <Pressable
+                    onPress={() =>
+                      void openWebsite(
+                        'https://github.com/DHBWLoerrach/CodeCompanion',
+                      )
+                    }
+                    hitSlop={6}
+                  >
+                    <ThemedText type="link" selectable style={styles.linkText}>
+                      https://github.com/DHBWLoerrach/CodeCompanion
+                    </ThemedText>
+                  </Pressable>
+
+                  <ThemedText type="h4">Feedback</ThemedText>
+                  <Pressable
+                    onPress={() => void openEmail('apps@dhbw-loerrach.de')}
+                    hitSlop={6}
+                  >
+                    <ThemedText type="link" selectable style={styles.linkText}>
+                      apps@dhbw-loerrach.de
+                    </ThemedText>
+                  </Pressable>
+                </>
+              )}
             </View>
           ) : (
             <View
@@ -193,7 +321,7 @@ export default function InfoModalScreen() {
                 Feedback:
               </ThemedText>
               <Pressable
-                onPress={() => void openEmail('pr@dhbw-loerrach.de')}
+                onPress={() => void openEmail('apps@dhbw-loerrach.de')}
                 hitSlop={6}
               >
                 <ThemedText type="link" selectable style={styles.linkText}>
