@@ -84,6 +84,10 @@ export default function SettingsScreen() {
   const { t, refreshLanguage } = useTranslation();
   const insets = useSafeAreaInsets();
   const router = useRouter();
+  const settingsScreenOptions = {
+    title: t("settings"),
+    headerTransparent: process.env.EXPO_OS === "ios",
+  } as const;
 
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [settings, setSettings] = useState<SettingsData | null>(null);
@@ -178,7 +182,7 @@ export default function SettingsScreen() {
   if (loading || !profile || !settings) {
     return (
       <>
-        <Stack.Screen options={{ title: t("settings") }} />
+        <Stack.Screen options={settingsScreenOptions} />
         <ThemedView style={styles.loadingContainer}>
           <ActivityIndicator size="large" color={theme.primary} />
         </ThemedView>
@@ -188,7 +192,7 @@ export default function SettingsScreen() {
 
   return (
     <>
-      <Stack.Screen options={{ title: t("settings") }} />
+      <Stack.Screen options={settingsScreenOptions} />
       <ThemedView style={styles.container}>
         <KeyboardAwareScrollViewCompat
           style={styles.scrollView}

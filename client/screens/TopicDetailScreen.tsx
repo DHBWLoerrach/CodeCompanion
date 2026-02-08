@@ -29,6 +29,7 @@ export default function TopicDetailScreen() {
   const { theme } = useTheme();
   const { t, language, refreshLanguage } = useTranslation();
   const insets = useSafeAreaInsets();
+  const isAndroid = process.env.EXPO_OS === "android";
   const navigation = useNavigation();
   const router = useRouter();
   const { topicId } = useLocalSearchParams<{ topicId?: string }>();
@@ -139,6 +140,7 @@ export default function TopicDetailScreen() {
         contentContainerStyle={[
           styles.scrollContent,
           { paddingTop: Spacing.xl, paddingBottom: 100 + insets.bottom },
+          isAndroid ? styles.androidCenteredContent : null,
         ]}
         showsVerticalScrollIndicator={false}
       >
@@ -268,6 +270,10 @@ const styles = StyleSheet.create({
   scrollContent: {
     padding: Spacing.lg,
     gap: Spacing.lg,
+    flexGrow: 1,
+  },
+  androidCenteredContent: {
+    justifyContent: "center",
   },
   headerCard: {
     borderRadius: BorderRadius.lg,
