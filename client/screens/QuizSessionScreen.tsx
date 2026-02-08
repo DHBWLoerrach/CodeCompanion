@@ -323,13 +323,21 @@ export default function QuizSessionScreen() {
   };
 
   const handleClose = () => {
-    router.back();
+    if (router.canDismiss()) {
+      router.dismiss();
+      return;
+    }
+    if (router.canGoBack()) {
+      router.back();
+      return;
+    }
+    router.replace("/learn");
   };
 
   const headerTitle = questions.length > 0 ? `${currentIndex + 1}/${questions.length}` : "";
 
   const renderCloseButton = () => (
-    <Pressable style={styles.headerButton} onPress={handleClose}>
+    <Pressable style={styles.headerButton} onPress={handleClose} hitSlop={12}>
       <AppIcon name="x" size={22} color={theme.text} />
     </Pressable>
   );

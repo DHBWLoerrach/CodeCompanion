@@ -15,19 +15,20 @@ export function useScreenOptions({
 }: UseScreenOptionsParams = {}): ScreenOptions {
   const { theme, isDark } = useTheme();
   const isIOS = process.env.EXPO_OS === "ios";
+  const useTransparentHeader = transparent && isIOS;
 
   return {
     headerTitleAlign: "center",
-    headerTransparent: transparent,
-    headerBlurEffect: isDark ? "dark" : "light",
+    headerTransparent: useTransparentHeader,
+    headerBlurEffect: isIOS ? (isDark ? "dark" : "light") : undefined,
     headerTintColor: theme.text,
     headerBackTitle: "",
     headerBackButtonDisplayMode: "minimal",
     headerStyle: {
-      backgroundColor: transparent
-        ? isIOS
-          ? undefined
-          : theme.backgroundRoot
+      backgroundColor: useTransparentHeader
+        ? undefined
+        : transparent
+          ? theme.backgroundRoot
         : theme.backgroundDefault,
     },
     gestureEnabled: true,

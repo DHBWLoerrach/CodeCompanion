@@ -29,6 +29,17 @@ export default function TopicExplanationScreen() {
   const [explanation, setExplanation] = useState("");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const handleClose = () => {
+    if (router.canDismiss()) {
+      router.dismiss();
+      return;
+    }
+    if (router.canGoBack()) {
+      router.back();
+      return;
+    }
+    router.replace("/learn");
+  };
 
   useEffect(() => {
     let isActive = true;
@@ -84,7 +95,7 @@ export default function TopicExplanationScreen() {
         options={{
           title: t("topicExplanation"),
           headerLeft: () => (
-            <Pressable style={styles.headerButton} onPress={() => router.back()}>
+            <Pressable style={styles.headerButton} onPress={handleClose} hitSlop={12}>
               <AppIcon name="x" size={20} color={theme.text} />
             </Pressable>
           ),
