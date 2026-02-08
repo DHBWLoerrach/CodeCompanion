@@ -185,7 +185,7 @@ export default function InfoModalScreen() {
               </ThemedText>
               <ThemedText type="body" selectable>
                 Diese App wurde plattformübergreifend mit React Native und Expo
-                entwickelt. Technische Leitunge der Entwicklung: Prof. Dr. Erik
+                entwickelt. Technische Leitung der Entwicklung: Prof. Dr. Erik
                 Behrends.
               </ThemedText>
               <ThemedText type="body" selectable>
