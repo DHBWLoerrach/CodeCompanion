@@ -6,11 +6,11 @@ import {
   TextInput,
   Alert,
   ActivityIndicator,
+  Modal,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Stack, useRouter } from "expo-router";
 import SegmentedControl from "@react-native-segmented-control/segmented-control";
-import * as WebBrowser from "expo-web-browser";
 import Constants from "expo-constants";
 
 import { ThemedText } from "@/components/ThemedText";
@@ -93,6 +93,8 @@ export default function SettingsScreen() {
   const [settings, setSettings] = useState<SettingsData | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [aboutAppModalVisible, setAboutAppModalVisible] = useState(false);
+  const [imprintModalVisible, setImprintModalVisible] = useState(false);
 
   useEffect(() => {
     loadData();
@@ -148,10 +150,6 @@ export default function SettingsScreen() {
         },
       ]
     );
-  };
-
-  const handleOpenDHBW = async () => {
-    await WebBrowser.openBrowserAsync("https://www.dhbw-loerrach.de");
   };
 
   const getThemeModeLabel = (mode: ThemeMode) => {
@@ -286,20 +284,32 @@ export default function SettingsScreen() {
             </ThemedText>
             <View style={styles.settingsGroup}>
               <Pressable
-                style={[styles.linkRow, { backgroundColor: theme.backgroundDefault }]}
-                onPress={handleOpenDHBW}
+                style={[styles.aboutActionButton, { backgroundColor: theme.backgroundDefault }]}
+                onPress={() => setAboutAppModalVisible(true)}
               >
                 <View style={styles.settingLeft}>
-                  <AppIcon name="external-link" size={20} color={theme.secondary} />
-                  <ThemedText type="body" style={{ color: theme.secondary }}>
-                    {t("dhbwLorrachProject")}
-                  </ThemedText>
+                  <AppIcon name="info" size={20} color={theme.tabIconDefault} />
+                  <ThemedText type="body">{t("aboutThisApp")}</ThemedText>
+                </View>
+                <AppIcon name="chevron-right" size={20} color={theme.tabIconDefault} />
+              </Pressable>
+              <Pressable
+                style={[
+                  styles.aboutActionButton,
+                  styles.aboutActionButtonLast,
+                  { backgroundColor: theme.backgroundDefault },
+                ]}
+                onPress={() => setImprintModalVisible(true)}
+              >
+                <View style={styles.settingLeft}>
+                  <AppIcon name="file-text" size={20} color={theme.tabIconDefault} />
+                  <ThemedText type="body">{t("imprint")}</ThemedText>
                 </View>
                 <AppIcon name="chevron-right" size={20} color={theme.tabIconDefault} />
               </Pressable>
               <View style={[styles.settingRow, { backgroundColor: theme.backgroundDefault }]}>
                 <View style={styles.settingLeft}>
-                  <AppIcon name="info" size={20} color={theme.tabIconDefault} />
+                  <AppIcon name="tag" size={20} color={theme.tabIconDefault} />
                   <ThemedText type="body">{t("version")}</ThemedText>
                 </View>
                 <ThemedText type="body" style={{ color: theme.tabIconDefault }}>
@@ -343,6 +353,70 @@ export default function SettingsScreen() {
             )}
           </Pressable>
         </View>
+
+        <Modal
+          visible={aboutAppModalVisible}
+          transparent
+          animationType="fade"
+          onRequestClose={() => setAboutAppModalVisible(false)}
+        >
+          <View style={styles.modalBackdrop}>
+            <Pressable
+              style={StyleSheet.absoluteFill}
+              onPress={() => setAboutAppModalVisible(false)}
+            />
+            <View style={[styles.modalCard, { backgroundColor: theme.backgroundDefault }]}>
+              <ThemedText type="h4" style={styles.modalTitle}>
+                {t("aboutThisApp")}
+              </ThemedText>
+              <ThemedText type="body" style={{ color: theme.tabIconDefault, textAlign: "center" }}>
+                {t("aboutThisAppPlaceholder")}
+              </ThemedText>
+              <View style={styles.modalActions}>
+                <Pressable
+                  style={[styles.modalPrimaryButton, { backgroundColor: theme.primary }]}
+                  onPress={() => setAboutAppModalVisible(false)}
+                >
+                  <ThemedText type="body" style={{ color: "#FFFFFF", fontWeight: "600" }}>
+                    {t("cancel")}
+                  </ThemedText>
+                </Pressable>
+              </View>
+            </View>
+          </View>
+        </Modal>
+
+        <Modal
+          visible={imprintModalVisible}
+          transparent
+          animationType="fade"
+          onRequestClose={() => setImprintModalVisible(false)}
+        >
+          <View style={styles.modalBackdrop}>
+            <Pressable
+              style={StyleSheet.absoluteFill}
+              onPress={() => setImprintModalVisible(false)}
+            />
+            <View style={[styles.modalCard, { backgroundColor: theme.backgroundDefault }]}>
+              <ThemedText type="h4" style={styles.modalTitle}>
+                {t("imprint")}
+              </ThemedText>
+              <ThemedText type="body" style={{ color: theme.tabIconDefault, textAlign: "center" }}>
+                {t("imprintPlaceholder")}
+              </ThemedText>
+              <View style={styles.modalActions}>
+                <Pressable
+                  style={[styles.modalPrimaryButton, { backgroundColor: theme.primary }]}
+                  onPress={() => setImprintModalVisible(false)}
+                >
+                  <ThemedText type="body" style={{ color: "#FFFFFF", fontWeight: "600" }}>
+                    {t("cancel")}
+                  </ThemedText>
+                </Pressable>
+              </View>
+            </View>
+          </View>
+        </Modal>
       </ThemedView>
     </>
   );
@@ -419,6 +493,17 @@ const styles = StyleSheet.create({
     borderBottomWidth: StyleSheet.hairlineWidth,
     borderBottomColor: "rgba(0,0,0,0.1)",
   },
+  aboutActionButton: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    padding: Spacing.lg,
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    borderBottomColor: "rgba(0,0,0,0.1)",
+  },
+  aboutActionButtonLast: {
+    borderBottomWidth: 0,
+  },
   settingLeft: {
     flexDirection: "row",
     alignItems: "center",
@@ -457,6 +542,30 @@ const styles = StyleSheet.create({
   },
   saveButton: {
     height: 56,
+    borderRadius: BorderRadius.md,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  modalBackdrop: {
+    flex: 1,
+    justifyContent: "center",
+    padding: Spacing.lg,
+    backgroundColor: "rgba(0,0,0,0.35)",
+  },
+  modalCard: {
+    borderRadius: BorderRadius.lg,
+    padding: Spacing.lg,
+    gap: Spacing.md,
+    ...Shadows.card,
+  },
+  modalTitle: {
+    textAlign: "center",
+  },
+  modalActions: {
+    gap: Spacing.sm,
+  },
+  modalPrimaryButton: {
+    height: 48,
     borderRadius: BorderRadius.md,
     alignItems: "center",
     justifyContent: "center",

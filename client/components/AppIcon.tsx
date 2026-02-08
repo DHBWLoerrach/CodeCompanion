@@ -19,6 +19,8 @@ const SF_SYMBOLS: Record<string, string> = {
   "external-link": "arrow.up.right.square",
   "chevron-right": "chevron.right",
   "info": "info.circle",
+  "tag": "tag",
+  "file-text": "doc.text",
   "trash-2": "trash",
   "help-circle": "questionmark.circle",
   "check-square": "checkmark.square",
