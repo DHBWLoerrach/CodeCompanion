@@ -16,7 +16,9 @@
     "test:unit": "jest --runInBand --coverage=false __tests__/unit",
     "test:integration": "jest --runInBand --coverage=false __tests__/integration --passWithNoTests",
     "test:e2e": "maestro test e2e/maestro --include-tags smoke",
-    "test:e2e:ai": "maestro test e2e/maestro --include-tags ai"
+    "test:e2e:ai": "maestro test e2e/maestro --include-tags ai",
+    "android": "expo run:android",
+    "ios": "expo run:ios"
   },
   "dependencies": {
     "@expo/vector-icons": "^15.0.2",
