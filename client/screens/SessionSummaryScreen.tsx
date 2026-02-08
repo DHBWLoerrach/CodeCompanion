@@ -202,7 +202,7 @@ export default function SessionSummaryScreen() {
           <View style={styles.answersList}>
             {answers.map((answer, index) => (
               <AnswerItem
-                key={answer.questionId}
+                key={`${answer.questionId}-${index}`}
                 index={index}
                 correct={answer.correct}
                 correctAnswer={answer.correctAnswer}
