@@ -33,6 +33,32 @@ interface Question {
   explanation: string;
 }
 
+function shuffleOptionsForQuestion(question: Question): Question {
+  const indexedOptions = question.options.map((option, index) => ({
+    option,
+    originalIndex: index,
+  }));
+
+  for (let i = indexedOptions.length - 1; i > 0; i -= 1) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [indexedOptions[i], indexedOptions[j]] = [indexedOptions[j], indexedOptions[i]];
+  }
+
+  const shuffledCorrectIndex = indexedOptions.findIndex(
+    (entry) => entry.originalIndex === question.correctIndex,
+  );
+
+  if (shuffledCorrectIndex < 0) {
+    return question;
+  }
+
+  return {
+    ...question,
+    options: indexedOptions.map((entry) => entry.option),
+    correctIndex: shuffledCorrectIndex,
+  };
+}
+
 const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
 
 interface AnswerButtonProps {
@@ -215,7 +241,7 @@ export default function QuizSessionScreen() {
       const data = await response.json();
 
       if (data.questions && data.questions.length > 0) {
-        setQuestions(data.questions);
+        setQuestions((data.questions as Question[]).map(shuffleOptionsForQuestion));
       } else {
         setError(t("unableToLoadQuiz"));
       }
