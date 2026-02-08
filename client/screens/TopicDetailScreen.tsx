@@ -131,6 +131,7 @@ export default function TopicDetailScreen() {
   const accuracy = questionsAnswered > 0 ? Math.round((correctAnswers / questionsAnswered) * 100) : 0;
   const displayName = getTopicName(topic, language);
   const displayDescription = getTopicDescription(topic, language);
+  const dateLocale = language === "de" ? "de-DE" : "en-US";
 
   return (
     <ThemedView style={styles.container}>
@@ -207,7 +208,11 @@ export default function TopicDetailScreen() {
             <View style={styles.infoRow}>
               <AppIcon name="clock" size={20} color={theme.tabIconDefault} />
               <ThemedText type="body" style={{ color: theme.tabIconDefault }}>
-                {new Date(progress.lastPracticed).toLocaleDateString()}
+                {new Intl.DateTimeFormat(dateLocale, {
+                  day: "2-digit",
+                  month: "2-digit",
+                  year: "numeric",
+                }).format(new Date(progress.lastPracticed))}
               </ThemedText>
             </View>
           </View>
