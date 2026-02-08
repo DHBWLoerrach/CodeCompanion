@@ -1,5 +1,10 @@
 import React from "react";
-import { NativeTabs, Icon, Label, VectorIcon } from "expo-router/unstable-native-tabs";
+import {
+  NativeTabs,
+  Icon,
+  Label,
+  VectorIcon,
+} from "expo-router/unstable-native-tabs";
 import Feather from "@expo/vector-icons/Feather";
 
 import { useTheme } from "@/hooks/useTheme";
@@ -14,19 +19,27 @@ export default function TabsLayout() {
     <NativeTabs tintColor={theme.primary}>
       <NativeTabs.Trigger name="learn">
         <Label>{t("learn")}</Label>
-        {isIOS ? <Icon sf="book" /> : <VectorIcon vector={Feather} name="book-open" />}
+        {isIOS ? (
+          <Icon sf="book" />
+        ) : (
+          <VectorIcon family={Feather} name="book-open" />
+        )}
       </NativeTabs.Trigger>
       <NativeTabs.Trigger name="practice">
         <Label>{t("practice")}</Label>
         {isIOS ? (
           <Icon sf="questionmark.circle" />
         ) : (
-          <VectorIcon vector={Feather} name="help-circle" />
+          <VectorIcon family={Feather} name="help-circle" />
         )}
       </NativeTabs.Trigger>
       <NativeTabs.Trigger name="progress">
         <Label>{t("progress")}</Label>
-        {isIOS ? <Icon sf="chart.bar" /> : <VectorIcon vector={Feather} name="bar-chart-2" />}
+        {isIOS ? (
+          <Icon sf="chart.bar" />
+        ) : (
+          <VectorIcon family={Feather} name="bar-chart-2" />
+        )}
       </NativeTabs.Trigger>
     </NativeTabs>
   );

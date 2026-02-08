@@ -28,9 +28,7 @@ export async function POST(request: Request) {
         return Response.json({ error: "No valid topic IDs" }, { status: 400 });
       }
     } else {
-      selectedTopics = allTopicKeys
-        .sort(() => Math.random() - 0.5)
-        .slice(0, 3);
+      selectedTopics = allTopicKeys.sort(() => Math.random() - 0.5).slice(0, 3);
     }
     const questionsPerTopic = Math.ceil(count / selectedTopics.length);
     const allQuestions: QuizQuestion[] = [];

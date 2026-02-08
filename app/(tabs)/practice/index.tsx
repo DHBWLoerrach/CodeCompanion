@@ -36,7 +36,13 @@ import {
 
 const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
 
-function SkillLevelDots({ level, color }: { level: SkillLevel; color: string }) {
+function SkillLevelDots({
+  level,
+  color,
+}: {
+  level: SkillLevel;
+  color: string;
+}) {
   return (
     <View style={styles.levelDots}>
       {[1, 2, 3, 4, 5].map((i) => (
@@ -61,7 +67,14 @@ interface QuizModeCardProps {
   disabled?: boolean;
 }
 
-function QuizModeCard({ icon, color, title, description, onPress, disabled }: QuizModeCardProps) {
+function QuizModeCard({
+  icon,
+  color,
+  title,
+  description,
+  onPress,
+  disabled,
+}: QuizModeCardProps) {
   const { theme } = useTheme();
   const scale = useSharedValue(1);
 
@@ -87,7 +100,10 @@ function QuizModeCard({ icon, color, title, description, onPress, disabled }: Qu
       disabled={disabled}
       style={[
         styles.modeCard,
-        { backgroundColor: theme.backgroundDefault, opacity: disabled ? 0.5 : 1 },
+        {
+          backgroundColor: theme.backgroundDefault,
+          opacity: disabled ? 0.5 : 1,
+        },
         animatedStyle,
       ]}
     >
@@ -97,7 +113,11 @@ function QuizModeCard({ icon, color, title, description, onPress, disabled }: Qu
       <ThemedText type="h4" numberOfLines={1} style={styles.modeTitle}>
         {title}
       </ThemedText>
-      <ThemedText type="caption" style={{ color: theme.tabIconDefault }} numberOfLines={2}>
+      <ThemedText
+        type="caption"
+        style={{ color: theme.tabIconDefault }}
+        numberOfLines={2}
+      >
         {description}
       </ThemedText>
     </AnimatedPressable>
@@ -111,7 +131,12 @@ interface CategoryRowProps {
   onPress: () => void;
 }
 
-function CategoryRow({ category, categoryName, topicProgress, onPress }: CategoryRowProps) {
+function CategoryRow({
+  category,
+  categoryName,
+  topicProgress,
+  onPress,
+}: CategoryRowProps) {
   const { theme } = useTheme();
   const { t } = useTranslation();
   const scale = useSharedValue(1);
@@ -155,15 +180,27 @@ function CategoryRow({ category, categoryName, topicProgress, onPress }: Categor
           </ThemedText>
         </View>
         <View style={styles.categoryRowRight}>
-          <View style={[styles.categoryProgressBar, { backgroundColor: theme.cardBorder }]}>
+          <View
+            style={[
+              styles.categoryProgressBar,
+              { backgroundColor: theme.cardBorder },
+            ]}
+          >
             <View
               style={[
                 styles.categoryProgressFill,
-                { width: `${progressPercent}%`, backgroundColor: theme.secondary },
+                {
+                  width: `${progressPercent}%`,
+                  backgroundColor: theme.secondary,
+                },
               ]}
             />
           </View>
-          <AppIcon name="chevron-right" size={18} color={theme.tabIconDefault} />
+          <AppIcon
+            name="chevron-right"
+            size={18}
+            color={theme.tabIconDefault}
+          />
         </View>
       </View>
     </AnimatedPressable>
@@ -175,7 +212,9 @@ export default function PracticeScreen() {
   const { t, language, refreshLanguage } = useTranslation();
   const router = useRouter();
   const insets = useSafeAreaInsets();
-  const [topicProgress, setTopicProgress] = useState<Record<string, TopicProgress>>({});
+  const [topicProgress, setTopicProgress] = useState<
+    Record<string, TopicProgress>
+  >({});
   const [loading, setLoading] = useState(true);
   const categorySectionRef = useRef<View>(null);
   const scrollViewRef = useRef<ScrollView>(null);
@@ -196,7 +235,7 @@ export default function PracticeScreen() {
     useCallback(() => {
       loadProgress();
       refreshLanguage();
-    }, [loadProgress, refreshLanguage])
+    }, [loadProgress, refreshLanguage]),
   );
 
   const allTopics = CATEGORIES.flatMap((cat) => cat.topics);
@@ -208,7 +247,10 @@ export default function PracticeScreen() {
   const dueTopicIds = dueTopics.map((t) => t.id).join(",");
 
   const handleStartReview = () => {
-    router.push({ pathname: "/quiz-session", params: { topicIds: dueTopicIds } });
+    router.push({
+      pathname: "/quiz-session",
+      params: { topicIds: dueTopicIds },
+    });
   };
 
   const handleTopicQuiz = (topic: Topic) => {
@@ -216,7 +258,10 @@ export default function PracticeScreen() {
   };
 
   const handleScrollToCategories = () => {
-    scrollViewRef.current?.scrollTo({ y: categorySectionY.current, animated: true });
+    scrollViewRef.current?.scrollTo({
+      y: categorySectionY.current,
+      animated: true,
+    });
   };
 
   const handleCategoryPress = (category: Category) => {
@@ -246,7 +291,12 @@ export default function PracticeScreen() {
       >
         {/* Section 1: Due for Review */}
         {dueTopics.length > 0 ? (
-          <View style={[styles.dueSection, { backgroundColor: theme.accent + "15" }]}>
+          <View
+            style={[
+              styles.dueSection,
+              { backgroundColor: theme.accent + "15" },
+            ]}
+          >
             <View style={styles.dueSectionHeader}>
               <View style={styles.dueSectionTitleRow}>
                 <AppIcon name="clock" size={20} color={theme.accent} />
@@ -255,7 +305,8 @@ export default function PracticeScreen() {
                 </ThemedText>
               </View>
               <ThemedText type="caption" style={{ color: theme.accent }}>
-                {dueTopics.length} {dueTopics.length === 1 ? t("topic") : t("topics")}
+                {dueTopics.length}{" "}
+                {dueTopics.length === 1 ? t("topic") : t("topics")}
               </ThemedText>
             </View>
 
@@ -289,13 +340,21 @@ export default function PracticeScreen() {
               style={[styles.reviewButton, { backgroundColor: theme.accent }]}
               onPress={handleStartReview}
             >
-              <ThemedText type="body" style={{ color: "#FFFFFF", fontWeight: "600" }}>
+              <ThemedText
+                type="body"
+                style={{ color: "#FFFFFF", fontWeight: "600" }}
+              >
                 {t("startReview")}
               </ThemedText>
             </Pressable>
           </View>
         ) : (
-          <View style={[styles.emptyState, { backgroundColor: theme.backgroundDefault }]}>
+          <View
+            style={[
+              styles.emptyState,
+              { backgroundColor: theme.backgroundDefault },
+            ]}
+          >
             <AppIcon name="check-circle" size={40} color={theme.success} />
             <ThemedText type="h4" style={{ marginTop: Spacing.md }}>
               {t("noDueTopics")}
