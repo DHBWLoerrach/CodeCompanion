@@ -13,33 +13,23 @@ import { useTranslation } from "@/hooks/useTranslation";
 export default function TabsLayout() {
   const { theme } = useTheme();
   const { t } = useTranslation();
-  const isIOS = process.env.EXPO_OS === "ios";
 
   return (
     <NativeTabs tintColor={theme.primary}>
       <NativeTabs.Trigger name="learn">
         <Label>{t("learn")}</Label>
-        {isIOS ? (
-          <Icon sf="book" />
-        ) : (
-          <VectorIcon family={Feather} name="book-open" />
-        )}
+        <Icon sf="book" androidSrc={<VectorIcon family={Feather} name="book-open" />} />
       </NativeTabs.Trigger>
       <NativeTabs.Trigger name="practice">
         <Label>{t("practice")}</Label>
-        {isIOS ? (
-          <Icon sf="questionmark.circle" />
-        ) : (
-          <VectorIcon family={Feather} name="help-circle" />
-        )}
+        <Icon
+          sf="questionmark.circle"
+          androidSrc={<VectorIcon family={Feather} name="help-circle" />}
+        />
       </NativeTabs.Trigger>
       <NativeTabs.Trigger name="progress">
         <Label>{t("progress")}</Label>
-        {isIOS ? (
-          <Icon sf="chart.bar" />
-        ) : (
-          <VectorIcon family={Feather} name="bar-chart-2" />
-        )}
+        <Icon sf="chart.bar" androidSrc={<VectorIcon family={Feather} name="bar-chart-2" />} />
       </NativeTabs.Trigger>
     </NativeTabs>
   );
