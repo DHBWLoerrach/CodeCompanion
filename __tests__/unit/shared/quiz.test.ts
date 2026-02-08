@@ -1,0 +1,252 @@
+import {
+  generateQuizQuestions,
+  generateTopicExplanation,
+} from "@shared/quiz";
+
+type MockResponseInit = {
+  ok?: boolean;
+  status?: number;
+  statusText?: string;
+  text?: string;
+  json?: unknown;
+};
+
+function mockFetchResponse({
+  ok = true,
+  status = 200,
+  statusText = "OK",
+  text = "",
+  json = {},
+}: MockResponseInit): Response {
+  return {
+    ok,
+    status,
+    statusText,
+    text: async () => text,
+    json: async () => json,
+  } as Response;
+}
+
+function mockDigest(input: BufferSource): Promise<ArrayBuffer> {
+  const source = new Uint8Array(input as ArrayBuffer);
+  const output = new Uint8Array(32);
+  for (let i = 0; i < output.length; i += 1) {
+    const base = source.length > 0 ? source[i % source.length] : 0;
+    output[i] = (base + i * 13) % 256;
+  }
+  return Promise.resolve(output.buffer);
+}
+
+describe("shared/quiz", () => {
+  const originalEnv = process.env;
+  const originalFetch = global.fetch;
+  const originalCrypto = global.crypto;
+  const fetchMock = jest.fn<Promise<Response>, [RequestInfo | URL, RequestInit?]>();
+
+  beforeEach(() => {
+    process.env = {
+      ...originalEnv,
+      AI_INTEGRATIONS_OPENAI_API_KEY: "test-key",
+    };
+    delete process.env.AI_INTEGRATIONS_OPENAI_BASE_URL;
+    delete process.env.OPENAI_MODEL;
+
+    fetchMock.mockReset();
+    global.fetch = fetchMock as unknown as typeof fetch;
+    global.crypto = {
+      subtle: {
+        digest: jest.fn(mockDigest),
+      },
+    } as Crypto;
+  });
+
+  afterAll(() => {
+    process.env = originalEnv;
+    global.fetch = originalFetch;
+    global.crypto = originalCrypto;
+  });
+
+  describe("generateQuizQuestions", () => {
+    it("throws when API key is missing", async () => {
+      delete process.env.AI_INTEGRATIONS_OPENAI_API_KEY;
+
+      await expect(generateQuizQuestions("variables")).rejects.toThrow(
+        "AI_INTEGRATIONS_OPENAI_API_KEY is not set",
+      );
+      expect(fetchMock).not.toHaveBeenCalled();
+    });
+
+    it("uses default OpenAI base URL", async () => {
+      fetchMock.mockResolvedValueOnce(
+        mockFetchResponse({
+          json: {
+            output_text:
+              '{"questions":[{"id":"x","question":"Q?","options":["A","B","C","D"],"correctIndex":0,"explanation":"Because"}]}',
+          },
+        }),
+      );
+
+      const questions = await generateQuizQuestions("variables", 1, "en", 1);
+
+      expect(questions).toHaveLength(1);
+      expect(fetchMock).toHaveBeenCalledTimes(1);
+      expect(fetchMock.mock.calls[0][0].toString()).toBe(
+        "https://api.openai.com/v1/responses",
+      );
+    });
+
+    it("appends /v1 when custom base URL has no version", async () => {
+      process.env.AI_INTEGRATIONS_OPENAI_BASE_URL = "https://openai.example.com";
+      fetchMock.mockResolvedValueOnce(
+        mockFetchResponse({
+          json: {
+            output_text:
+              '{"questions":[{"id":"x","question":"Q?","options":["A","B","C","D"],"correctIndex":0,"explanation":"Because"}]}',
+          },
+        }),
+      );
+
+      await generateQuizQuestions("variables", 1, "en", 1);
+
+      expect(fetchMock.mock.calls[0][0].toString()).toBe(
+        "https://openai.example.com/v1/responses",
+      );
+    });
+
+    it("keeps /v1 when custom base URL already includes it", async () => {
+      process.env.AI_INTEGRATIONS_OPENAI_BASE_URL = "https://openai.example.com/v1/";
+      fetchMock.mockResolvedValueOnce(
+        mockFetchResponse({
+          json: {
+            output_text:
+              '{"questions":[{"id":"x","question":"Q?","options":["A","B","C","D"],"correctIndex":0,"explanation":"Because"}]}',
+          },
+        }),
+      );
+
+      await generateQuizQuestions("variables", 1, "en", 1);
+
+      expect(fetchMock.mock.calls[0][0].toString()).toBe(
+        "https://openai.example.com/v1/responses",
+      );
+    });
+
+    it("parses fenced JSON and assigns stable IDs", async () => {
+      fetchMock.mockResolvedValueOnce(
+        mockFetchResponse({
+          json: {
+            output_text:
+              '```json\n[{"id":"original-1","question":"What is const?","options":["A","B","C","D"],"correctIndex":1,"explanation":"Because"}]\n```',
+          },
+        }),
+      );
+
+      const [question] = await generateQuizQuestions("variables", 1, "en", 1);
+
+      expect(question.id).toMatch(/^variables-[a-f0-9]{12}$/);
+      expect(question.id).not.toBe("original-1");
+      expect(question.question).toBe("What is const?");
+    });
+
+    it("parses wrapped questions from output content blocks", async () => {
+      fetchMock.mockResolvedValueOnce(
+        mockFetchResponse({
+          json: {
+            output: [
+              {
+                content: [
+                  {
+                    type: "output_text",
+                    text: '{"questions":[{"id":"q1","question":"Q?","options":["A","B","C","D"],"correctIndex":2,"explanation":"E"}]}',
+                  },
+                ],
+              },
+            ],
+          },
+        }),
+      );
+
+      const questions = await generateQuizQuestions("loops", 1, "en", 2);
+
+      expect(questions).toHaveLength(1);
+      expect(questions[0].correctIndex).toBe(2);
+      expect(questions[0].id).toMatch(/^loops-[a-f0-9]{12}$/);
+    });
+
+    it("throws on non-ok OpenAI response", async () => {
+      fetchMock.mockResolvedValueOnce(
+        mockFetchResponse({
+          ok: false,
+          status: 500,
+          text: "upstream failed",
+        }),
+      );
+
+      await expect(generateQuizQuestions("variables")).rejects.toThrow(
+        "OpenAI error 500: upstream failed",
+      );
+    });
+
+    it("throws when response content is empty", async () => {
+      fetchMock.mockResolvedValueOnce(
+        mockFetchResponse({
+          json: {
+            output: [],
+          },
+        }),
+      );
+
+      await expect(generateQuizQuestions("variables")).rejects.toThrow(
+        "Empty response from OpenAI",
+      );
+    });
+  });
+
+  describe("generateTopicExplanation", () => {
+    it("returns explanation from output_text", async () => {
+      fetchMock.mockResolvedValueOnce(
+        mockFetchResponse({
+          json: { output_text: "## Introduction\nText" },
+        }),
+      );
+
+      const explanation = await generateTopicExplanation("promises", "en");
+
+      expect(explanation).toBe("## Introduction\nText");
+      expect(fetchMock).toHaveBeenCalledTimes(1);
+    });
+
+    it("uses language-specific instructions for German", async () => {
+      fetchMock.mockResolvedValueOnce(
+        mockFetchResponse({
+          json: { output_text: "## Einfuhrung\nText" },
+        }),
+      );
+
+      await generateTopicExplanation("promises", "de");
+
+      const fetchOptions = fetchMock.mock.calls[0][1] as RequestInit;
+      const payload = JSON.parse(String(fetchOptions.body)) as {
+        instructions: string;
+        input: string;
+      };
+
+      expect(payload.instructions).toContain("Respond in German.");
+      expect(payload.input).toContain(
+        "Write the ENTIRE explanation in German",
+      );
+    });
+
+    it("throws when explanation response is empty", async () => {
+      fetchMock.mockResolvedValueOnce(
+        mockFetchResponse({
+          json: { output: [] },
+        }),
+      );
+
+      await expect(generateTopicExplanation("promises")).rejects.toThrow(
+        "Empty response from OpenAI",
+      );
+    });
+  });
+});

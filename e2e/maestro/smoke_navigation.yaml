@@ -1,0 +1,17 @@
+appId: de.dhbwloe.loerrach.CodeCompanion
+tags:
+  - smoke
+  - offline
+---
+- launchApp:
+    clearState: true
+- assertVisible:
+    id: learn-topic-variables
+- tapOn: Practice
+- assertVisible:
+    id: practice-mode-mixed
+- tapOn: Progress
+- assertVisible: Your Progress
+- tapOn: Learn
+- assertVisible:
+    id: learn-topic-variables

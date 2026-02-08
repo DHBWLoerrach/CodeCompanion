@@ -48,6 +48,7 @@ export default function LearnStack() {
           headerLeft: () => <HeaderBrand />,
           headerRight: () => (
             <Pressable
+              testID="open-settings-button"
               style={styles.headerButton}
               onPress={() => router.push("/settings")}
             >

@@ -31,6 +31,7 @@ interface TopicChipProps {
   onPress: () => void;
   topicName: string;
   isRecommended?: boolean;
+  testID?: string;
 }
 
 function SkillLevelIndicator({ level, color }: { level: SkillLevel; color: string }) {
@@ -90,7 +91,14 @@ function getRecommendedTopicId(
   return selected.id;
 }
 
-function TopicChip({ topic, progress, onPress, topicName, isRecommended }: TopicChipProps) {
+function TopicChip({
+  topic,
+  progress,
+  onPress,
+  topicName,
+  isRecommended,
+  testID,
+}: TopicChipProps) {
   const { theme } = useTheme();
   const scale = useSharedValue(1);
 
@@ -126,6 +134,7 @@ function TopicChip({ topic, progress, onPress, topicName, isRecommended }: Topic
 
   return (
     <AnimatedPressable
+      testID={testID}
       onPress={onPress}
       onPressIn={handlePressIn}
       onPressOut={handlePressOut}
@@ -158,6 +167,7 @@ interface CategoryCardProps {
   topicProgress: Record<string, TopicProgress>;
   onTopicPress: (topic: Topic) => void;
   getTopicDisplayName: (topic: Topic) => string;
+  getTopicTestId: (topic: Topic) => string;
   recommendedTopicId?: string;
 }
 
@@ -167,6 +177,7 @@ function CategoryCard({
   topicProgress,
   onTopicPress,
   getTopicDisplayName,
+  getTopicTestId,
   recommendedTopicId,
 }: CategoryCardProps) {
   const { theme } = useTheme();
@@ -204,6 +215,7 @@ function CategoryCard({
               topicName={topicDisplayName}
               progress={topicProgress[topic.id]}
               isRecommended={topic.id === recommendedTopicId}
+              testID={getTopicTestId(topic)}
               onPress={() => onTopicPress(topic)}
             />
           );
@@ -294,6 +306,7 @@ export default function LearnScreen() {
                   topic={topic}
                   topicName={getTopicName(topic, language)}
                   progress={topicProgress[topic.id]}
+                  testID={`learn-due-topic-${topic.id}`}
                   onPress={() => handleTopicPress(topic)}
                 />
               ))}
@@ -309,6 +322,7 @@ export default function LearnScreen() {
             topicProgress={topicProgress}
             onTopicPress={handleTopicPress}
             getTopicDisplayName={(topic) => getTopicName(topic, language)}
+            getTopicTestId={(topic) => `learn-topic-${topic.id}`}
             recommendedTopicId={
               showRecommendations
                 ? getRecommendedTopicId(category, topicProgress)

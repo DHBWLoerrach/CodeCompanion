@@ -1,0 +1,17 @@
+appId: de.dhbwloe.loerrach.CodeCompanion
+tags:
+  - smoke
+  - offline
+---
+- launchApp:
+    clearState: true
+- tapOn:
+    id: learn-topic-variables
+- tapOn:
+    id: topic-start-quiz-button
+- assertVisible:
+    id: quiz-cancel-button
+- tapOn:
+    id: quiz-cancel-button
+- assertVisible:
+    id: topic-start-quiz-button

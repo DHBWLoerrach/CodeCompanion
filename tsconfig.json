@@ -7,7 +7,7 @@
       "@/*": ["./client/*"],
       "@shared/*": ["./shared/*"]
     },
-    "types": ["node"]
+    "types": ["node", "jest"]
   },
   "include": ["expo-env.d.ts", ".expo/types/**/*.ts", "**/*.ts", "**/*.tsx"],
   "exclude": ["node_modules", "build", "dist", "**/*.test.ts"],

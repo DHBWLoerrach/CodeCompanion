@@ -220,6 +220,7 @@ export default function SessionSummaryScreen() {
           ]}
         >
           <Pressable
+            testID="summary-practice-again-button"
             style={[styles.primaryButton, { backgroundColor: theme.primary }]}
             onPress={handlePracticeAgain}
           >
@@ -229,6 +230,7 @@ export default function SessionSummaryScreen() {
             </ThemedText>
           </Pressable>
           <Pressable
+            testID="summary-back-to-topics-button"
             style={[
               styles.secondaryButton,
               { borderColor: theme.secondary },

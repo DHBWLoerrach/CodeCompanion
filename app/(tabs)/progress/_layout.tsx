@@ -27,6 +27,7 @@ export default function ProgressStack() {
           title: t("yourProgress"),
           headerRight: () => (
             <Pressable
+              testID="open-settings-button"
               style={styles.headerButton}
               onPress={() => router.push("/settings")}
             >

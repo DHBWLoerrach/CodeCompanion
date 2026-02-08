@@ -227,6 +227,7 @@ export default function TopicDetailScreen() {
       >
         <View style={styles.buttonRow}>
           <AnimatedPressable
+            testID="topic-explain-button"
             style={[styles.secondaryButton, { backgroundColor: theme.secondary }, explainAnimatedStyle]}
             onPress={handleExplainTopic}
             onPressIn={handleExplainPressIn}
@@ -238,6 +239,7 @@ export default function TopicDetailScreen() {
             </ThemedText>
           </AnimatedPressable>
           <AnimatedPressable
+            testID="topic-start-quiz-button"
             style={[styles.primaryButton, { backgroundColor: theme.primary }, animatedStyle]}
             onPress={handleStartQuiz}
             onPressIn={handlePressIn}

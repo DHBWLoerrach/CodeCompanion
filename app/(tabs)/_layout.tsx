@@ -13,7 +13,9 @@ import { useTranslation } from "@/hooks/useTranslation";
 export default function TabsLayout() {
   const { theme, isDark } = useTheme();
   const { t } = useTranslation();
-  const activeIndicatorColor = isDark ? `${theme.primary}4D` : `${theme.primary}1A`;
+  const activeIndicatorColor = isDark
+    ? `${theme.primary}4D`
+    : `${theme.primary}1A`;
 
   return (
     <NativeTabs
@@ -28,7 +30,10 @@ export default function TabsLayout() {
     >
       <NativeTabs.Trigger name="learn">
         <Label>{t("learn")}</Label>
-        <Icon sf="book" androidSrc={<VectorIcon family={Feather} name="book-open" />} />
+        <Icon
+          sf="book"
+          androidSrc={<VectorIcon family={Feather} name="book-open" />}
+        />
       </NativeTabs.Trigger>
       <NativeTabs.Trigger name="practice">
         <Label>{t("practice")}</Label>
@@ -39,7 +44,10 @@ export default function TabsLayout() {
       </NativeTabs.Trigger>
       <NativeTabs.Trigger name="progress">
         <Label>{t("progress")}</Label>
-        <Icon sf="chart.bar" androidSrc={<VectorIcon family={Feather} name="bar-chart-2" />} />
+        <Icon
+          sf="chart.bar"
+          androidSrc={<VectorIcon family={Feather} name="bar-chart-2" />}
+        />
       </NativeTabs.Trigger>
     </NativeTabs>
   );

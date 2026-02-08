@@ -1,0 +1,21 @@
+appId: de.dhbwloe.loerrach.CodeCompanion
+tags:
+  - smoke
+  - offline
+---
+- launchApp:
+    clearState: true
+- tapOn:
+    id: open-settings-button
+- tapOn:
+    id: settings-display-name-input
+- eraseText
+- inputText: E2E User
+- hideKeyboard
+- tapOn:
+    id: settings-save-button
+- assertVisible:
+    id: learn-topic-variables
+- tapOn:
+    id: open-settings-button
+- assertVisible: E2E User

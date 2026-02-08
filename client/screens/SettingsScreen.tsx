@@ -213,6 +213,7 @@ export default function SettingsScreen() {
                 {t("displayName")}
               </ThemedText>
               <TextInput
+                testID="settings-display-name-input"
                 style={[
                   styles.textInput,
                   {
@@ -317,6 +318,7 @@ export default function SettingsScreen() {
           </View>
 
           <Pressable
+            testID="settings-reset-progress-button"
             style={[styles.dangerButton, { borderColor: theme.error }]}
             onPress={handleResetProgress}
           >
@@ -334,6 +336,7 @@ export default function SettingsScreen() {
           ]}
         >
           <Pressable
+            testID="settings-save-button"
             style={[
               styles.saveButton,
               { backgroundColor: saving ? theme.disabled : theme.primary },

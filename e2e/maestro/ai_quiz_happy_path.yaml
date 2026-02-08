@@ -1,0 +1,22 @@
+appId: de.dhbwloe.loerrach.CodeCompanion
+tags:
+  - ai
+---
+- launchApp:
+    clearState: true
+- tapOn:
+    id: learn-topic-variables
+- tapOn:
+    id: topic-start-quiz-button
+- extendedWaitUntil:
+    visible:
+      id: quiz-answer-0
+    timeout: 20000
+- tapOn:
+    id: quiz-answer-0
+- tapOn:
+    id: quiz-submit-button
+- tapOn:
+    id: quiz-next-button
+- assertVisible:
+    id: summary-practice-again-button

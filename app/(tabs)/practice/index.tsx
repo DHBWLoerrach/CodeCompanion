@@ -65,6 +65,7 @@ interface QuizModeCardProps {
   description: string;
   onPress: () => void;
   disabled?: boolean;
+  testID?: string;
 }
 
 function QuizModeCard({
@@ -74,6 +75,7 @@ function QuizModeCard({
   description,
   onPress,
   disabled,
+  testID,
 }: QuizModeCardProps) {
   const { theme } = useTheme();
   const scale = useSharedValue(1);
@@ -94,6 +96,7 @@ function QuizModeCard({
 
   return (
     <AnimatedPressable
+      testID={testID}
       onPress={onPress}
       onPressIn={handlePressIn}
       onPressOut={handlePressOut}
@@ -129,6 +132,7 @@ interface CategoryRowProps {
   categoryName: string;
   topicProgress: Record<string, TopicProgress>;
   onPress: () => void;
+  testID?: string;
 }
 
 function CategoryRow({
@@ -136,6 +140,7 @@ function CategoryRow({
   categoryName,
   topicProgress,
   onPress,
+  testID,
 }: CategoryRowProps) {
   const { theme } = useTheme();
   const { t } = useTranslation();
@@ -163,6 +168,7 @@ function CategoryRow({
 
   return (
     <AnimatedPressable
+      testID={testID}
       onPress={onPress}
       onPressIn={handlePressIn}
       onPressOut={handlePressOut}
@@ -318,6 +324,7 @@ export default function PracticeScreen() {
                 return (
                   <Pressable
                     key={topic.id}
+                    testID={`practice-due-topic-${topic.id}`}
                     style={styles.dueTopicRow}
                     onPress={() => handleTopicQuiz(topic)}
                   >
@@ -337,6 +344,7 @@ export default function PracticeScreen() {
             </View>
 
             <Pressable
+              testID="practice-start-review-button"
               style={[styles.reviewButton, { backgroundColor: theme.accent }]}
               onPress={handleStartReview}
             >
@@ -378,6 +386,7 @@ export default function PracticeScreen() {
             color={theme.secondary}
             title={t("mixedQuiz")}
             description={t("mixedQuizDesc")}
+            testID="practice-mode-mixed"
             onPress={() => router.push("/quiz-session")}
           />
           <QuizModeCard
@@ -385,6 +394,7 @@ export default function PracticeScreen() {
             color={theme.accent}
             title={t("dueTopicsQuiz")}
             description={t("dueTopicsQuizDesc")}
+            testID="practice-mode-due"
             onPress={handleStartReview}
             disabled={dueTopics.length === 0}
           />
@@ -393,6 +403,7 @@ export default function PracticeScreen() {
             color={theme.success}
             title={t("quickQuiz")}
             description={t("quickQuizDesc")}
+            testID="practice-mode-quick"
             onPress={() =>
               router.push({ pathname: "/quiz-session", params: { count: "5" } })
             }
@@ -402,6 +413,7 @@ export default function PracticeScreen() {
             color={theme.primary}
             title={t("byCategoryQuiz")}
             description={t("byCategoryQuizDesc")}
+            testID="practice-mode-category"
             onPress={handleScrollToCategories}
           />
         </View>
@@ -424,6 +436,7 @@ export default function PracticeScreen() {
               category={category}
               categoryName={getCategoryName(category, language)}
               topicProgress={topicProgress}
+              testID={`practice-category-${category.id}`}
               onPress={() => handleCategoryPress(category)}
             />
           ))}

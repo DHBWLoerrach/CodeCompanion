@@ -70,6 +70,7 @@ interface AnswerButtonProps {
   isCorrectAnswer: boolean;
   onPress: () => void;
   disabled: boolean;
+  testID?: string;
 }
 
 function AnswerButton({
@@ -81,6 +82,7 @@ function AnswerButton({
   isCorrectAnswer,
   onPress,
   disabled,
+  testID,
 }: AnswerButtonProps) {
   const { theme } = useTheme();
   const scale = useSharedValue(1);
@@ -129,6 +131,7 @@ function AnswerButton({
 
   return (
     <AnimatedPressable
+      testID={testID}
       onPress={onPress}
       onPressIn={handlePressIn}
       onPressOut={handlePressOut}
@@ -390,16 +393,18 @@ export default function QuizSessionScreen() {
           <ThemedText type="body" style={styles.errorText}>
             {error || t("unableToLoadQuiz")}
           </ThemedText>
-          <Pressable
-            style={[styles.retryButton, { backgroundColor: theme.primary }]}
-            onPress={loadQuestions}
-          >
+            <Pressable
+              testID="quiz-retry-button"
+              style={[styles.retryButton, { backgroundColor: theme.primary }]}
+              onPress={loadQuestions}
+            >
             <AppIcon name="refresh-cw" size={18} color="#FFFFFF" style={{ marginRight: Spacing.sm }} />
             <ThemedText type="body" style={{ color: "#FFFFFF", fontWeight: "600" }}>
               {t("tryAgain")}
             </ThemedText>
           </Pressable>
           <Pressable
+            testID="quiz-cancel-button"
             style={[styles.cancelButton, { borderColor: theme.tabIconDefault }]}
             onPress={handleClose}
           >
@@ -463,6 +468,7 @@ export default function QuizSessionScreen() {
               showResult={showResult}
               isCorrect={selectedAnswer === currentQuestion.correctIndex}
               isCorrectAnswer={index === currentQuestion.correctIndex}
+              testID={`quiz-answer-${index}`}
               onPress={() => handleSelectAnswer(index)}
               disabled={showResult}
             />
@@ -487,6 +493,7 @@ export default function QuizSessionScreen() {
         >
           {showResult ? (
             <Pressable
+              testID="quiz-next-button"
               style={[styles.submitButton, { backgroundColor: theme.primary }]}
               onPress={handleNext}
             >
@@ -496,6 +503,7 @@ export default function QuizSessionScreen() {
             </Pressable>
           ) : (
             <Pressable
+              testID="quiz-submit-button"
               style={[
                 styles.submitButton,
                 {
