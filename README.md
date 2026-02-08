@@ -72,8 +72,6 @@ npm install
 
 ### Optional
 
-- `AI_INTEGRATIONS_OPENAI_BASE_URL`  
-  Basis-URL für kompatible OpenAI-Endpoints. Standard: `https://api.openai.com` (mit `/v1` Ergänzung falls nötig).
 - `OPENAI_MODEL`  
   Modellname. Standard: `gpt-5.2`.
 - `EXPO_PUBLIC_API_URL`  
@@ -127,8 +125,8 @@ Prompt- und OpenAI-Logik: `shared/quiz.ts`
 
 ### Neues Lernthema hinzufügen
 
-1. Topic in `client/lib/topics.ts` ergänzen  
-2. Übersetzungen in `client/lib/i18n.ts` ergänzen  
+1. Topic in `client/lib/topics.ts` ergänzen
+2. Übersetzungen in `client/lib/i18n.ts` ergänzen
 3. Prompt-Mapping in `shared/quiz.ts` (`TOPIC_PROMPTS`) ergänzen
 
 ### Styling/Theme anpassen
