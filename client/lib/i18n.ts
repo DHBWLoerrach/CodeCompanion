@@ -2,7 +2,6 @@ export type Language = "en" | "de";
 
 export const translations = {
   en: {
-    appName: "DHBW Learn",
     learnJavaScript: "Learn JavaScript",
 
     learn: "Learn",
@@ -14,12 +13,7 @@ export const translations = {
     explainTopic: "Explain Topic",
     generatingExplanation: "Generating explanation...",
     topicExplanation: "Topic Explanation",
-    closeExplanation: "Close",
-    continueQuiz: "Continue",
-    questionsAnswered: "questions answered",
-    completed: "Completed",
     dueForReview: "Due for review",
-    allCaughtUp: "All caught up!",
     mastered: "Mastered",
     level: "Level",
     topic: "topic",
@@ -34,7 +28,6 @@ export const translations = {
     viewResults: "View Results",
     explanation: "Explanation",
     question: "Question",
-    of: "of",
 
     sessionComplete: "Session Complete!",
     excellentWork: "Excellent work! You've mastered this topic!",
@@ -52,7 +45,6 @@ export const translations = {
     topicsMastered: "Topics Mastered",
     currentStreak: "Current Streak",
     bestStreak: "Best Streak",
-    days: "days",
     achievements: "Achievements",
     firstQuiz: "First Quiz",
     streak7Days: "7-Day Streak",
@@ -60,24 +52,18 @@ export const translations = {
     questions100: "100 Questions",
     jsNovice: "JS Novice",
     jsMaster: "JS Master",
-    noAchievements: "Complete quizzes to earn achievements!",
 
     profile: "Profile",
     preferences: "Preferences",
     about: "About",
     aboutThisApp: "About This App",
-    aboutThisAppPlaceholder: "Placeholder: App information will be added here.",
     avatar: "Avatar",
     displayName: "Display Name",
-    enterYourName: "Enter your name",
     language: "Language",
     english: "English",
     german: "German",
     version: "Version",
-    dhbwLorrachProject: "DHBW Lörrach Mobile Learning Project",
     imprint: "Imprint",
-    imprintPlaceholder: "Placeholder: Imprint details will be added here.",
-    openWebsite: "Open Website",
     saveChanges: "Save Changes",
     student: "Student",
     editProfile: "Edit Profile",
@@ -93,9 +79,6 @@ export const translations = {
     themeAuto: "System",
     themeLight: "Light",
     themeDark: "Dark",
-    quizSession: "Quiz Session",
-    sessionSummary: "Session Summary",
-    topicDetail: "Topic Details",
     sunday: "S",
     monday: "M",
     tuesday: "T",
@@ -106,10 +89,8 @@ export const translations = {
 
     topicNotFound: "Topic not found",
 
-    oops: "Oops!",
     errorMessage:
       "DHBW Learn encountered an unexpected issue. Tap below to get back to learning!",
-    backToLearning: "Back to Learning",
 
     fundamentals: "Fundamentals",
     controlFlow: "Control Flow",
@@ -172,7 +153,6 @@ export const translations = {
     selectCategory: "Select Category",
   },
   de: {
-    appName: "DHBW Lernen",
     learnJavaScript: "JavaScript lernen",
 
     learn: "Lernen",
@@ -184,12 +164,7 @@ export const translations = {
     explainTopic: "Thema erklären",
     generatingExplanation: "Erklärung wird generiert...",
     topicExplanation: "Themen-Erklärung",
-    closeExplanation: "Schließen",
-    continueQuiz: "Fortsetzen",
-    questionsAnswered: "Fragen beantwortet",
-    completed: "Abgeschlossen",
     dueForReview: "Zur Wiederholung",
-    allCaughtUp: "Alles erledigt!",
     mastered: "Gemeistert",
     level: "Level",
     topic: "Thema",
@@ -204,7 +179,6 @@ export const translations = {
     viewResults: "Ergebnisse anzeigen",
     explanation: "Erklärung",
     question: "Frage",
-    of: "von",
 
     sessionComplete: "Sitzung abgeschlossen!",
     excellentWork: "Ausgezeichnet! Du hast dieses Thema gemeistert!",
@@ -223,7 +197,6 @@ export const translations = {
     topicsMastered: "Themen gemeistert",
     currentStreak: "Aktuelle Serie",
     bestStreak: "Beste Serie",
-    days: "Tage",
     achievements: "Erfolge",
     firstQuiz: "Erstes Quiz",
     streak7Days: "7-Tage-Serie",
@@ -231,25 +204,18 @@ export const translations = {
     questions100: "100 Fragen",
     jsNovice: "JS Anfänger",
     jsMaster: "JS Meister",
-    noAchievements: "Schließe Quizze ab, um Erfolge zu erhalten!",
 
     profile: "Profil",
     preferences: "Einstellungen",
     about: "Über",
     aboutThisApp: "Über diese App",
-    aboutThisAppPlaceholder:
-      "Platzhalter: App-Informationen werden hier ergänzt.",
     avatar: "Avatar",
     displayName: "Anzeigename",
-    enterYourName: "Gib deinen Namen ein",
     language: "Sprache",
     english: "Englisch",
     german: "Deutsch",
     version: "Version",
-    dhbwLorrachProject: "DHBW Lörrach Mobile Learning Projekt",
     imprint: "Impressum",
-    imprintPlaceholder: "Platzhalter: Impressumsangaben werden hier ergänzt.",
-    openWebsite: "Website öffnen",
     saveChanges: "Änderungen speichern",
     student: "Student",
     editProfile: "Profil bearbeiten",
@@ -265,9 +231,6 @@ export const translations = {
     themeAuto: "System",
     themeLight: "Hell",
     themeDark: "Dunkel",
-    quizSession: "Quiz",
-    sessionSummary: "Zusammenfassung",
-    topicDetail: "Themendetails",
     sunday: "S",
     monday: "M",
     tuesday: "D",
@@ -278,10 +241,8 @@ export const translations = {
 
     topicNotFound: "Thema nicht gefunden",
 
-    oops: "Hoppla!",
     errorMessage:
       "DHBW Lernen hatte ein unerwartetes Problem. Tippe unten, um weiterzulernen!",
-    backToLearning: "Zurück zum Lernen",
 
     fundamentals: "Grundlagen",
     controlFlow: "Kontrollfluss",

@@ -22,7 +22,7 @@ export interface TopicProgress {
   skillLevel: SkillLevel;
 }
 
-export const SKILL_LEVEL_INTERVALS: Record<SkillLevel, number> = {
+const SKILL_LEVEL_INTERVALS: Record<SkillLevel, number> = {
   1: 1,
   2: 3,
   3: 7,
@@ -238,14 +238,6 @@ export const storage = {
 
   async setSettings(settings: SettingsData): Promise<void> {
     await AsyncStorage.setItem(STORAGE_KEYS.SETTINGS, JSON.stringify(settings));
-  },
-
-  async addAchievement(achievementId: string): Promise<void> {
-    const progress = await this.getProgress();
-    if (!progress.achievements.includes(achievementId)) {
-      progress.achievements.push(achievementId);
-      await this.setProgress(progress);
-    }
   },
 
   async getTopicSkillLevel(topicId: string): Promise<SkillLevel> {
