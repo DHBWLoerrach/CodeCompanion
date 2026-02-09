@@ -4,12 +4,12 @@ export const translations = {
   en: {
     appName: "DHBW Learn",
     learnJavaScript: "Learn JavaScript",
-    
+
     learn: "Learn",
     progress: "Progress",
     practice: "Practice",
     settings: "Settings",
-    
+
     startQuiz: "Start Quiz",
     explainTopic: "Explain Topic",
     generatingExplanation: "Generating explanation...",
@@ -24,7 +24,7 @@ export const translations = {
     level: "Level",
     topic: "topic",
     topics: "topics",
-    
+
     generatingQuiz: "Generating quiz questions...",
     unableToLoadQuiz: "Unable to Load Quiz",
     tryAgain: "Try Again",
@@ -35,7 +35,7 @@ export const translations = {
     explanation: "Explanation",
     question: "Question",
     of: "of",
-    
+
     sessionComplete: "Session Complete!",
     excellentWork: "Excellent work! You've mastered this topic!",
     greatJob: "Great job! Keep practicing to improve!",
@@ -44,7 +44,7 @@ export const translations = {
     questionBreakdown: "Question Breakdown",
     backToTopics: "Back to Topics",
     practiceAgain: "Practice Again",
-    
+
     yourProgress: "Your Progress",
     totalQuestions: "Total Questions",
     correctAnswers: "Correct Answers",
@@ -61,7 +61,7 @@ export const translations = {
     jsNovice: "JS Novice",
     jsMaster: "JS Master",
     noAchievements: "Complete quizzes to earn achievements!",
-    
+
     profile: "Profile",
     preferences: "Preferences",
     about: "About",
@@ -83,7 +83,8 @@ export const translations = {
     editProfile: "Edit Profile",
     dayStreak: "day streak",
     resetProgress: "Reset Progress",
-    resetProgressMessage: "This will delete all your progress, streaks, and achievements. This cannot be undone.",
+    resetProgressMessage:
+      "This will delete all your progress, streaks, and achievements. This cannot be undone.",
     reset: "Reset",
     resetAllProgress: "Reset All Progress",
     error: "Error",
@@ -102,20 +103,21 @@ export const translations = {
     thursday: "T",
     friday: "F",
     saturday: "S",
-    
+
     topicNotFound: "Topic not found",
-    
+
     oops: "Oops!",
-    errorMessage: "DHBW Learn encountered an unexpected issue. Tap below to get back to learning!",
+    errorMessage:
+      "DHBW Learn encountered an unexpected issue. Tap below to get back to learning!",
     backToLearning: "Back to Learning",
-    
+
     fundamentals: "Fundamentals",
     controlFlow: "Control Flow",
     functionsCategory: "Functions",
     objectsArrays: "Objects & Arrays",
     asyncCategory: "Async",
     advancedCategory: "Advanced",
-    
+
     variables: "Variables",
     variablesDesc: "let, const declarations",
     dataTypes: "Data Types",
@@ -172,12 +174,12 @@ export const translations = {
   de: {
     appName: "DHBW Lernen",
     learnJavaScript: "JavaScript lernen",
-    
+
     learn: "Lernen",
     progress: "Fortschritt",
     practice: "Üben",
     settings: "Einstellungen",
-    
+
     startQuiz: "Quiz starten",
     explainTopic: "Thema erklären",
     generatingExplanation: "Erklärung wird generiert...",
@@ -192,7 +194,7 @@ export const translations = {
     level: "Level",
     topic: "Thema",
     topics: "Themen",
-    
+
     generatingQuiz: "Quiz-Fragen werden generiert...",
     unableToLoadQuiz: "Quiz konnte nicht geladen werden",
     tryAgain: "Erneut versuchen",
@@ -203,16 +205,17 @@ export const translations = {
     explanation: "Erklärung",
     question: "Frage",
     of: "von",
-    
+
     sessionComplete: "Sitzung abgeschlossen!",
     excellentWork: "Ausgezeichnet! Du hast dieses Thema gemeistert!",
     greatJob: "Super gemacht! Übe weiter, um dich zu verbessern!",
-    goodStart: "Guter Anfang! Schau dir die Erklärungen an und versuche es erneut!",
+    goodStart:
+      "Guter Anfang! Schau dir die Erklärungen an und versuche es erneut!",
     keepLearning: "Weiter lernen! Übung macht den Meister!",
     questionBreakdown: "Fragenübersicht",
     backToTopics: "Zurück zu den Themen",
     practiceAgain: "Nochmal üben",
-    
+
     yourProgress: "Dein Fortschritt",
     totalQuestions: "Gesamtfragen",
     correctAnswers: "Richtige Antworten",
@@ -229,12 +232,13 @@ export const translations = {
     jsNovice: "JS Anfänger",
     jsMaster: "JS Meister",
     noAchievements: "Schließe Quizze ab, um Erfolge zu erhalten!",
-    
+
     profile: "Profil",
     preferences: "Einstellungen",
     about: "Über",
     aboutThisApp: "Über diese App",
-    aboutThisAppPlaceholder: "Platzhalter: App-Informationen werden hier ergänzt.",
+    aboutThisAppPlaceholder:
+      "Platzhalter: App-Informationen werden hier ergänzt.",
     avatar: "Avatar",
     displayName: "Anzeigename",
     enterYourName: "Gib deinen Namen ein",
@@ -251,7 +255,8 @@ export const translations = {
     editProfile: "Profil bearbeiten",
     dayStreak: "Tage Serie",
     resetProgress: "Fortschritt zurücksetzen",
-    resetProgressMessage: "Dies löscht deinen gesamten Fortschritt, Serien und Erfolge. Dies kann nicht rückgängig gemacht werden.",
+    resetProgressMessage:
+      "Dies löscht deinen gesamten Fortschritt, Serien und Erfolge. Dies kann nicht rückgängig gemacht werden.",
     reset: "Zurücksetzen",
     resetAllProgress: "Fortschritt zurücksetzen",
     error: "Fehler",
@@ -270,20 +275,21 @@ export const translations = {
     thursday: "D",
     friday: "F",
     saturday: "S",
-    
+
     topicNotFound: "Thema nicht gefunden",
-    
+
     oops: "Hoppla!",
-    errorMessage: "DHBW Lernen hatte ein unerwartetes Problem. Tippe unten, um weiterzulernen!",
+    errorMessage:
+      "DHBW Lernen hatte ein unerwartetes Problem. Tippe unten, um weiterzulernen!",
     backToLearning: "Zurück zum Lernen",
-    
+
     fundamentals: "Grundlagen",
     controlFlow: "Kontrollfluss",
     functionsCategory: "Funktionen",
     objectsArrays: "Objekte & Arrays",
     asyncCategory: "Async",
     advancedCategory: "Fortgeschritten",
-    
+
     variables: "Variablen",
     variablesDesc: "let, const Deklarationen",
     dataTypes: "Datentypen",
@@ -333,7 +339,8 @@ export const translations = {
     byCategoryQuizDesc: "Wähle eine Kategorie zum Üben",
     quizModes: "Quiz-Modi",
     noDueTopics: "Alles erledigt!",
-    noDueTopicsDesc: "Keine Themen zur Wiederholung. Starte ein gemischtes Quiz!",
+    noDueTopicsDesc:
+      "Keine Themen zur Wiederholung. Starte ein gemischtes Quiz!",
     startReview: "Wiederholung starten",
     selectCategory: "Kategorie wählen",
   },
@@ -341,7 +348,10 @@ export const translations = {
 
 export type TranslationKey = keyof typeof translations.en;
 
-export function getTranslation(language: Language, key: TranslationKey): string {
+export function getTranslation(
+  language: Language,
+  key: TranslationKey,
+): string {
   return translations[language][key] || translations.en[key] || key;
 }
 

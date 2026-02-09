@@ -10,7 +10,8 @@ const mockStorage = {
   recordPractice: jest.fn(),
   updateTopicProgress: jest.fn(),
 };
-let mockSearchParams: { topicId?: string; topicIds?: string; count?: string } = {};
+let mockSearchParams: { topicId?: string; topicIds?: string; count?: string } =
+  {};
 
 jest.mock("expo-router", () => ({
   Stack: { Screen: () => null },
@@ -95,7 +96,10 @@ describe("QuizSessionScreen integration", () => {
     mockStorage.updateTopicProgress.mockReset();
 
     mockSearchParams = { topicId: "variables", count: "1" };
-    mockStorage.getSettings.mockResolvedValue({ language: "en", themeMode: "auto" });
+    mockStorage.getSettings.mockResolvedValue({
+      language: "en",
+      themeMode: "auto",
+    });
     mockStorage.getTopicSkillLevel.mockResolvedValue(2);
     mockStorage.recordPractice.mockResolvedValue(undefined);
     mockStorage.updateTopicProgress.mockResolvedValue(undefined);

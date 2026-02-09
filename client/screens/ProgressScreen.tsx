@@ -14,7 +14,12 @@ import { ThemedView } from "@/components/ThemedView";
 import { AppIcon } from "@/components/AppIcon";
 import { useTheme } from "@/hooks/useTheme";
 import { useTranslation } from "@/hooks/useTranslation";
-import { Spacing, BorderRadius, Shadows, AvatarColors } from "@/constants/theme";
+import {
+  Spacing,
+  BorderRadius,
+  Shadows,
+  AvatarColors,
+} from "@/constants/theme";
 import {
   storage,
   type UserProfile,
@@ -35,8 +40,12 @@ function StatCard({ title, value, icon, color }: StatCardProps) {
   const { theme } = useTheme();
 
   return (
-    <View style={[styles.statCard, { backgroundColor: theme.backgroundDefault }]}>
-      <View style={[styles.statIconContainer, { backgroundColor: color + "20" }]}>
+    <View
+      style={[styles.statCard, { backgroundColor: theme.backgroundDefault }]}
+    >
+      <View
+        style={[styles.statIconContainer, { backgroundColor: color + "20" }]}
+      >
         <AppIcon name={icon} size={20} color={color} />
       </View>
       <ThemedText type="h3" style={styles.statValue}>
@@ -119,12 +128,42 @@ export default function ProgressScreen() {
   const [loading, setLoading] = useState(true);
 
   const ACHIEVEMENTS = [
-    { id: "first-quiz", nameKey: "firstQuiz" as const, icon: "star", threshold: 1 },
-    { id: "streak-7", nameKey: "streak7Days" as const, icon: "zap", threshold: 7 },
-    { id: "streak-30", nameKey: "streak30Days" as const, icon: "award", threshold: 30 },
-    { id: "questions-100", nameKey: "questions100" as const, icon: "check-circle", threshold: 100 },
-    { id: "js-novice", nameKey: "jsNovice" as const, icon: "book", threshold: 50 },
-    { id: "js-master", nameKey: "jsMaster" as const, icon: "award", threshold: 200 },
+    {
+      id: "first-quiz",
+      nameKey: "firstQuiz" as const,
+      icon: "star",
+      threshold: 1,
+    },
+    {
+      id: "streak-7",
+      nameKey: "streak7Days" as const,
+      icon: "zap",
+      threshold: 7,
+    },
+    {
+      id: "streak-30",
+      nameKey: "streak30Days" as const,
+      icon: "award",
+      threshold: 30,
+    },
+    {
+      id: "questions-100",
+      nameKey: "questions100" as const,
+      icon: "check-circle",
+      threshold: 100,
+    },
+    {
+      id: "js-novice",
+      nameKey: "jsNovice" as const,
+      icon: "book",
+      threshold: 50,
+    },
+    {
+      id: "js-master",
+      nameKey: "jsMaster" as const,
+      icon: "award",
+      threshold: 200,
+    },
   ];
 
   const loadData = useCallback(async () => {
@@ -148,12 +187,14 @@ export default function ProgressScreen() {
     useCallback(() => {
       loadData();
       refreshLanguage();
-    }, [loadData, refreshLanguage])
+    }, [loadData, refreshLanguage]),
   );
 
   const getTopicsMastered = () => {
     if (!progress) return 0;
-    return Object.values(progress.topicProgress).filter((t) => t.skillLevel === 5).length;
+    return Object.values(progress.topicProgress).filter(
+      (t) => t.skillLevel === 5,
+    ).length;
   };
 
   const getUnlockedAchievements = () => {
@@ -201,7 +242,12 @@ export default function ProgressScreen() {
         ]}
         showsVerticalScrollIndicator={false}
       >
-        <View style={[styles.profileCard, { backgroundColor: theme.backgroundDefault }]}>
+        <View
+          style={[
+            styles.profileCard,
+            { backgroundColor: theme.backgroundDefault },
+          ]}
+        >
           <View
             style={[
               styles.avatar,
@@ -222,7 +268,12 @@ export default function ProgressScreen() {
           </Pressable>
         </View>
 
-        <View style={[styles.streakCard, { backgroundColor: theme.backgroundDefault }]}>
+        <View
+          style={[
+            styles.streakCard,
+            { backgroundColor: theme.backgroundDefault },
+          ]}
+        >
           <View style={styles.streakHeader}>
             <View style={styles.streakInfo}>
               <ThemedText type="h1" style={{ color: theme.accent }}>
@@ -230,13 +281,16 @@ export default function ProgressScreen() {
               </ThemedText>
               <ThemedText type="body">{t("dayStreak")}</ThemedText>
             </View>
-          <AppIcon name="zap" size={40} color={theme.accent} />
+            <AppIcon name="zap" size={40} color={theme.accent} />
           </View>
 
           <View style={styles.weekRow}>
             {dayLabels.map((label, index) => (
               <View key={index} style={styles.dayColumn}>
-                <ThemedText type="caption" style={{ color: theme.tabIconDefault }}>
+                <ThemedText
+                  type="caption"
+                  style={{ color: theme.tabIconDefault }}
+                >
                   {label}
                 </ThemedText>
                 <DayIndicator

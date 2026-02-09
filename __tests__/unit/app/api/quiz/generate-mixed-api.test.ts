@@ -82,14 +82,20 @@ describe("POST /api/quiz/generate-mixed", () => {
 
     expect(response.status).toBe(200);
     expect(mockGenerateQuizQuestions).toHaveBeenCalledTimes(3);
-    expect(mockGenerateQuizQuestions).toHaveBeenCalledWith("variables", 4, "en");
+    expect(mockGenerateQuizQuestions).toHaveBeenCalledWith(
+      "variables",
+      4,
+      "en",
+    );
     expect(mockGenerateQuizQuestions).toHaveBeenCalledWith("loops", 4, "en");
     expect(mockGenerateQuizQuestions).toHaveBeenCalledWith("promises", 4, "en");
     expect(data.questions).toHaveLength(10);
   });
 
   it("returns 500 when generation fails", async () => {
-    mockGenerateQuizQuestions.mockRejectedValueOnce(new Error("upstream error"));
+    mockGenerateQuizQuestions.mockRejectedValueOnce(
+      new Error("upstream error"),
+    );
 
     const response = await POST(createRequest({ topicIds: ["variables"] }));
     const data = await response.json();

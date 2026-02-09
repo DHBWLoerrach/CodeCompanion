@@ -1,10 +1,5 @@
 import React, { useEffect, useMemo } from "react";
-import {
-  View,
-  ScrollView,
-  StyleSheet,
-  Pressable,
-} from "react-native";
+import { View, ScrollView, StyleSheet, Pressable } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Stack, useLocalSearchParams, useRouter } from "expo-router";
 import Svg, { Circle } from "react-native-svg";
@@ -79,16 +74,27 @@ interface AnswerItemProps {
   questionLabel: string;
 }
 
-function AnswerItem({ index, correct, correctAnswer, questionLabel }: AnswerItemProps) {
+function AnswerItem({
+  index,
+  correct,
+  correctAnswer,
+  questionLabel,
+}: AnswerItemProps) {
   const { theme } = useTheme();
 
   return (
-    <View style={[styles.answerItem, { backgroundColor: theme.backgroundDefault }]}>
+    <View
+      style={[styles.answerItem, { backgroundColor: theme.backgroundDefault }]}
+    >
       <View style={styles.answerLeft}>
         <View
           style={[
             styles.answerIcon,
-            { backgroundColor: correct ? theme.success + "20" : theme.error + "20" },
+            {
+              backgroundColor: correct
+                ? theme.success + "20"
+                : theme.error + "20",
+            },
           ]}
         >
           <AppIcon
@@ -97,7 +103,9 @@ function AnswerItem({ index, correct, correctAnswer, questionLabel }: AnswerItem
             color={correct ? theme.success : theme.error}
           />
         </View>
-        <ThemedText type="body">{questionLabel} {index + 1}</ThemedText>
+        <ThemedText type="body">
+          {questionLabel} {index + 1}
+        </ThemedText>
       </View>
       {!correct ? (
         <ThemedText type="small" style={{ color: theme.tabIconDefault }}>
@@ -188,35 +196,43 @@ export default function SessionSummaryScreen() {
             ) : null}
           </View>
 
-        <View style={[styles.scoreCard, { backgroundColor: theme.backgroundDefault }]}>
-          <ScoreCircle score={score} total={total} />
-          <ThemedText type="body" style={styles.feedbackText}>
-            {getFeedbackMessage(percentage)}
-          </ThemedText>
-        </View>
-
-        <View style={styles.breakdownSection}>
-          <ThemedText type="h4" style={styles.sectionTitle}>
-            {t("questionBreakdown")}
-          </ThemedText>
-          <View style={styles.answersList}>
-            {answers.map((answer, index) => (
-              <AnswerItem
-                key={`${answer.questionId}-${index}`}
-                index={index}
-                correct={answer.correct}
-                correctAnswer={answer.correctAnswer}
-                questionLabel={t("question")}
-              />
-            ))}
+          <View
+            style={[
+              styles.scoreCard,
+              { backgroundColor: theme.backgroundDefault },
+            ]}
+          >
+            <ScoreCircle score={score} total={total} />
+            <ThemedText type="body" style={styles.feedbackText}>
+              {getFeedbackMessage(percentage)}
+            </ThemedText>
           </View>
-        </View>
+
+          <View style={styles.breakdownSection}>
+            <ThemedText type="h4" style={styles.sectionTitle}>
+              {t("questionBreakdown")}
+            </ThemedText>
+            <View style={styles.answersList}>
+              {answers.map((answer, index) => (
+                <AnswerItem
+                  key={`${answer.questionId}-${index}`}
+                  index={index}
+                  correct={answer.correct}
+                  correctAnswer={answer.correctAnswer}
+                  questionLabel={t("question")}
+                />
+              ))}
+            </View>
+          </View>
         </ScrollView>
 
         <View
           style={[
             styles.footer,
-            { paddingBottom: insets.bottom + Spacing.lg, backgroundColor: theme.backgroundRoot },
+            {
+              paddingBottom: insets.bottom + Spacing.lg,
+              backgroundColor: theme.backgroundRoot,
+            },
           ]}
         >
           <Pressable
@@ -225,19 +241,22 @@ export default function SessionSummaryScreen() {
             onPress={handlePracticeAgain}
           >
             <AppIcon name="refresh-cw" size={20} color="#FFFFFF" />
-            <ThemedText type="body" style={{ color: "#FFFFFF", fontWeight: "600" }}>
+            <ThemedText
+              type="body"
+              style={{ color: "#FFFFFF", fontWeight: "600" }}
+            >
               {t("practiceAgain")}
             </ThemedText>
           </Pressable>
           <Pressable
             testID="summary-back-to-topics-button"
-            style={[
-              styles.secondaryButton,
-              { borderColor: theme.secondary },
-            ]}
+            style={[styles.secondaryButton, { borderColor: theme.secondary }]}
             onPress={handleBackToTopics}
           >
-            <ThemedText type="body" style={{ color: theme.secondary, fontWeight: "600" }}>
+            <ThemedText
+              type="body"
+              style={{ color: theme.secondary, fontWeight: "600" }}
+            >
               {t("backToTopics")}
             </ThemedText>
           </Pressable>

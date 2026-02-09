@@ -18,7 +18,12 @@ import { KeyboardAwareScrollViewCompat } from "@/components/KeyboardAwareScrollV
 import { AppIcon } from "@/components/AppIcon";
 import { useTheme } from "@/hooks/useTheme";
 import { useTranslation } from "@/hooks/useTranslation";
-import { Spacing, BorderRadius, Shadows, AvatarColors } from "@/constants/theme";
+import {
+  Spacing,
+  BorderRadius,
+  Shadows,
+  AvatarColors,
+} from "@/constants/theme";
 import {
   storage,
   type UserProfile,
@@ -68,7 +73,9 @@ function SettingRow({ icon, label, children }: SettingRowProps) {
   const { theme } = useTheme();
 
   return (
-    <View style={[styles.settingRow, { backgroundColor: theme.backgroundDefault }]}>
+    <View
+      style={[styles.settingRow, { backgroundColor: theme.backgroundDefault }]}
+    >
       <View style={styles.settingLeft}>
         <AppIcon name={icon} size={20} color={theme.tabIconDefault} />
         <ThemedText type="body">{label}</ThemedText>
@@ -132,29 +139,29 @@ export default function SettingsScreen() {
   };
 
   const handleResetProgress = () => {
-    Alert.alert(
-      t("resetProgress"),
-      t("resetProgressMessage"),
-      [
-        { text: t("cancel"), style: "cancel" },
-        {
-          text: t("reset"),
-          style: "destructive",
-          onPress: async () => {
-            await storage.clearAllData();
-            router.back();
-          },
+    Alert.alert(t("resetProgress"), t("resetProgressMessage"), [
+      { text: t("cancel"), style: "cancel" },
+      {
+        text: t("reset"),
+        style: "destructive",
+        onPress: async () => {
+          await storage.clearAllData();
+          router.back();
         },
-      ]
-    );
+      },
+    ]);
   };
 
   const getThemeModeLabel = (mode: ThemeMode) => {
     switch (mode) {
-      case "auto": return t("themeAuto");
-      case "light": return t("themeLight");
-      case "dark": return t("themeDark");
-      default: return mode;
+      case "auto":
+        return t("themeAuto");
+      case "light":
+        return t("themeLight");
+      case "dark":
+        return t("themeDark");
+      default:
+        return mode;
     }
   };
 
@@ -197,19 +204,32 @@ export default function SettingsScreen() {
           ]}
         >
           <View style={styles.section}>
-            <ThemedText type="label" style={[styles.sectionTitle, { color: theme.tabIconDefault }]}>
+            <ThemedText
+              type="label"
+              style={[styles.sectionTitle, { color: theme.tabIconDefault }]}
+            >
               {t("profile")}
             </ThemedText>
-            <View style={[styles.card, { backgroundColor: theme.backgroundDefault }]}>
+            <View
+              style={[
+                styles.card,
+                { backgroundColor: theme.backgroundDefault },
+              ]}
+            >
               <ThemedText type="label" style={styles.fieldLabel}>
                 {t("avatar")}
               </ThemedText>
               <AvatarSelector
                 selectedIndex={profile.avatarIndex}
-                onSelect={(index) => setProfile({ ...profile, avatarIndex: index })}
+                onSelect={(index) =>
+                  setProfile({ ...profile, avatarIndex: index })
+                }
               />
 
-              <ThemedText type="label" style={[styles.fieldLabel, { marginTop: Spacing.lg }]}>
+              <ThemedText
+                type="label"
+                style={[styles.fieldLabel, { marginTop: Spacing.lg }]}
+              >
                 {t("displayName")}
               </ThemedText>
               <TextInput
@@ -223,7 +243,9 @@ export default function SettingsScreen() {
                   },
                 ]}
                 value={profile.displayName}
-                onChangeText={(text) => setProfile({ ...profile, displayName: text })}
+                onChangeText={(text) =>
+                  setProfile({ ...profile, displayName: text })
+                }
                 placeholder={t("student")}
                 placeholderTextColor={theme.tabIconDefault}
               />
@@ -231,14 +253,20 @@ export default function SettingsScreen() {
           </View>
 
           <View style={styles.section}>
-            <ThemedText type="label" style={[styles.sectionTitle, { color: theme.tabIconDefault }]}>
+            <ThemedText
+              type="label"
+              style={[styles.sectionTitle, { color: theme.tabIconDefault }]}
+            >
               {t("preferences")}
             </ThemedText>
             <View style={styles.settingsGroup}>
               {(() => {
                 const languageIndex = settings.language === "en" ? 0 : 1;
                 const themeModes: ThemeMode[] = ["auto", "light", "dark"];
-                const themeIndex = Math.max(0, themeModes.indexOf(settings.themeMode));
+                const themeIndex = Math.max(
+                  0,
+                  themeModes.indexOf(settings.themeMode),
+                );
 
                 return (
                   <>
@@ -248,7 +276,9 @@ export default function SettingsScreen() {
                         selectedIndex={languageIndex}
                         onChange={({ nativeEvent }) => {
                           const nextLanguage =
-                            nativeEvent.selectedSegmentIndex === 0 ? "en" : "de";
+                            nativeEvent.selectedSegmentIndex === 0
+                              ? "en"
+                              : "de";
                           applyLanguage(nextLanguage);
                         }}
                         style={styles.segmentedControl}
@@ -264,7 +294,8 @@ export default function SettingsScreen() {
                         selectedIndex={themeIndex}
                         onChange={({ nativeEvent }) => {
                           const nextMode =
-                            themeModes[nativeEvent.selectedSegmentIndex] ?? "auto";
+                            themeModes[nativeEvent.selectedSegmentIndex] ??
+                            "auto";
                           applyThemeMode(nextMode);
                         }}
                         style={styles.segmentedControlWide}
@@ -277,19 +308,34 @@ export default function SettingsScreen() {
           </View>
 
           <View style={styles.section}>
-            <ThemedText type="label" style={[styles.sectionTitle, { color: theme.tabIconDefault }]}>
+            <ThemedText
+              type="label"
+              style={[styles.sectionTitle, { color: theme.tabIconDefault }]}
+            >
               {t("about")}
             </ThemedText>
             <View style={styles.settingsGroup}>
               <Pressable
-                style={[styles.aboutActionButton, { backgroundColor: theme.backgroundDefault }]}
-                onPress={() => router.push({ pathname: "/info-modal", params: { type: "about" } })}
+                style={[
+                  styles.aboutActionButton,
+                  { backgroundColor: theme.backgroundDefault },
+                ]}
+                onPress={() =>
+                  router.push({
+                    pathname: "/info-modal",
+                    params: { type: "about" },
+                  })
+                }
               >
                 <View style={styles.settingLeft}>
                   <AppIcon name="info" size={20} color={theme.tabIconDefault} />
                   <ThemedText type="body">{t("aboutThisApp")}</ThemedText>
                 </View>
-                <AppIcon name="chevron-right" size={20} color={theme.tabIconDefault} />
+                <AppIcon
+                  name="chevron-right"
+                  size={20}
+                  color={theme.tabIconDefault}
+                />
               </Pressable>
               <Pressable
                 style={[
@@ -297,15 +343,33 @@ export default function SettingsScreen() {
                   styles.aboutActionButtonLast,
                   { backgroundColor: theme.backgroundDefault },
                 ]}
-                onPress={() => router.push({ pathname: "/info-modal", params: { type: "imprint" } })}
+                onPress={() =>
+                  router.push({
+                    pathname: "/info-modal",
+                    params: { type: "imprint" },
+                  })
+                }
               >
                 <View style={styles.settingLeft}>
-                  <AppIcon name="file-text" size={20} color={theme.tabIconDefault} />
+                  <AppIcon
+                    name="file-text"
+                    size={20}
+                    color={theme.tabIconDefault}
+                  />
                   <ThemedText type="body">{t("imprint")}</ThemedText>
                 </View>
-                <AppIcon name="chevron-right" size={20} color={theme.tabIconDefault} />
+                <AppIcon
+                  name="chevron-right"
+                  size={20}
+                  color={theme.tabIconDefault}
+                />
               </Pressable>
-              <View style={[styles.settingRow, { backgroundColor: theme.backgroundDefault }]}>
+              <View
+                style={[
+                  styles.settingRow,
+                  { backgroundColor: theme.backgroundDefault },
+                ]}
+              >
                 <View style={styles.settingLeft}>
                   <AppIcon name="tag" size={20} color={theme.tabIconDefault} />
                   <ThemedText type="body">{t("version")}</ThemedText>
@@ -332,7 +396,10 @@ export default function SettingsScreen() {
         <View
           style={[
             styles.footer,
-            { paddingBottom: insets.bottom + Spacing.lg, backgroundColor: theme.backgroundRoot },
+            {
+              paddingBottom: insets.bottom + Spacing.lg,
+              backgroundColor: theme.backgroundRoot,
+            },
           ]}
         >
           <Pressable
@@ -347,13 +414,15 @@ export default function SettingsScreen() {
             {saving ? (
               <ActivityIndicator color="#FFFFFF" />
             ) : (
-              <ThemedText type="body" style={{ color: "#FFFFFF", fontWeight: "600" }}>
+              <ThemedText
+                type="body"
+                style={{ color: "#FFFFFF", fontWeight: "600" }}
+              >
                 {t("saveChanges")}
               </ThemedText>
             )}
           </Pressable>
         </View>
-
       </ThemedView>
     </>
   );

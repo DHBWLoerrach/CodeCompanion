@@ -1,4 +1,11 @@
-import React, { createContext, useContext, useState, useEffect, useCallback, useMemo } from "react";
+import React, {
+  createContext,
+  useContext,
+  useState,
+  useEffect,
+  useCallback,
+  useMemo,
+} from "react";
 import { useColorScheme as useSystemColorScheme } from "react-native";
 import { storage, type ThemeMode } from "@/lib/storage";
 import { Colors } from "@/constants/theme";
@@ -51,7 +58,7 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
 
   const value = useMemo(
     () => ({ theme, isDark, themeMode, refreshTheme }),
-    [theme, isDark, themeMode, refreshTheme]
+    [theme, isDark, themeMode, refreshTheme],
   );
 
   return (

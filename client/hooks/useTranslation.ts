@@ -25,7 +25,7 @@ export function useTranslation() {
     (key: TranslationKey): string => {
       return translations[language][key] || translations.en[key] || key;
     },
-    [language]
+    [language],
   );
 
   const refreshLanguage = useCallback(async () => {

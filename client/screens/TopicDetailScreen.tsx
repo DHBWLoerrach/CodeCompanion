@@ -7,7 +7,12 @@ import {
   ActivityIndicator,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { useFocusEffect, useNavigation, useLocalSearchParams, useRouter } from "expo-router";
+import {
+  useFocusEffect,
+  useNavigation,
+  useLocalSearchParams,
+  useRouter,
+} from "expo-router";
 import Animated, {
   useAnimatedStyle,
   useSharedValue,
@@ -20,7 +25,12 @@ import { AppIcon } from "@/components/AppIcon";
 import { useTheme } from "@/hooks/useTheme";
 import { useTranslation } from "@/hooks/useTranslation";
 import { Spacing, BorderRadius, Shadows } from "@/constants/theme";
-import { getTopicById, getTopicName, getTopicDescription, type Topic } from "@/lib/topics";
+import {
+  getTopicById,
+  getTopicName,
+  getTopicDescription,
+  type Topic,
+} from "@/lib/topics";
 import { storage, type TopicProgress, isTopicDue } from "@/lib/storage";
 
 const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
@@ -93,7 +103,7 @@ export default function TopicDetailScreen() {
     useCallback(() => {
       refreshLanguage();
       loadData();
-    }, [refreshLanguage, loadData])
+    }, [refreshLanguage, loadData]),
   );
 
   const handleStartQuiz = () => {
@@ -106,7 +116,10 @@ export default function TopicDetailScreen() {
 
   const handleExplainTopic = () => {
     if (!resolvedTopicId) return;
-    router.push({ pathname: "/topic-explanation", params: { topicId: resolvedTopicId } });
+    router.push({
+      pathname: "/topic-explanation",
+      params: { topicId: resolvedTopicId },
+    });
   };
 
   if (loading) {
@@ -128,7 +141,10 @@ export default function TopicDetailScreen() {
 
   const questionsAnswered = progress?.questionsAnswered || 0;
   const correctAnswers = progress?.correctAnswers || 0;
-  const accuracy = questionsAnswered > 0 ? Math.round((correctAnswers / questionsAnswered) * 100) : 0;
+  const accuracy =
+    questionsAnswered > 0
+      ? Math.round((correctAnswers / questionsAnswered) * 100)
+      : 0;
   const displayName = getTopicName(topic, language);
   const displayDescription = getTopicDescription(topic, language);
   const dateLocale = language === "de" ? "de-DE" : "en-US";
@@ -145,31 +161,59 @@ export default function TopicDetailScreen() {
         ]}
         showsVerticalScrollIndicator={false}
       >
-        <View style={[styles.headerCard, { backgroundColor: theme.backgroundDefault }]}>
-          <View style={[styles.topicIcon, { backgroundColor: theme.primary + "20" }]}>
+        <View
+          style={[
+            styles.headerCard,
+            { backgroundColor: theme.backgroundDefault },
+          ]}
+        >
+          <View
+            style={[
+              styles.topicIcon,
+              { backgroundColor: theme.primary + "20" },
+            ]}
+          >
             <AppIcon name="code" size={32} color={theme.primary} />
           </View>
           <ThemedText type="h3" style={styles.topicTitle}>
             {displayName}
           </ThemedText>
-          <ThemedText type="body" style={{ color: theme.tabIconDefault, textAlign: "center" }}>
+          <ThemedText
+            type="body"
+            style={{ color: theme.tabIconDefault, textAlign: "center" }}
+          >
             {displayDescription}
           </ThemedText>
           {progress ? (
-            <View style={[
-              styles.completedBadge, 
-              { backgroundColor: progress.skillLevel === 5 ? theme.success : isTopicDue(progress) ? theme.accent : theme.secondary }
-            ]}>
-              <AppIcon 
-                name={progress.skillLevel === 5 ? "award" : isTopicDue(progress) ? "clock" : "trending-up"} 
-                size={14} 
-                color="#FFFFFF" 
+            <View
+              style={[
+                styles.completedBadge,
+                {
+                  backgroundColor:
+                    progress.skillLevel === 5
+                      ? theme.success
+                      : isTopicDue(progress)
+                        ? theme.accent
+                        : theme.secondary,
+                },
+              ]}
+            >
+              <AppIcon
+                name={
+                  progress.skillLevel === 5
+                    ? "award"
+                    : isTopicDue(progress)
+                      ? "clock"
+                      : "trending-up"
+                }
+                size={14}
+                color="#FFFFFF"
               />
               <ThemedText type="label" style={{ color: "#FFFFFF" }}>
-                {progress.skillLevel === 5 
-                  ? t("mastered") 
-                  : isTopicDue(progress) 
-                    ? t("dueForReview") 
+                {progress.skillLevel === 5
+                  ? t("mastered")
+                  : isTopicDue(progress)
+                    ? t("dueForReview")
                     : `${t("level")} ${progress.skillLevel}/5`}
               </ThemedText>
             </View>
@@ -177,7 +221,12 @@ export default function TopicDetailScreen() {
         </View>
 
         <View style={styles.statsRow}>
-          <View style={[styles.statCard, { backgroundColor: theme.backgroundDefault }]}>
+          <View
+            style={[
+              styles.statCard,
+              { backgroundColor: theme.backgroundDefault },
+            ]}
+          >
             <ThemedText type="h3" style={{ color: theme.secondary }}>
               {questionsAnswered}
             </ThemedText>
@@ -185,7 +234,12 @@ export default function TopicDetailScreen() {
               {t("totalQuestions")}
             </ThemedText>
           </View>
-          <View style={[styles.statCard, { backgroundColor: theme.backgroundDefault }]}>
+          <View
+            style={[
+              styles.statCard,
+              { backgroundColor: theme.backgroundDefault },
+            ]}
+          >
             <ThemedText type="h3" style={{ color: theme.success }}>
               {correctAnswers}
             </ThemedText>
@@ -193,7 +247,12 @@ export default function TopicDetailScreen() {
               {t("correctAnswers")}
             </ThemedText>
           </View>
-          <View style={[styles.statCard, { backgroundColor: theme.backgroundDefault }]}>
+          <View
+            style={[
+              styles.statCard,
+              { backgroundColor: theme.backgroundDefault },
+            ]}
+          >
             <ThemedText type="h3" style={{ color: theme.accent }}>
               {accuracy}%
             </ThemedText>
@@ -204,7 +263,12 @@ export default function TopicDetailScreen() {
         </View>
 
         {progress?.lastPracticed ? (
-          <View style={[styles.infoCard, { backgroundColor: theme.backgroundDefault }]}>
+          <View
+            style={[
+              styles.infoCard,
+              { backgroundColor: theme.backgroundDefault },
+            ]}
+          >
             <View style={styles.infoRow}>
               <AppIcon name="clock" size={20} color={theme.tabIconDefault} />
               <ThemedText type="body" style={{ color: theme.tabIconDefault }}>
@@ -222,31 +286,48 @@ export default function TopicDetailScreen() {
       <View
         style={[
           styles.footer,
-          { paddingBottom: insets.bottom + Spacing.lg, backgroundColor: theme.backgroundRoot },
+          {
+            paddingBottom: insets.bottom + Spacing.lg,
+            backgroundColor: theme.backgroundRoot,
+          },
         ]}
       >
         <View style={styles.buttonRow}>
           <AnimatedPressable
             testID="topic-explain-button"
-            style={[styles.secondaryButton, { backgroundColor: theme.secondary }, explainAnimatedStyle]}
+            style={[
+              styles.secondaryButton,
+              { backgroundColor: theme.secondary },
+              explainAnimatedStyle,
+            ]}
             onPress={handleExplainTopic}
             onPressIn={handleExplainPressIn}
             onPressOut={handleExplainPressOut}
           >
             <AppIcon name="book-open" size={20} color="#FFFFFF" />
-            <ThemedText type="body" style={{ color: "#FFFFFF", fontWeight: "600" }}>
+            <ThemedText
+              type="body"
+              style={{ color: "#FFFFFF", fontWeight: "600" }}
+            >
               {t("explainTopic")}
             </ThemedText>
           </AnimatedPressable>
           <AnimatedPressable
             testID="topic-start-quiz-button"
-            style={[styles.primaryButton, { backgroundColor: theme.primary }, animatedStyle]}
+            style={[
+              styles.primaryButton,
+              { backgroundColor: theme.primary },
+              animatedStyle,
+            ]}
             onPress={handleStartQuiz}
             onPressIn={handlePressIn}
             onPressOut={handlePressOut}
           >
             <AppIcon name="play" size={20} color="#FFFFFF" />
-            <ThemedText type="body" style={{ color: "#FFFFFF", fontWeight: "600" }}>
+            <ThemedText
+              type="body"
+              style={{ color: "#FFFFFF", fontWeight: "600" }}
+            >
               {t("startQuiz")}
             </ThemedText>
           </AnimatedPressable>

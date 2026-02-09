@@ -18,7 +18,10 @@ export function MarkdownView({ content }: MarkdownViewProps) {
     let codeBlockLang = "";
     let key = 0;
 
-    const renderInlineText = (line: string, baseStyle: any = {}): React.ReactNode => {
+    const renderInlineText = (
+      line: string,
+      baseStyle: any = {},
+    ): React.ReactNode => {
       const parts: React.ReactNode[] = [];
       let remaining = line;
       let partKey = 0;
@@ -27,46 +30,81 @@ export function MarkdownView({ content }: MarkdownViewProps) {
         const boldMatch = remaining.match(/\*\*(.+?)\*\*/);
         const codeMatch = remaining.match(/`([^`]+)`/);
 
-        let firstMatch: { index: number; length: number; content: string; type: string } | null = null;
+        let firstMatch: {
+          index: number;
+          length: number;
+          content: string;
+          type: string;
+        } | null = null;
 
         if (boldMatch && boldMatch.index !== undefined) {
-          firstMatch = { index: boldMatch.index, length: boldMatch[0].length, content: boldMatch[1], type: "bold" };
+          firstMatch = {
+            index: boldMatch.index,
+            length: boldMatch[0].length,
+            content: boldMatch[1],
+            type: "bold",
+          };
         }
         if (codeMatch && codeMatch.index !== undefined) {
           if (!firstMatch || codeMatch.index < firstMatch.index) {
-            firstMatch = { index: codeMatch.index, length: codeMatch[0].length, content: codeMatch[1], type: "code" };
+            firstMatch = {
+              index: codeMatch.index,
+              length: codeMatch[0].length,
+              content: codeMatch[1],
+              type: "code",
+            };
           }
         }
 
         if (firstMatch) {
           if (firstMatch.index > 0) {
             parts.push(
-              <Text key={partKey++} style={[styles.text, { color: theme.text }, baseStyle]}>
+              <Text
+                key={partKey++}
+                style={[styles.text, { color: theme.text }, baseStyle]}
+              >
                 {remaining.slice(0, firstMatch.index)}
-              </Text>
+              </Text>,
             );
           }
 
           if (firstMatch.type === "bold") {
             parts.push(
-              <Text key={partKey++} style={[styles.text, styles.bold, { color: theme.text }, baseStyle]}>
+              <Text
+                key={partKey++}
+                style={[
+                  styles.text,
+                  styles.bold,
+                  { color: theme.text },
+                  baseStyle,
+                ]}
+              >
                 {firstMatch.content}
-              </Text>
+              </Text>,
             );
           } else if (firstMatch.type === "code") {
             parts.push(
-              <Text key={partKey++} style={[styles.inlineCode, { backgroundColor: theme.cardBorder, color: theme.primary }]}>
+              <Text
+                key={partKey++}
+                style={[
+                  styles.inlineCode,
+                  { backgroundColor: theme.cardBorder, color: theme.primary },
+                ]}
+              >
                 {firstMatch.content}
-              </Text>
+              </Text>,
             );
           }
 
           remaining = remaining.slice(firstMatch.index + firstMatch.length);
         } else {
           parts.push(
-            <Text key={partKey++} style={[styles.text, { color: theme.text }, baseStyle]}>
+            <Text
+              key={partKey++}
+              style={[styles.text, { color: theme.text }, baseStyle]}
+            >
               {remaining}
-            </Text>
+            </Text>,
           );
           break;
         }
@@ -81,11 +119,14 @@ export function MarkdownView({ content }: MarkdownViewProps) {
       if (line.startsWith("```")) {
         if (inCodeBlock) {
           elements.push(
-            <View key={key++} style={[styles.codeBlock, { backgroundColor: theme.cardBorder }]}>
+            <View
+              key={key++}
+              style={[styles.codeBlock, { backgroundColor: theme.cardBorder }]}
+            >
               <Text style={[styles.codeText, { color: theme.text }]}>
                 {codeBlockContent.join("\n")}
               </Text>
-            </View>
+            </View>,
           );
           codeBlockContent = [];
           inCodeBlock = false;
@@ -112,7 +153,7 @@ export function MarkdownView({ content }: MarkdownViewProps) {
         elements.push(
           <Text key={key++} style={[styles.h2, { color: theme.text }]}>
             {headingText.replace(/\*\*/g, "")}
-          </Text>
+          </Text>,
         );
         continue;
       }
@@ -121,7 +162,7 @@ export function MarkdownView({ content }: MarkdownViewProps) {
         elements.push(
           <Text key={key++} style={[styles.h3, { color: theme.text }]}>
             {line.slice(4).replace(/\*\*/g, "")}
-          </Text>
+          </Text>,
         );
         continue;
       }
@@ -130,7 +171,7 @@ export function MarkdownView({ content }: MarkdownViewProps) {
         elements.push(
           <Text key={key++} style={[styles.h1, { color: theme.text }]}>
             {line.slice(2).replace(/\*\*/g, "")}
-          </Text>
+          </Text>,
         );
         continue;
       }
@@ -142,7 +183,7 @@ export function MarkdownView({ content }: MarkdownViewProps) {
             <Text style={[styles.text, { color: theme.text, flex: 1 }]}>
               {renderInlineText(line.slice(2))}
             </Text>
-          </View>
+          </View>,
         );
         continue;
       }
@@ -152,11 +193,13 @@ export function MarkdownView({ content }: MarkdownViewProps) {
         if (numMatch) {
           elements.push(
             <View key={key++} style={styles.listItem}>
-              <Text style={[styles.listNumber, { color: theme.primary }]}>{numMatch[1]}.</Text>
+              <Text style={[styles.listNumber, { color: theme.primary }]}>
+                {numMatch[1]}.
+              </Text>
               <Text style={[styles.text, { color: theme.text, flex: 1 }]}>
                 {renderInlineText(numMatch[2])}
               </Text>
-            </View>
+            </View>,
           );
           continue;
         }
@@ -165,7 +208,7 @@ export function MarkdownView({ content }: MarkdownViewProps) {
       elements.push(
         <Text key={key++} style={[styles.paragraph, { color: theme.text }]}>
           {renderInlineText(line)}
-        </Text>
+        </Text>,
       );
     }
 

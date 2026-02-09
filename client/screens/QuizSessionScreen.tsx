@@ -41,7 +41,10 @@ function shuffleOptionsForQuestion(question: Question): Question {
 
   for (let i = indexedOptions.length - 1; i > 0; i -= 1) {
     const j = Math.floor(Math.random() * (i + 1));
-    [indexedOptions[i], indexedOptions[j]] = [indexedOptions[j], indexedOptions[i]];
+    [indexedOptions[i], indexedOptions[j]] = [
+      indexedOptions[j],
+      indexedOptions[i],
+    ];
   }
 
   const shuffledCorrectIndex = indexedOptions.findIndex(
@@ -149,18 +152,21 @@ function AnswerButton({
         style={[
           styles.optionLabel,
           {
-            backgroundColor: selected || showResult ? "rgba(255,255,255,0.2)" : theme.backgroundSecondary,
+            backgroundColor:
+              selected || showResult
+                ? "rgba(255,255,255,0.2)"
+                : theme.backgroundSecondary,
           },
         ]}
       >
-        <ThemedText
-          type="label"
-          style={{ color: getTextColor() }}
-        >
+        <ThemedText type="label" style={{ color: getTextColor() }}>
           {optionLabel}
         </ThemedText>
       </View>
-      <ThemedText type="body" style={[styles.answerText, { color: getTextColor() }]}>
+      <ThemedText
+        type="body"
+        style={[styles.answerText, { color: getTextColor() }]}
+      >
         {text}
       </ThemedText>
       {showResult && isCorrectAnswer ? (
@@ -208,7 +214,9 @@ export default function QuizSessionScreen() {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [selectedAnswer, setSelectedAnswer] = useState<number | null>(null);
   const [showResult, setShowResult] = useState(false);
-  const [answers, setAnswers] = useState<{ questionId: string; correct: boolean; correctAnswer: string }[]>([]);
+  const [answers, setAnswers] = useState<
+    { questionId: string; correct: boolean; correctAnswer: string }[]
+  >([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -223,18 +231,31 @@ export default function QuizSessionScreen() {
 
       const settings = await storage.getSettings();
       const questionCount = count ? parseInt(count as string, 10) || 10 : 10;
-      const skillLevel = resolvedTopicId ? await storage.getTopicSkillLevel(resolvedTopicId) : 1;
+      const skillLevel = resolvedTopicId
+        ? await storage.getTopicSkillLevel(resolvedTopicId)
+        : 1;
 
       let endpoint: string;
       let body: Record<string, unknown>;
 
       if (resolvedTopicId) {
         endpoint = "/api/quiz/generate";
-        body = { topicId: resolvedTopicId, count: questionCount, language: settings.language, skillLevel };
+        body = {
+          topicId: resolvedTopicId,
+          count: questionCount,
+          language: settings.language,
+          skillLevel,
+        };
       } else if (topicIds) {
-        const ids = (Array.isArray(topicIds) ? topicIds[0] : topicIds).split(",");
+        const ids = (Array.isArray(topicIds) ? topicIds[0] : topicIds).split(
+          ",",
+        );
         endpoint = "/api/quiz/generate-mixed";
-        body = { topicIds: ids, count: questionCount, language: settings.language };
+        body = {
+          topicIds: ids,
+          count: questionCount,
+          language: settings.language,
+        };
       } else {
         endpoint = "/api/quiz/generate-mixed";
         body = { count: questionCount, language: settings.language };
@@ -244,7 +265,9 @@ export default function QuizSessionScreen() {
       const data = await response.json();
 
       if (data.questions && data.questions.length > 0) {
-        setQuestions((data.questions as Question[]).map(shuffleOptionsForQuestion));
+        setQuestions(
+          (data.questions as Question[]).map(shuffleOptionsForQuestion),
+        );
       } else {
         setError(t("unableToLoadQuiz"));
       }
@@ -273,7 +296,7 @@ export default function QuizSessionScreen() {
     Haptics.notificationAsync(
       isCorrect
         ? Haptics.NotificationFeedbackType.Success
-        : Haptics.NotificationFeedbackType.Error
+        : Haptics.NotificationFeedbackType.Error,
     );
 
     const newAnswer = {
@@ -290,7 +313,9 @@ export default function QuizSessionScreen() {
       setSelectedAnswer(null);
       setShowResult(false);
     } else {
-      const correctCount = answers.filter((a) => a.correct).length + (showResult && selectedAnswer === currentQuestion.correctIndex ? 1 : 0);
+      const correctCount =
+        answers.filter((a) => a.correct).length +
+        (showResult && selectedAnswer === currentQuestion.correctIndex ? 1 : 0);
       const finalAnswers = [
         ...answers,
         {
@@ -305,7 +330,7 @@ export default function QuizSessionScreen() {
         await storage.updateTopicProgress(
           resolvedTopicId,
           questions.length,
-          finalAnswers.filter((a) => a.correct).length
+          finalAnswers.filter((a) => a.correct).length,
         );
       }
 
@@ -337,7 +362,8 @@ export default function QuizSessionScreen() {
     router.replace("/learn");
   };
 
-  const headerTitle = questions.length > 0 ? `${currentIndex + 1}/${questions.length}` : "";
+  const headerTitle =
+    questions.length > 0 ? `${currentIndex + 1}/${questions.length}` : "";
 
   const renderCloseButton = () => (
     <Pressable style={styles.headerButton} onPress={handleClose} hitSlop={12}>
@@ -393,13 +419,21 @@ export default function QuizSessionScreen() {
           <ThemedText type="body" style={styles.errorText}>
             {error || t("unableToLoadQuiz")}
           </ThemedText>
-            <Pressable
-              testID="quiz-retry-button"
-              style={[styles.retryButton, { backgroundColor: theme.primary }]}
-              onPress={loadQuestions}
+          <Pressable
+            testID="quiz-retry-button"
+            style={[styles.retryButton, { backgroundColor: theme.primary }]}
+            onPress={loadQuestions}
+          >
+            <AppIcon
+              name="refresh-cw"
+              size={18}
+              color="#FFFFFF"
+              style={{ marginRight: Spacing.sm }}
+            />
+            <ThemedText
+              type="body"
+              style={{ color: "#FFFFFF", fontWeight: "600" }}
             >
-            <AppIcon name="refresh-cw" size={18} color="#FFFFFF" style={{ marginRight: Spacing.sm }} />
-            <ThemedText type="body" style={{ color: "#FFFFFF", fontWeight: "600" }}>
               {t("tryAgain")}
             </ThemedText>
           </Pressable>
@@ -430,7 +464,9 @@ export default function QuizSessionScreen() {
         }}
       />
       <ThemedView style={styles.container}>
-        <View style={[styles.progressBar, { backgroundColor: theme.cardBorder }]}>
+        <View
+          style={[styles.progressBar, { backgroundColor: theme.cardBorder }]}
+        >
           <View
             style={[
               styles.progressFill,
@@ -448,47 +484,63 @@ export default function QuizSessionScreen() {
           ]}
           showsVerticalScrollIndicator={false}
         >
-        <View style={[styles.questionCard, { backgroundColor: theme.backgroundDefault }]}>
-          <ThemedText type="h4" style={styles.questionText}>
-            {currentQuestion.question}
-          </ThemedText>
-
-          {currentQuestion.code ? (
-            <CodeBlock code={currentQuestion.code} />
-          ) : null}
-        </View>
-
-        <View style={styles.answersContainer}>
-          {currentQuestion.options.map((option, index) => (
-            <AnswerButton
-              key={index}
-              text={option}
-              index={index}
-              selected={selectedAnswer === index}
-              showResult={showResult}
-              isCorrect={selectedAnswer === currentQuestion.correctIndex}
-              isCorrectAnswer={index === currentQuestion.correctIndex}
-              testID={`quiz-answer-${index}`}
-              onPress={() => handleSelectAnswer(index)}
-              disabled={showResult}
-            />
-          ))}
-        </View>
-
-        {showResult ? (
-          <View style={[styles.explanationCard, { backgroundColor: theme.backgroundDefault }]}>
-            <ThemedText type="label" style={{ color: theme.secondary, marginBottom: Spacing.sm }}>
-              {t("explanation")}
+          <View
+            style={[
+              styles.questionCard,
+              { backgroundColor: theme.backgroundDefault },
+            ]}
+          >
+            <ThemedText type="h4" style={styles.questionText}>
+              {currentQuestion.question}
             </ThemedText>
-            <ThemedText type="body">{currentQuestion.explanation}</ThemedText>
+
+            {currentQuestion.code ? (
+              <CodeBlock code={currentQuestion.code} />
+            ) : null}
           </View>
-        ) : null}
+
+          <View style={styles.answersContainer}>
+            {currentQuestion.options.map((option, index) => (
+              <AnswerButton
+                key={index}
+                text={option}
+                index={index}
+                selected={selectedAnswer === index}
+                showResult={showResult}
+                isCorrect={selectedAnswer === currentQuestion.correctIndex}
+                isCorrectAnswer={index === currentQuestion.correctIndex}
+                testID={`quiz-answer-${index}`}
+                onPress={() => handleSelectAnswer(index)}
+                disabled={showResult}
+              />
+            ))}
+          </View>
+
+          {showResult ? (
+            <View
+              style={[
+                styles.explanationCard,
+                { backgroundColor: theme.backgroundDefault },
+              ]}
+            >
+              <ThemedText
+                type="label"
+                style={{ color: theme.secondary, marginBottom: Spacing.sm }}
+              >
+                {t("explanation")}
+              </ThemedText>
+              <ThemedText type="body">{currentQuestion.explanation}</ThemedText>
+            </View>
+          ) : null}
         </ScrollView>
 
         <View
           style={[
             styles.footer,
-            { paddingBottom: insets.bottom + Spacing.lg, backgroundColor: theme.backgroundRoot },
+            {
+              paddingBottom: insets.bottom + Spacing.lg,
+              backgroundColor: theme.backgroundRoot,
+            },
           ]}
         >
           {showResult ? (
@@ -497,8 +549,13 @@ export default function QuizSessionScreen() {
               style={[styles.submitButton, { backgroundColor: theme.primary }]}
               onPress={handleNext}
             >
-              <ThemedText type="body" style={{ color: "#FFFFFF", fontWeight: "600" }}>
-                {currentIndex < questions.length - 1 ? t("nextQuestion") : t("viewResults")}
+              <ThemedText
+                type="body"
+                style={{ color: "#FFFFFF", fontWeight: "600" }}
+              >
+                {currentIndex < questions.length - 1
+                  ? t("nextQuestion")
+                  : t("viewResults")}
               </ThemedText>
             </Pressable>
           ) : (
@@ -507,13 +564,17 @@ export default function QuizSessionScreen() {
               style={[
                 styles.submitButton,
                 {
-                  backgroundColor: selectedAnswer !== null ? theme.primary : theme.disabled,
+                  backgroundColor:
+                    selectedAnswer !== null ? theme.primary : theme.disabled,
                 },
               ]}
               onPress={handleSubmit}
               disabled={selectedAnswer === null}
             >
-              <ThemedText type="body" style={{ color: "#FFFFFF", fontWeight: "600" }}>
+              <ThemedText
+                type="body"
+                style={{ color: "#FFFFFF", fontWeight: "600" }}
+              >
                 {t("submitAnswer")}
               </ThemedText>
             </Pressable>

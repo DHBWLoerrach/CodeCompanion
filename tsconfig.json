@@ -10,5 +10,5 @@
     "types": ["node", "jest"]
   },
   "include": ["expo-env.d.ts", ".expo/types/**/*.ts", "**/*.ts", "**/*.tsx"],
-  "exclude": ["node_modules", "build", "dist"],
+  "exclude": ["node_modules", "build", "dist"]
 }

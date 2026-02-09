@@ -7,32 +7,32 @@ const SF_SYMBOLS: Record<string, string> = {
   "book-open": "book",
   "bar-chart-2": "chart.bar",
   "alert-circle": "exclamationmark.circle",
-  "x": "xmark",
-  "award": "rosette",
-  "clock": "clock",
-  "settings": "gearshape",
-  "monitor": "desktopcomputer",
-  "code": "chevron.left.slash.chevron.right",
-  "zap": "bolt",
-  "globe": "globe",
-  "moon": "moon",
+  x: "xmark",
+  award: "rosette",
+  clock: "clock",
+  settings: "gearshape",
+  monitor: "desktopcomputer",
+  code: "chevron.left.slash.chevron.right",
+  zap: "bolt",
+  globe: "globe",
+  moon: "moon",
   "external-link": "arrow.up.right.square",
   "chevron-right": "chevron.right",
-  "info": "info.circle",
-  "tag": "tag",
+  info: "info.circle",
+  tag: "tag",
   "file-text": "doc.text",
   "trash-2": "trash",
   "help-circle": "questionmark.circle",
   "check-square": "checkmark.square",
-  "lock": "lock",
+  lock: "lock",
   "check-circle": "checkmark.circle",
-  "book": "book",
-  "star": "star",
-  "check": "checkmark",
+  book: "book",
+  star: "star",
+  check: "checkmark",
   "refresh-cw": "arrow.clockwise",
   "x-circle": "xmark.circle",
   "trending-up": "chart.line.uptrend.xyaxis",
-  "play": "play.fill",
+  play: "play.fill",
 };
 
 type AppIconProps = {
@@ -45,15 +45,18 @@ type AppIconProps = {
   scale?: SymbolScale;
 };
 
-const SYMBOL_STYLES: Record<string, { weight?: SymbolWeight; scale?: SymbolScale }> = {
-  "gearshape": { weight: "regular", scale: "medium" },
+const SYMBOL_STYLES: Record<
+  string,
+  { weight?: SymbolWeight; scale?: SymbolScale }
+> = {
+  gearshape: { weight: "regular", scale: "medium" },
   "square.and.pencil": { weight: "semibold", scale: "medium" },
-  "book": { weight: "regular", scale: "medium" },
+  book: { weight: "regular", scale: "medium" },
   "chart.bar": { weight: "regular", scale: "medium" },
-  "xmark": { weight: "semibold", scale: "medium" },
-  "rosette": { weight: "regular", scale: "medium" },
-  "clock": { weight: "regular", scale: "medium" },
-  "bolt": { weight: "semibold", scale: "medium" },
+  xmark: { weight: "semibold", scale: "medium" },
+  rosette: { weight: "regular", scale: "medium" },
+  clock: { weight: "regular", scale: "medium" },
+  bolt: { weight: "semibold", scale: "medium" },
   "arrow.clockwise": { weight: "semibold", scale: "medium" },
   "play.fill": { weight: "semibold", scale: "medium" },
 };
@@ -80,7 +83,14 @@ export function AppIcon({
       scale={resolvedScale}
       style={style as any}
       resizeMode="scaleAspectFit"
-      fallback={<Feather name={name as any} size={size} color={color} style={style as any} />}
+      fallback={
+        <Feather
+          name={name as any}
+          size={size}
+          color={color}
+          style={style as any}
+        />
+      }
     />
   );
 }

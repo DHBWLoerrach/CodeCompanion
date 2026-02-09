@@ -9,38 +9,38 @@ export interface QuizQuestion {
 
 export const TOPIC_PROMPTS: Record<string, string> = {
   variables:
-    'JavaScript variable declarations using let and const only (do not include var), including block scope and when to use each',
-  'data-types':
-    'JavaScript primitive data types (string, number, boolean, null, undefined, symbol, bigint) and type checking',
-  operators: 'JavaScript arithmetic, comparison, and logical operators',
-  conditionals: 'JavaScript if/else statements and ternary operators',
-  loops: 'JavaScript for, while, do-while, and for...of loops',
-  switch: 'JavaScript switch statements and case handling',
-  declarations: 'JavaScript function declarations and function expressions',
-  'arrow-functions': 'JavaScript ES6 arrow function syntax and behavior',
-  callbacks: 'JavaScript callback functions and callback patterns',
-  objects: 'JavaScript object literals, properties, and methods',
-  arrays: 'JavaScript array methods like map, filter, reduce, find, forEach',
-  destructuring: 'JavaScript object and array destructuring syntax',
-  promises: 'JavaScript Promises, then/catch chaining, and Promise.all',
-  'async-await': 'JavaScript async/await syntax for handling asynchronous code',
-  'error-handling': 'JavaScript try/catch blocks and error management',
-  closures: 'JavaScript closures and lexical scope',
-  prototypes: 'JavaScript prototype chain and prototype-based inheritance',
-  classes: 'JavaScript ES6 class syntax, constructors, and methods',
-  modules: 'JavaScript ES6 import/export and module patterns',
+    "JavaScript variable declarations using let and const only (do not include var), including block scope and when to use each",
+  "data-types":
+    "JavaScript primitive data types (string, number, boolean, null, undefined, symbol, bigint) and type checking",
+  operators: "JavaScript arithmetic, comparison, and logical operators",
+  conditionals: "JavaScript if/else statements and ternary operators",
+  loops: "JavaScript for, while, do-while, and for...of loops",
+  switch: "JavaScript switch statements and case handling",
+  declarations: "JavaScript function declarations and function expressions",
+  "arrow-functions": "JavaScript ES6 arrow function syntax and behavior",
+  callbacks: "JavaScript callback functions and callback patterns",
+  objects: "JavaScript object literals, properties, and methods",
+  arrays: "JavaScript array methods like map, filter, reduce, find, forEach",
+  destructuring: "JavaScript object and array destructuring syntax",
+  promises: "JavaScript Promises, then/catch chaining, and Promise.all",
+  "async-await": "JavaScript async/await syntax for handling asynchronous code",
+  "error-handling": "JavaScript try/catch blocks and error management",
+  closures: "JavaScript closures and lexical scope",
+  prototypes: "JavaScript prototype chain and prototype-based inheritance",
+  classes: "JavaScript ES6 class syntax, constructors, and methods",
+  modules: "JavaScript ES6 import/export and module patterns",
 };
 
 function getResponseText(response: unknown): string {
   if (
-    typeof (response as { output_text?: unknown })?.output_text === 'string'
+    typeof (response as { output_text?: unknown })?.output_text === "string"
   ) {
     return (response as { output_text: string }).output_text;
   }
 
   const output = (response as { output?: unknown })?.output;
   if (!Array.isArray(output)) {
-    return '';
+    return "";
   }
 
   const parts: string[] = [];
@@ -49,28 +49,28 @@ function getResponseText(response: unknown): string {
     if (!Array.isArray(content)) continue;
     for (const block of content) {
       if (
-        (block as { type?: string })?.type === 'output_text' &&
-        typeof (block as { text?: unknown })?.text === 'string'
+        (block as { type?: string })?.type === "output_text" &&
+        typeof (block as { text?: unknown })?.text === "string"
       ) {
         parts.push((block as { text: string }).text);
-      } else if (typeof (block as { text?: unknown })?.text === 'string') {
+      } else if (typeof (block as { text?: unknown })?.text === "string") {
         parts.push((block as { text: string }).text);
       }
     }
   }
 
-  return parts.join('');
+  return parts.join("");
 }
 
 function stripJsonFences(content: string): string {
   let cleanContent = content.trim();
-  if (cleanContent.startsWith('```json')) {
+  if (cleanContent.startsWith("```json")) {
     cleanContent = cleanContent.slice(7);
   }
-  if (cleanContent.startsWith('```')) {
+  if (cleanContent.startsWith("```")) {
     cleanContent = cleanContent.slice(3);
   }
-  if (cleanContent.endsWith('```')) {
+  if (cleanContent.endsWith("```")) {
     cleanContent = cleanContent.slice(0, -3);
   }
   return cleanContent.trim();
@@ -95,13 +95,13 @@ function parseQuestions(content: string): QuizQuestion[] {
 async function requestOpenAI(payload: Record<string, unknown>) {
   const apiKey = process.env.OPENAI_API_KEY;
   if (!apiKey) {
-    throw new Error('OPENAI_API_KEY is not set');
+    throw new Error("OPENAI_API_KEY is not set");
   }
 
   const response = await fetch(`https://api.openai.com/v1/responses`, {
-    method: 'POST',
+    method: "POST",
     headers: {
-      'Content-Type': 'application/json',
+      "Content-Type": "application/json",
       Authorization: `Bearer ${apiKey}`,
     },
     body: JSON.stringify(payload),
@@ -117,14 +117,14 @@ async function requestOpenAI(payload: Record<string, unknown>) {
 
 async function sha256Hex(input: string): Promise<string> {
   if (!globalThis.crypto?.subtle) {
-    throw new Error('crypto.subtle is not available');
+    throw new Error("crypto.subtle is not available");
   }
 
   const data = new TextEncoder().encode(input);
-  const digest = await crypto.subtle.digest('SHA-256', data);
+  const digest = await crypto.subtle.digest("SHA-256", data);
   return Array.from(new Uint8Array(digest))
-    .map((byte) => byte.toString(16).padStart(2, '0'))
-    .join('');
+    .map((byte) => byte.toString(16).padStart(2, "0"))
+    .join("");
 }
 
 async function addStableIds(
@@ -149,29 +149,29 @@ async function addStableIds(
 export async function generateQuizQuestions(
   topicId: string,
   count: number = 5,
-  language: string = 'en',
+  language: string = "en",
   skillLevel: 1 | 2 | 3 = 1,
 ): Promise<QuizQuestion[]> {
   const topicDescription =
-    TOPIC_PROMPTS[topicId] || 'general JavaScript programming concepts';
+    TOPIC_PROMPTS[topicId] || "general JavaScript programming concepts";
 
   const languageInstruction =
-    language === 'de'
-      ? 'Write all questions, answer options, and explanations in German (Deutsch). Keep code examples and JavaScript syntax in English as they are programming terms.'
-      : 'Write all questions, answer options, and explanations in English.';
+    language === "de"
+      ? "Write all questions, answer options, and explanations in German (Deutsch). Keep code examples and JavaScript syntax in English as they are programming terms."
+      : "Write all questions, answer options, and explanations in English.";
 
   const difficultyInstruction =
     skillLevel === 1
-      ? 'Create BEGINNER level questions: Focus on basic syntax, simple examples, and fundamental concepts. Use straightforward code snippets under 5 lines.'
+      ? "Create BEGINNER level questions: Focus on basic syntax, simple examples, and fundamental concepts. Use straightforward code snippets under 5 lines."
       : skillLevel === 2
-        ? 'Create INTERMEDIATE level questions: Include more complex scenarios, edge cases, and require deeper understanding. Use code snippets of 5-8 lines with subtle behavior.'
-        : 'Create ADVANCED level questions: Focus on tricky edge cases, performance considerations, and expert-level understanding. Use complex code with multiple concepts combined.';
+        ? "Create INTERMEDIATE level questions: Include more complex scenarios, edge cases, and require deeper understanding. Use code snippets of 5-8 lines with subtle behavior."
+        : "Create ADVANCED level questions: Focus on tricky edge cases, performance considerations, and expert-level understanding. Use complex code with multiple concepts combined.";
 
   const prompt = `Generate ${count} multiple-choice quiz questions about ${topicDescription} for computer science students learning JavaScript programming.
 
 ${languageInstruction}
 
-DIFFICULTY LEVEL: ${skillLevel === 1 ? 'Beginner' : skillLevel === 2 ? 'Intermediate' : 'Advanced'}
+DIFFICULTY LEVEL: ${skillLevel === 1 ? "Beginner" : skillLevel === 2 ? "Intermediate" : "Advanced"}
 ${difficultyInstruction}
 
 Each question should:
@@ -200,9 +200,9 @@ Important:
 - Return ONLY valid JSON, no markdown or extra text`;
 
   const response = await requestOpenAI({
-    model: process.env.OPENAI_MODEL || 'gpt-5.2',
+    model: process.env.OPENAI_MODEL || "gpt-5.2",
     instructions: `You are a JavaScript programming tutor creating quiz questions. ${
-      language === 'de' ? 'Respond in German.' : 'Respond in English.'
+      language === "de" ? "Respond in German." : "Respond in English."
     } Always respond with valid JSON containing a 'questions' array.`,
     input: prompt,
     max_output_tokens: 4096,
@@ -210,7 +210,7 @@ Important:
 
   const content = getResponseText(response);
   if (!content) {
-    throw new Error('Empty response from OpenAI');
+    throw new Error("Empty response from OpenAI");
   }
 
   let questions = parseQuestions(content);
@@ -221,18 +221,18 @@ Important:
 
 export async function generateTopicExplanation(
   topicId: string,
-  language: string = 'en',
+  language: string = "en",
 ): Promise<string> {
   const topicDescription =
-    TOPIC_PROMPTS[topicId] || 'general JavaScript programming concepts';
+    TOPIC_PROMPTS[topicId] || "general JavaScript programming concepts";
 
   const languageInstruction =
-    language === 'de'
-      ? 'Write the ENTIRE explanation in German (Deutsch), including ALL headings and section titles. Keep only code examples and JavaScript syntax in English as they are programming terms.'
-      : 'Write the entire explanation in English.';
+    language === "de"
+      ? "Write the ENTIRE explanation in German (Deutsch), including ALL headings and section titles. Keep only code examples and JavaScript syntax in English as they are programming terms."
+      : "Write the entire explanation in English.";
 
   const sectionHeadings =
-    language === 'de'
+    language === "de"
       ? `1. **Einfuhrung** - Ein kurzer Uberblick, was dieses Konzept ist und warum es wichtig ist
 2. **Kernkonzepte** - Die wichtigsten Punkte, die Studierende verstehen mussen
 3. **Code-Beispiele** - 2-3 praktische Code-Beispiele mit Erklarungen
@@ -256,9 +256,9 @@ Keep the total length to about 500-700 words.
 Focus purely on JavaScript language concepts - avoid web/HTML/CSS context.`;
 
   const response = await requestOpenAI({
-    model: process.env.OPENAI_MODEL || 'gpt-5.2',
+    model: process.env.OPENAI_MODEL || "gpt-5.2",
     instructions: `You are an experienced JavaScript programming tutor explaining concepts to university students. ${
-      language === 'de' ? 'Respond in German.' : 'Respond in English.'
+      language === "de" ? "Respond in German." : "Respond in English."
     } Use clear, concise language and practical examples.`,
     input: prompt,
     max_output_tokens: 2048,
@@ -266,7 +266,7 @@ Focus purely on JavaScript language concepts - avoid web/HTML/CSS context.`;
 
   const explanation = getResponseText(response);
   if (!explanation) {
-    throw new Error('Empty response from OpenAI');
+    throw new Error("Empty response from OpenAI");
   }
 
   return explanation;

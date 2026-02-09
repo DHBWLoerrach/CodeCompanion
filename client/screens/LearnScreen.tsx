@@ -20,8 +20,20 @@ import { AppIcon } from "@/components/AppIcon";
 import { useTheme } from "@/hooks/useTheme";
 import { useTranslation } from "@/hooks/useTranslation";
 import { Spacing, BorderRadius, Shadows } from "@/constants/theme";
-import { CATEGORIES, type Topic, type Category, getTopicName, getCategoryName } from "@/lib/topics";
-import { storage, type TopicProgress, type SkillLevel, isTopicDue, SKILL_LEVEL_INTERVALS } from "@/lib/storage";
+import {
+  CATEGORIES,
+  type Topic,
+  type Category,
+  getTopicName,
+  getCategoryName,
+} from "@/lib/topics";
+import {
+  storage,
+  type TopicProgress,
+  type SkillLevel,
+  isTopicDue,
+  SKILL_LEVEL_INTERVALS,
+} from "@/lib/storage";
 
 const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
 
@@ -34,7 +46,13 @@ interface TopicChipProps {
   testID?: string;
 }
 
-function SkillLevelIndicator({ level, color }: { level: SkillLevel; color: string }) {
+function SkillLevelIndicator({
+  level,
+  color,
+}: {
+  level: SkillLevel;
+  color: string;
+}) {
   return (
     <View style={styles.levelIndicator}>
       {[1, 2, 3, 4, 5].map((i) => (
@@ -58,7 +76,7 @@ function getLastPracticedTime(progress: TopicProgress | undefined) {
 
 function getRecommendedTopicId(
   category: Category,
-  topicProgress: Record<string, TopicProgress>
+  topicProgress: Record<string, TopicProgress>,
 ): string {
   const startedTopics = category.topics.filter((topic) => {
     const progress = topicProgress[topic.id];
@@ -66,10 +84,11 @@ function getRecommendedTopicId(
   });
 
   const dueStartedTopics = startedTopics.filter((topic) =>
-    isTopicDue(topicProgress[topic.id])
+    isTopicDue(topicProgress[topic.id]),
   );
 
-  const candidates = dueStartedTopics.length > 0 ? dueStartedTopics : startedTopics;
+  const candidates =
+    dueStartedTopics.length > 0 ? dueStartedTopics : startedTopics;
 
   if (candidates.length === 0) {
     return category.topics[0]?.id ?? category.id;
@@ -122,15 +141,27 @@ function TopicChip({
   const chipStyle = isMastered
     ? { backgroundColor: theme.success, borderColor: theme.success }
     : isRecommended
-    ? { backgroundColor: "transparent", borderColor: theme.secondary, borderWidth: 1 }
-    : isDue && hasStarted
-    ? { backgroundColor: "transparent", borderColor: theme.accent }
-    : hasStarted
-    ? { backgroundColor: "transparent", borderColor: theme.secondary }
-    : { backgroundColor: "transparent", borderColor: theme.cardBorder };
+      ? {
+          backgroundColor: "transparent",
+          borderColor: theme.secondary,
+          borderWidth: 1,
+        }
+      : isDue && hasStarted
+        ? { backgroundColor: "transparent", borderColor: theme.accent }
+        : hasStarted
+          ? { backgroundColor: "transparent", borderColor: theme.secondary }
+          : { backgroundColor: "transparent", borderColor: theme.cardBorder };
 
-  const textColor = isMastered ? "#FFFFFF" : isRecommended ? theme.secondary : theme.text;
-  const levelColor = isMastered ? "#FFFFFF" : isRecommended ? theme.secondary : theme.accent;
+  const textColor = isMastered
+    ? "#FFFFFF"
+    : isRecommended
+      ? theme.secondary
+      : theme.text;
+  const levelColor = isMastered
+    ? "#FFFFFF"
+    : isRecommended
+      ? theme.secondary
+      : theme.accent;
 
   return (
     <AnimatedPressable
@@ -141,11 +172,26 @@ function TopicChip({
       style={[styles.topicChip, chipStyle, animatedStyle]}
     >
       {isMastered ? (
-        <AppIcon name="award" size={14} color="#FFFFFF" style={styles.chipIcon} />
+        <AppIcon
+          name="award"
+          size={14}
+          color="#FFFFFF"
+          style={styles.chipIcon}
+        />
       ) : isRecommended ? (
-        <AppIcon name="star" size={14} color={theme.secondary} style={styles.chipIcon} />
+        <AppIcon
+          name="star"
+          size={14}
+          color={theme.secondary}
+          style={styles.chipIcon}
+        />
       ) : isDue && hasStarted ? (
-        <AppIcon name="clock" size={14} color={theme.accent} style={styles.chipIcon} />
+        <AppIcon
+          name="clock"
+          size={14}
+          color={theme.accent}
+          style={styles.chipIcon}
+        />
       ) : null}
       <ThemedText
         type="label"
@@ -181,16 +227,24 @@ function CategoryCard({
   recommendedTopicId,
 }: CategoryCardProps) {
   const { theme } = useTheme();
-  
-  const avgSkillLevel = category.topics.reduce((sum, topic) => {
-    return sum + (topicProgress[topic.id]?.skillLevel ?? 0);
-  }, 0) / category.topics.length;
-  
+
+  const avgSkillLevel =
+    category.topics.reduce((sum, topic) => {
+      return sum + (topicProgress[topic.id]?.skillLevel ?? 0);
+    }, 0) / category.topics.length;
+
   const progressPercent = (avgSkillLevel / 5) * 100;
 
   return (
-    <View style={[styles.categoryCard, { backgroundColor: theme.backgroundDefault }]}>
-      <ThemedText type="h4" style={styles.categoryName}>{categoryName}</ThemedText>
+    <View
+      style={[
+        styles.categoryCard,
+        { backgroundColor: theme.backgroundDefault },
+      ]}
+    >
+      <ThemedText type="h4" style={styles.categoryName}>
+        {categoryName}
+      </ThemedText>
 
       <View style={[styles.progressBar, { backgroundColor: theme.cardBorder }]}>
         <View
@@ -230,7 +284,9 @@ export default function LearnScreen() {
   const { t, language, refreshLanguage } = useTranslation();
   const insets = useSafeAreaInsets();
   const router = useRouter();
-  const [topicProgress, setTopicProgress] = useState<Record<string, TopicProgress>>({});
+  const [topicProgress, setTopicProgress] = useState<
+    Record<string, TopicProgress>
+  >({});
   const [loading, setLoading] = useState(true);
 
   const loadProgress = useCallback(async () => {
@@ -248,11 +304,14 @@ export default function LearnScreen() {
     useCallback(() => {
       loadProgress();
       refreshLanguage();
-    }, [loadProgress, refreshLanguage])
+    }, [loadProgress, refreshLanguage]),
   );
 
   const handleTopicPress = (topic: Topic) => {
-    router.push({ pathname: "/topic/[topicId]", params: { topicId: topic.id } });
+    router.push({
+      pathname: "/topic/[topicId]",
+      params: { topicId: topic.id },
+    });
   };
 
   const allTopics = CATEGORIES.flatMap((cat) => cat.topics);
@@ -283,7 +342,12 @@ export default function LearnScreen() {
         showsVerticalScrollIndicator={false}
       >
         {dueTopics.length > 0 ? (
-          <View style={[styles.dueSection, { backgroundColor: theme.accent + "15" }]}>
+          <View
+            style={[
+              styles.dueSection,
+              { backgroundColor: theme.accent + "15" },
+            ]}
+          >
             <View style={styles.dueSectionHeader}>
               <View style={styles.dueSectionTitleRow}>
                 <AppIcon name="clock" size={20} color={theme.accent} />
@@ -292,7 +356,8 @@ export default function LearnScreen() {
                 </ThemedText>
               </View>
               <ThemedText type="caption" style={{ color: theme.accent }}>
-                {dueTopics.length} {dueTopics.length === 1 ? t("topic") : t("topics")}
+                {dueTopics.length}{" "}
+                {dueTopics.length === 1 ? t("topic") : t("topics")}
               </ThemedText>
             </View>
             <ScrollView

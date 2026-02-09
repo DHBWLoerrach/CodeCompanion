@@ -52,7 +52,9 @@ jest.mock("@react-native-segmented-control/segmented-control", () => {
     onChange,
   }: {
     values: string[];
-    onChange: (event: { nativeEvent: { selectedSegmentIndex: number } }) => void;
+    onChange: (event: {
+      nativeEvent: { selectedSegmentIndex: number };
+    }) => void;
   }) =>
     ReactModule.createElement(
       View,
@@ -62,7 +64,8 @@ jest.mock("@react-native-segmented-control/segmented-control", () => {
           Pressable,
           {
             key: `${value}-${index}`,
-            onPress: () => onChange({ nativeEvent: { selectedSegmentIndex: index } }),
+            onPress: () =>
+              onChange({ nativeEvent: { selectedSegmentIndex: index } }),
           },
           ReactModule.createElement(Text, null, value),
         ),

@@ -36,7 +36,10 @@ describe("POST /api/topic/explain", () => {
     const data = await response.json();
 
     expect(response.status).toBe(200);
-    expect(mockGenerateTopicExplanation).toHaveBeenCalledWith("variables", "en");
+    expect(mockGenerateTopicExplanation).toHaveBeenCalledWith(
+      "variables",
+      "en",
+    );
     expect(data).toEqual({ explanation: "Explanation text" });
   });
 
@@ -45,11 +48,16 @@ describe("POST /api/topic/explain", () => {
 
     await POST(createRequest({ topicId: "variables", language: "de" }));
 
-    expect(mockGenerateTopicExplanation).toHaveBeenCalledWith("variables", "de");
+    expect(mockGenerateTopicExplanation).toHaveBeenCalledWith(
+      "variables",
+      "de",
+    );
   });
 
   it("returns 500 when explanation generation fails", async () => {
-    mockGenerateTopicExplanation.mockRejectedValueOnce(new Error("OpenAI down"));
+    mockGenerateTopicExplanation.mockRejectedValueOnce(
+      new Error("OpenAI down"),
+    );
 
     const response = await POST(createRequest({ topicId: "variables" }));
     const data = await response.json();

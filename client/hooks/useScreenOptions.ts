@@ -29,7 +29,7 @@ export function useScreenOptions({
         ? undefined
         : transparent
           ? theme.backgroundRoot
-        : theme.backgroundDefault,
+          : theme.backgroundDefault,
     },
     gestureEnabled: true,
     gestureDirection: "horizontal",

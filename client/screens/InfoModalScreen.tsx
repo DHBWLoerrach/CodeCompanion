@@ -1,16 +1,16 @@
-import React from 'react';
-import { View, ScrollView, StyleSheet, Pressable, Linking } from 'react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
+import React from "react";
+import { View, ScrollView, StyleSheet, Pressable, Linking } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { Stack, useLocalSearchParams, useRouter } from "expo-router";
 
-import { ThemedView } from '@/components/ThemedView';
-import { ThemedText } from '@/components/ThemedText';
-import { AppIcon } from '@/components/AppIcon';
-import { useTheme } from '@/hooks/useTheme';
-import { useTranslation } from '@/hooks/useTranslation';
-import { Spacing, BorderRadius, Shadows } from '@/constants/theme';
+import { ThemedView } from "@/components/ThemedView";
+import { ThemedText } from "@/components/ThemedText";
+import { AppIcon } from "@/components/AppIcon";
+import { useTheme } from "@/hooks/useTheme";
+import { useTranslation } from "@/hooks/useTranslation";
+import { Spacing, BorderRadius, Shadows } from "@/constants/theme";
 
-type InfoModalType = 'about' | 'imprint';
+type InfoModalType = "about" | "imprint";
 
 export default function InfoModalScreen() {
   const { theme } = useTheme();
@@ -19,8 +19,8 @@ export default function InfoModalScreen() {
   const router = useRouter();
   const { type } = useLocalSearchParams<{ type?: string }>();
 
-  const resolvedType: InfoModalType = type === 'imprint' ? 'imprint' : 'about';
-  const title = resolvedType === 'imprint' ? 'Impressum' : t('aboutThisApp');
+  const resolvedType: InfoModalType = type === "imprint" ? "imprint" : "about";
+  const title = resolvedType === "imprint" ? "Impressum" : t("aboutThisApp");
 
   const openEmail = async (email: string) => {
     const url = `mailto:${email}`;
@@ -30,7 +30,7 @@ export default function InfoModalScreen() {
   };
 
   const openWebsite = async (website: string) => {
-    const url = website.startsWith('http') ? website : `https://${website}`;
+    const url = website.startsWith("http") ? website : `https://${website}`;
     if (await Linking.canOpenURL(url)) {
       await Linking.openURL(url);
     }
@@ -45,7 +45,7 @@ export default function InfoModalScreen() {
       router.back();
       return;
     }
-    router.replace('/settings');
+    router.replace("/settings");
   };
 
   return (
@@ -75,7 +75,7 @@ export default function InfoModalScreen() {
           ]}
           showsVerticalScrollIndicator={false}
         >
-          {resolvedType === 'about' ? (
+          {resolvedType === "about" ? (
             <View
               style={[
                 styles.card,
@@ -86,7 +86,7 @@ export default function InfoModalScreen() {
                 {title}
               </ThemedText>
 
-              {language === 'de' ? (
+              {language === "de" ? (
                 <>
                   <ThemedText type="body" selectable>
                     CodeCompanion ist eine mobile Lern- und Übungsapp für
@@ -97,9 +97,9 @@ export default function InfoModalScreen() {
 
                   <ThemedText type="h4">Funktionen</ThemedText>
                   <ThemedText type="body" selectable>
-                    - Themenbasiertes Lernen mit kompakten Erklärungen{'\n'}-
-                    KI-gestützte Quizfragen für gezieltes Üben{'\n'}-
-                    Fortschrittsanzeige mit Kennzahlen und Lernverlauf{'\n'}-
+                    - Themenbasiertes Lernen mit kompakten Erklärungen{"\n"}-
+                    KI-gestützte Quizfragen für gezieltes Üben{"\n"}-
+                    Fortschrittsanzeige mit Kennzahlen und Lernverlauf{"\n"}-
                     Mehrsprachige Oberfläche (Deutsch/Englisch)
                   </ThemedText>
 
@@ -119,13 +119,13 @@ export default function InfoModalScreen() {
 
                   <ThemedText type="h4">Entwicklung</ThemedText>
                   <ThemedText type="body" selectable>
-                    Die App wurde am Studienzentrum IT-Management &
-                    Informatik (SZI) der DHBW Lörrach unter Leitung von
-                    Prof. Dr. Erik Behrends entwickelt.
+                    Die App wurde am Studienzentrum IT-Management & Informatik
+                    (SZI) der DHBW Lörrach unter Leitung von Prof. Dr. Erik
+                    Behrends entwickelt.
                   </ThemedText>
                   <Pressable
                     onPress={() =>
-                      void openWebsite('https://www.dhbw-loerrach.de/szi')
+                      void openWebsite("https://www.dhbw-loerrach.de/szi")
                     }
                     hitSlop={6}
                   >
@@ -138,7 +138,7 @@ export default function InfoModalScreen() {
                   <Pressable
                     onPress={() =>
                       void openWebsite(
-                        'https://github.com/DHBWLoerrach/CodeCompanion',
+                        "https://github.com/DHBWLoerrach/CodeCompanion",
                       )
                     }
                     hitSlop={6}
@@ -150,7 +150,7 @@ export default function InfoModalScreen() {
 
                   <ThemedText type="h4">Feedback</ThemedText>
                   <Pressable
-                    onPress={() => void openEmail('apps@dhbw-loerrach.de')}
+                    onPress={() => void openEmail("apps@dhbw-loerrach.de")}
                     hitSlop={6}
                   >
                     <ThemedText type="link" selectable style={styles.linkText}>
@@ -169,9 +169,9 @@ export default function InfoModalScreen() {
 
                   <ThemedText type="h4">Features</ThemedText>
                   <ThemedText type="body" selectable>
-                    - Topic-based learning with concise explanations{'\n'}-
-                    AI-assisted quiz generation for targeted practice{'\n'}-
-                    Progress tracking with key metrics and history{'\n'}-
+                    - Topic-based learning with concise explanations{"\n"}-
+                    AI-assisted quiz generation for targeted practice{"\n"}-
+                    Progress tracking with key metrics and history{"\n"}-
                     Multilingual interface (German/English)
                   </ThemedText>
 
@@ -199,7 +199,7 @@ export default function InfoModalScreen() {
                   </ThemedText>
                   <Pressable
                     onPress={() =>
-                      void openWebsite('https://www.dhbw-loerrach.de/szi')
+                      void openWebsite("https://www.dhbw-loerrach.de/szi")
                     }
                     hitSlop={6}
                   >
@@ -212,7 +212,7 @@ export default function InfoModalScreen() {
                   <Pressable
                     onPress={() =>
                       void openWebsite(
-                        'https://github.com/DHBWLoerrach/CodeCompanion',
+                        "https://github.com/DHBWLoerrach/CodeCompanion",
                       )
                     }
                     hitSlop={6}
@@ -224,7 +224,7 @@ export default function InfoModalScreen() {
 
                   <ThemedText type="h4">Feedback</ThemedText>
                   <Pressable
-                    onPress={() => void openEmail('apps@dhbw-loerrach.de')}
+                    onPress={() => void openEmail("apps@dhbw-loerrach.de")}
                     hitSlop={6}
                   >
                     <ThemedText type="link" selectable style={styles.linkText}>
@@ -247,18 +247,18 @@ export default function InfoModalScreen() {
 
               <ThemedText type="h4">Herausgeber</ThemedText>
               <ThemedText type="body" selectable>
-                Duale Hochschule Baden-Württemberg Lörrach{'\n'}
-                Baden-Württemberg Cooperative State University Lörrach{'\n'}
-                Hangstraße 46 - 50{'\n'}
+                Duale Hochschule Baden-Württemberg Lörrach{"\n"}
+                Baden-Württemberg Cooperative State University Lörrach{"\n"}
+                Hangstraße 46 - 50{"\n"}
                 D-79539 Lörrach
               </ThemedText>
               <ThemedText type="body" selectable>
-                Telefon +49 7621 2071 0{'\n'}
+                Telefon +49 7621 2071 0{"\n"}
               </ThemedText>
               <View style={styles.inlineRow}>
                 <ThemedText type="body">E-Mail: </ThemedText>
                 <Pressable
-                  onPress={() => void openEmail('info@dhbw-loerrach.de')}
+                  onPress={() => void openEmail("info@dhbw-loerrach.de")}
                   hitSlop={6}
                 >
                   <ThemedText type="link" selectable style={styles.linkText}>
@@ -267,7 +267,7 @@ export default function InfoModalScreen() {
                 </Pressable>
               </View>
               <Pressable
-                onPress={() => void openWebsite('https://dhbw-loerrach.de')}
+                onPress={() => void openWebsite("https://dhbw-loerrach.de")}
                 hitSlop={6}
               >
                 <ThemedText type="link" selectable style={styles.linkText}>
@@ -285,7 +285,7 @@ export default function InfoModalScreen() {
               <ThemedText type="body" selectable>
                 Umsatzsteuer-Identifikationsnummer gemäß § 27 a
                 Umsatzsteuergesetz: DE287664832
-                {'\n'}
+                {"\n"}
                 Wirtschafts-Identifikationsnummer (W-IdNr.): DE287664832-00001
               </ThemedText>
 
@@ -293,18 +293,18 @@ export default function InfoModalScreen() {
               <ThemedText type="body" selectable>
                 Ministerium für Wissenschaft, Forschung und Kunst des Landes
                 Baden-Württemberg
-                {'\n'}
-                Königstraße 46{'\n'}
+                {"\n"}
+                Königstraße 46{"\n"}
                 D-70173 Stuttgart
               </ThemedText>
               <ThemedText type="body" selectable>
-                Telefon: +49 711 279 0{'\n'}
-                Telefax: +49 711 279 3081{'\n'}
+                Telefon: +49 711 279 0{"\n"}
+                Telefax: +49 711 279 3081{"\n"}
               </ThemedText>
               <View style={styles.inlineRow}>
                 <ThemedText type="body">E-Mail: </ThemedText>
                 <Pressable
-                  onPress={() => void openEmail('poststelle@mwk.bwl.de')}
+                  onPress={() => void openEmail("poststelle@mwk.bwl.de")}
                   hitSlop={6}
                 >
                   <ThemedText type="link" selectable style={styles.linkText}>
@@ -313,7 +313,7 @@ export default function InfoModalScreen() {
                 </Pressable>
               </View>
               <Pressable
-                onPress={() => void openWebsite('www.mwk.bwl.de')}
+                onPress={() => void openWebsite("www.mwk.bwl.de")}
                 hitSlop={6}
               >
                 <ThemedText type="link" selectable style={styles.linkText}>
@@ -334,7 +334,7 @@ export default function InfoModalScreen() {
                 Feedback:
               </ThemedText>
               <Pressable
-                onPress={() => void openEmail('apps@dhbw-loerrach.de')}
+                onPress={() => void openEmail("apps@dhbw-loerrach.de")}
                 hitSlop={6}
               >
                 <ThemedText type="link" selectable style={styles.linkText}>
@@ -344,9 +344,8 @@ export default function InfoModalScreen() {
 
               <ThemedText type="h4">Datenschutz</ThemedText>
               <ThemedText type="body" selectable>
-                Es werden keine benutzerbezogenen Daten auf Servern
-                gespeichert. Nur der Lernfortschritt wird lokal auf dem Gerät
-                gespeichert.
+                Es werden keine benutzerbezogenen Daten auf Servern gespeichert.
+                Nur der Lernfortschritt wird lokal auf dem Gerät gespeichert.
               </ThemedText>
 
               <ThemedText type="h4">Haftungsbeschränkung</ThemedText>
@@ -382,7 +381,7 @@ const styles = StyleSheet.create({
     padding: Spacing.lg,
   },
   contentCentered: {
-    justifyContent: 'center',
+    justifyContent: "center",
   },
   card: {
     borderRadius: BorderRadius.lg,
@@ -391,20 +390,20 @@ const styles = StyleSheet.create({
     ...Shadows.card,
   },
   title: {
-    textAlign: 'center',
+    textAlign: "center",
   },
   imprintMainTitle: {
-    color: '#B00020',
+    color: "#B00020",
   },
   headerButton: {
     padding: Spacing.sm,
   },
   inlineRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    flexWrap: 'wrap',
+    flexDirection: "row",
+    alignItems: "center",
+    flexWrap: "wrap",
   },
   linkText: {
-    textDecorationLine: 'underline',
+    textDecorationLine: "underline",
   },
 });

@@ -1,12 +1,6 @@
 import React from "react";
 import { reloadAppAsync } from "expo";
-import {
-  StyleSheet,
-  View,
-  Pressable,
-  Text,
-  Alert,
-} from "react-native";
+import { StyleSheet, View, Pressable, Text, Alert } from "react-native";
 import { AppIcon } from "@/components/AppIcon";
 import { Spacing, BorderRadius, Colors } from "@/constants/theme";
 
@@ -42,7 +36,12 @@ export function ErrorFallback({ error, resetError }: ErrorFallbackProps) {
   };
 
   return (
-    <View style={[styles.container, { backgroundColor: fallbackTheme.backgroundRoot }]}>
+    <View
+      style={[
+        styles.container,
+        { backgroundColor: fallbackTheme.backgroundRoot },
+      ]}
+    >
       {__DEV__ ? (
         <Pressable
           onPress={handleShowDetails}
@@ -59,12 +58,11 @@ export function ErrorFallback({ error, resetError }: ErrorFallbackProps) {
       ) : null}
 
       <View style={styles.content}>
-        <Text style={[styles.title, { color: fallbackTheme.text }]}>
-          Oops!
-        </Text>
+        <Text style={[styles.title, { color: fallbackTheme.text }]}>Oops!</Text>
 
         <Text style={[styles.message, { color: fallbackTheme.text }]}>
-          DHBW Learn encountered an unexpected issue. Tap below to get back to learning!
+          DHBW Learn encountered an unexpected issue. Tap below to get back to
+          learning!
         </Text>
 
         <Pressable
@@ -78,7 +76,9 @@ export function ErrorFallback({ error, resetError }: ErrorFallbackProps) {
             },
           ]}
         >
-          <Text style={[styles.buttonText, { color: fallbackTheme.buttonText }]}>
+          <Text
+            style={[styles.buttonText, { color: fallbackTheme.buttonText }]}
+          >
             Back to Learning
           </Text>
         </Pressable>

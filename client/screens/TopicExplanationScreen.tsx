@@ -56,11 +56,14 @@ export default function TopicExplanationScreen() {
 
       try {
         const apiUrl = getApiUrl();
-        const response = await fetch(new URL("/api/topic/explain", apiUrl).toString(), {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ topicId: resolvedTopicId, language }),
-        });
+        const response = await fetch(
+          new URL("/api/topic/explain", apiUrl).toString(),
+          {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ topicId: resolvedTopicId, language }),
+          },
+        );
 
         if (!response.ok) {
           throw new Error("Failed to generate explanation");
@@ -95,7 +98,11 @@ export default function TopicExplanationScreen() {
         options={{
           title: t("topicExplanation"),
           headerLeft: () => (
-            <Pressable style={styles.headerButton} onPress={handleClose} hitSlop={12}>
+            <Pressable
+              style={styles.headerButton}
+              onPress={handleClose}
+              hitSlop={12}
+            >
               <AppIcon name="x" size={20} color={theme.text} />
             </Pressable>
           ),

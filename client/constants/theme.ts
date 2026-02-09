@@ -141,15 +141,10 @@ export const Shadows = {
   floatingButton: {
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.10,
+    shadowOpacity: 0.1,
     shadowRadius: 8,
     elevation: 4,
   },
 };
 
-export const AvatarColors = [
-  "#E2001A",
-  "#4A90E2",
-  "#34C759",
-  "#FFB800",
-];
+export const AvatarColors = ["#E2001A", "#4A90E2", "#34C759", "#FFB800"];

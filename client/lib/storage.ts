@@ -32,26 +32,26 @@ export const SKILL_LEVEL_INTERVALS: Record<SkillLevel, number> = {
 
 export function isTopicDue(progress: TopicProgress | undefined): boolean {
   if (!progress || !progress.lastPracticed) return true;
-  
+
   const lastPracticed = new Date(progress.lastPracticed);
   const now = new Date();
   const daysSinceLastPractice = Math.floor(
-    (now.getTime() - lastPracticed.getTime()) / (1000 * 60 * 60 * 24)
+    (now.getTime() - lastPracticed.getTime()) / (1000 * 60 * 60 * 24),
   );
-  
+
   const interval = SKILL_LEVEL_INTERVALS[progress.skillLevel];
   return daysSinceLastPractice >= interval;
 }
 
 export function getDaysUntilDue(progress: TopicProgress | undefined): number {
   if (!progress || !progress.lastPracticed) return 0;
-  
+
   const lastPracticed = new Date(progress.lastPracticed);
   const now = new Date();
   const daysSinceLastPractice = Math.floor(
-    (now.getTime() - lastPracticed.getTime()) / (1000 * 60 * 60 * 24)
+    (now.getTime() - lastPracticed.getTime()) / (1000 * 60 * 60 * 24),
   );
-  
+
   const interval = SKILL_LEVEL_INTERVALS[progress.skillLevel];
   return Math.max(0, interval - daysSinceLastPractice);
 }
@@ -112,7 +112,10 @@ export const storage = {
   },
 
   async setProfile(profile: UserProfile): Promise<void> {
-    await AsyncStorage.setItem(STORAGE_KEYS.USER_PROFILE, JSON.stringify(profile));
+    await AsyncStorage.setItem(
+      STORAGE_KEYS.USER_PROFILE,
+      JSON.stringify(profile),
+    );
   },
 
   async getProgress(): Promise<ProgressData> {
@@ -131,7 +134,7 @@ export const storage = {
   async updateTopicProgress(
     topicId: string,
     questionsAnswered: number,
-    correctAnswers: number
+    correctAnswers: number,
   ): Promise<void> {
     const progress = await this.getProgress();
     const existing = progress.topicProgress[topicId] || {
@@ -203,7 +206,7 @@ export const storage = {
 
     let newStreak = streak.currentStreak;
     const yesterday = new Date(Date.now() - 86400000).toDateString();
-    
+
     if (lastDate === yesterday || !lastDate) {
       newStreak += 1;
     } else {
@@ -217,7 +220,10 @@ export const storage = {
       weekHistory: newWeekHistory,
     };
 
-    await AsyncStorage.setItem(STORAGE_KEYS.STREAK, JSON.stringify(newStreakData));
+    await AsyncStorage.setItem(
+      STORAGE_KEYS.STREAK,
+      JSON.stringify(newStreakData),
+    );
     return newStreakData;
   },
 
@@ -247,7 +253,10 @@ export const storage = {
     return progress.topicProgress[topicId]?.skillLevel ?? 1;
   },
 
-  async updateTopicSkillLevel(topicId: string, scorePercent: number): Promise<void> {
+  async updateTopicSkillLevel(
+    topicId: string,
+    scorePercent: number,
+  ): Promise<void> {
     const progress = await this.getProgress();
     const existing = progress.topicProgress[topicId] || {
       topicId,
