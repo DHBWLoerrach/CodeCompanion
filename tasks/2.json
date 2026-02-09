@@ -1,9 +1,0 @@
-{
-  "id": "2",
-  "subject": "Migrate @react-navigation imports to expo-router",
-  "description": "Replace all @react-navigation/* imports with expo-router equivalents in LearnScreen, ProgressScreen, TopicDetailScreen, useScreenOptions",
-  "activeForm": "Migrating navigation imports",
-  "status": "in_progress",
-  "blocks": [],
-  "blockedBy": []
-}

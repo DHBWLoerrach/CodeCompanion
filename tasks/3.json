@@ -1,9 +1,0 @@
-{
-  "id": "3",
-  "subject": "Add tabPress prevention for Practice tab",
-  "description": "Prevent navigation to empty Practice screen in app/(tabs)/_layout.tsx",
-  "activeForm": "Adding tabPress prevention",
-  "status": "in_progress",
-  "blocks": [],
-  "blockedBy": []
-}

@@ -1,9 +1,0 @@
-{
-  "id": "1",
-  "subject": "Remove deprecated expo-router/babel plugin",
-  "description": "Remove \"expo-router/babel\" from babel.config.js plugins array - deprecated since SDK 50",
-  "activeForm": "Removing deprecated babel plugin",
-  "status": "in_progress",
-  "blocks": [],
-  "blockedBy": []
-}

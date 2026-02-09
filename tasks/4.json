@@ -1,9 +1,0 @@
-{
-  "id": "4",
-  "subject": "Fix division by zero in SessionSummaryScreen",
-  "description": "Guard against total=0 in percentage calculation on line 143",
-  "activeForm": "Fixing division by zero",
-  "status": "in_progress",
-  "blocks": [],
-  "blockedBy": []
-}

@@ -1,9 +1,0 @@
-{
-  "id": "6",
-  "subject": "Remove redundant useEffect double-loads and dead code",
-  "description": "Remove redundant useEffect in LearnScreen, ProgressScreen, TopicDetailScreen. Remove _topicName dead data flow. Standardize re-export patterns.",
-  "activeForm": "Cleaning up redundant code",
-  "status": "in_progress",
-  "blocks": [],
-  "blockedBy": []
-}
