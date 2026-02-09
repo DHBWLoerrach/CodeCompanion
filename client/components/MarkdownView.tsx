@@ -15,7 +15,6 @@ export function MarkdownView({ content }: MarkdownViewProps) {
     const elements: React.ReactNode[] = [];
     let inCodeBlock = false;
     let codeBlockContent: string[] = [];
-    let codeBlockLang = "";
     let key = 0;
 
     const renderInlineText = (
@@ -132,7 +131,6 @@ export function MarkdownView({ content }: MarkdownViewProps) {
           inCodeBlock = false;
         } else {
           inCodeBlock = true;
-          codeBlockLang = line.slice(3).trim();
         }
         continue;
       }

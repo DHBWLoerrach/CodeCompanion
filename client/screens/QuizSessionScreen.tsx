@@ -21,7 +21,7 @@ import { AppIcon } from "@/components/AppIcon";
 import { useTheme } from "@/hooks/useTheme";
 import { useTranslation } from "@/hooks/useTranslation";
 import { Spacing, BorderRadius, Shadows, Fonts } from "@/constants/theme";
-import { getApiUrl, apiRequest } from "@/lib/query-client";
+import { apiRequest } from "@/lib/query-client";
 import { storage } from "@/lib/storage";
 
 interface Question {
@@ -313,9 +313,6 @@ export default function QuizSessionScreen() {
       setSelectedAnswer(null);
       setShowResult(false);
     } else {
-      const correctCount =
-        answers.filter((a) => a.correct).length +
-        (showResult && selectedAnswer === currentQuestion.correctIndex ? 1 : 0);
       const finalAnswers = [
         ...answers,
         {

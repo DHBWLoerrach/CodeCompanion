@@ -32,13 +32,11 @@ import {
   type TopicProgress,
   type SkillLevel,
   isTopicDue,
-  SKILL_LEVEL_INTERVALS,
 } from "@/lib/storage";
 
 const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
 
 interface TopicChipProps {
-  topic: Topic;
   progress?: TopicProgress;
   onPress: () => void;
   topicName: string;
@@ -111,7 +109,6 @@ function getRecommendedTopicId(
 }
 
 function TopicChip({
-  topic,
   progress,
   onPress,
   topicName,
@@ -265,7 +262,6 @@ function CategoryCard({
           return (
             <TopicChip
               key={topic.id}
-              topic={topic}
               topicName={topicDisplayName}
               progress={topicProgress[topic.id]}
               isRecommended={topic.id === recommendedTopicId}
@@ -368,7 +364,6 @@ export default function LearnScreen() {
               {dueTopics.map((topic) => (
                 <TopicChip
                   key={topic.id}
-                  topic={topic}
                   topicName={getTopicName(topic, language)}
                   progress={topicProgress[topic.id]}
                   testID={`learn-due-topic-${topic.id}`}

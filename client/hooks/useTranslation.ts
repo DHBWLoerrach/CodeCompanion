@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from "react";
-import { storage, type SettingsData } from "@/lib/storage";
+import { storage } from "@/lib/storage";
 import { translations, type Language, type TranslationKey } from "@/lib/i18n";
 
 export function useTranslation() {

@@ -347,14 +347,3 @@ export const translations = {
 } as const;
 
 export type TranslationKey = keyof typeof translations.en;
-
-export function getTranslation(
-  language: Language,
-  key: TranslationKey,
-): string {
-  return translations[language][key] || translations.en[key] || key;
-}
-
-export function t(language: Language, key: TranslationKey): string {
-  return getTranslation(language, key);
-}

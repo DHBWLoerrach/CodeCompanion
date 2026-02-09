@@ -380,17 +380,11 @@ const styles = StyleSheet.create({
   content: {
     padding: Spacing.lg,
   },
-  contentCentered: {
-    justifyContent: "center",
-  },
   card: {
     borderRadius: BorderRadius.lg,
     padding: Spacing.lg,
     gap: Spacing.md,
     ...Shadows.card,
-  },
-  title: {
-    textAlign: "center",
   },
   imprintMainTitle: {
     color: "#B00020",

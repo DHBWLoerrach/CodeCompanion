@@ -174,16 +174,6 @@ export function getTopicById(topicId: string): Topic | undefined {
   return undefined;
 }
 
-export function getAllTopics(): Topic[] {
-  return CATEGORIES.flatMap((c) => c.topics);
-}
-
-export function getRandomTopics(count: number): Topic[] {
-  const allTopics = getAllTopics();
-  const shuffled = [...allTopics].sort(() => Math.random() - 0.5);
-  return shuffled.slice(0, count);
-}
-
 export function getTopicName(topic: Topic, language: Language): string {
   return (
     translations[language][topic.nameKey] ||
