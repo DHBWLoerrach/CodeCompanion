@@ -93,7 +93,6 @@ Dann:
 ## Verfügbare Skripte
 
 - `npm run start` - Expo Dev Server starten
-- `npm run expo:dev` - Replit-angepasster Start
 - `npm run lint` - ESLint
 - `npm run lint:fix` - ESLint mit Auto-Fixes
 - `npm run check:types` - TypeScript Check (`tsc --noEmit`)
