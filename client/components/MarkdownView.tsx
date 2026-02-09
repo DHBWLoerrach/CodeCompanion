@@ -8,7 +8,7 @@ interface MarkdownViewProps {
 }
 
 export function MarkdownView({ content }: MarkdownViewProps) {
-  const { theme } = useTheme();
+  const { theme, isDark } = useTheme();
 
   const parseMarkdown = (text: string) => {
     const lines = text.split("\n");
@@ -87,7 +87,13 @@ export function MarkdownView({ content }: MarkdownViewProps) {
                 key={partKey++}
                 style={[
                   styles.inlineCode,
-                  { backgroundColor: theme.cardBorder, color: theme.primary },
+                  {
+                    backgroundColor: isDark
+                      ? theme.backgroundSecondary
+                      : theme.codeBackground,
+                    borderColor: theme.cardBorder,
+                    color: isDark ? theme.text : theme.primary,
+                  },
                 ]}
               >
                 {firstMatch.content}
@@ -120,7 +126,13 @@ export function MarkdownView({ content }: MarkdownViewProps) {
           elements.push(
             <View
               key={key++}
-              style={[styles.codeBlock, { backgroundColor: theme.cardBorder }]}
+              style={[
+                styles.codeBlock,
+                {
+                  backgroundColor: theme.codeBackground,
+                  borderColor: theme.cardBorder,
+                },
+              ]}
             >
               <Text style={[styles.codeText, { color: theme.text }]}>
                 {codeBlockContent.join("\n")}
@@ -253,6 +265,7 @@ const styles = StyleSheet.create({
     padding: Spacing.md,
     borderRadius: BorderRadius.md,
     marginVertical: Spacing.sm,
+    borderWidth: StyleSheet.hairlineWidth,
   },
   codeText: {
     fontFamily: "monospace",
@@ -265,6 +278,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 6,
     paddingVertical: 2,
     borderRadius: 4,
+    borderWidth: StyleSheet.hairlineWidth,
   },
   listItem: {
     flexDirection: "row",
