@@ -76,8 +76,6 @@ npm install
   Modellname. Standard: `gpt-5.2`.
 - `EXPO_PUBLIC_API_URL`  
   Explizite Basis-URL für API-Calls aus dem Client.
-- `EXPO_PUBLIC_DOMAIN` / `EXPO_PUBLIC_PROTOCOL`  
-  Fallback für API-URL-Auflösung in bestimmten Hosting-Setups.
 
 ## Entwicklung starten
 

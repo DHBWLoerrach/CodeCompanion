@@ -1,5 +1,5 @@
-import { QueryClient, QueryFunction } from "@tanstack/react-query";
-import Constants from "expo-constants";
+import { QueryClient, QueryFunction } from '@tanstack/react-query';
+import Constants from 'expo-constants';
 
 /**
  * Gets the base URL for the Expo API routes (e.g., "http://localhost:8081")
@@ -19,26 +19,7 @@ export function getApiUrl(): string {
     return new URL(`http://${hostUri}`).href;
   }
 
-  const host = process.env.EXPO_PUBLIC_DOMAIN;
-  if (!host) {
-    throw new Error("EXPO_PUBLIC_API_URL or EXPO_PUBLIC_DOMAIN is not set");
-  }
-
-  if (/^https?:\/\//i.test(host)) {
-    return new URL(host).href;
-  }
-
-  const isLocalHost =
-    host.includes("localhost") ||
-    host.startsWith("127.") ||
-    host.startsWith("10.") ||
-    host.startsWith("192.168.") ||
-    /^172\.(1[6-9]|2\d|3[0-1])\./.test(host);
-
-  const protocol =
-    process.env.EXPO_PUBLIC_PROTOCOL || (isLocalHost ? "http" : "https");
-
-  return new URL(`${protocol}://${host}`).href;
+  throw new Error('EXPO_PUBLIC_API_URL is not set');
 }
 
 async function throwIfResNotOk(res: Response) {
@@ -58,29 +39,29 @@ export async function apiRequest(
 
   const res = await fetch(url, {
     method,
-    headers: data ? { "Content-Type": "application/json" } : {},
+    headers: data ? { 'Content-Type': 'application/json' } : {},
     body: data ? JSON.stringify(data) : undefined,
-    credentials: "include",
+    credentials: 'include',
   });
 
   await throwIfResNotOk(res);
   return res;
 }
 
-type UnauthorizedBehavior = "returnNull" | "throw";
+type UnauthorizedBehavior = 'returnNull' | 'throw';
 export const getQueryFn: <T>(options: {
   on401: UnauthorizedBehavior;
 }) => QueryFunction<T> =
   ({ on401: unauthorizedBehavior }) =>
   async ({ queryKey }) => {
     const baseUrl = getApiUrl();
-    const url = new URL(queryKey.join("/") as string, baseUrl);
+    const url = new URL(queryKey.join('/') as string, baseUrl);
 
     const res = await fetch(url, {
-      credentials: "include",
+      credentials: 'include',
     });
 
-    if (unauthorizedBehavior === "returnNull" && res.status === 401) {
+    if (unauthorizedBehavior === 'returnNull' && res.status === 401) {
       return null;
     }
 
@@ -91,7 +72,7 @@ export const getQueryFn: <T>(options: {
 export const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
-      queryFn: getQueryFn({ on401: "throw" }),
+      queryFn: getQueryFn({ on401: 'throw' }),
       refetchInterval: false,
       refetchOnWindowFocus: false,
       staleTime: Infinity,
