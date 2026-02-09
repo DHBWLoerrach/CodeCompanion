@@ -1,12 +1,18 @@
-import React from "react";
-import { Stack } from "expo-router";
+import React, { useCallback } from "react";
+import { Stack, useFocusEffect } from "expo-router";
 
 import { useTheme } from "@/hooks/useTheme";
 import { useTranslation } from "@/hooks/useTranslation";
 
 export default function PracticeStack() {
   const { theme } = useTheme();
-  const { t } = useTranslation();
+  const { t, refreshLanguage } = useTranslation();
+
+  useFocusEffect(
+    useCallback(() => {
+      refreshLanguage();
+    }, [refreshLanguage]),
+  );
 
   return (
     <Stack

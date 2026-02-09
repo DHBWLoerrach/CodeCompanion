@@ -1,6 +1,6 @@
-import React from "react";
+import React, { useCallback } from "react";
 import { Pressable, StyleSheet, View } from "react-native";
-import { Stack, useRouter } from "expo-router";
+import { Stack, useFocusEffect, useRouter } from "expo-router";
 
 import { AppIcon } from "@/components/AppIcon";
 import { ThemedText } from "@/components/ThemedText";
@@ -29,8 +29,14 @@ function HeaderBrand() {
 
 export default function LearnStack() {
   const { theme } = useTheme();
-  const { t } = useTranslation();
+  const { t, refreshLanguage } = useTranslation();
   const router = useRouter();
+
+  useFocusEffect(
+    useCallback(() => {
+      refreshLanguage();
+    }, [refreshLanguage]),
+  );
 
   return (
     <Stack

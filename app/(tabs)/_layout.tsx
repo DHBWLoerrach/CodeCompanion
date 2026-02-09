@@ -1,10 +1,11 @@
-import React from "react";
+import React, { useCallback } from "react";
 import {
   NativeTabs,
   Icon,
   Label,
   VectorIcon,
 } from "expo-router/unstable-native-tabs";
+import { useFocusEffect } from "expo-router";
 import Feather from "@expo/vector-icons/Feather";
 
 import { useTheme } from "@/hooks/useTheme";
@@ -12,10 +13,16 @@ import { useTranslation } from "@/hooks/useTranslation";
 
 export default function TabsLayout() {
   const { theme, isDark } = useTheme();
-  const { t } = useTranslation();
+  const { t, refreshLanguage } = useTranslation();
   const activeIndicatorColor = isDark
     ? `${theme.primary}4D`
     : `${theme.primary}1A`;
+
+  useFocusEffect(
+    useCallback(() => {
+      refreshLanguage();
+    }, [refreshLanguage]),
+  );
 
   return (
     <NativeTabs
