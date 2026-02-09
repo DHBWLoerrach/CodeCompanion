@@ -76,6 +76,8 @@ npm install
 
 - `OPENAI_API_KEY`  
   API-Key für den Aufruf von `POST /v1/responses` in `shared/quiz.ts`.
+  In Produktion wird dieser Wert aus der EAS-Environment `production` gelesen.
+  Lokal kann ein eigener Dev-Key genutzt werden.
 
 ### Optional
 
@@ -85,6 +87,13 @@ npm install
   Basis-URL für API-Calls aus dem Client. In der lokalen Entwicklung wird
   die URL automatisch über Expo Constants (`hostUri`) ermittelt. Für
   Deployments (z. B. EAS) muss diese Variable gesetzt werden.
+
+### Empfohlene Trennung für Keys
+
+- Lokal: eigener Dev-Key in `.env.local` (oder vor Start per Shell-Variable exportieren).
+- Produktion: Key nur in EAS Environment `production`.
+- Niemals `EXPO_PUBLIC_OPENAI_API_KEY` verwenden.
+- Hinweis: `.env` und `.env*.local` sind per `.gitignore` vom Commit ausgeschlossen.
 
 ## Entwicklung starten
 
@@ -128,6 +137,51 @@ Dann:
 
 Implementierung: `app/api/*`  
 Prompt- und OpenAI-Logik: `shared/quiz.ts`
+
+## Deployment (EAS Hosting)
+
+### Manuell per GitHub Action
+
+Deployment läuft nur manuell über `.github/workflows/deploy.yml`:
+
+- Trigger: `workflow_dispatch` (kein Push-Trigger)
+- Export: `eas env:exec production 'npx expo export --platform web --no-ssg' --non-interactive`
+- Deploy: `eas deploy --environment production --prod --non-interactive`
+
+Voraussetzungen:
+
+1. GitHub Secret `EXPO_TOKEN` setzen
+2. In EAS Environment `production` mindestens `OPENAI_API_KEY` setzen
+3. Action starten: `GitHub -> Actions -> Manual EAS Deploy -> Run workflow`
+
+### Wichtiges Verhalten von EAS-Env-Variablen
+
+- Environment-Variablen sind pro Deployment gebunden.
+- Deployments sind immutable.
+- Wenn eine Variable (z. B. `OPENAI_API_KEY`) in EAS geändert oder gelöscht wird,
+  wirkt das erst nach einem neuen Export + Deploy.
+
+Offizielle Doku:
+
+- https://docs.expo.dev/eas/environment-variables/usage/#using-environment-variables-with-eas-hosting
+- https://docs.expo.dev/eas/hosting/environment-variables/
+
+### Warum kein lokales `eas deploy`
+
+Lokale Deploys können versehentlich lokale `.env`-Werte einbeziehen (z. B. wenn
+`--environment production` vergessen wird). Deshalb erfolgt Deployment nur über CI.
+
+## API-Key Rotation (OpenAI)
+
+Empfohlener Ablauf:
+
+1. Neuen OpenAI-Key erstellen.
+2. In EAS Environment `production` `OPENAI_API_KEY` auf den neuen Wert setzen.
+3. Manuellen Deploy-Workflow ausführen.
+4. API-Route testen (`/api/quiz/generate`, `/api/topic/explain`).
+5. Alten OpenAI-Key erst nach erfolgreichem Test deaktivieren.
+
+Kurzregel: Key-Änderung ohne neuen Deploy hat keinen Effekt auf den laufenden Service.
 
 ## Navigation & Modals
 
