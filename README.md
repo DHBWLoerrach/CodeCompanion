@@ -49,6 +49,13 @@ client/
 
 shared/
   quiz.ts               Prompting + OpenAI-Integration
+
+__tests__/
+  unit/                 Unit Tests
+  integration/          Integrationstests
+
+e2e/
+  maestro/              E2E Tests (Maestro)
 ```
 
 ## Voraussetzungen
@@ -74,8 +81,10 @@ npm install
 
 - `OPENAI_MODEL`  
   Modellname. Standard: `gpt-5.2`.
-- `EXPO_PUBLIC_API_URL`  
-  Explizite Basis-URL für API-Calls aus dem Client.
+- `EXPO_PUBLIC_API_URL`
+  Basis-URL für API-Calls aus dem Client. In der lokalen Entwicklung wird
+  die URL automatisch über Expo Constants (`hostUri`) ermittelt. Für
+  Deployments (z. B. EAS) muss diese Variable gesetzt werden.
 
 ## Entwicklung starten
 
@@ -98,6 +107,15 @@ Dann:
 - `npm run check:types` - TypeScript Check (`tsc --noEmit`)
 - `npm run check:format` - Prettier Check
 - `npm run format` - Prettier Write
+- `npm test` - Alle Tests ausführen
+- `npm run test:unit` - Unit Tests
+- `npm run test:integration` - Integrationstests
+- `npm run test:watch` - Tests im Watch-Modus
+- `npm run test:coverage` - Tests mit Coverage-Report
+- `npm run test:e2e` - E2E Tests (Maestro)
+- `npm run test:e2e:ai` - E2E Tests mit AI-Tag (Maestro)
+- `npm run ios` - iOS Build starten
+- `npm run android` - Android Build starten
 
 ## API Routen
 
@@ -142,12 +160,14 @@ Vor PR/Commit mindestens ausführen:
 ```bash
 npm run check:types
 npm run lint
+npm run check:format
+npm test
 ```
 
-Optional zusätzlich:
+Formatierung automatisch anwenden:
 
 ```bash
-npm run check:format
+npm run format
 ```
 
 ## Lizenz
