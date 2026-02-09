@@ -93,6 +93,7 @@ npm install
 - Lokal: eigener Dev-Key in `.env.local` (oder vor Start per Shell-Variable exportieren).
 - Produktion: Key nur in EAS Environment `production`.
 - Niemals `EXPO_PUBLIC_OPENAI_API_KEY` verwenden.
+- OpenAI-Key immer als `Restricted` anlegen und nur `Responses` mit `Write` erlauben.
 - Hinweis: `.env` und `.env*.local` sind per `.gitignore` vom Commit ausgeschlossen.
 
 ## Entwicklung starten
@@ -140,6 +141,13 @@ Prompt- und OpenAI-Logik: `shared/quiz.ts`
 
 ## Deployment (EAS Hosting)
 
+### Deployment-Policy (verbindlich)
+
+- Deployments nach EAS Hosting sind ausschließlich über GitHub Actions erlaubt.
+- `eas deploy` darf niemals auf lokalen Dev-Maschinen ausgeführt werden.
+- Produktions-Deployments laufen nur über `.github/workflows/deploy.yml`.
+- Bei versehentlichem lokalem Deploy: sofort per GitHub Action neu deployen und `OPENAI_API_KEY` rotieren.
+
 ### Manuell per GitHub Action
 
 Deployment läuft nur manuell über `.github/workflows/deploy.yml`:
@@ -169,15 +177,18 @@ Offizielle Doku:
 ### Warum kein lokales `eas deploy`
 
 Lokale Deploys können versehentlich lokale `.env`-Werte einbeziehen (z. B. wenn
-`--environment production` vergessen wird). Deshalb erfolgt Deployment nur über CI.
+`--environment production` vergessen wird).
+
+Verbindliche Regel: `eas deploy` wird niemals lokal ausgeführt, sondern nur über
+den manuellen GitHub-Workflow.
 
 ## API-Key Rotation (OpenAI)
 
 Empfohlener Ablauf:
 
-1. Neuen OpenAI-Key erstellen.
+1. Neuen OpenAI-Key erstellen (Typ `Restricted`, nur `Responses: Write`).
 2. In EAS Environment `production` `OPENAI_API_KEY` auf den neuen Wert setzen.
-3. Manuellen Deploy-Workflow ausführen.
+3. Manuellen GitHub-Deploy-Workflow ausführen.
 4. API-Route testen (`/api/quiz/generate`, `/api/topic/explain`).
 5. Alten OpenAI-Key erst nach erfolgreichem Test deaktivieren.
 
