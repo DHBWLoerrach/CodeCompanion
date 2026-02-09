@@ -20,6 +20,10 @@ describe("POST /api/quiz/generate", () => {
     mockGenerateQuizQuestions.mockReset();
   });
 
+  afterEach(() => {
+    jest.restoreAllMocks();
+  });
+
   it("returns 400 when topicId is missing", async () => {
     const response = await POST(createRequest({ count: 5 }));
     const data = await response.json();
@@ -75,6 +79,7 @@ describe("POST /api/quiz/generate", () => {
   });
 
   it("returns 500 when generator fails", async () => {
+    jest.spyOn(console, "error").mockImplementation(() => {});
     mockGenerateQuizQuestions.mockRejectedValueOnce(new Error("network down"));
 
     const response = await POST(createRequest({ topicId: "variables" }));

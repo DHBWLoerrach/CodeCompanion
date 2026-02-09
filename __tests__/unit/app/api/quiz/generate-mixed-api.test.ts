@@ -38,6 +38,10 @@ describe("POST /api/quiz/generate-mixed", () => {
     );
   });
 
+  afterEach(() => {
+    jest.restoreAllMocks();
+  });
+
   it("returns 400 when provided topic IDs are all invalid", async () => {
     const response = await POST(
       createRequest({ topicIds: ["invalid-a", "invalid-b"] }),
@@ -93,6 +97,7 @@ describe("POST /api/quiz/generate-mixed", () => {
   });
 
   it("returns 500 when generation fails", async () => {
+    jest.spyOn(console, "error").mockImplementation(() => {});
     mockGenerateQuizQuestions.mockRejectedValueOnce(
       new Error("upstream error"),
     );
