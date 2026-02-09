@@ -9,6 +9,15 @@ function toNumber(value: unknown, fallback: number): number {
   return Number.isFinite(parsed) ? parsed : fallback;
 }
 
+function shuffleArray<T>(items: T[]): T[] {
+  const shuffled = [...items];
+  for (let i = shuffled.length - 1; i > 0; i -= 1) {
+    const randomIndex = Math.floor(Math.random() * (i + 1));
+    [shuffled[i], shuffled[randomIndex]] = [shuffled[randomIndex], shuffled[i]];
+  }
+  return shuffled;
+}
+
 export async function POST(request: Request) {
   try {
     const body = (await request.json()) as {
@@ -28,8 +37,13 @@ export async function POST(request: Request) {
         return Response.json({ error: "No valid topic IDs" }, { status: 400 });
       }
     } else {
-      selectedTopics = allTopicKeys.sort(() => Math.random() - 0.5).slice(0, 3);
+      selectedTopics = shuffleArray(allTopicKeys).slice(0, 3);
     }
+
+    if (selectedTopics.length === 0) {
+      return Response.json({ error: "No topics available" }, { status: 500 });
+    }
+
     const questionsPerTopic = Math.ceil(count / selectedTopics.length);
     const allQuestions: QuizQuestion[] = [];
 
@@ -42,9 +56,7 @@ export async function POST(request: Request) {
       allQuestions.push(...questions);
     }
 
-    const shuffled = allQuestions
-      .sort(() => Math.random() - 0.5)
-      .slice(0, count);
+    const shuffled = shuffleArray(allQuestions).slice(0, count);
     return Response.json({ questions: shuffled });
   } catch (error) {
     console.error("Mixed quiz generation error:", error);

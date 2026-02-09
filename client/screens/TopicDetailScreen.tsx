@@ -75,35 +75,62 @@ export default function TopicDetailScreen() {
     explainScale.value = withSpring(1, { damping: 15, stiffness: 150 });
   };
 
-  const loadData = useCallback(async () => {
-    try {
-      if (!resolvedTopicId) {
-        setTopic(null);
-        setProgress(null);
-        navigation.setOptions({ headerTitle: "" });
-        return;
+  const loadData = useCallback(
+    async (activeLanguage: "en" | "de" = language) => {
+      try {
+        if (!resolvedTopicId) {
+          setTopic(null);
+          setProgress(null);
+          navigation.setOptions({ headerTitle: "" });
+          return;
+        }
+
+        const topicData = getTopicById(resolvedTopicId);
+        setTopic(topicData || null);
+        navigation.setOptions({
+          headerTitle: topicData ? getTopicName(topicData, activeLanguage) : "",
+        });
+
+        const progressData = await storage.getProgress();
+        setProgress(progressData.topicProgress[resolvedTopicId] || null);
+      } catch (error) {
+        console.error("Error loading topic:", error);
+      } finally {
+        setLoading(false);
       }
-
-      const topicData = getTopicById(resolvedTopicId);
-      setTopic(topicData || null);
-      navigation.setOptions({
-        headerTitle: topicData ? getTopicName(topicData, language) : "",
-      });
-
-      const progressData = await storage.getProgress();
-      setProgress(progressData.topicProgress[resolvedTopicId] || null);
-    } catch (error) {
-      console.error("Error loading topic:", error);
-    } finally {
-      setLoading(false);
-    }
-  }, [resolvedTopicId, navigation, language]);
+    },
+    [resolvedTopicId, navigation, language],
+  );
 
   useFocusEffect(
     useCallback(() => {
-      refreshLanguage();
-      loadData();
-    }, [refreshLanguage, loadData]),
+      let isActive = true;
+
+      const refreshAndLoad = async () => {
+        let resolvedLanguage = language;
+
+        try {
+          const settings = await storage.getSettings();
+          resolvedLanguage = settings.language;
+        } catch {
+          resolvedLanguage = language;
+        }
+
+        try {
+          await refreshLanguage();
+        } catch (error) {
+          console.error("Error refreshing language:", error);
+        }
+        if (!isActive) return;
+        await loadData(resolvedLanguage);
+      };
+
+      refreshAndLoad();
+
+      return () => {
+        isActive = false;
+      };
+    }, [refreshLanguage, loadData, language]),
   );
 
   const handleStartQuiz = () => {

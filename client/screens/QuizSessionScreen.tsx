@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef, useCallback } from "react";
 import {
   View,
   ScrollView,
@@ -31,6 +31,12 @@ interface Question {
   options: string[];
   correctIndex: number;
   explanation: string;
+}
+
+interface QuizAnswerResult {
+  questionId: string;
+  correct: boolean;
+  correctAnswer: string;
 }
 
 function shuffleOptionsForQuestion(question: Question): Question {
@@ -214,17 +220,13 @@ export default function QuizSessionScreen() {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [selectedAnswer, setSelectedAnswer] = useState<number | null>(null);
   const [showResult, setShowResult] = useState(false);
-  const [answers, setAnswers] = useState<
-    { questionId: string; correct: boolean; correctAnswer: string }[]
-  >([]);
+  const [answers, setAnswers] = useState<QuizAnswerResult[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [isAdvancing, setIsAdvancing] = useState(false);
+  const nextInFlightRef = useRef(false);
 
-  useEffect(() => {
-    loadQuestions();
-  }, []);
-
-  const loadQuestions = async () => {
+  const loadQuestions = useCallback(async () => {
     try {
       setLoading(true);
       setError(null);
@@ -277,7 +279,11 @@ export default function QuizSessionScreen() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [count, resolvedTopicId, topicIds, t]);
+
+  useEffect(() => {
+    loadQuestions();
+  }, [loadQuestions]);
 
   const currentQuestion = questions[currentIndex];
 
@@ -288,7 +294,7 @@ export default function QuizSessionScreen() {
   };
 
   const handleSubmit = async () => {
-    if (selectedAnswer === null) return;
+    if (selectedAnswer === null || showResult) return;
 
     const isCorrect = selectedAnswer === currentQuestion.correctIndex;
     setShowResult(true);
@@ -298,43 +304,45 @@ export default function QuizSessionScreen() {
         ? Haptics.NotificationFeedbackType.Success
         : Haptics.NotificationFeedbackType.Error,
     );
-
-    const newAnswer = {
-      questionId: currentQuestion.id,
-      correct: isCorrect,
-      correctAnswer: currentQuestion.options[currentQuestion.correctIndex],
-    };
-    setAnswers([...answers, newAnswer]);
   };
 
   const handleNext = async () => {
-    if (currentIndex < questions.length - 1) {
-      setCurrentIndex(currentIndex + 1);
-      setSelectedAnswer(null);
-      setShowResult(false);
-    } else {
-      const finalAnswers = [
-        ...answers,
-        {
-          questionId: currentQuestion.id,
-          correct: selectedAnswer === currentQuestion.correctIndex,
-          correctAnswer: currentQuestion.options[currentQuestion.correctIndex],
-        },
-      ];
+    if (selectedAnswer === null || nextInFlightRef.current) return;
+    nextInFlightRef.current = true;
+    setIsAdvancing(true);
 
+    const currentAnswer: QuizAnswerResult = {
+      questionId: currentQuestion.id,
+      correct: selectedAnswer === currentQuestion.correctIndex,
+      correctAnswer: currentQuestion.options[currentQuestion.correctIndex],
+    };
+    const nextAnswers = [...answers, currentAnswer];
+
+    try {
+      if (currentIndex < questions.length - 1) {
+        setAnswers(nextAnswers);
+        setCurrentIndex((prevIndex) => prevIndex + 1);
+        setSelectedAnswer(null);
+        setShowResult(false);
+        return;
+      }
+
+      const correctCount = nextAnswers.filter(
+        (answer) => answer.correct,
+      ).length;
       await storage.recordPractice();
       if (resolvedTopicId) {
         await storage.updateTopicProgress(
           resolvedTopicId,
           questions.length,
-          finalAnswers.filter((a) => a.correct).length,
+          correctCount,
         );
       }
 
       const params: Record<string, string> = {
-        score: String(finalAnswers.filter((a) => a.correct).length),
+        score: String(correctCount),
         total: String(questions.length),
-        answers: JSON.stringify(finalAnswers),
+        answers: JSON.stringify(nextAnswers),
       };
       if (resolvedTopicId) {
         params.topicId = resolvedTopicId;
@@ -344,6 +352,9 @@ export default function QuizSessionScreen() {
         pathname: "/session-summary",
         params,
       });
+    } finally {
+      nextInFlightRef.current = false;
+      setIsAdvancing(false);
     }
   };
 
@@ -543,8 +554,14 @@ export default function QuizSessionScreen() {
           {showResult ? (
             <Pressable
               testID="quiz-next-button"
-              style={[styles.submitButton, { backgroundColor: theme.primary }]}
+              style={[
+                styles.submitButton,
+                {
+                  backgroundColor: isAdvancing ? theme.disabled : theme.primary,
+                },
+              ]}
               onPress={handleNext}
+              disabled={isAdvancing}
             >
               <ThemedText
                 type="body"

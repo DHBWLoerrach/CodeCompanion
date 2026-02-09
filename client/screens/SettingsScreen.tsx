@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import {
   View,
   StyleSheet,
@@ -99,10 +99,16 @@ export default function SettingsScreen() {
   const [settings, setSettings] = useState<SettingsData | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const settingsRef = useRef<SettingsData | null>(null);
+  const settingsUpdateInFlightRef = useRef(false);
 
   useEffect(() => {
     loadData();
   }, []);
+
+  useEffect(() => {
+    settingsRef.current = settings;
+  }, [settings]);
 
   const loadData = async () => {
     try {
@@ -166,19 +172,51 @@ export default function SettingsScreen() {
   };
 
   const applyLanguage = async (newLanguage: "en" | "de") => {
-    if (!settings) return;
-    const newSettings: SettingsData = { ...settings, language: newLanguage };
+    const currentSettings = settingsRef.current;
+    if (!currentSettings || settingsUpdateInFlightRef.current) return;
+
+    const newSettings: SettingsData = {
+      ...currentSettings,
+      language: newLanguage,
+    };
+    settingsUpdateInFlightRef.current = true;
+    settingsRef.current = newSettings;
     setSettings(newSettings);
-    await storage.setSettings(newSettings);
-    await refreshLanguage();
+
+    try {
+      await storage.setSettings(newSettings);
+      await refreshLanguage();
+    } catch (error) {
+      console.error("Error updating language:", error);
+      Alert.alert(t("error"), t("failedToSaveSettings"));
+      await loadData();
+    } finally {
+      settingsUpdateInFlightRef.current = false;
+    }
   };
 
   const applyThemeMode = async (mode: ThemeMode) => {
-    if (!settings) return;
-    const newSettings: SettingsData = { ...settings, themeMode: mode };
+    const currentSettings = settingsRef.current;
+    if (!currentSettings || settingsUpdateInFlightRef.current) return;
+
+    const newSettings: SettingsData = {
+      ...currentSettings,
+      themeMode: mode,
+    };
+    settingsUpdateInFlightRef.current = true;
+    settingsRef.current = newSettings;
     setSettings(newSettings);
-    await storage.setSettings(newSettings);
-    await refreshTheme();
+
+    try {
+      await storage.setSettings(newSettings);
+      await refreshTheme();
+    } catch (error) {
+      console.error("Error updating theme:", error);
+      Alert.alert(t("error"), t("failedToSaveSettings"));
+      await loadData();
+    } finally {
+      settingsUpdateInFlightRef.current = false;
+    }
   };
 
   if (loading || !profile || !settings) {
@@ -275,6 +313,7 @@ export default function SettingsScreen() {
                         values={[t("english"), t("german")]}
                         selectedIndex={languageIndex}
                         onChange={({ nativeEvent }) => {
+                          if (settingsUpdateInFlightRef.current) return;
                           const nextLanguage =
                             nativeEvent.selectedSegmentIndex === 0
                               ? "en"
@@ -293,6 +332,7 @@ export default function SettingsScreen() {
                         ]}
                         selectedIndex={themeIndex}
                         onChange={({ nativeEvent }) => {
+                          if (settingsUpdateInFlightRef.current) return;
                           const nextMode =
                             themeModes[nativeEvent.selectedSegmentIndex] ??
                             "auto";
