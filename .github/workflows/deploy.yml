@@ -1,0 +1,47 @@
+name: Manual EAS Deploy
+
+on:
+  workflow_dispatch:
+
+concurrency:
+  group: manual-eas-deploy-production
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    name: Deploy to EAS Hosting (production)
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - name: Validate EXPO_TOKEN
+        run: |
+          if [ -z "${{ secrets.EXPO_TOKEN }}" ]; then
+            echo "Missing EXPO_TOKEN GitHub secret."
+            echo "Create it in: Settings -> Secrets and variables -> Actions."
+            exit 1
+          fi
+
+      - name: Checkout repository
+        uses: actions/checkout@v5
+
+      - name: Setup Node
+        uses: actions/setup-node@v6
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Setup Expo and EAS CLI
+        uses: expo/expo-github-action@v8
+        with:
+          eas-version: latest
+          token: ${{ secrets.EXPO_TOKEN }}
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Export web bundle for API routes
+        run: eas env:exec production 'npx expo export --platform web --no-ssg' --non-interactive
+
+      - name: Deploy to EAS Hosting (production env + production alias)
+        run: eas deploy --environment production --prod --non-interactive
