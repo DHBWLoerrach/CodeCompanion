@@ -33,7 +33,7 @@ function buildQuestions(topicId: string, count: number) {
 describe("POST /api/quiz/generate-mixed", () => {
   beforeEach(() => {
     mockGenerateQuizQuestions.mockReset();
-    mockGenerateQuizQuestions.mockImplementation(async (topicId, count) =>
+    mockGenerateQuizQuestions.mockImplementation(async (topicId, count = 5) =>
       buildQuestions(topicId, count),
     );
   });

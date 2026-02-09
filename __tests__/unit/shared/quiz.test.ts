@@ -56,7 +56,7 @@ describe('shared/quiz', () => {
       subtle: {
         digest: jest.fn(mockDigest),
       },
-    } as Crypto;
+    } as unknown as Crypto;
   });
 
   afterAll(() => {
