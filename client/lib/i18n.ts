@@ -91,6 +91,12 @@ export const translations = {
 
     errorMessage:
       "DHBW Learn encountered an unexpected issue. Tap below to get back to learning!",
+    errorFallbackTitle: "Oops!",
+    backToLearning: "Back to Learning",
+    errorDetails: "Error Details",
+    stackTrace: "Stack Trace",
+    ok: "OK",
+    failedToLoadExplanation: "Failed to load explanation. Please try again.",
 
     fundamentals: "Fundamentals",
     controlFlow: "Control Flow",
@@ -243,6 +249,13 @@ export const translations = {
 
     errorMessage:
       "DHBW Lernen hatte ein unerwartetes Problem. Tippe unten, um weiterzulernen!",
+    errorFallbackTitle: "Ups!",
+    backToLearning: "Zurück zum Lernen",
+    errorDetails: "Fehlerdetails",
+    stackTrace: "Stacktrace",
+    ok: "OK",
+    failedToLoadExplanation:
+      "Erklärung konnte nicht geladen werden. Bitte versuche es erneut.",
 
     fundamentals: "Grundlagen",
     controlFlow: "Kontrollfluss",

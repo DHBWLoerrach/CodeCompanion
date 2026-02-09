@@ -3,6 +3,7 @@ import { reloadAppAsync } from "expo";
 import { StyleSheet, View, Pressable, Text, Alert } from "react-native";
 import { AppIcon } from "@/components/AppIcon";
 import { Spacing, BorderRadius, Colors } from "@/constants/theme";
+import { useTranslation } from "@/hooks/useTranslation";
 
 export type ErrorFallbackProps = {
   error: Error;
@@ -12,6 +13,8 @@ export type ErrorFallbackProps = {
 const fallbackTheme = Colors.light;
 
 export function ErrorFallback({ error, resetError }: ErrorFallbackProps) {
+  const { t } = useTranslation();
+
   const handleRestart = async () => {
     try {
       await reloadAppAsync();
@@ -22,16 +25,16 @@ export function ErrorFallback({ error, resetError }: ErrorFallbackProps) {
   };
 
   const formatErrorDetails = (): string => {
-    let details = `Error: ${error.message}\n\n`;
+    let details = `${t("error")}: ${error.message}\n\n`;
     if (error.stack) {
-      details += `Stack Trace:\n${error.stack}`;
+      details += `${t("stackTrace")}:\n${error.stack}`;
     }
     return details;
   };
 
   const handleShowDetails = () => {
-    Alert.alert("Error Details", formatErrorDetails(), [
-      { text: "OK", style: "default" },
+    Alert.alert(t("errorDetails"), formatErrorDetails(), [
+      { text: t("ok"), style: "default" },
     ]);
   };
 
@@ -58,11 +61,12 @@ export function ErrorFallback({ error, resetError }: ErrorFallbackProps) {
       ) : null}
 
       <View style={styles.content}>
-        <Text style={[styles.title, { color: fallbackTheme.text }]}>Oops!</Text>
+        <Text style={[styles.title, { color: fallbackTheme.text }]}>
+          {t("errorFallbackTitle")}
+        </Text>
 
         <Text style={[styles.message, { color: fallbackTheme.text }]}>
-          DHBW Learn encountered an unexpected issue. Tap below to get back to
-          learning!
+          {t("errorMessage")}
         </Text>
 
         <Pressable
@@ -79,7 +83,7 @@ export function ErrorFallback({ error, resetError }: ErrorFallbackProps) {
           <Text
             style={[styles.buttonText, { color: fallbackTheme.buttonText }]}
           >
-            Back to Learning
+            {t("backToLearning")}
           </Text>
         </Pressable>
       </View>

@@ -76,7 +76,7 @@ export default function TopicExplanationScreen() {
       } catch (fetchError) {
         console.error("Error generating explanation:", fetchError);
         if (isActive) {
-          setError("Failed to load explanation. Please try again.");
+          setError(t("failedToLoadExplanation"));
         }
       } finally {
         if (isActive) {
