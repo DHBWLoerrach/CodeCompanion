@@ -3,9 +3,9 @@ import { View, ScrollView, StyleSheet, Pressable, Linking } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Stack, useLocalSearchParams, useRouter } from "expo-router";
 
+import { HeaderIconButton } from "@/components/HeaderIconButton";
 import { ThemedView } from "@/components/ThemedView";
 import { ThemedText } from "@/components/ThemedText";
-import { AppIcon } from "@/components/AppIcon";
 import { useTheme } from "@/hooks/useTheme";
 import { useTranslation } from "@/hooks/useTranslation";
 import { Spacing, BorderRadius, Shadows } from "@/constants/theme";
@@ -53,15 +53,7 @@ export default function InfoModalScreen() {
       <Stack.Screen
         options={{
           title,
-          headerLeft: () => (
-            <Pressable
-              style={styles.headerButton}
-              onPress={handleClose}
-              hitSlop={12}
-            >
-              <AppIcon name="x" size={20} color={theme.text} />
-            </Pressable>
-          ),
+          headerLeft: () => <HeaderIconButton icon="x" onPress={handleClose} />,
           headerBackVisible: false,
         }}
       />
@@ -388,9 +380,6 @@ const styles = StyleSheet.create({
   },
   imprintMainTitle: {
     color: "#B00020",
-  },
-  headerButton: {
-    padding: Spacing.sm,
   },
   inlineRow: {
     flexDirection: "row",

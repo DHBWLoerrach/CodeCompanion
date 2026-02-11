@@ -109,7 +109,9 @@ function isThemeMode(value: unknown): value is ThemeMode {
   return value === "auto" || value === "light" || value === "dark";
 }
 
-function normalizeSettings(settings: Partial<SettingsData> | null): SettingsData {
+function normalizeSettings(
+  settings: Partial<SettingsData> | null,
+): SettingsData {
   return {
     language: isLanguage(settings?.language)
       ? settings.language

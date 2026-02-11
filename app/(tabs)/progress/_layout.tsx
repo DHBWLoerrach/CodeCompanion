@@ -1,11 +1,9 @@
 import React, { useCallback } from "react";
-import { Pressable, StyleSheet } from "react-native";
 import { Stack, useFocusEffect, useRouter } from "expo-router";
 
-import { AppIcon } from "@/components/AppIcon";
+import { HeaderIconButton } from "@/components/HeaderIconButton";
 import { useTheme } from "@/hooks/useTheme";
 import { useTranslation } from "@/hooks/useTranslation";
-import { Spacing } from "@/constants/theme";
 
 export default function ProgressStack() {
   const { theme } = useTheme();
@@ -32,23 +30,16 @@ export default function ProgressStack() {
         options={{
           title: t("yourProgress"),
           headerRight: () => (
-            <Pressable
+            <HeaderIconButton
+              icon="settings"
               testID="open-settings-button"
-              style={styles.headerButton}
               onPress={() => router.push("/settings")}
-            >
-              <AppIcon name="settings" size={20} color={theme.tabIconDefault} />
-            </Pressable>
+              hitSlop={8}
+              color={theme.tabIconDefault}
+            />
           ),
         }}
       />
     </Stack>
   );
 }
-
-const styles = StyleSheet.create({
-  headerButton: {
-    padding: Spacing.sm,
-    marginRight: Spacing.sm,
-  },
-});

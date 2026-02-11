@@ -1,18 +1,12 @@
 import React, { useEffect, useState } from "react";
-import {
-  View,
-  ScrollView,
-  StyleSheet,
-  ActivityIndicator,
-  Pressable,
-} from "react-native";
+import { View, ScrollView, StyleSheet, ActivityIndicator } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Stack, useLocalSearchParams, useRouter } from "expo-router";
 
+import { HeaderIconButton } from "@/components/HeaderIconButton";
 import { ThemedView } from "@/components/ThemedView";
 import { ThemedText } from "@/components/ThemedText";
 import { MarkdownView } from "@/components/MarkdownView";
-import { AppIcon } from "@/components/AppIcon";
 import { useTheme } from "@/hooks/useTheme";
 import { useTranslation } from "@/hooks/useTranslation";
 import { Spacing } from "@/constants/theme";
@@ -97,15 +91,7 @@ export default function TopicExplanationScreen() {
       <Stack.Screen
         options={{
           title: t("topicExplanation"),
-          headerLeft: () => (
-            <Pressable
-              style={styles.headerButton}
-              onPress={handleClose}
-              hitSlop={12}
-            >
-              <AppIcon name="x" size={20} color={theme.text} />
-            </Pressable>
-          ),
+          headerLeft: () => <HeaderIconButton icon="x" onPress={handleClose} />,
           headerBackVisible: false,
         }}
       />
@@ -157,8 +143,5 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
     paddingVertical: Spacing.xl * 2,
-  },
-  headerButton: {
-    padding: Spacing.sm,
   },
 });

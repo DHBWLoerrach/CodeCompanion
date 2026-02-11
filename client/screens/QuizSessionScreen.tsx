@@ -15,6 +15,7 @@ import Animated, {
 } from "react-native-reanimated";
 import * as Haptics from "expo-haptics";
 
+import { HeaderIconButton } from "@/components/HeaderIconButton";
 import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
 import { AppIcon } from "@/components/AppIcon";
@@ -402,9 +403,7 @@ export default function QuizSessionScreen() {
     questions.length > 0 ? `${currentIndex + 1}/${questions.length}` : "";
 
   const renderCloseButton = () => (
-    <Pressable style={styles.headerButton} onPress={handleClose} hitSlop={12}>
-      <AppIcon name="x" size={22} color={theme.text} />
-    </Pressable>
+    <HeaderIconButton icon="x" onPress={handleClose} />
   );
 
   if (loading) {
@@ -414,7 +413,6 @@ export default function QuizSessionScreen() {
           options={{
             title: headerTitle,
             headerLeft: renderCloseButton,
-            headerRight: () => <View style={styles.headerPlaceholder} />,
             headerBackVisible: false,
           }}
         />
@@ -443,7 +441,6 @@ export default function QuizSessionScreen() {
           options={{
             title: headerTitle,
             headerLeft: renderCloseButton,
-            headerRight: () => <View style={styles.headerPlaceholder} />,
             headerBackVisible: false,
           }}
         />
@@ -495,7 +492,6 @@ export default function QuizSessionScreen() {
         options={{
           title: headerTitle,
           headerLeft: renderCloseButton,
-          headerRight: () => <View style={styles.headerPlaceholder} />,
           headerBackVisible: false,
         }}
       />
@@ -669,12 +665,6 @@ const styles = StyleSheet.create({
     paddingVertical: Spacing.md,
     borderRadius: BorderRadius.md,
     borderWidth: 1,
-  },
-  headerButton: {
-    padding: Spacing.sm,
-  },
-  headerPlaceholder: {
-    width: 40,
   },
   progressBar: {
     height: 4,

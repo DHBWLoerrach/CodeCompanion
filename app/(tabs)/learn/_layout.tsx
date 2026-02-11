@@ -1,12 +1,12 @@
 import React, { useCallback } from "react";
-import { Pressable, StyleSheet, View } from "react-native";
+import { StyleSheet, View } from "react-native";
 import { Stack, useFocusEffect, useRouter } from "expo-router";
 
-import { AppIcon } from "@/components/AppIcon";
+import { HeaderIconButton } from "@/components/HeaderIconButton";
 import { ThemedText } from "@/components/ThemedText";
 import { useTheme } from "@/hooks/useTheme";
 import { useTranslation } from "@/hooks/useTranslation";
-import { BorderRadius, Spacing } from "@/constants/theme";
+import { BorderRadius } from "@/constants/theme";
 
 function HeaderBrand() {
   const { theme } = useTheme();
@@ -53,13 +53,13 @@ export default function LearnStack() {
           title: t("learnJavaScript"),
           headerLeft: () => <HeaderBrand />,
           headerRight: () => (
-            <Pressable
+            <HeaderIconButton
+              icon="settings"
               testID="open-settings-button"
-              style={styles.headerButton}
               onPress={() => router.push("/settings")}
-            >
-              <AppIcon name="settings" size={20} color={theme.tabIconDefault} />
-            </Pressable>
+              hitSlop={8}
+              color={theme.tabIconDefault}
+            />
           ),
         }}
       />
@@ -69,20 +69,20 @@ export default function LearnStack() {
 
 const styles = StyleSheet.create({
   headerBrand: {
-    paddingLeft: Spacing.lg,
-  },
-  headerBadge: {
-    width: 34,
-    height: 34,
-    borderRadius: BorderRadius.sm,
+    width: 36,
+    height: 36,
     alignItems: "center",
     justifyContent: "center",
   },
+  headerBadge: {
+    width: 30,
+    height: 30,
+    borderRadius: BorderRadius.sm,
+    alignItems: "center",
+    justifyContent: "center",
+    borderCurve: "continuous",
+  },
   headerBadgeText: {
     fontWeight: "700",
-  },
-  headerButton: {
-    padding: Spacing.sm,
-    marginRight: Spacing.sm,
   },
 });
