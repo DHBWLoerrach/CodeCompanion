@@ -1,5 +1,6 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import type { MasteryLevel } from "@shared/skill-level";
+import { getDeviceLanguage, type Language } from "./i18n";
 
 const STORAGE_KEYS = {
   USER_PROFILE: "dhbw_user_profile",
@@ -72,7 +73,7 @@ export interface StreakData {
 export type ThemeMode = "auto" | "light" | "dark";
 
 export interface SettingsData {
-  language: "en" | "de";
+  language: Language;
   themeMode: ThemeMode;
 }
 
@@ -95,10 +96,30 @@ const defaultStreak: StreakData = {
   weekHistory: [false, false, false, false, false, false, false],
 };
 
-const defaultSettings: SettingsData = {
-  language: "en",
-  themeMode: "auto",
-};
+function getDefaultSettings(): SettingsData {
+  return {
+    language: getDeviceLanguage(),
+    themeMode: "auto",
+  };
+}
+
+function isLanguage(value: unknown): value is Language {
+  return value === "en" || value === "de";
+}
+
+function isThemeMode(value: unknown): value is ThemeMode {
+  return value === "auto" || value === "light" || value === "dark";
+}
+
+function normalizeSettings(settings: Partial<SettingsData> | null): SettingsData {
+  const defaults = getDefaultSettings();
+  return {
+    language: isLanguage(settings?.language) ? settings.language : defaults.language,
+    themeMode: isThemeMode(settings?.themeMode)
+      ? settings.themeMode
+      : defaults.themeMode,
+  };
+}
 
 export const storage = {
   async getProfile(): Promise<UserProfile> {
@@ -229,9 +250,9 @@ export const storage = {
   async getSettings(): Promise<SettingsData> {
     try {
       const data = await AsyncStorage.getItem(STORAGE_KEYS.SETTINGS);
-      return data ? JSON.parse(data) : defaultSettings;
+      return normalizeSettings(data ? JSON.parse(data) : null);
     } catch {
-      return defaultSettings;
+      return getDefaultSettings();
     }
   },
 

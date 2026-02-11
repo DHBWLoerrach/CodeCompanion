@@ -1,9 +1,14 @@
 import { useState, useEffect, useCallback } from "react";
 import { storage } from "@/lib/storage";
-import { translations, type Language, type TranslationKey } from "@/lib/i18n";
+import {
+  getDeviceLanguage,
+  translations,
+  type Language,
+  type TranslationKey,
+} from "@/lib/i18n";
 
 export function useTranslation() {
-  const [language, setLanguage] = useState<Language>("en");
+  const [language, setLanguage] = useState<Language>(getDeviceLanguage());
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
@@ -15,7 +20,7 @@ export function useTranslation() {
       const settings = await storage.getSettings();
       setLanguage(settings.language);
     } catch {
-      setLanguage("en");
+      setLanguage(getDeviceLanguage());
     } finally {
       setIsLoading(false);
     }

@@ -9,6 +9,7 @@ import {
 } from "@/lib/storage";
 
 const STREAK_KEY = "dhbw_streak";
+const SETTINGS_KEY = "dhbw_settings";
 
 function daysAgo(base: string, days: number): string {
   return new Date(
@@ -234,6 +235,48 @@ describe("storage state updates", () => {
 
       expect(await storage.getTopicSkillLevel("advanced")).toBe(5);
       expect(await storage.getTopicSkillLevel("basics")).toBe(1);
+    });
+  });
+
+  describe("getSettings", () => {
+    it("uses device language on first start", async () => {
+      const dateTimeFormatSpy = jest.spyOn(Intl, "DateTimeFormat");
+      dateTimeFormatSpy.mockImplementation(
+        () =>
+          ({
+            resolvedOptions: () => ({ locale: "de-DE" }),
+          }) as unknown as Intl.DateTimeFormat,
+      );
+
+      const settings = await storage.getSettings();
+
+      expect(settings).toEqual({
+        language: "de",
+        themeMode: "auto",
+      });
+      dateTimeFormatSpy.mockRestore();
+    });
+
+    it("normalizes invalid stored settings values", async () => {
+      const dateTimeFormatSpy = jest.spyOn(Intl, "DateTimeFormat");
+      dateTimeFormatSpy.mockImplementation(
+        () =>
+          ({
+            resolvedOptions: () => ({ locale: "de-DE" }),
+          }) as unknown as Intl.DateTimeFormat,
+      );
+      await AsyncStorage.setItem(
+        SETTINGS_KEY,
+        JSON.stringify({ language: "fr", themeMode: "light" }),
+      );
+
+      const settings = await storage.getSettings();
+
+      expect(settings).toEqual({
+        language: "de",
+        themeMode: "light",
+      });
+      dateTimeFormatSpy.mockRestore();
     });
   });
 });
