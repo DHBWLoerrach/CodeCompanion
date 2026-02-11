@@ -78,6 +78,24 @@ describe("POST /api/quiz/generate", () => {
     expect(mockGenerateQuizQuestions).toHaveBeenCalledWith("loops", 5, "de", 1);
   });
 
+  it("caps count to maximum to avoid oversized generation", async () => {
+    mockGenerateQuizQuestions.mockResolvedValueOnce([]);
+
+    await POST(
+      createRequest({
+        topicId: "variables",
+        count: 100000,
+      }),
+    );
+
+    expect(mockGenerateQuizQuestions).toHaveBeenCalledWith(
+      "variables",
+      20,
+      "en",
+      1,
+    );
+  });
+
   it("returns 500 when generator fails", async () => {
     jest.spyOn(console, "error").mockImplementation(() => {});
     mockGenerateQuizQuestions.mockRejectedValueOnce(new Error("network down"));

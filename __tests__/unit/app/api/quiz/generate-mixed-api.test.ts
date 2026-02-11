@@ -96,6 +96,32 @@ describe("POST /api/quiz/generate-mixed", () => {
     expect(data.questions).toHaveLength(10);
   });
 
+  it("caps count to maximum to avoid oversized mixed quiz generation", async () => {
+    const response = await POST(
+      createRequest({
+        topicIds: ["loops", "variables"],
+        count: 100000,
+      }),
+    );
+    const data = await response.json();
+
+    expect(response.status).toBe(200);
+    expect(mockGenerateQuizQuestions).toHaveBeenCalledTimes(2);
+    expect(mockGenerateQuizQuestions).toHaveBeenNthCalledWith(
+      1,
+      "loops",
+      10,
+      "en",
+    );
+    expect(mockGenerateQuizQuestions).toHaveBeenNthCalledWith(
+      2,
+      "variables",
+      10,
+      "en",
+    );
+    expect(data.questions).toHaveLength(20);
+  });
+
   it("returns 500 when generation fails", async () => {
     jest.spyOn(console, "error").mockImplementation(() => {});
     mockGenerateQuizQuestions.mockRejectedValueOnce(

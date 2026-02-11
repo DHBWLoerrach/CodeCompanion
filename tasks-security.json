@@ -15,7 +15,7 @@
     "id": "S03",
     "datei": "app/api/quiz/generate+api.ts:22, generate-mixed+api.ts:20",
     "problem": "Fehlende count-Obergrenzen: count Parameter wird ohne Maximum akzeptiert, Angreifer koennte count=100000 senden",
-    "status": "not done"
+    "status": "done"
   },
   {
     "id": "S04",

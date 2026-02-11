@@ -9,6 +9,11 @@ function toNumber(value: unknown, fallback: number): number {
   return Number.isFinite(parsed) ? parsed : fallback;
 }
 
+function toQuestionCount(value: unknown): number {
+  const parsed = toNumber(value, 10);
+  return Math.min(20, Math.max(1, parsed));
+}
+
 function shuffleArray<T>(items: T[]): T[] {
   const shuffled = [...items];
   for (let i = shuffled.length - 1; i > 0; i -= 1) {
@@ -26,7 +31,7 @@ export async function POST(request: Request) {
       topicIds?: string[];
     };
 
-    const count = toNumber(body?.count, 10);
+    const count = toQuestionCount(body?.count);
     const language = typeof body?.language === "string" ? body.language : "en";
 
     const allTopicKeys = Object.keys(TOPIC_PROMPTS);

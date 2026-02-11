@@ -5,6 +5,11 @@ function toNumber(value: unknown, fallback: number): number {
   return Number.isFinite(parsed) ? parsed : fallback;
 }
 
+function toQuestionCount(value: unknown): number {
+  const parsed = toNumber(value, 5);
+  return Math.min(20, Math.max(1, parsed));
+}
+
 export async function POST(request: Request) {
   try {
     const body = (await request.json()) as {
@@ -19,7 +24,7 @@ export async function POST(request: Request) {
       return Response.json({ error: "topicId is required" }, { status: 400 });
     }
 
-    const count = toNumber(body?.count, 5);
+    const count = toQuestionCount(body?.count);
     const language = typeof body?.language === "string" ? body.language : "en";
     const skillLevelRaw = toNumber(body?.skillLevel, 1);
     const skillLevel = Math.min(3, Math.max(1, skillLevelRaw)) as 1 | 2 | 3;
