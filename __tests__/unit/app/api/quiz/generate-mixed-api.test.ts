@@ -65,6 +65,20 @@ describe("POST /api/quiz/generate-mixed", () => {
     expect(mockGenerateQuizQuestions).not.toHaveBeenCalled();
   });
 
+  it("returns 400 when language is invalid", async () => {
+    const response = await POST(
+      createRequest({
+        topicIds: ["variables"],
+        language: "fr",
+      }),
+    );
+    const data = await response.json();
+
+    expect(response.status).toBe(400);
+    expect(data).toEqual({ error: "language must be 'en' or 'de'" });
+    expect(mockGenerateQuizQuestions).not.toHaveBeenCalled();
+  });
+
   it("filters topicIds and generates requested count", async () => {
     const response = await POST(
       createRequest({

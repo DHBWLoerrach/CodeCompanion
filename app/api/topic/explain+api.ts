@@ -1,10 +1,6 @@
 import { generateTopicExplanation } from "@shared/quiz";
 import { logApiError } from "@shared/logging";
-
-function toLanguage(value: unknown): "en" | "de" | null {
-  if (value === undefined || value === null) return "en";
-  return value === "en" || value === "de" ? value : null;
-}
+import { requireTopicId, toLanguage } from "../_lib/validation";
 
 export async function POST(request: Request) {
   try {
@@ -13,8 +9,8 @@ export async function POST(request: Request) {
       language?: string;
     };
 
-    const topicId = body?.topicId;
-    if (!topicId || typeof topicId !== "string") {
+    const topicId = requireTopicId(body?.topicId);
+    if (!topicId) {
       return Response.json({ error: "topicId is required" }, { status: 400 });
     }
 

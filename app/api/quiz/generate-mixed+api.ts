@@ -4,16 +4,7 @@ import {
   type QuizQuestion,
 } from "@shared/quiz";
 import { logApiError } from "@shared/logging";
-
-function toNumber(value: unknown, fallback: number): number {
-  const parsed = typeof value === "number" ? value : Number(value);
-  return Number.isFinite(parsed) ? parsed : fallback;
-}
-
-function toQuestionCount(value: unknown): number {
-  const parsed = toNumber(value, 10);
-  return Math.min(20, Math.max(1, parsed));
-}
+import { toLanguage, toQuestionCount } from "../_lib/validation";
 
 function hasTooManyTopicIds(value: unknown): boolean {
   return Array.isArray(value) && value.length > 20;
@@ -36,14 +27,20 @@ export async function POST(request: Request) {
       topicIds?: string[];
     };
 
-    const count = toQuestionCount(body?.count);
+    const count = toQuestionCount(body?.count, 10);
     if (hasTooManyTopicIds(body?.topicIds)) {
       return Response.json(
         { error: "topicIds cannot contain more than 20 entries" },
         { status: 400 },
       );
     }
-    const language = typeof body?.language === "string" ? body.language : "en";
+    const language = toLanguage(body?.language);
+    if (!language) {
+      return Response.json(
+        { error: "language must be 'en' or 'de'" },
+        { status: 400 },
+      );
+    }
 
     const allTopicKeys = Object.keys(TOPIC_PROMPTS);
     let selectedTopics: string[];

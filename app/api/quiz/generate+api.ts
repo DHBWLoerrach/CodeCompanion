@@ -1,20 +1,11 @@
 import { generateQuizQuestions } from "@shared/quiz";
 import { logApiError } from "@shared/logging";
-
-function toNumber(value: unknown, fallback: number): number {
-  const parsed = typeof value === "number" ? value : Number(value);
-  return Number.isFinite(parsed) ? parsed : fallback;
-}
-
-function toLanguage(value: unknown): "en" | "de" | null {
-  if (value === undefined || value === null) return "en";
-  return value === "en" || value === "de" ? value : null;
-}
-
-function toQuestionCount(value: unknown): number {
-  const parsed = toNumber(value, 5);
-  return Math.min(20, Math.max(1, parsed));
-}
+import {
+  requireTopicId,
+  toLanguage,
+  toNumber,
+  toQuestionCount,
+} from "../_lib/validation";
 
 export async function POST(request: Request) {
   try {
@@ -25,12 +16,12 @@ export async function POST(request: Request) {
       skillLevel?: number;
     };
 
-    const topicId = body?.topicId;
-    if (!topicId || typeof topicId !== "string") {
+    const topicId = requireTopicId(body?.topicId);
+    if (!topicId) {
       return Response.json({ error: "topicId is required" }, { status: 400 });
     }
 
-    const count = toQuestionCount(body?.count);
+    const count = toQuestionCount(body?.count, 5);
     const language = toLanguage(body?.language);
     if (!language) {
       return Response.json(
