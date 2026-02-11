@@ -21,12 +21,20 @@ function isLocalDevelopmentHost(hostname: string): boolean {
   );
 }
 
-function ensureSecureApiUrl(url: URL): URL {
+function canUseInsecureHttp(hostname: string): boolean {
+  return (
+    typeof __DEV__ !== "undefined" &&
+    __DEV__ &&
+    isLocalDevelopmentHost(hostname)
+  );
+}
+
+function enforceHttpsUnlessAllowed(url: URL): URL {
   if (url.protocol === "https:") {
     return url;
   }
 
-  if (url.protocol === "http:" && isLocalDevelopmentHost(url.hostname)) {
+  if (url.protocol === "http:" && canUseInsecureHttp(url.hostname)) {
     return url;
   }
 
@@ -36,7 +44,7 @@ function ensureSecureApiUrl(url: URL): URL {
 export function getApiUrl(): string {
   const explicitUrl = process.env.EXPO_PUBLIC_API_URL;
   if (explicitUrl) {
-    return ensureSecureApiUrl(new URL(explicitUrl)).href;
+    return enforceHttpsUnlessAllowed(new URL(explicitUrl)).href;
   }
 
   const hostUri = Constants.expoConfig?.hostUri;
@@ -48,7 +56,7 @@ export function getApiUrl(): string {
       url.protocol = "https:";
     }
 
-    return ensureSecureApiUrl(url).href;
+    return enforceHttpsUnlessAllowed(url).href;
   }
 
   throw new Error("EXPO_PUBLIC_API_URL is not set");

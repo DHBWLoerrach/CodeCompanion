@@ -7,14 +7,37 @@ jest.mock("expo-constants", () => ({
     expoConfig: {},
   },
 }));
+jest.mock("expo/virtual/env", () => ({
+  env: {},
+}));
 
 const originalEnv = process.env;
+const globalWithDevFlag = global as typeof globalThis & { __DEV__?: boolean };
+const originalDev = globalWithDevFlag.__DEV__;
+const expoEnv = (
+  jest.requireMock("expo/virtual/env") as {
+    env: { EXPO_PUBLIC_API_URL?: string };
+  }
+).env;
 const fetchMock = jest.fn();
+
+beforeEach(() => {
+  globalWithDevFlag.__DEV__ = true;
+});
+
+afterAll(() => {
+  if (originalDev === undefined) {
+    delete globalWithDevFlag.__DEV__;
+    return;
+  }
+
+  globalWithDevFlag.__DEV__ = originalDev;
+});
 
 describe("getApiUrl", () => {
   beforeEach(() => {
     process.env = { ...originalEnv };
-    delete process.env.EXPO_PUBLIC_API_URL;
+    delete expoEnv.EXPO_PUBLIC_API_URL;
     (Constants as { expoConfig?: { hostUri?: string } }).expoConfig = {};
   });
 
@@ -28,6 +51,62 @@ describe("getApiUrl", () => {
     };
 
     expect(getApiUrl()).toBe("http://localhost:8081/");
+  });
+
+  it("uses EXPO_PUBLIC_API_URL when set to HTTPS", () => {
+    expoEnv.EXPO_PUBLIC_API_URL = "https://api.example.com";
+
+    expect(getApiUrl()).toBe("https://api.example.com/");
+  });
+
+  it("throws when EXPO_PUBLIC_API_URL uses insecure HTTP for non-local hosts in dev", () => {
+    expoEnv.EXPO_PUBLIC_API_URL = "http://api.example.com";
+
+    expect(() => getApiUrl()).toThrow(
+      "HTTPS is required for API URL outside local development",
+    );
+  });
+
+  it("throws when EXPO_PUBLIC_API_URL uses insecure HTTP for non-local hosts outside dev", () => {
+    globalWithDevFlag.__DEV__ = false;
+    expoEnv.EXPO_PUBLIC_API_URL = "http://api.example.com";
+
+    expect(() => getApiUrl()).toThrow(
+      "HTTPS is required for API URL outside local development",
+    );
+  });
+
+  it("allows local EXPO_PUBLIC_API_URL over HTTP in dev", () => {
+    expoEnv.EXPO_PUBLIC_API_URL = "http://localhost:8081";
+
+    expect(getApiUrl()).toBe("http://localhost:8081/");
+  });
+
+  it("allows private-network EXPO_PUBLIC_API_URL over HTTP in dev", () => {
+    expoEnv.EXPO_PUBLIC_API_URL = "http://192.168.1.10:8081";
+
+    expect(getApiUrl()).toBe("http://192.168.1.10:8081/");
+  });
+
+  it("allows 10.x EXPO_PUBLIC_API_URL over HTTP in dev", () => {
+    expoEnv.EXPO_PUBLIC_API_URL = "http://10.0.0.42:8081";
+
+    expect(getApiUrl()).toBe("http://10.0.0.42:8081/");
+  });
+
+  it("allows 172.16-31.x EXPO_PUBLIC_API_URL over HTTP in dev", () => {
+    expoEnv.EXPO_PUBLIC_API_URL = "http://172.31.5.20:8081";
+
+    expect(getApiUrl()).toBe("http://172.31.5.20:8081/");
+  });
+
+  it("throws when local EXPO_PUBLIC_API_URL uses HTTP outside dev", () => {
+    globalWithDevFlag.__DEV__ = false;
+    expoEnv.EXPO_PUBLIC_API_URL = "http://localhost:8081";
+
+    expect(() => getApiUrl()).toThrow(
+      "HTTPS is required for API URL outside local development",
+    );
   });
 
   it("keeps protocol when hostUri already has one", () => {
@@ -48,12 +127,34 @@ describe("getApiUrl", () => {
     );
   });
 
+  it("throws when hostUri uses local HTTP outside dev", () => {
+    globalWithDevFlag.__DEV__ = false;
+    (Constants as { expoConfig?: { hostUri?: string } }).expoConfig = {
+      hostUri: "http://localhost:8081",
+    };
+
+    expect(() => getApiUrl()).toThrow(
+      "HTTPS is required for API URL outside local development",
+    );
+  });
+
   it("defaults to HTTPS for non-local hostUri without protocol", () => {
     (Constants as { expoConfig?: { hostUri?: string } }).expoConfig = {
       hostUri: "api.example.com",
     };
 
     expect(getApiUrl()).toBe("https://api.example.com/");
+  });
+
+  it("throws when hostUri without protocol points to localhost outside dev", () => {
+    globalWithDevFlag.__DEV__ = false;
+    (Constants as { expoConfig?: { hostUri?: string } }).expoConfig = {
+      hostUri: "localhost:8081",
+    };
+
+    expect(() => getApiUrl()).toThrow(
+      "HTTPS is required for API URL outside local development",
+    );
   });
 
   it("throws if neither API URL nor domain is set", () => {
