@@ -146,7 +146,7 @@ describe("shared/quiz", () => {
       );
 
       await expect(generateQuizQuestions("variables")).rejects.toThrow(
-        "OpenAI error 500: upstream failed",
+        "OpenAI request failed with status 500",
       );
     });
 

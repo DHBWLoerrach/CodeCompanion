@@ -108,8 +108,7 @@ async function requestOpenAI(payload: Record<string, unknown>) {
   });
 
   if (!response.ok) {
-    const errorText = await response.text();
-    throw new Error(`OpenAI error ${response.status}: ${errorText}`);
+    throw new Error(`OpenAI request failed with status ${response.status}`);
   }
 
   return response.json();
