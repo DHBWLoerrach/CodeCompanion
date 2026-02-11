@@ -45,7 +45,7 @@
     "id": "S08",
     "datei": "client/lib/query-client.ts:28",
     "problem": "Response-Text Disclosure: throw new Error mit Server-Response-Details leakt Informationen",
-    "status": "not done"
+    "status": "done"
   },
   {
     "id": "S09",

@@ -103,7 +103,7 @@ describe("apiRequest", () => {
     });
   });
 
-  it("throws a detailed error when response is not ok", async () => {
+  it("throws a sanitized error when response is not ok", async () => {
     fetchMock.mockResolvedValueOnce({
       ok: false,
       status: 500,
@@ -113,7 +113,7 @@ describe("apiRequest", () => {
     } as Response);
 
     await expect(apiRequest("GET", "/api/fail")).rejects.toThrow(
-      "500: backend failed",
+      "Request failed (500)",
     );
   });
 });
@@ -159,7 +159,7 @@ describe("getQueryFn", () => {
 
     const queryFn = getQueryFn<unknown>({ on401: "throw" });
     await expect(queryFn({ queryKey: ["api", "me"] } as never)).rejects.toThrow(
-      "401: Unauthorized",
+      "Request failed (401)",
     );
   });
 
