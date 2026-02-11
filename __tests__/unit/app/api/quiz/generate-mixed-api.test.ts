@@ -96,12 +96,14 @@ describe("POST /api/quiz/generate-mixed", () => {
       "loops",
       3,
       "de",
+      1,
     );
     expect(mockGenerateQuizQuestions).toHaveBeenNthCalledWith(
       2,
       "variables",
       3,
       "de",
+      1,
     );
     expect(data.questions).toHaveLength(5);
   });
@@ -116,9 +118,15 @@ describe("POST /api/quiz/generate-mixed", () => {
       "variables",
       4,
       "en",
+      1,
     );
-    expect(mockGenerateQuizQuestions).toHaveBeenCalledWith("loops", 4, "en");
-    expect(mockGenerateQuizQuestions).toHaveBeenCalledWith("promises", 4, "en");
+    expect(mockGenerateQuizQuestions).toHaveBeenCalledWith("loops", 4, "en", 1);
+    expect(mockGenerateQuizQuestions).toHaveBeenCalledWith(
+      "promises",
+      4,
+      "en",
+      1,
+    );
     expect(data.questions).toHaveLength(10);
   });
 
@@ -138,14 +146,83 @@ describe("POST /api/quiz/generate-mixed", () => {
       "loops",
       10,
       "en",
+      1,
     );
     expect(mockGenerateQuizQuestions).toHaveBeenNthCalledWith(
       2,
       "variables",
       10,
       "en",
+      1,
     );
     expect(data.questions).toHaveLength(20);
+  });
+
+  it("uses explicit skillLevel when provided", async () => {
+    const response = await POST(
+      createRequest({
+        topicIds: ["variables"],
+        skillLevel: 2,
+      }),
+    );
+    const data = await response.json();
+
+    expect(response.status).toBe(200);
+    expect(mockGenerateQuizQuestions).toHaveBeenCalledWith(
+      "variables",
+      10,
+      "en",
+      2,
+    );
+    expect(data.questions).toHaveLength(10);
+  });
+
+  it("clamps skillLevel to maximum", async () => {
+    await POST(
+      createRequest({
+        topicIds: ["variables"],
+        skillLevel: 99,
+      }),
+    );
+
+    expect(mockGenerateQuizQuestions).toHaveBeenCalledWith(
+      "variables",
+      10,
+      "en",
+      3,
+    );
+  });
+
+  it("clamps skillLevel to minimum", async () => {
+    await POST(
+      createRequest({
+        topicIds: ["variables"],
+        skillLevel: -8,
+      }),
+    );
+
+    expect(mockGenerateQuizQuestions).toHaveBeenCalledWith(
+      "variables",
+      10,
+      "en",
+      1,
+    );
+  });
+
+  it("uses fallback skillLevel when invalid", async () => {
+    await POST(
+      createRequest({
+        topicIds: ["variables"],
+        skillLevel: "abc",
+      }),
+    );
+
+    expect(mockGenerateQuizQuestions).toHaveBeenCalledWith(
+      "variables",
+      10,
+      "en",
+      1,
+    );
   });
 
   it("returns 500 when generation fails", async () => {

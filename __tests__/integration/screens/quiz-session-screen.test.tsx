@@ -6,6 +6,7 @@ const mockReplace = jest.fn();
 const mockApiRequest = jest.fn();
 const mockStorage = {
   getSettings: jest.fn(),
+  getProgress: jest.fn(),
   getTopicSkillLevel: jest.fn(),
   recordPractice: jest.fn(),
   updateTopicProgress: jest.fn(),
@@ -76,6 +77,7 @@ jest.mock("@/lib/query-client", () => ({
 jest.mock("@/lib/storage", () => ({
   storage: {
     getSettings: (...args: unknown[]) => mockStorage.getSettings(...args),
+    getProgress: (...args: unknown[]) => mockStorage.getProgress(...args),
     getTopicSkillLevel: (...args: unknown[]) =>
       mockStorage.getTopicSkillLevel(...args),
     recordPractice: (...args: unknown[]) => mockStorage.recordPractice(...args),
@@ -91,6 +93,7 @@ describe("QuizSessionScreen integration", () => {
     mockReplace.mockReset();
     mockApiRequest.mockReset();
     mockStorage.getSettings.mockReset();
+    mockStorage.getProgress.mockReset();
     mockStorage.getTopicSkillLevel.mockReset();
     mockStorage.recordPractice.mockReset();
     mockStorage.updateTopicProgress.mockReset();
@@ -101,6 +104,12 @@ describe("QuizSessionScreen integration", () => {
       themeMode: "auto",
     });
     mockStorage.getTopicSkillLevel.mockResolvedValue(2);
+    mockStorage.getProgress.mockResolvedValue({
+      totalQuestions: 0,
+      correctAnswers: 0,
+      topicProgress: {},
+      achievements: [],
+    });
     mockStorage.recordPractice.mockResolvedValue(undefined);
     mockStorage.updateTopicProgress.mockResolvedValue(undefined);
 
@@ -169,5 +178,110 @@ describe("QuizSessionScreen integration", () => {
     expect(replaceArgs.params.total).toBe("1");
     expect(replaceArgs.params.score).toBe("0");
     expect(replaceArgs.params.answers).toContain('"questionId":"q1"');
+  });
+
+  it("sends mapped mixed skillLevel for provided topicIds", async () => {
+    mockSearchParams = { topicIds: "variables,loops", count: "2" };
+    mockStorage.getProgress.mockResolvedValue({
+      totalQuestions: 0,
+      correctAnswers: 0,
+      topicProgress: {
+        variables: {
+          topicId: "variables",
+          questionsAnswered: 10,
+          correctAnswers: 8,
+          skillLevel: 5,
+        },
+        loops: {
+          topicId: "loops",
+          questionsAnswered: 4,
+          correctAnswers: 2,
+          skillLevel: 1,
+        },
+      },
+      achievements: [],
+    });
+
+    const screen = render(<QuizSessionScreen />);
+
+    await waitFor(() => {
+      expect(screen.getByText("What is const?")).toBeTruthy();
+    });
+
+    expect(mockApiRequest).toHaveBeenCalledWith(
+      "POST",
+      "/api/quiz/generate-mixed",
+      {
+        topicIds: ["variables", "loops"],
+        count: 2,
+        language: "en",
+        skillLevel: 2,
+      },
+    );
+  });
+
+  it("sends mapped mixed skillLevel from global progress for random mix", async () => {
+    mockSearchParams = {};
+    mockStorage.getProgress.mockResolvedValue({
+      totalQuestions: 0,
+      correctAnswers: 0,
+      topicProgress: {
+        variables: {
+          topicId: "variables",
+          questionsAnswered: 12,
+          correctAnswers: 10,
+          skillLevel: 5,
+        },
+        loops: {
+          topicId: "loops",
+          questionsAnswered: 7,
+          correctAnswers: 6,
+          skillLevel: 4,
+        },
+      },
+      achievements: [],
+    });
+
+    const screen = render(<QuizSessionScreen />);
+
+    await waitFor(() => {
+      expect(screen.getByText("What is const?")).toBeTruthy();
+    });
+
+    expect(mockApiRequest).toHaveBeenCalledWith(
+      "POST",
+      "/api/quiz/generate-mixed",
+      {
+        count: 10,
+        language: "en",
+        skillLevel: 3,
+      },
+    );
+  });
+
+  it("falls back to beginner mixed skillLevel when no progress exists", async () => {
+    mockSearchParams = {};
+    mockStorage.getProgress.mockResolvedValue({
+      totalQuestions: 0,
+      correctAnswers: 0,
+      topicProgress: {},
+      achievements: [],
+    });
+
+    const screen = render(<QuizSessionScreen />);
+
+    await waitFor(() => {
+      expect(screen.getByText("What is const?")).toBeTruthy();
+    });
+
+    expect(mockApiRequest).toHaveBeenCalledWith(
+      "POST",
+      "/api/quiz/generate-mixed",
+      {
+        count: 10,
+        language: "en",
+        skillLevel: 1,
+      },
+    );
   });
 });

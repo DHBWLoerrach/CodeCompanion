@@ -1,4 +1,5 @@
 export type SupportedLanguage = "en" | "de";
+export type ApiSkillLevel = 1 | 2 | 3;
 
 export function toNumber(value: unknown, fallback: number): number {
   const parsed = typeof value === "number" ? value : Number(value);
@@ -21,4 +22,12 @@ export function requireTopicId(value: unknown): string | null {
   }
 
   return value;
+}
+
+export function toSkillLevel(
+  value: unknown,
+  fallback: ApiSkillLevel = 1,
+): ApiSkillLevel {
+  const parsed = toNumber(value, fallback);
+  return Math.min(3, Math.max(1, parsed)) as ApiSkillLevel;
 }
