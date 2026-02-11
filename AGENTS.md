@@ -45,6 +45,7 @@ DHBW Code Companion is a mobile learning app for JavaScript topics (Expo SDK 54,
 - Keep commits focused and imperative.
 - Preferred commit style from history: clear and concise (< 80 chars, e.g. "Add quiz generation API route" or "Fix theme context bug".>)
 - Before committing: `npm run check:types && npm run lint && npm run check:format && npm test`
+- Commit messages must be in English and be concise (<= 80 chars recommended).
 
 ## Architecture Notes
 
