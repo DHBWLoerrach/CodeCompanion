@@ -1,4 +1,5 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import type { MasteryLevel } from "@shared/skill-level";
 
 const STORAGE_KEYS = {
   USER_PROFILE: "dhbw_user_profile",
@@ -12,17 +13,15 @@ export interface UserProfile {
   avatarIndex: number;
 }
 
-export type SkillLevel = 1 | 2 | 3 | 4 | 5;
-
 export interface TopicProgress {
   topicId: string;
   questionsAnswered: number;
   correctAnswers: number;
   lastPracticed?: string;
-  skillLevel: SkillLevel;
+  skillLevel: MasteryLevel;
 }
 
-const SKILL_LEVEL_INTERVALS: Record<SkillLevel, number> = {
+const SKILL_LEVEL_INTERVALS: Record<MasteryLevel, number> = {
   1: 1,
   2: 3,
   3: 7,
@@ -141,7 +140,7 @@ export const storage = {
       topicId,
       questionsAnswered: 0,
       correctAnswers: 0,
-      skillLevel: 1 as SkillLevel,
+      skillLevel: 1 as MasteryLevel,
     };
 
     progress.topicProgress[topicId] = {
@@ -240,7 +239,7 @@ export const storage = {
     await AsyncStorage.setItem(STORAGE_KEYS.SETTINGS, JSON.stringify(settings));
   },
 
-  async getTopicSkillLevel(topicId: string): Promise<SkillLevel> {
+  async getTopicSkillLevel(topicId: string): Promise<MasteryLevel> {
     const progress = await this.getProgress();
     return progress.topicProgress[topicId]?.skillLevel ?? 1;
   },
@@ -254,14 +253,14 @@ export const storage = {
       topicId,
       questionsAnswered: 0,
       correctAnswers: 0,
-      skillLevel: 1 as SkillLevel,
+      skillLevel: 1 as MasteryLevel,
     };
 
     let newLevel = existing.skillLevel;
     if (scorePercent >= 80 && existing.skillLevel < 5) {
-      newLevel = (existing.skillLevel + 1) as SkillLevel;
+      newLevel = (existing.skillLevel + 1) as MasteryLevel;
     } else if (scorePercent < 50 && existing.skillLevel > 1) {
-      newLevel = (existing.skillLevel - 1) as SkillLevel;
+      newLevel = (existing.skillLevel - 1) as MasteryLevel;
     }
 
     progress.topicProgress[topicId] = {

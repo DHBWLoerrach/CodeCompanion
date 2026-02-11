@@ -4,7 +4,11 @@ import {
   type QuizQuestion,
 } from "@shared/quiz";
 import { logApiError } from "@shared/logging";
-import { toLanguage, toQuestionCount, toSkillLevel } from "../_lib/validation";
+import {
+  toLanguage,
+  toQuestionCount,
+  toQuizDifficultyLevel,
+} from "../_lib/validation";
 
 function hasTooManyTopicIds(value: unknown): boolean {
   return Array.isArray(value) && value.length > 20;
@@ -29,7 +33,7 @@ export async function POST(request: Request) {
     };
 
     const count = toQuestionCount(body?.count, 10);
-    const skillLevel = toSkillLevel(body?.skillLevel, 1);
+    const skillLevel = toQuizDifficultyLevel(body?.skillLevel, 1);
     if (hasTooManyTopicIds(body?.topicIds)) {
       return Response.json(
         { error: "topicIds cannot contain more than 20 entries" },

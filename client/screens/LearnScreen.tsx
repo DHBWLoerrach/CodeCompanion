@@ -27,12 +27,8 @@ import {
   getTopicName,
   getCategoryName,
 } from "@/lib/topics";
-import {
-  storage,
-  type TopicProgress,
-  type SkillLevel,
-  isTopicDue,
-} from "@/lib/storage";
+import { storage, type TopicProgress, isTopicDue } from "@/lib/storage";
+import type { MasteryLevel } from "@shared/skill-level";
 
 const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
 
@@ -48,7 +44,7 @@ function SkillLevelIndicator({
   level,
   color,
 }: {
-  level: SkillLevel;
+  level: MasteryLevel;
   color: string;
 }) {
   return (

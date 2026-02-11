@@ -3,8 +3,8 @@ import { logApiError } from "@shared/logging";
 import {
   requireTopicId,
   toLanguage,
-  toNumber,
   toQuestionCount,
+  toQuizDifficultyLevel,
 } from "../_lib/validation";
 
 export async function POST(request: Request) {
@@ -29,8 +29,7 @@ export async function POST(request: Request) {
         { status: 400 },
       );
     }
-    const skillLevelRaw = toNumber(body?.skillLevel, 1);
-    const skillLevel = Math.min(3, Math.max(1, skillLevelRaw)) as 1 | 2 | 3;
+    const skillLevel = toQuizDifficultyLevel(body?.skillLevel, 1);
 
     const questions = await generateQuizQuestions(
       topicId,

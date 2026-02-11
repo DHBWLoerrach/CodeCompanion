@@ -23,6 +23,10 @@ import { useTranslation } from "@/hooks/useTranslation";
 import { Spacing, BorderRadius, Shadows, Fonts } from "@/constants/theme";
 import { apiRequest } from "@/lib/query-client";
 import { storage, type ProgressData } from "@/lib/storage";
+import {
+  averageMasteryToQuizDifficulty,
+  type QuizDifficultyLevel,
+} from "@shared/skill-level";
 
 interface Question {
   id: string;
@@ -39,39 +43,17 @@ interface QuizAnswerResult {
   correctAnswer: string;
 }
 
-type ApiSkillLevel = 1 | 2 | 3;
-
-function toApiSkillLevel(level: number): ApiSkillLevel {
-  if (level <= 2) return 1;
-  if (level <= 3) return 2;
-  return 3;
-}
-
-function getAverage(levels: number[]): number | null {
-  if (levels.length === 0) {
-    return null;
-  }
-
-  const total = levels.reduce((sum, level) => sum + level, 0);
-  return total / levels.length;
-}
-
-function resolveMixedSkillLevel(
+function resolveMixedQuizDifficulty(
   progress: ProgressData,
   selectedTopicIds?: string[],
-): ApiSkillLevel {
+): QuizDifficultyLevel {
   const topicProgress = progress.topicProgress;
   const levels =
     selectedTopicIds && selectedTopicIds.length > 0
       ? selectedTopicIds.map((id) => topicProgress[id]?.skillLevel ?? 1)
       : Object.values(topicProgress).map((item) => item.skillLevel);
 
-  const average = getAverage(levels);
-  if (average === null) {
-    return 1;
-  }
-
-  return toApiSkillLevel(average);
+  return averageMasteryToQuizDifficulty(levels, 1);
 }
 
 function shuffleOptionsForQuestion(question: Question): Question {
@@ -294,7 +276,7 @@ export default function QuizSessionScreen() {
         };
       } else {
         const progress = await storage.getProgress();
-        const mixedSkillLevel = resolveMixedSkillLevel(
+        const mixedQuizDifficulty = resolveMixedQuizDifficulty(
           progress,
           resolvedTopicIds.length > 0 ? resolvedTopicIds : undefined,
         );
@@ -302,7 +284,7 @@ export default function QuizSessionScreen() {
         body = {
           count: questionCount,
           language: settings.language,
-          skillLevel: mixedSkillLevel,
+          skillLevel: mixedQuizDifficulty,
         };
         if (resolvedTopicIds.length > 0) {
           body.topicIds = resolvedTopicIds;

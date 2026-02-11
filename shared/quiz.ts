@@ -1,3 +1,5 @@
+import type { QuizDifficultyLevel } from "./skill-level";
+
 export interface QuizQuestion {
   id: string;
   question: string;
@@ -149,7 +151,7 @@ export async function generateQuizQuestions(
   topicId: string,
   count: number = 5,
   language: string = "en",
-  skillLevel: 1 | 2 | 3 = 1,
+  skillLevel: QuizDifficultyLevel = 1,
 ): Promise<QuizQuestion[]> {
   const topicDescription =
     TOPIC_PROMPTS[topicId] || "general JavaScript programming concepts";
