@@ -310,7 +310,7 @@ export default function SettingsScreen() {
                   <>
                     <SettingRow icon="globe" label={t("language")}>
                       <SegmentedControl
-                        values={[t("english"), t("german")]}
+                        values={["English", "Deutsch"]}
                         selectedIndex={languageIndex}
                         onChange={({ nativeEvent }) => {
                           if (settingsUpdateInFlightRef.current) return;

@@ -1,6 +1,6 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import type { MasteryLevel } from "@shared/skill-level";
-import { getDeviceLanguage, type Language } from "./i18n";
+import type { Language } from "./i18n";
 
 const STORAGE_KEYS = {
   USER_PROFILE: "dhbw_user_profile",
@@ -96,12 +96,10 @@ const defaultStreak: StreakData = {
   weekHistory: [false, false, false, false, false, false, false],
 };
 
-function getDefaultSettings(): SettingsData {
-  return {
-    language: getDeviceLanguage(),
-    themeMode: "auto",
-  };
-}
+const defaultSettings: SettingsData = {
+  language: "de",
+  themeMode: "auto",
+};
 
 function isLanguage(value: unknown): value is Language {
   return value === "en" || value === "de";
@@ -112,12 +110,13 @@ function isThemeMode(value: unknown): value is ThemeMode {
 }
 
 function normalizeSettings(settings: Partial<SettingsData> | null): SettingsData {
-  const defaults = getDefaultSettings();
   return {
-    language: isLanguage(settings?.language) ? settings.language : defaults.language,
+    language: isLanguage(settings?.language)
+      ? settings.language
+      : defaultSettings.language,
     themeMode: isThemeMode(settings?.themeMode)
       ? settings.themeMode
-      : defaults.themeMode,
+      : defaultSettings.themeMode,
   };
 }
 
@@ -252,7 +251,7 @@ export const storage = {
       const data = await AsyncStorage.getItem(STORAGE_KEYS.SETTINGS);
       return normalizeSettings(data ? JSON.parse(data) : null);
     } catch {
-      return getDefaultSettings();
+      return defaultSettings;
     }
   },
 

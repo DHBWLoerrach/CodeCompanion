@@ -1,18 +1,5 @@
 export type Language = "en" | "de";
 
-export function resolveLanguageFromLocale(locale: string | null | undefined): Language {
-  return locale?.toLowerCase().startsWith("de") ? "de" : "en";
-}
-
-export function getDeviceLanguage(): Language {
-  try {
-    const locale = Intl.DateTimeFormat().resolvedOptions().locale;
-    return resolveLanguageFromLocale(locale);
-  } catch {
-    return "en";
-  }
-}
-
 export const translations = {
   en: {
     learnJavaScript: "Learn JavaScript",

@@ -239,32 +239,16 @@ describe("storage state updates", () => {
   });
 
   describe("getSettings", () => {
-    it("uses device language on first start", async () => {
-      const dateTimeFormatSpy = jest.spyOn(Intl, "DateTimeFormat");
-      dateTimeFormatSpy.mockImplementation(
-        () =>
-          ({
-            resolvedOptions: () => ({ locale: "de-DE" }),
-          }) as unknown as Intl.DateTimeFormat,
-      );
-
+    it("uses hardcoded german default on first start", async () => {
       const settings = await storage.getSettings();
 
       expect(settings).toEqual({
         language: "de",
         themeMode: "auto",
       });
-      dateTimeFormatSpy.mockRestore();
     });
 
     it("normalizes invalid stored settings values", async () => {
-      const dateTimeFormatSpy = jest.spyOn(Intl, "DateTimeFormat");
-      dateTimeFormatSpy.mockImplementation(
-        () =>
-          ({
-            resolvedOptions: () => ({ locale: "de-DE" }),
-          }) as unknown as Intl.DateTimeFormat,
-      );
       await AsyncStorage.setItem(
         SETTINGS_KEY,
         JSON.stringify({ language: "fr", themeMode: "light" }),
@@ -276,7 +260,6 @@ describe("storage state updates", () => {
         language: "de",
         themeMode: "light",
       });
-      dateTimeFormatSpy.mockRestore();
     });
   });
 });

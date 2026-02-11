@@ -11,6 +11,4 @@ Hier sammeln wir Todos für später.
 
 ## Frontend (App)
 
-- App soll in der Sprache des OS starten.
-
 ## Backend (API-Routes)
