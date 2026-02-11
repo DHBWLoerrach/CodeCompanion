@@ -5,6 +5,11 @@ function toNumber(value: unknown, fallback: number): number {
   return Number.isFinite(parsed) ? parsed : fallback;
 }
 
+function toLanguage(value: unknown): "en" | "de" | null {
+  if (value === undefined || value === null) return "en";
+  return value === "en" || value === "de" ? value : null;
+}
+
 function toQuestionCount(value: unknown): number {
   const parsed = toNumber(value, 5);
   return Math.min(20, Math.max(1, parsed));
@@ -25,7 +30,13 @@ export async function POST(request: Request) {
     }
 
     const count = toQuestionCount(body?.count);
-    const language = typeof body?.language === "string" ? body.language : "en";
+    const language = toLanguage(body?.language);
+    if (!language) {
+      return Response.json(
+        { error: "language must be 'en' or 'de'" },
+        { status: 400 },
+      );
+    }
     const skillLevelRaw = toNumber(body?.skillLevel, 1);
     const skillLevel = Math.min(3, Math.max(1, skillLevelRaw)) as 1 | 2 | 3;
 

@@ -1,5 +1,10 @@
 import { generateTopicExplanation } from "@shared/quiz";
 
+function toLanguage(value: unknown): "en" | "de" | null {
+  if (value === undefined || value === null) return "en";
+  return value === "en" || value === "de" ? value : null;
+}
+
 export async function POST(request: Request) {
   try {
     const body = (await request.json()) as {
@@ -12,7 +17,13 @@ export async function POST(request: Request) {
       return Response.json({ error: "topicId is required" }, { status: 400 });
     }
 
-    const language = typeof body?.language === "string" ? body.language : "en";
+    const language = toLanguage(body?.language);
+    if (!language) {
+      return Response.json(
+        { error: "language must be 'en' or 'de'" },
+        { status: 400 },
+      );
+    }
     const explanation = await generateTopicExplanation(topicId, language);
 
     return Response.json({ explanation });

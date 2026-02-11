@@ -21,7 +21,7 @@
     "id": "S04",
     "datei": "app/api/quiz/generate+api.ts:23, explain+api.ts:15",
     "problem": "Unvalidierter language Parameter: beliebige Werte werden akzeptiert, nur Typ-Check auf String",
-    "status": "not done"
+    "status": "done"
   },
   {
     "id": "S05",

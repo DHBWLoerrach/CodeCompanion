@@ -33,6 +33,17 @@ describe("POST /api/quiz/generate", () => {
     expect(mockGenerateQuizQuestions).not.toHaveBeenCalled();
   });
 
+  it("returns 400 when language is invalid", async () => {
+    const response = await POST(
+      createRequest({ topicId: "variables", language: "fr" }),
+    );
+    const data = await response.json();
+
+    expect(response.status).toBe(400);
+    expect(data).toEqual({ error: "language must be 'en' or 'de'" });
+    expect(mockGenerateQuizQuestions).not.toHaveBeenCalled();
+  });
+
   it("uses defaults and clamps skill level", async () => {
     mockGenerateQuizQuestions.mockResolvedValueOnce([
       {
