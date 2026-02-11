@@ -14,6 +14,10 @@ function toQuestionCount(value: unknown): number {
   return Math.min(20, Math.max(1, parsed));
 }
 
+function hasTooManyTopicIds(value: unknown): boolean {
+  return Array.isArray(value) && value.length > 20;
+}
+
 function shuffleArray<T>(items: T[]): T[] {
   const shuffled = [...items];
   for (let i = shuffled.length - 1; i > 0; i -= 1) {
@@ -32,6 +36,12 @@ export async function POST(request: Request) {
     };
 
     const count = toQuestionCount(body?.count);
+    if (hasTooManyTopicIds(body?.topicIds)) {
+      return Response.json(
+        { error: "topicIds cannot contain more than 20 entries" },
+        { status: 400 },
+      );
+    }
     const language = typeof body?.language === "string" ? body.language : "en";
 
     const allTopicKeys = Object.keys(TOPIC_PROMPTS);

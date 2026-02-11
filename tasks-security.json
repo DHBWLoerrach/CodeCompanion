@@ -27,7 +27,7 @@
     "id": "S05",
     "datei": "app/api/quiz/generate-mixed+api.ts:25-26",
     "problem": "Unbegrenztes topicIds-Array: keine Groessenlimitierung, Angreifer koennte tausende IDs senden",
-    "status": "not done"
+    "status": "done"
   },
   {
     "id": "S06",

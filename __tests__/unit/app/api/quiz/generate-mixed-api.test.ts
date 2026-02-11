@@ -53,6 +53,18 @@ describe("POST /api/quiz/generate-mixed", () => {
     expect(mockGenerateQuizQuestions).not.toHaveBeenCalled();
   });
 
+  it("returns 400 when topicIds exceeds maximum size", async () => {
+    const topicIds = Array.from({ length: 21 }, () => "variables");
+    const response = await POST(createRequest({ topicIds }));
+    const data = await response.json();
+
+    expect(response.status).toBe(400);
+    expect(data).toEqual({
+      error: "topicIds cannot contain more than 20 entries",
+    });
+    expect(mockGenerateQuizQuestions).not.toHaveBeenCalled();
+  });
+
   it("filters topicIds and generates requested count", async () => {
     const response = await POST(
       createRequest({
