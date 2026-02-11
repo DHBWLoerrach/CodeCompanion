@@ -67,7 +67,7 @@ describe("POST /api/topic/explain", () => {
 
   it("returns 500 when explanation generation fails", async () => {
     const originalEnv = process.env.NODE_ENV;
-    process.env.NODE_ENV = "production";
+    process.env = { ...process.env, NODE_ENV: "production" };
     const errorSpy = jest.spyOn(console, "error").mockImplementation(() => {});
     mockGenerateTopicExplanation.mockRejectedValueOnce(
       new Error("OpenAI down"),
@@ -81,6 +81,6 @@ describe("POST /api/topic/explain", () => {
     expect(errorSpy).toHaveBeenCalledWith(
       "Topic explanation error: OpenAI down",
     );
-    process.env.NODE_ENV = originalEnv;
+    process.env = { ...process.env, NODE_ENV: originalEnv };
   });
 });

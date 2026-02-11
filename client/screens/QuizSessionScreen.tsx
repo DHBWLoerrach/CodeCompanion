@@ -225,6 +225,7 @@ export default function QuizSessionScreen() {
   const [error, setError] = useState<string | null>(null);
   const [isAdvancing, setIsAdvancing] = useState(false);
   const nextInFlightRef = useRef(false);
+  const unableToLoadQuizText = t("unableToLoadQuiz");
 
   const loadQuestions = useCallback(async () => {
     try {
@@ -271,15 +272,15 @@ export default function QuizSessionScreen() {
           (data.questions as Question[]).map(shuffleOptionsForQuestion),
         );
       } else {
-        setError(t("unableToLoadQuiz"));
+        setError(unableToLoadQuizText);
       }
     } catch (err) {
       console.error("Error loading questions:", err);
-      setError(t("unableToLoadQuiz"));
+      setError(unableToLoadQuizText);
     } finally {
       setLoading(false);
     }
-  }, [count, resolvedTopicId, topicIds, t]);
+  }, [count, resolvedTopicId, topicIds, unableToLoadQuizText]);
 
   useEffect(() => {
     loadQuestions();

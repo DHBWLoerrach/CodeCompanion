@@ -109,7 +109,7 @@ describe("POST /api/quiz/generate", () => {
 
   it("returns 500 when generator fails", async () => {
     const originalEnv = process.env.NODE_ENV;
-    process.env.NODE_ENV = "production";
+    process.env = { ...process.env, NODE_ENV: "production" };
     const errorSpy = jest.spyOn(console, "error").mockImplementation(() => {});
     mockGenerateQuizQuestions.mockRejectedValueOnce(new Error("network down"));
 
@@ -121,6 +121,6 @@ describe("POST /api/quiz/generate", () => {
     expect(errorSpy).toHaveBeenCalledWith(
       "Quiz generation error: network down",
     );
-    process.env.NODE_ENV = originalEnv;
+    process.env = { ...process.env, NODE_ENV: originalEnv };
   });
 });
