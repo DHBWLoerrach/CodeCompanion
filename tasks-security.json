@@ -51,7 +51,7 @@
     "id": "S09",
     "datei": "client/lib/query-client.ts:8-23",
     "problem": "HTTP wird nicht zu HTTPS erzwungen in getApiUrl()",
-    "status": "not done"
+    "status": "done"
   },
   {
     "id": "S10",

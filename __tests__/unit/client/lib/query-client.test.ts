@@ -38,6 +38,24 @@ describe("getApiUrl", () => {
     expect(getApiUrl()).toBe("https://my-preview.example.com/");
   });
 
+  it("throws when hostUri uses insecure HTTP outside local development", () => {
+    (Constants as { expoConfig?: { hostUri?: string } }).expoConfig = {
+      hostUri: "http://api.example.com",
+    };
+
+    expect(() => getApiUrl()).toThrow(
+      "HTTPS is required for API URL outside local development",
+    );
+  });
+
+  it("defaults to HTTPS for non-local hostUri without protocol", () => {
+    (Constants as { expoConfig?: { hostUri?: string } }).expoConfig = {
+      hostUri: "api.example.com",
+    };
+
+    expect(getApiUrl()).toBe("https://api.example.com/");
+  });
+
   it("throws if neither API URL nor domain is set", () => {
     expect(() => getApiUrl()).toThrow("EXPO_PUBLIC_API_URL is not set");
   });

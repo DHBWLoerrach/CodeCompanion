@@ -5,18 +5,50 @@ import Constants from "expo-constants";
  * Gets the base URL for the Expo API routes (e.g., "http://localhost:8081")
  * @returns {string} The API base URL
  */
+function isLocalDevelopmentHost(hostname: string): boolean {
+  if (
+    hostname === "localhost" ||
+    hostname === "127.0.0.1" ||
+    hostname.endsWith(".local")
+  ) {
+    return true;
+  }
+
+  return (
+    /^10\./.test(hostname) ||
+    /^192\.168\./.test(hostname) ||
+    /^172\.(1[6-9]|2\d|3[0-1])\./.test(hostname)
+  );
+}
+
+function ensureSecureApiUrl(url: URL): URL {
+  if (url.protocol === "https:") {
+    return url;
+  }
+
+  if (url.protocol === "http:" && isLocalDevelopmentHost(url.hostname)) {
+    return url;
+  }
+
+  throw new Error("HTTPS is required for API URL outside local development");
+}
+
 export function getApiUrl(): string {
   const explicitUrl = process.env.EXPO_PUBLIC_API_URL;
   if (explicitUrl) {
-    return new URL(explicitUrl).href;
+    return ensureSecureApiUrl(new URL(explicitUrl)).href;
   }
 
   const hostUri = Constants.expoConfig?.hostUri;
   if (hostUri) {
-    if (/^https?:\/\//i.test(hostUri)) {
-      return new URL(hostUri).href;
+    const hasProtocol = /^https?:\/\//i.test(hostUri);
+    const url = hasProtocol ? new URL(hostUri) : new URL(`http://${hostUri}`);
+
+    if (!hasProtocol && !isLocalDevelopmentHost(url.hostname)) {
+      url.protocol = "https:";
     }
-    return new URL(`http://${hostUri}`).href;
+
+    return ensureSecureApiUrl(url).href;
   }
 
   throw new Error("EXPO_PUBLIC_API_URL is not set");
