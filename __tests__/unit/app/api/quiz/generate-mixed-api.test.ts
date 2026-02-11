@@ -135,7 +135,9 @@ describe("POST /api/quiz/generate-mixed", () => {
   });
 
   it("returns 500 when generation fails", async () => {
-    jest.spyOn(console, "error").mockImplementation(() => {});
+    const originalEnv = process.env.NODE_ENV;
+    process.env.NODE_ENV = "production";
+    const errorSpy = jest.spyOn(console, "error").mockImplementation(() => {});
     mockGenerateQuizQuestions.mockRejectedValueOnce(
       new Error("upstream error"),
     );
@@ -145,5 +147,9 @@ describe("POST /api/quiz/generate-mixed", () => {
 
     expect(response.status).toBe(500);
     expect(data).toEqual({ error: "Failed to generate quiz questions" });
+    expect(errorSpy).toHaveBeenCalledWith(
+      "Mixed quiz generation error: upstream error",
+    );
+    process.env.NODE_ENV = originalEnv;
   });
 });

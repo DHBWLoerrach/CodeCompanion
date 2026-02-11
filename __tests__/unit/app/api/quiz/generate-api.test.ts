@@ -108,7 +108,9 @@ describe("POST /api/quiz/generate", () => {
   });
 
   it("returns 500 when generator fails", async () => {
-    jest.spyOn(console, "error").mockImplementation(() => {});
+    const originalEnv = process.env.NODE_ENV;
+    process.env.NODE_ENV = "production";
+    const errorSpy = jest.spyOn(console, "error").mockImplementation(() => {});
     mockGenerateQuizQuestions.mockRejectedValueOnce(new Error("network down"));
 
     const response = await POST(createRequest({ topicId: "variables" }));
@@ -116,5 +118,9 @@ describe("POST /api/quiz/generate", () => {
 
     expect(response.status).toBe(500);
     expect(data).toEqual({ error: "Failed to generate quiz questions" });
+    expect(errorSpy).toHaveBeenCalledWith(
+      "Quiz generation error: network down",
+    );
+    process.env.NODE_ENV = originalEnv;
   });
 });

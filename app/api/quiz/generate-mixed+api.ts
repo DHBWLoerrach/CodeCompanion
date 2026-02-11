@@ -3,6 +3,7 @@ import {
   TOPIC_PROMPTS,
   type QuizQuestion,
 } from "@shared/quiz";
+import { logApiError } from "@shared/logging";
 
 function toNumber(value: unknown, fallback: number): number {
   const parsed = typeof value === "number" ? value : Number(value);
@@ -74,7 +75,7 @@ export async function POST(request: Request) {
     const shuffled = shuffleArray(allQuestions).slice(0, count);
     return Response.json({ questions: shuffled });
   } catch (error) {
-    console.error("Mixed quiz generation error:", error);
+    logApiError("Mixed quiz generation error", error);
     return Response.json(
       { error: "Failed to generate quiz questions" },
       { status: 500 },

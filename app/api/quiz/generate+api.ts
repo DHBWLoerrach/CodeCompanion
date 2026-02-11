@@ -1,4 +1,5 @@
 import { generateQuizQuestions } from "@shared/quiz";
+import { logApiError } from "@shared/logging";
 
 function toNumber(value: unknown, fallback: number): number {
   const parsed = typeof value === "number" ? value : Number(value);
@@ -48,7 +49,7 @@ export async function POST(request: Request) {
     );
     return Response.json({ questions });
   } catch (error) {
-    console.error("Quiz generation error:", error);
+    logApiError("Quiz generation error", error);
     return Response.json(
       { error: "Failed to generate quiz questions" },
       { status: 500 },

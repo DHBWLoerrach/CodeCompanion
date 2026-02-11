@@ -39,7 +39,7 @@
     "id": "S07",
     "datei": "app/api/quiz/generate+api.ts:35, generate-mixed+api.ts:50, explain+api.ts:20",
     "problem": "Fehler-Logging in Production: console.error mit vollen Error-Objekten koennte Stack-Traces offenbaren",
-    "status": "not done"
+    "status": "done"
   },
   {
     "id": "S08",

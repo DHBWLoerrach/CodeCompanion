@@ -1,4 +1,5 @@
 import { generateTopicExplanation } from "@shared/quiz";
+import { logApiError } from "@shared/logging";
 
 function toLanguage(value: unknown): "en" | "de" | null {
   if (value === undefined || value === null) return "en";
@@ -28,7 +29,7 @@ export async function POST(request: Request) {
 
     return Response.json({ explanation });
   } catch (error) {
-    console.error("Topic explanation error:", error);
+    logApiError("Topic explanation error", error);
     return Response.json(
       { error: "Failed to generate topic explanation" },
       { status: 500 },
