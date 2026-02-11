@@ -1,8 +1,8 @@
-jest.mock("@shared/quiz", () => ({
+jest.mock("@server/quiz", () => ({
   generateTopicExplanation: jest.fn(),
 }));
 
-import { generateTopicExplanation } from "@shared/quiz";
+import { generateTopicExplanation } from "@server/quiz";
 import { POST } from "../../../../../app/api/topic/explain+api";
 
 const mockGenerateTopicExplanation = jest.mocked(generateTopicExplanation);

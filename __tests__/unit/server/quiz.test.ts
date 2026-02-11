@@ -1,4 +1,4 @@
-import { generateQuizQuestions, generateTopicExplanation } from "@shared/quiz";
+import { generateQuizQuestions, generateTopicExplanation } from "@server/quiz";
 
 type MockResponseInit = {
   ok?: boolean;
@@ -34,7 +34,7 @@ function mockDigest(input: BufferSource): Promise<ArrayBuffer> {
   return Promise.resolve(output.buffer);
 }
 
-describe("shared/quiz", () => {
+describe("server/quiz", () => {
   const originalEnv = process.env;
   const originalFetch = global.fetch;
   const originalCrypto = global.crypto;

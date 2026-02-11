@@ -12,10 +12,12 @@ module.exports = {
   moduleNameMapper: {
     "^@/(.*)$": "<rootDir>/client/$1",
     "^@shared/(.*)$": "<rootDir>/shared/$1",
+    "^@server/(.*)$": "<rootDir>/server/$1",
   },
   collectCoverageFrom: [
     "client/lib/**/*.{ts,tsx}",
     "shared/**/*.{ts,tsx}",
+    "server/**/*.{ts,tsx}",
     "app/api/**/*.{ts,tsx}",
     "!**/*.d.ts",
   ],

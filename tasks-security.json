@@ -7,7 +7,7 @@
   },
   {
     "id": "S02",
-    "datei": "shared/quiz.ts:112",
+    "datei": "server/quiz.ts:112",
     "problem": "Error Information Disclosure: volle OpenAI-Fehlermeldungen werden an den Client weitergeleitet",
     "status": "done"
   },

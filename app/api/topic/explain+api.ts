@@ -1,6 +1,6 @@
-import { generateTopicExplanation } from "@shared/quiz";
-import { logApiError } from "@shared/logging";
-import { requireTopicId, toLanguage } from "../_lib/validation";
+import { generateTopicExplanation } from "@server/quiz";
+import { logApiError } from "@server/logging";
+import { requireTopicId, toLanguage } from "@server/validation";
 
 export async function POST(request: Request) {
   try {

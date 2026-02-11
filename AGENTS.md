@@ -8,7 +8,8 @@ DHBW Code Companion is a mobile learning app for JavaScript topics (Expo SDK 54,
 
 - `app/`: file-based routes and API endpoints (`app/api/*+api.ts`).
 - `client/`: app UI and client logic (`components/`, `screens/`, `hooks/`, `lib/`, `constants/`, `contexts/`).
-- `shared/`: shared logic used by API routes (notably `shared/quiz.ts`).
+- `server/`: server-only logic for API routes (for example `server/quiz.ts`, `server/logging.ts`, `server/validation.ts`).
+- `shared/`: runtime-neutral shared types/utilities (for example `shared/skill-level.ts`).
 - `__tests__/unit` and `__tests__/integration`: Jest test suites.
 - `e2e/maestro`: Maestro end-to-end flows.
 - `test/setup.ts`: Jest setup/mocks.
@@ -47,11 +48,11 @@ DHBW Code Companion is a mobile learning app for JavaScript topics (Expo SDK 54,
 
 ## Architecture Notes
 
-- Path aliases: `@/* -> ./client/*`, `@shared/* -> ./shared/*` (configured in `tsconfig.json` and `babel.config.js`).
+- Path aliases: `@/* -> ./client/*`, `@shared/* -> ./shared/*`, `@server/* -> ./server/*` (configured in `tsconfig.json` and `babel.config.js`).
 - Route files in `app/` should stay thin and delegate to `client/screens/`.
 - State management pattern: React Query + Context + AsyncStorage (no Redux/Zustand).
 - API routes: `POST /api/quiz/generate`, `POST /api/quiz/generate-mixed`, `POST /api/topic/explain`.
-- Add a topic in three places: `client/lib/topics.ts`, `client/lib/i18n.ts`, `shared/quiz.ts` (`TOPIC_PROMPTS`).
+- Add a topic in three places: `client/lib/topics.ts`, `client/lib/i18n.ts`, `server/quiz.ts` (`TOPIC_PROMPTS`).
 
 ## Environment Variables
 

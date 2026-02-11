@@ -2,13 +2,13 @@ import {
   generateQuizQuestions,
   TOPIC_PROMPTS,
   type QuizQuestion,
-} from "@shared/quiz";
-import { logApiError } from "@shared/logging";
+} from "@server/quiz";
+import { logApiError } from "@server/logging";
 import {
   toLanguage,
   toQuestionCount,
   toQuizDifficultyLevel,
-} from "../_lib/validation";
+} from "@server/validation";
 
 function hasTooManyTopicIds(value: unknown): boolean {
   return Array.isArray(value) && value.length > 20;

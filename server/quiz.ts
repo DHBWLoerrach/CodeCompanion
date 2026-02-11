@@ -1,4 +1,4 @@
-import type { QuizDifficultyLevel } from "./skill-level";
+import type { QuizDifficultyLevel } from "@shared/skill-level";
 
 export interface QuizQuestion {
   id: string;

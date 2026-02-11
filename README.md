@@ -29,7 +29,7 @@ Feedback: apps@dhbw-loerrach.de
 - Expo Router (file-based routing)
 - React Query
 - Expo API Routes (`app/api/*`)
-- OpenAI Responses API (über HTTP in `shared/quiz.ts`)
+- OpenAI Responses API (über HTTP in `server/quiz.ts`)
 - AsyncStorage (lokale Persistenz)
 
 ## Projektstruktur
@@ -47,8 +47,13 @@ client/
   lib/                  storage, topics, query-client, i18n
   constants/            Farben, Spacing, Typografie
 
-shared/
+server/
   quiz.ts               Prompting + OpenAI-Integration
+  logging.ts            API-Error-Logging
+  validation.ts         Request-Validierung
+
+shared/
+  skill-level.ts        Shared Types (MasteryLevel, QuizDifficultyLevel)
 
 __tests__/
   unit/                 Unit Tests
@@ -75,7 +80,7 @@ npm install
 ### Erforderlich für KI-Funktionen
 
 - `OPENAI_API_KEY`  
-  API-Key für den Aufruf von `POST /v1/responses` in `shared/quiz.ts`.
+  API-Key für den Aufruf von `POST /v1/responses` in `server/quiz.ts`.
   In Produktion wird dieser Wert aus der EAS-Environment `production` gelesen.
   Lokal kann ein eigener Dev-Key genutzt werden.
 
@@ -137,7 +142,7 @@ Dann:
   Erklärungstext für ein Topic.
 
 Implementierung: `app/api/*`  
-Prompt- und OpenAI-Logik: `shared/quiz.ts`
+Prompt- und OpenAI-Logik: `server/quiz.ts`
 
 ## Deployment (EAS Hosting)
 
@@ -207,7 +212,7 @@ Kurzregel: Key-Änderung ohne neuen Deploy hat keinen Effekt auf den laufenden S
 
 1. Topic in `client/lib/topics.ts` ergänzen
 2. Übersetzungen in `client/lib/i18n.ts` ergänzen
-3. Prompt-Mapping in `shared/quiz.ts` (`TOPIC_PROMPTS`) ergänzen
+3. Prompt-Mapping in `server/quiz.ts` (`TOPIC_PROMPTS`) ergänzen
 
 ### Styling/Theme anpassen
 

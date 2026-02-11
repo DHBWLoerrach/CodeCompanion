@@ -1,4 +1,4 @@
-jest.mock("@shared/quiz", () => ({
+jest.mock("@server/quiz", () => ({
   generateQuizQuestions: jest.fn(),
   TOPIC_PROMPTS: {
     variables: "Variables",
@@ -7,7 +7,7 @@ jest.mock("@shared/quiz", () => ({
   },
 }));
 
-import { generateQuizQuestions } from "@shared/quiz";
+import { generateQuizQuestions } from "@server/quiz";
 import { POST } from "../../../../../app/api/quiz/generate-mixed+api";
 
 const mockGenerateQuizQuestions = jest.mocked(generateQuizQuestions);

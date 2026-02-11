@@ -1,11 +1,11 @@
-import { generateQuizQuestions } from "@shared/quiz";
-import { logApiError } from "@shared/logging";
+import { generateQuizQuestions } from "@server/quiz";
+import { logApiError } from "@server/logging";
 import {
   requireTopicId,
   toLanguage,
   toQuestionCount,
   toQuizDifficultyLevel,
-} from "../_lib/validation";
+} from "@server/validation";
 
 export async function POST(request: Request) {
   try {

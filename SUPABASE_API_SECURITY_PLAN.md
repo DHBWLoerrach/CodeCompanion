@@ -14,7 +14,7 @@ Die bestehenden Expo API-Routes sollen so abgesichert werden, dass:
   - `app/api/quiz/generate-mixed+api.ts`
   - `app/api/topic/explain+api.ts`
 - OpenAI-Aufruf:
-  - `shared/quiz.ts`
+  - `server/quiz.ts`
 - Client API-Layer:
   - `client/lib/query-client.ts`
 
