@@ -4,6 +4,9 @@
     {
       "layers" : [
         {
+          "fill" : "automatic",
+          "glass" : false,
+          "hidden" : false,
           "image-name" : "icon-1770908038775.png",
           "name" : "icon-1770908038775",
           "position" : {
