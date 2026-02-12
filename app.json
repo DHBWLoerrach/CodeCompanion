@@ -1,10 +1,9 @@
 {
   "expo": {
-    "name": "DHBW Code Companion",
+    "name": "Code Companion",
     "slug": "dhbw-code-companion",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/images/icon.png",
     "scheme": "dhbwcodecompanion",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
@@ -13,14 +12,14 @@
       "bundleIdentifier": "de.dhbwloe.loerrach.CodeCompanion",
       "config": {
         "usesNonExemptEncryption": false
-      }
+      },
+      "icon": "./assets/app.icon"
     },
     "android": {
       "adaptiveIcon": {
-        "backgroundColor": "#E2001A",
-        "foregroundImage": "./assets/images/android-icon-foreground.png",
-        "backgroundImage": "./assets/images/android-icon-background.png",
-        "monochromeImage": "./assets/images/android-icon-monochrome.png"
+        "foregroundImage": "./assets/images/adaptive-icon.png",
+        "monochromeImage": "./assets/images/adaptive-icon.png",
+        "backgroundColor": "#ffffff"
       },
       "edgeToEdgeEnabled": true,
       "predictiveBackGestureEnabled": false,
@@ -37,9 +36,9 @@
           "image": "./assets/images/splash-icon.png",
           "imageWidth": 200,
           "resizeMode": "contain",
-          "backgroundColor": "#E2001A",
+          "backgroundColor": "#ffffff",
           "dark": {
-            "backgroundColor": "#1F2123"
+            "backgroundColor": "#000000"
           }
         }
       ],
