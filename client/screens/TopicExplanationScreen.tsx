@@ -17,8 +17,15 @@ export default function TopicExplanationScreen() {
   const { t, language } = useTranslation();
   const insets = useSafeAreaInsets();
   const router = useRouter();
-  const { topicId } = useLocalSearchParams<{ topicId?: string }>();
+  const { topicId, programmingLanguage } = useLocalSearchParams<{
+    topicId?: string;
+    programmingLanguage?: string;
+  }>();
   const resolvedTopicId = Array.isArray(topicId) ? topicId[0] : topicId;
+  const resolvedProgrammingLanguage =
+    (Array.isArray(programmingLanguage)
+      ? programmingLanguage[0]
+      : programmingLanguage) || "javascript";
 
   const [explanation, setExplanation] = useState("");
   const [loading, setLoading] = useState(true);
@@ -55,7 +62,11 @@ export default function TopicExplanationScreen() {
           {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ topicId: resolvedTopicId, language }),
+            body: JSON.stringify({
+              topicId: resolvedTopicId,
+              language,
+              programmingLanguage: resolvedProgrammingLanguage,
+            }),
           },
         );
 
@@ -84,7 +95,7 @@ export default function TopicExplanationScreen() {
     return () => {
       isActive = false;
     };
-  }, [resolvedTopicId, language, t]);
+  }, [resolvedTopicId, language, t, resolvedProgrammingLanguage]);
 
   return (
     <>

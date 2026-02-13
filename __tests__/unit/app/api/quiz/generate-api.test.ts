@@ -66,6 +66,7 @@ describe("POST /api/quiz/generate", () => {
 
     expect(response.status).toBe(200);
     expect(mockGenerateQuizQuestions).toHaveBeenCalledWith(
+      "javascript",
       "variables",
       7,
       "en",
@@ -86,7 +87,13 @@ describe("POST /api/quiz/generate", () => {
       }),
     );
 
-    expect(mockGenerateQuizQuestions).toHaveBeenCalledWith("loops", 5, "de", 1);
+    expect(mockGenerateQuizQuestions).toHaveBeenCalledWith(
+      "javascript",
+      "loops",
+      5,
+      "de",
+      1,
+    );
   });
 
   it("caps count to maximum to avoid oversized generation", async () => {
@@ -100,6 +107,7 @@ describe("POST /api/quiz/generate", () => {
     );
 
     expect(mockGenerateQuizQuestions).toHaveBeenCalledWith(
+      "javascript",
       "variables",
       20,
       "en",

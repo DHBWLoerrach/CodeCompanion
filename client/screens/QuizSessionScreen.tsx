@@ -46,9 +46,13 @@ interface QuizAnswerResult {
 
 function resolveMixedQuizDifficulty(
   progress: ProgressData,
+  programmingLanguage: string,
   selectedTopicIds?: string[],
 ): QuizDifficultyLevel {
-  const topicProgress = progress.topicProgress;
+  const topicProgress = storage.getTopicProgressForLanguage(
+    progress.topicProgress,
+    programmingLanguage,
+  );
   const levels =
     selectedTopicIds && selectedTopicIds.length > 0
       ? selectedTopicIds.map((id) => topicProgress[id]?.skillLevel ?? 1)
@@ -227,12 +231,18 @@ export default function QuizSessionScreen() {
   const { t } = useTranslation();
   const insets = useSafeAreaInsets();
   const router = useRouter();
-  const { topicId, topicIds, count } = useLocalSearchParams<{
-    topicId?: string;
-    topicIds?: string;
-    count?: string;
-  }>();
+  const { topicId, topicIds, count, programmingLanguage } =
+    useLocalSearchParams<{
+      topicId?: string;
+      topicIds?: string;
+      count?: string;
+      programmingLanguage?: string;
+    }>();
   const resolvedTopicId = Array.isArray(topicId) ? topicId[0] : topicId;
+  const resolvedProgrammingLanguage =
+    (Array.isArray(programmingLanguage)
+      ? programmingLanguage[0]
+      : programmingLanguage) || "javascript";
 
   const [questions, setQuestions] = useState<Question[]>([]);
   const [currentIndex, setCurrentIndex] = useState(0);
@@ -261,7 +271,10 @@ export default function QuizSessionScreen() {
               .filter((id: string) => id.length > 0)
           : [];
       const skillLevel = resolvedTopicId
-        ? await storage.getTopicSkillLevel(resolvedTopicId)
+        ? await storage.getTopicSkillLevel(
+            resolvedProgrammingLanguage,
+            resolvedTopicId,
+          )
         : 1;
 
       let endpoint: string;
@@ -274,11 +287,13 @@ export default function QuizSessionScreen() {
           count: questionCount,
           language: settings.language,
           skillLevel,
+          programmingLanguage: resolvedProgrammingLanguage,
         };
       } else {
         const progress = await storage.getProgress();
         const mixedQuizDifficulty = resolveMixedQuizDifficulty(
           progress,
+          resolvedProgrammingLanguage,
           resolvedTopicIds.length > 0 ? resolvedTopicIds : undefined,
         );
         endpoint = "/api/quiz/generate-mixed";
@@ -286,6 +301,7 @@ export default function QuizSessionScreen() {
           count: questionCount,
           language: settings.language,
           skillLevel: mixedQuizDifficulty,
+          programmingLanguage: resolvedProgrammingLanguage,
         };
         if (resolvedTopicIds.length > 0) {
           body.topicIds = resolvedTopicIds;
@@ -308,7 +324,13 @@ export default function QuizSessionScreen() {
     } finally {
       setLoading(false);
     }
-  }, [count, resolvedTopicId, topicIds, unableToLoadQuizText]);
+  }, [
+    count,
+    resolvedTopicId,
+    topicIds,
+    unableToLoadQuizText,
+    resolvedProgrammingLanguage,
+  ]);
 
   useEffect(() => {
     loadQuestions();
@@ -362,6 +384,7 @@ export default function QuizSessionScreen() {
       await storage.recordPractice();
       if (resolvedTopicId) {
         await storage.updateTopicProgress(
+          resolvedProgrammingLanguage,
           resolvedTopicId,
           questions.length,
           correctCount,
@@ -372,6 +395,7 @@ export default function QuizSessionScreen() {
         score: String(correctCount),
         total: String(questions.length),
         answers: JSON.stringify(nextAnswers),
+        programmingLanguage: resolvedProgrammingLanguage,
       };
       if (resolvedTopicId) {
         params.topicId = resolvedTopicId;

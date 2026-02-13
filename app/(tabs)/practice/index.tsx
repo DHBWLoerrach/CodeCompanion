@@ -21,13 +21,13 @@ import { useTheme } from "@/hooks/useTheme";
 import { useTranslation } from "@/hooks/useTranslation";
 import { Spacing, BorderRadius, Shadows } from "@/constants/theme";
 import {
-  CATEGORIES,
   type Topic,
   type Category,
   getTopicName,
   getCategoryName,
 } from "@/lib/topics";
 import { storage, type TopicProgress, isTopicDue } from "@/lib/storage";
+import { useProgrammingLanguage } from "@/contexts/ProgrammingLanguageContext";
 import type { MasteryLevel } from "@shared/skill-level";
 
 const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
@@ -212,6 +212,9 @@ function CategoryRow({
 export default function PracticeScreen() {
   const { theme } = useTheme();
   const { t, language, refreshLanguage } = useTranslation();
+  const { selectedLanguage } = useProgrammingLanguage();
+  const categories = selectedLanguage?.categories ?? [];
+  const languageId = selectedLanguage?.id ?? "javascript";
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const [topicProgress, setTopicProgress] = useState<
@@ -225,13 +228,15 @@ export default function PracticeScreen() {
   const loadProgress = useCallback(async () => {
     try {
       const progress = await storage.getProgress();
-      setTopicProgress(progress.topicProgress);
+      setTopicProgress(
+        storage.getTopicProgressForLanguage(progress.topicProgress, languageId),
+      );
     } catch (error) {
       console.error("Error loading progress:", error);
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [languageId]);
 
   useFocusEffect(
     useCallback(() => {
@@ -240,7 +245,7 @@ export default function PracticeScreen() {
     }, [loadProgress, refreshLanguage]),
   );
 
-  const allTopics = CATEGORIES.flatMap((cat) => cat.topics);
+  const allTopics = categories.flatMap((cat) => cat.topics);
   const dueTopics = allTopics.filter((topic) => {
     const progress = topicProgress[topic.id];
     return progress && progress.questionsAnswered > 0 && isTopicDue(progress);
@@ -251,12 +256,15 @@ export default function PracticeScreen() {
   const handleStartReview = () => {
     router.push({
       pathname: "/quiz-session",
-      params: { topicIds: dueTopicIds },
+      params: { topicIds: dueTopicIds, programmingLanguage: languageId },
     });
   };
 
   const handleTopicQuiz = (topic: Topic) => {
-    router.push({ pathname: "/quiz-session", params: { topicId: topic.id } });
+    router.push({
+      pathname: "/quiz-session",
+      params: { topicId: topic.id, programmingLanguage: languageId },
+    });
   };
 
   const handleScrollToCategories = () => {
@@ -268,7 +276,10 @@ export default function PracticeScreen() {
 
   const handleCategoryPress = (category: Category) => {
     const ids = category.topics.map((t) => t.id).join(",");
-    router.push({ pathname: "/quiz-session", params: { topicIds: ids } });
+    router.push({
+      pathname: "/quiz-session",
+      params: { topicIds: ids, programmingLanguage: languageId },
+    });
   };
 
   if (loading) {
@@ -383,7 +394,12 @@ export default function PracticeScreen() {
             title={t("mixedQuiz")}
             description={t("mixedQuizDesc")}
             testID="practice-mode-mixed"
-            onPress={() => router.push("/quiz-session")}
+            onPress={() =>
+              router.push({
+                pathname: "/quiz-session",
+                params: { programmingLanguage: languageId },
+              })
+            }
           />
           <QuizModeCard
             icon="clock"
@@ -401,7 +417,10 @@ export default function PracticeScreen() {
             description={t("quickQuizDesc")}
             testID="practice-mode-quick"
             onPress={() =>
-              router.push({ pathname: "/quiz-session", params: { count: "5" } })
+              router.push({
+                pathname: "/quiz-session",
+                params: { count: "5", programmingLanguage: languageId },
+              })
             }
           />
           <QuizModeCard
@@ -426,7 +445,7 @@ export default function PracticeScreen() {
           </ThemedText>
         </View>
         <View style={styles.categoriesList}>
-          {CATEGORIES.map((category) => (
+          {categories.map((category) => (
             <CategoryRow
               key={category.id}
               category={category}

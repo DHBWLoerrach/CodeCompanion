@@ -69,9 +69,9 @@ describe("server/quiz", () => {
     it("throws when API key is missing", async () => {
       delete process.env.OPENAI_API_KEY;
 
-      await expect(generateQuizQuestions("variables")).rejects.toThrow(
-        "OPENAI_API_KEY is not set",
-      );
+      await expect(
+        generateQuizQuestions("javascript", "variables"),
+      ).rejects.toThrow("OPENAI_API_KEY is not set");
       expect(fetchMock).not.toHaveBeenCalled();
     });
 
@@ -85,7 +85,13 @@ describe("server/quiz", () => {
         }),
       );
 
-      const questions = await generateQuizQuestions("variables", 1, "en", 1);
+      const questions = await generateQuizQuestions(
+        "javascript",
+        "variables",
+        1,
+        "en",
+        1,
+      );
 
       expect(questions).toHaveLength(1);
       expect(fetchMock).toHaveBeenCalledTimes(1);
@@ -104,7 +110,13 @@ describe("server/quiz", () => {
         }),
       );
 
-      const [question] = await generateQuizQuestions("variables", 1, "en", 1);
+      const [question] = await generateQuizQuestions(
+        "javascript",
+        "variables",
+        1,
+        "en",
+        1,
+      );
 
       expect(question.id).toMatch(/^variables-[a-f0-9]{12}$/);
       expect(question.id).not.toBe("original-1");
@@ -129,7 +141,13 @@ describe("server/quiz", () => {
         }),
       );
 
-      const questions = await generateQuizQuestions("loops", 1, "en", 2);
+      const questions = await generateQuizQuestions(
+        "javascript",
+        "loops",
+        1,
+        "en",
+        2,
+      );
 
       expect(questions).toHaveLength(1);
       expect(questions[0].correctIndex).toBe(2);
@@ -145,9 +163,9 @@ describe("server/quiz", () => {
         }),
       );
 
-      await expect(generateQuizQuestions("variables")).rejects.toThrow(
-        "OpenAI request failed with status 500",
-      );
+      await expect(
+        generateQuizQuestions("javascript", "variables"),
+      ).rejects.toThrow("OpenAI request failed with status 500");
     });
 
     it("throws when response content is empty", async () => {
@@ -159,9 +177,9 @@ describe("server/quiz", () => {
         }),
       );
 
-      await expect(generateQuizQuestions("variables")).rejects.toThrow(
-        "Empty response from OpenAI",
-      );
+      await expect(
+        generateQuizQuestions("javascript", "variables"),
+      ).rejects.toThrow("Empty response from OpenAI");
     });
   });
 
@@ -173,7 +191,11 @@ describe("server/quiz", () => {
         }),
       );
 
-      const explanation = await generateTopicExplanation("promises", "en");
+      const explanation = await generateTopicExplanation(
+        "javascript",
+        "promises",
+        "en",
+      );
 
       expect(explanation).toBe("## Introduction\nText");
       expect(fetchMock).toHaveBeenCalledTimes(1);
@@ -186,7 +208,7 @@ describe("server/quiz", () => {
         }),
       );
 
-      await generateTopicExplanation("promises", "de");
+      await generateTopicExplanation("javascript", "promises", "de");
 
       const fetchOptions = fetchMock.mock.calls[0][1] as RequestInit;
       const payload = JSON.parse(String(fetchOptions.body)) as {
@@ -205,9 +227,9 @@ describe("server/quiz", () => {
         }),
       );
 
-      await expect(generateTopicExplanation("promises")).rejects.toThrow(
-        "Empty response from OpenAI",
-      );
+      await expect(
+        generateTopicExplanation("javascript", "promises"),
+      ).rejects.toThrow("Empty response from OpenAI");
     });
   });
 });

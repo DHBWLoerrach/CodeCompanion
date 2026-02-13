@@ -3,6 +3,7 @@ import { logApiError } from "@server/logging";
 import {
   requireTopicId,
   toLanguage,
+  toProgrammingLanguage,
   toQuestionCount,
   toQuizDifficultyLevel,
 } from "@server/validation";
@@ -14,6 +15,7 @@ export async function POST(request: Request) {
       count?: number;
       language?: string;
       skillLevel?: number;
+      programmingLanguage?: string;
     };
 
     const topicId = requireTopicId(body?.topicId);
@@ -30,8 +32,12 @@ export async function POST(request: Request) {
       );
     }
     const skillLevel = toQuizDifficultyLevel(body?.skillLevel, 1);
+    const programmingLanguage = toProgrammingLanguage(
+      body?.programmingLanguage,
+    );
 
     const questions = await generateQuizQuestions(
+      programmingLanguage,
       topicId,
       count,
       language,

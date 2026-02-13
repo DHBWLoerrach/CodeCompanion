@@ -1,10 +1,6 @@
 jest.mock("@server/quiz", () => ({
   generateQuizQuestions: jest.fn(),
-  TOPIC_PROMPTS: {
-    variables: "Variables",
-    loops: "Loops",
-    promises: "Promises",
-  },
+  getAvailableTopicIds: jest.fn(() => ["variables", "loops", "promises"]),
 }));
 
 import { generateQuizQuestions } from "@server/quiz";
@@ -33,8 +29,8 @@ function buildQuestions(topicId: string, count: number) {
 describe("POST /api/quiz/generate-mixed", () => {
   beforeEach(() => {
     mockGenerateQuizQuestions.mockReset();
-    mockGenerateQuizQuestions.mockImplementation(async (topicId, count = 5) =>
-      buildQuestions(topicId, count),
+    mockGenerateQuizQuestions.mockImplementation(
+      async (_lang, topicId, count = 5) => buildQuestions(topicId, count),
     );
   });
 
@@ -93,6 +89,7 @@ describe("POST /api/quiz/generate-mixed", () => {
     expect(mockGenerateQuizQuestions).toHaveBeenCalledTimes(2);
     expect(mockGenerateQuizQuestions).toHaveBeenNthCalledWith(
       1,
+      "javascript",
       "loops",
       3,
       "de",
@@ -100,6 +97,7 @@ describe("POST /api/quiz/generate-mixed", () => {
     );
     expect(mockGenerateQuizQuestions).toHaveBeenNthCalledWith(
       2,
+      "javascript",
       "variables",
       3,
       "de",
@@ -115,13 +113,21 @@ describe("POST /api/quiz/generate-mixed", () => {
     expect(response.status).toBe(200);
     expect(mockGenerateQuizQuestions).toHaveBeenCalledTimes(3);
     expect(mockGenerateQuizQuestions).toHaveBeenCalledWith(
+      "javascript",
       "variables",
       4,
       "en",
       1,
     );
-    expect(mockGenerateQuizQuestions).toHaveBeenCalledWith("loops", 4, "en", 1);
     expect(mockGenerateQuizQuestions).toHaveBeenCalledWith(
+      "javascript",
+      "loops",
+      4,
+      "en",
+      1,
+    );
+    expect(mockGenerateQuizQuestions).toHaveBeenCalledWith(
+      "javascript",
       "promises",
       4,
       "en",
@@ -143,6 +149,7 @@ describe("POST /api/quiz/generate-mixed", () => {
     expect(mockGenerateQuizQuestions).toHaveBeenCalledTimes(2);
     expect(mockGenerateQuizQuestions).toHaveBeenNthCalledWith(
       1,
+      "javascript",
       "loops",
       10,
       "en",
@@ -150,6 +157,7 @@ describe("POST /api/quiz/generate-mixed", () => {
     );
     expect(mockGenerateQuizQuestions).toHaveBeenNthCalledWith(
       2,
+      "javascript",
       "variables",
       10,
       "en",
@@ -169,6 +177,7 @@ describe("POST /api/quiz/generate-mixed", () => {
 
     expect(response.status).toBe(200);
     expect(mockGenerateQuizQuestions).toHaveBeenCalledWith(
+      "javascript",
       "variables",
       10,
       "en",
@@ -186,6 +195,7 @@ describe("POST /api/quiz/generate-mixed", () => {
     );
 
     expect(mockGenerateQuizQuestions).toHaveBeenCalledWith(
+      "javascript",
       "variables",
       10,
       "en",
@@ -202,6 +212,7 @@ describe("POST /api/quiz/generate-mixed", () => {
     );
 
     expect(mockGenerateQuizQuestions).toHaveBeenCalledWith(
+      "javascript",
       "variables",
       10,
       "en",
@@ -218,6 +229,7 @@ describe("POST /api/quiz/generate-mixed", () => {
     );
 
     expect(mockGenerateQuizQuestions).toHaveBeenCalledWith(
+      "javascript",
       "variables",
       10,
       "en",

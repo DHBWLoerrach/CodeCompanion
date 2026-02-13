@@ -169,23 +169,31 @@ describe("storage state updates", () => {
 
   describe("updateTopicProgress", () => {
     it("increments topic and global counters", async () => {
-      await storage.updateTopicProgress("variables", 5, 4);
-      await storage.updateTopicProgress("variables", 2, 1);
+      await storage.updateTopicProgress("javascript", "variables", 5, 4);
+      await storage.updateTopicProgress("javascript", "variables", 2, 1);
 
       const progress = await storage.getProgress();
 
       expect(progress.totalQuestions).toBe(7);
       expect(progress.correctAnswers).toBe(5);
-      expect(progress.topicProgress.variables.questionsAnswered).toBe(7);
-      expect(progress.topicProgress.variables.correctAnswers).toBe(5);
-      expect(progress.topicProgress.variables.lastPracticed).toBeTruthy();
+      expect(
+        progress.topicProgress["javascript:variables"].questionsAnswered,
+      ).toBe(7);
+      expect(
+        progress.topicProgress["javascript:variables"].correctAnswers,
+      ).toBe(5);
+      expect(
+        progress.topicProgress["javascript:variables"].lastPracticed,
+      ).toBeTruthy();
     });
   });
 
   describe("updateTopicSkillLevel", () => {
     it("raises level on high score", async () => {
-      await storage.updateTopicSkillLevel("promises", 85);
-      expect(await storage.getTopicSkillLevel("promises")).toBe(2);
+      await storage.updateTopicSkillLevel("javascript", "promises", 85);
+      expect(await storage.getTopicSkillLevel("javascript", "promises")).toBe(
+        2,
+      );
     });
 
     it("lowers level on low score", async () => {
@@ -194,7 +202,7 @@ describe("storage state updates", () => {
         correctAnswers: 0,
         achievements: [],
         topicProgress: {
-          promises: {
+          "javascript:promises": {
             topicId: "promises",
             questionsAnswered: 10,
             correctAnswers: 7,
@@ -204,8 +212,10 @@ describe("storage state updates", () => {
       };
       await storage.setProgress(seeded);
 
-      await storage.updateTopicSkillLevel("promises", 40);
-      expect(await storage.getTopicSkillLevel("promises")).toBe(2);
+      await storage.updateTopicSkillLevel("javascript", "promises", 40);
+      expect(await storage.getTopicSkillLevel("javascript", "promises")).toBe(
+        2,
+      );
     });
 
     it("does not exceed upper and lower bounds", async () => {
@@ -214,13 +224,13 @@ describe("storage state updates", () => {
         correctAnswers: 0,
         achievements: [],
         topicProgress: {
-          advanced: {
+          "javascript:advanced": {
             topicId: "advanced",
             questionsAnswered: 10,
             correctAnswers: 9,
             skillLevel: 5,
           },
-          basics: {
+          "javascript:basics": {
             topicId: "basics",
             questionsAnswered: 10,
             correctAnswers: 1,
@@ -230,11 +240,13 @@ describe("storage state updates", () => {
       };
       await storage.setProgress(seeded);
 
-      await storage.updateTopicSkillLevel("advanced", 95);
-      await storage.updateTopicSkillLevel("basics", 20);
+      await storage.updateTopicSkillLevel("javascript", "advanced", 95);
+      await storage.updateTopicSkillLevel("javascript", "basics", 20);
 
-      expect(await storage.getTopicSkillLevel("advanced")).toBe(5);
-      expect(await storage.getTopicSkillLevel("basics")).toBe(1);
+      expect(await storage.getTopicSkillLevel("javascript", "advanced")).toBe(
+        5,
+      );
+      expect(await storage.getTopicSkillLevel("javascript", "basics")).toBe(1);
     });
   });
 

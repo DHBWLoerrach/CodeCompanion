@@ -30,6 +30,7 @@ import {
   type SettingsData,
   type ThemeMode,
 } from "@/lib/storage";
+import { useProgrammingLanguage } from "@/contexts/ProgrammingLanguageContext";
 
 const AVATARS = ["monitor", "award", "code", "zap"] as const;
 
@@ -88,6 +89,7 @@ function SettingRow({ icon, label, children }: SettingRowProps) {
 export default function SettingsScreen() {
   const { theme, refreshTheme } = useTheme();
   const { t, refreshLanguage } = useTranslation();
+  const { selectedLanguage } = useProgrammingLanguage();
   const insets = useSafeAreaInsets();
   const router = useRouter();
   const settingsScreenOptions = {
@@ -308,6 +310,48 @@ export default function SettingsScreen() {
 
                 return (
                   <>
+                    <Pressable
+                      style={[
+                        styles.aboutActionButton,
+                        { backgroundColor: theme.backgroundDefault },
+                      ]}
+                      onPress={() =>
+                        router.push({
+                          pathname: "/language-select",
+                          params: { allowBack: "1" },
+                        })
+                      }
+                    >
+                      <View style={styles.settingLeft}>
+                        <AppIcon
+                          name="code"
+                          size={20}
+                          color={theme.tabIconDefault}
+                        />
+                        <ThemedText type="body">
+                          {t("changeLanguage")}
+                        </ThemedText>
+                      </View>
+                      <View
+                        style={{
+                          flexDirection: "row",
+                          alignItems: "center",
+                          gap: Spacing.sm,
+                        }}
+                      >
+                        <ThemedText
+                          type="body"
+                          style={{ color: theme.tabIconDefault }}
+                        >
+                          {selectedLanguage?.shortName ?? "JS"}
+                        </ThemedText>
+                        <AppIcon
+                          name="chevron-right"
+                          size={20}
+                          color={theme.tabIconDefault}
+                        />
+                      </View>
+                    </Pressable>
                     <SettingRow icon="globe" label={t("language")}>
                       <SegmentedControl
                         values={["English", "Deutsch"]}

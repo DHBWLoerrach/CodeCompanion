@@ -7,6 +7,8 @@ const STORAGE_KEYS = {
   PROGRESS: "dhbw_progress",
   STREAK: "dhbw_streak",
   SETTINGS: "dhbw_settings",
+  SELECTED_LANGUAGE: "dhbw_selected_language",
+  PROGRESS_MIGRATED: "dhbw_progress_migrated",
 };
 
 export interface UserProfile {
@@ -153,19 +155,21 @@ export const storage = {
   },
 
   async updateTopicProgress(
+    languageId: string,
     topicId: string,
     questionsAnswered: number,
     correctAnswers: number,
   ): Promise<void> {
     const progress = await this.getProgress();
-    const existing = progress.topicProgress[topicId] || {
+    const compositeKey = `${languageId}:${topicId}`;
+    const existing = progress.topicProgress[compositeKey] || {
       topicId,
       questionsAnswered: 0,
       correctAnswers: 0,
       skillLevel: 1 as MasteryLevel,
     };
 
-    progress.topicProgress[topicId] = {
+    progress.topicProgress[compositeKey] = {
       ...existing,
       questionsAnswered: existing.questionsAnswered + questionsAnswered,
       correctAnswers: existing.correctAnswers + correctAnswers,
@@ -261,17 +265,23 @@ export const storage = {
     await AsyncStorage.setItem(STORAGE_KEYS.SETTINGS, JSON.stringify(settings));
   },
 
-  async getTopicSkillLevel(topicId: string): Promise<MasteryLevel> {
+  async getTopicSkillLevel(
+    languageId: string,
+    topicId: string,
+  ): Promise<MasteryLevel> {
     const progress = await this.getProgress();
-    return progress.topicProgress[topicId]?.skillLevel ?? 1;
+    const compositeKey = `${languageId}:${topicId}`;
+    return progress.topicProgress[compositeKey]?.skillLevel ?? 1;
   },
 
   async updateTopicSkillLevel(
+    languageId: string,
     topicId: string,
     scorePercent: number,
   ): Promise<void> {
     const progress = await this.getProgress();
-    const existing = progress.topicProgress[topicId] || {
+    const compositeKey = `${languageId}:${topicId}`;
+    const existing = progress.topicProgress[compositeKey] || {
       topicId,
       questionsAnswered: 0,
       correctAnswers: 0,
@@ -285,12 +295,69 @@ export const storage = {
       newLevel = (existing.skillLevel - 1) as MasteryLevel;
     }
 
-    progress.topicProgress[topicId] = {
+    progress.topicProgress[compositeKey] = {
       ...existing,
       skillLevel: newLevel,
     };
 
     await this.setProgress(progress);
+  },
+
+  async getSelectedLanguage(): Promise<string | null> {
+    try {
+      return await AsyncStorage.getItem(STORAGE_KEYS.SELECTED_LANGUAGE);
+    } catch {
+      return null;
+    }
+  },
+
+  async setSelectedLanguage(languageId: string): Promise<void> {
+    await AsyncStorage.setItem(STORAGE_KEYS.SELECTED_LANGUAGE, languageId);
+  },
+
+  async migrateProgressToCompositeKeys(): Promise<void> {
+    try {
+      const migrated = await AsyncStorage.getItem(
+        STORAGE_KEYS.PROGRESS_MIGRATED,
+      );
+      if (migrated === "true") return;
+
+      const progress = await this.getProgress();
+      const newTopicProgress: Record<string, TopicProgress> = {};
+      let changed = false;
+
+      for (const [key, value] of Object.entries(progress.topicProgress)) {
+        if (key.includes(":")) {
+          newTopicProgress[key] = value;
+        } else {
+          newTopicProgress[`javascript:${key}`] = value;
+          changed = true;
+        }
+      }
+
+      if (changed) {
+        progress.topicProgress = newTopicProgress;
+        await this.setProgress(progress);
+      }
+
+      await AsyncStorage.setItem(STORAGE_KEYS.PROGRESS_MIGRATED, "true");
+    } catch (error) {
+      console.error("Error migrating progress data:", error);
+    }
+  },
+
+  getTopicProgressForLanguage(
+    topicProgress: Record<string, TopicProgress>,
+    languageId: string,
+  ): Record<string, TopicProgress> {
+    const prefix = `${languageId}:`;
+    const filtered: Record<string, TopicProgress> = {};
+    for (const [key, value] of Object.entries(topicProgress)) {
+      if (key.startsWith(prefix)) {
+        filtered[key.slice(prefix.length)] = value;
+      }
+    }
+    return filtered;
   },
 
   async clearAllData(): Promise<void> {
@@ -299,6 +366,8 @@ export const storage = {
       STORAGE_KEYS.PROGRESS,
       STORAGE_KEYS.STREAK,
       STORAGE_KEYS.SETTINGS,
+      STORAGE_KEYS.SELECTED_LANGUAGE,
+      STORAGE_KEYS.PROGRESS_MIGRATED,
     ]);
   },
 };

@@ -2,6 +2,11 @@ import {
   clampQuizDifficultyLevel,
   type QuizDifficultyLevel,
 } from "@shared/skill-level";
+import {
+  DEFAULT_PROGRAMMING_LANGUAGE_ID,
+  SUPPORTED_PROGRAMMING_LANGUAGE_IDS,
+  type ProgrammingLanguageId,
+} from "@shared/programming-language";
 
 export type SupportedLanguage = "en" | "de";
 
@@ -26,6 +31,16 @@ export function requireTopicId(value: unknown): string | null {
   }
 
   return value;
+}
+
+export function toProgrammingLanguage(value: unknown): ProgrammingLanguageId {
+  if (
+    typeof value === "string" &&
+    SUPPORTED_PROGRAMMING_LANGUAGE_IDS.includes(value as ProgrammingLanguageId)
+  ) {
+    return value as ProgrammingLanguageId;
+  }
+  return DEFAULT_PROGRAMMING_LANGUAGE_ID;
 }
 
 export function toQuizDifficultyLevel(

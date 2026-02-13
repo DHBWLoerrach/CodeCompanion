@@ -12,6 +12,7 @@ import { useTranslation } from "@/hooks/useTranslation";
 import { Spacing, BorderRadius, Shadows } from "@/constants/theme";
 import { getTopicById, getTopicName } from "@/lib/topics";
 import { storage } from "@/lib/storage";
+import { getLanguageById } from "@/lib/languages";
 
 interface ScoreCircleProps {
   score: number;
@@ -126,6 +127,7 @@ export default function SessionSummaryScreen() {
     total?: string;
     topicId?: string;
     answers?: string;
+    programmingLanguage?: string;
   }>();
 
   const getParam = (value?: string | string[]) =>
@@ -135,6 +137,8 @@ export default function SessionSummaryScreen() {
   const totalParam = getParam(params.total);
   const topicIdParam = getParam(params.topicId);
   const answersParam = getParam(params.answers);
+  const programmingLanguageParam =
+    getParam(params.programmingLanguage) || "javascript";
 
   const score = Number(scoreParam ?? 0);
   const total = Number(totalParam ?? 0);
@@ -149,13 +153,20 @@ export default function SessionSummaryScreen() {
   }, [answersParam]);
 
   const percentage = total > 0 ? (score / total) * 100 : 0;
-  const topic = topicIdParam ? getTopicById(topicIdParam) : null;
+  const langCategories = getLanguageById(programmingLanguageParam)?.categories;
+  const topic = topicIdParam
+    ? getTopicById(topicIdParam, langCategories)
+    : null;
 
   useEffect(() => {
     if (topicIdParam) {
-      storage.updateTopicSkillLevel(topicIdParam, percentage);
+      storage.updateTopicSkillLevel(
+        programmingLanguageParam,
+        topicIdParam,
+        percentage,
+      );
     }
-  }, [topicIdParam, percentage]);
+  }, [topicIdParam, percentage, programmingLanguageParam]);
 
   const getFeedbackMessage = (pct: number): string => {
     if (pct === 100) return t("excellentWork");
@@ -166,7 +177,12 @@ export default function SessionSummaryScreen() {
   };
 
   const handlePracticeAgain = () => {
-    const nextParams = topicIdParam ? { topicId: topicIdParam } : undefined;
+    const nextParams: Record<string, string> = {
+      programmingLanguage: programmingLanguageParam,
+    };
+    if (topicIdParam) {
+      nextParams.topicId = topicIdParam;
+    }
     router.replace({ pathname: "/quiz-session", params: nextParams });
   };
 

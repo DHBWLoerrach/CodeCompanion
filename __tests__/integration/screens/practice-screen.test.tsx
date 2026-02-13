@@ -66,8 +66,37 @@ jest.mock("@/hooks/useTranslation", () => ({
 jest.mock("@/lib/storage", () => ({
   storage: {
     getProgress: (...args: unknown[]) => mockGetProgress(...args),
+    getTopicProgressForLanguage: (
+      topicProgress: Record<string, unknown>,
+      languageId: string,
+    ) => {
+      const prefix = `${languageId}:`;
+      const filtered: Record<string, unknown> = {};
+      for (const [key, value] of Object.entries(topicProgress)) {
+        if (key.startsWith(prefix)) {
+          filtered[key.slice(prefix.length)] = value;
+        }
+      }
+      return filtered;
+    },
   },
   isTopicDue: (...args: unknown[]) => mockIsTopicDue(...args),
+}));
+
+jest.mock("@/contexts/ProgrammingLanguageContext", () => ({
+  useProgrammingLanguage: () => ({
+    selectedLanguage: {
+      id: "javascript",
+      nameKey: "javascript",
+      shortName: "JS",
+      color: "#F7DF1E",
+      categories: require("@/lib/topics").JAVASCRIPT_CATEGORIES,
+    },
+    selectedLanguageId: "javascript",
+    setSelectedLanguage: jest.fn(),
+    isLoading: false,
+    isLanguageSelected: true,
+  }),
 }));
 
 describe("PracticeScreen integration", () => {
@@ -84,14 +113,14 @@ describe("PracticeScreen integration", () => {
       correctAnswers: 7,
       achievements: [],
       topicProgress: {
-        variables: {
+        "javascript:variables": {
           topicId: "variables",
           questionsAnswered: 5,
           correctAnswers: 4,
           skillLevel: 2,
           lastPracticed: "2026-01-01T00:00:00.000Z",
         },
-        loops: {
+        "javascript:loops": {
           topicId: "loops",
           questionsAnswered: 2,
           correctAnswers: 1,
@@ -115,7 +144,7 @@ describe("PracticeScreen integration", () => {
 
     expect(mockPush).toHaveBeenCalledWith({
       pathname: "/quiz-session",
-      params: { topicIds: "variables" },
+      params: { topicIds: "variables", programmingLanguage: "javascript" },
     });
   });
 
@@ -138,14 +167,20 @@ describe("PracticeScreen integration", () => {
     fireEvent.press(screen.getByText("quickQuiz"));
     fireEvent.press(screen.getByText("Fundamentals"));
 
-    expect(mockPush).toHaveBeenCalledWith("/quiz-session");
     expect(mockPush).toHaveBeenCalledWith({
       pathname: "/quiz-session",
-      params: { count: "5" },
+      params: { programmingLanguage: "javascript" },
     });
     expect(mockPush).toHaveBeenCalledWith({
       pathname: "/quiz-session",
-      params: { topicIds: "variables,data-types,operators" },
+      params: { count: "5", programmingLanguage: "javascript" },
+    });
+    expect(mockPush).toHaveBeenCalledWith({
+      pathname: "/quiz-session",
+      params: {
+        topicIds: "variables,data-types,operators",
+        programmingLanguage: "javascript",
+      },
     });
   });
 });

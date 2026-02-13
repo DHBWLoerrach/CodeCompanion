@@ -7,12 +7,28 @@ const mockApiRequest = jest.fn();
 const mockStorage = {
   getSettings: jest.fn(),
   getProgress: jest.fn(),
+  getTopicProgressForLanguage: jest.fn(
+    (topicProgress: Record<string, unknown>, languageId: string) => {
+      const prefix = `${languageId}:`;
+      const filtered: Record<string, unknown> = {};
+      for (const [key, value] of Object.entries(topicProgress)) {
+        if (key.startsWith(prefix)) {
+          filtered[key.slice(prefix.length)] = value;
+        }
+      }
+      return filtered;
+    },
+  ),
   getTopicSkillLevel: jest.fn(),
   recordPractice: jest.fn(),
   updateTopicProgress: jest.fn(),
 };
-let mockSearchParams: { topicId?: string; topicIds?: string; count?: string } =
-  {};
+let mockSearchParams: {
+  topicId?: string;
+  topicIds?: string;
+  count?: string;
+  programmingLanguage?: string;
+} = {};
 
 jest.mock("expo-router", () => ({
   Stack: { Screen: () => null },
@@ -78,6 +94,10 @@ jest.mock("@/lib/storage", () => ({
   storage: {
     getSettings: (...args: unknown[]) => mockStorage.getSettings(...args),
     getProgress: (...args: unknown[]) => mockStorage.getProgress(...args),
+    getTopicProgressForLanguage: (
+      topicProgress: Record<string, unknown>,
+      languageId: string,
+    ) => mockStorage.getTopicProgressForLanguage(topicProgress, languageId),
     getTopicSkillLevel: (...args: unknown[]) =>
       mockStorage.getTopicSkillLevel(...args),
     recordPractice: (...args: unknown[]) => mockStorage.recordPractice(...args),
@@ -94,11 +114,16 @@ describe("QuizSessionScreen integration", () => {
     mockApiRequest.mockReset();
     mockStorage.getSettings.mockReset();
     mockStorage.getProgress.mockReset();
+    mockStorage.getTopicProgressForLanguage.mockClear();
     mockStorage.getTopicSkillLevel.mockReset();
     mockStorage.recordPractice.mockReset();
     mockStorage.updateTopicProgress.mockReset();
 
-    mockSearchParams = { topicId: "variables", count: "1" };
+    mockSearchParams = {
+      topicId: "variables",
+      count: "1",
+      programmingLanguage: "javascript",
+    };
     mockStorage.getSettings.mockResolvedValue({
       language: "en",
       themeMode: "auto",
@@ -146,6 +171,7 @@ describe("QuizSessionScreen integration", () => {
       count: 1,
       language: "en",
       skillLevel: 2,
+      programmingLanguage: "javascript",
     });
 
     fireEvent.press(screen.getByText("Option A"));
@@ -162,6 +188,7 @@ describe("QuizSessionScreen integration", () => {
     await waitFor(() => {
       expect(mockStorage.recordPractice).toHaveBeenCalledTimes(1);
       expect(mockStorage.updateTopicProgress).toHaveBeenCalledWith(
+        "javascript",
         "variables",
         1,
         0,
@@ -181,18 +208,22 @@ describe("QuizSessionScreen integration", () => {
   });
 
   it("sends mapped mixed skillLevel for provided topicIds", async () => {
-    mockSearchParams = { topicIds: "variables,loops", count: "2" };
+    mockSearchParams = {
+      topicIds: "variables,loops",
+      count: "2",
+      programmingLanguage: "javascript",
+    };
     mockStorage.getProgress.mockResolvedValue({
       totalQuestions: 0,
       correctAnswers: 0,
       topicProgress: {
-        variables: {
+        "javascript:variables": {
           topicId: "variables",
           questionsAnswered: 10,
           correctAnswers: 8,
           skillLevel: 5,
         },
-        loops: {
+        "javascript:loops": {
           topicId: "loops",
           questionsAnswered: 4,
           correctAnswers: 2,
@@ -216,27 +247,34 @@ describe("QuizSessionScreen integration", () => {
         count: 2,
         language: "en",
         skillLevel: 2,
+        programmingLanguage: "javascript",
       },
     );
   });
 
   it("sends mapped mixed skillLevel from global progress for random mix", async () => {
-    mockSearchParams = {};
+    mockSearchParams = { programmingLanguage: "javascript" };
     mockStorage.getProgress.mockResolvedValue({
       totalQuestions: 0,
       correctAnswers: 0,
       topicProgress: {
-        variables: {
+        "javascript:variables": {
           topicId: "variables",
           questionsAnswered: 12,
           correctAnswers: 10,
-          skillLevel: 5,
+          skillLevel: 1,
         },
-        loops: {
+        "javascript:loops": {
           topicId: "loops",
           questionsAnswered: 7,
           correctAnswers: 6,
-          skillLevel: 4,
+          skillLevel: 1,
+        },
+        "python:variables": {
+          topicId: "variables",
+          questionsAnswered: 9,
+          correctAnswers: 9,
+          skillLevel: 5,
         },
       },
       achievements: [],
@@ -254,13 +292,14 @@ describe("QuizSessionScreen integration", () => {
       {
         count: 10,
         language: "en",
-        skillLevel: 3,
+        skillLevel: 1,
+        programmingLanguage: "javascript",
       },
     );
   });
 
   it("falls back to beginner mixed skillLevel when no progress exists", async () => {
-    mockSearchParams = {};
+    mockSearchParams = { programmingLanguage: "javascript" };
     mockStorage.getProgress.mockResolvedValue({
       totalQuestions: 0,
       correctAnswers: 0,
@@ -281,6 +320,7 @@ describe("QuizSessionScreen integration", () => {
         count: 10,
         language: "en",
         skillLevel: 1,
+        programmingLanguage: "javascript",
       },
     );
   });

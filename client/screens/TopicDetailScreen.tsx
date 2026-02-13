@@ -32,6 +32,7 @@ import {
   type Topic,
 } from "@/lib/topics";
 import { storage, type TopicProgress, isTopicDue } from "@/lib/storage";
+import { useProgrammingLanguage } from "@/contexts/ProgrammingLanguageContext";
 
 const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
 
@@ -42,6 +43,9 @@ export default function TopicDetailScreen() {
   const isAndroid = process.env.EXPO_OS === "android";
   const navigation = useNavigation();
   const router = useRouter();
+  const { selectedLanguage } = useProgrammingLanguage();
+  const languageId = selectedLanguage?.id ?? "javascript";
+  const categories = selectedLanguage?.categories ?? [];
   const { topicId } = useLocalSearchParams<{ topicId?: string }>();
   const resolvedTopicId = Array.isArray(topicId) ? topicId[0] : topicId;
 
@@ -85,21 +89,22 @@ export default function TopicDetailScreen() {
           return;
         }
 
-        const topicData = getTopicById(resolvedTopicId);
+        const topicData = getTopicById(resolvedTopicId, categories);
         setTopic(topicData || null);
         navigation.setOptions({
           headerTitle: topicData ? getTopicName(topicData, activeLanguage) : "",
         });
 
         const progressData = await storage.getProgress();
-        setProgress(progressData.topicProgress[resolvedTopicId] || null);
+        const compositeKey = `${languageId}:${resolvedTopicId}`;
+        setProgress(progressData.topicProgress[compositeKey] || null);
       } catch (error) {
         console.error("Error loading topic:", error);
       } finally {
         setLoading(false);
       }
     },
-    [resolvedTopicId, navigation, language],
+    [resolvedTopicId, navigation, language, categories, languageId],
   );
 
   useFocusEffect(
@@ -137,7 +142,7 @@ export default function TopicDetailScreen() {
     if (!resolvedTopicId) return;
     router.push({
       pathname: "/quiz-session",
-      params: { topicId: resolvedTopicId },
+      params: { topicId: resolvedTopicId, programmingLanguage: languageId },
     });
   };
 
@@ -145,7 +150,7 @@ export default function TopicDetailScreen() {
     if (!resolvedTopicId) return;
     router.push({
       pathname: "/topic-explanation",
-      params: { topicId: resolvedTopicId },
+      params: { topicId: resolvedTopicId, programmingLanguage: languageId },
     });
   };
 

@@ -6,21 +6,25 @@ import { HeaderIconButton } from "@/components/HeaderIconButton";
 import { ThemedText } from "@/components/ThemedText";
 import { useTheme } from "@/hooks/useTheme";
 import { useTranslation } from "@/hooks/useTranslation";
+import { useProgrammingLanguage } from "@/contexts/ProgrammingLanguageContext";
 import { BorderRadius } from "@/constants/theme";
 
 function HeaderBrand() {
   const { theme } = useTheme();
+  const { selectedLanguage } = useProgrammingLanguage();
+  const badgeColor = selectedLanguage?.color ?? theme.primary;
+  const shortName = selectedLanguage?.shortName ?? "JS";
 
   return (
     <View style={styles.headerBrand}>
-      <View style={[styles.headerBadge, { backgroundColor: theme.primary }]}>
+      <View style={[styles.headerBadge, { backgroundColor: badgeColor }]}>
         <ThemedText
           type="label"
           style={styles.headerBadgeText}
-          lightColor="#FFFFFF"
-          darkColor="#FFFFFF"
+          lightColor="#000000"
+          darkColor="#000000"
         >
-          JS
+          {shortName}
         </ThemedText>
       </View>
     </View>
@@ -30,6 +34,7 @@ function HeaderBrand() {
 export default function LearnStack() {
   const { theme } = useTheme();
   const { t, refreshLanguage } = useTranslation();
+  const { selectedLanguage } = useProgrammingLanguage();
   const router = useRouter();
 
   useFocusEffect(
@@ -50,7 +55,9 @@ export default function LearnStack() {
       <Stack.Screen
         name="index"
         options={{
-          title: t("learnJavaScript"),
+          title: selectedLanguage
+            ? `${t("learn")} ${t(selectedLanguage.nameKey)}`
+            : t("learn"),
           headerLeft: () => <HeaderBrand />,
           headerRight: () => (
             <HeaderIconButton

@@ -1,11 +1,12 @@
 import {
   generateQuizQuestions,
-  TOPIC_PROMPTS,
+  getAvailableTopicIds,
   type QuizQuestion,
 } from "@server/quiz";
 import { logApiError } from "@server/logging";
 import {
   toLanguage,
+  toProgrammingLanguage,
   toQuestionCount,
   toQuizDifficultyLevel,
 } from "@server/validation";
@@ -30,10 +31,14 @@ export async function POST(request: Request) {
       language?: string;
       topicIds?: string[];
       skillLevel?: number;
+      programmingLanguage?: string;
     };
 
     const count = toQuestionCount(body?.count, 10);
     const skillLevel = toQuizDifficultyLevel(body?.skillLevel, 1);
+    const programmingLanguage = toProgrammingLanguage(
+      body?.programmingLanguage,
+    );
     if (hasTooManyTopicIds(body?.topicIds)) {
       return Response.json(
         { error: "topicIds cannot contain more than 20 entries" },
@@ -48,7 +53,7 @@ export async function POST(request: Request) {
       );
     }
 
-    const allTopicKeys = Object.keys(TOPIC_PROMPTS);
+    const allTopicKeys = getAvailableTopicIds(programmingLanguage);
     let selectedTopics: string[];
     if (Array.isArray(body?.topicIds) && body.topicIds.length > 0) {
       selectedTopics = body.topicIds.filter((id) => allTopicKeys.includes(id));
@@ -68,6 +73,7 @@ export async function POST(request: Request) {
 
     for (const topicId of selectedTopics) {
       const questions = await generateQuizQuestions(
+        programmingLanguage,
         topicId,
         questionsPerTopic,
         language,

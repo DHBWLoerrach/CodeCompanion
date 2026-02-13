@@ -48,6 +48,7 @@ describe("POST /api/topic/explain", () => {
 
     expect(response.status).toBe(200);
     expect(mockGenerateTopicExplanation).toHaveBeenCalledWith(
+      "javascript",
       "variables",
       "en",
     );
@@ -60,6 +61,7 @@ describe("POST /api/topic/explain", () => {
     await POST(createRequest({ topicId: "variables", language: "de" }));
 
     expect(mockGenerateTopicExplanation).toHaveBeenCalledWith(
+      "javascript",
       "variables",
       "de",
     );

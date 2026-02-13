@@ -13,7 +13,7 @@ export interface Category {
   topics: Topic[];
 }
 
-export const CATEGORIES: Category[] = [
+export const JAVASCRIPT_CATEGORIES: Category[] = [
   {
     id: "fundamentals",
     nameKey: "fundamentals",
@@ -166,8 +166,11 @@ export const CATEGORIES: Category[] = [
   },
 ];
 
-export function getTopicById(topicId: string): Topic | undefined {
-  for (const category of CATEGORIES) {
+export function getTopicById(
+  topicId: string,
+  categories: Category[] = JAVASCRIPT_CATEGORIES,
+): Topic | undefined {
+  for (const category of categories) {
     const topic = category.topics.find((t) => t.id === topicId);
     if (topic) return topic;
   }

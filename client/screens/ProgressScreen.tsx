@@ -26,6 +26,7 @@ import {
   type ProgressData,
   type StreakData,
 } from "@/lib/storage";
+import { useProgrammingLanguage } from "@/contexts/ProgrammingLanguageContext";
 
 const AVATARS = ["monitor", "award", "code", "zap"] as const;
 
@@ -120,6 +121,8 @@ function AchievementBadge({ name, icon, unlocked }: AchievementBadgeProps) {
 export default function ProgressScreen() {
   const { theme } = useTheme();
   const { t, refreshLanguage } = useTranslation();
+  const { selectedLanguage } = useProgrammingLanguage();
+  const languageId = selectedLanguage?.id ?? "javascript";
   const insets = useSafeAreaInsets();
   const router = useRouter();
   const [profile, setProfile] = useState<UserProfile | null>(null);
@@ -192,9 +195,11 @@ export default function ProgressScreen() {
 
   const getTopicsMastered = () => {
     if (!progress) return 0;
-    return Object.values(progress.topicProgress).filter(
-      (t) => t.skillLevel === 5,
-    ).length;
+    const langProgress = storage.getTopicProgressForLanguage(
+      progress.topicProgress,
+      languageId,
+    );
+    return Object.values(langProgress).filter((t) => t.skillLevel === 5).length;
   };
 
   const getUnlockedAchievements = () => {

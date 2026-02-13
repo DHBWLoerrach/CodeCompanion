@@ -3,6 +3,7 @@ import { fireEvent, render, waitFor } from "@testing-library/react-native";
 import SettingsScreen from "@/screens/SettingsScreen";
 
 const mockBack = jest.fn();
+const mockPush = jest.fn();
 const mockRefreshTheme = jest.fn();
 const mockRefreshLanguage = jest.fn();
 const mockStorage = {
@@ -17,7 +18,7 @@ jest.mock("expo-router", () => ({
   Stack: { Screen: () => null },
   useRouter: () => ({
     back: mockBack,
-    push: jest.fn(),
+    push: mockPush,
     replace: jest.fn(),
     dismiss: jest.fn(),
     dismissAll: jest.fn(),
@@ -116,9 +117,26 @@ jest.mock("@/lib/storage", () => ({
   },
 }));
 
+jest.mock("@/contexts/ProgrammingLanguageContext", () => ({
+  useProgrammingLanguage: () => ({
+    selectedLanguage: {
+      id: "javascript",
+      nameKey: "javascript",
+      shortName: "JS",
+      color: "#F7DF1E",
+      categories: [],
+    },
+    selectedLanguageId: "javascript",
+    setSelectedLanguage: jest.fn(),
+    isLoading: false,
+    isLanguageSelected: true,
+  }),
+}));
+
 describe("SettingsScreen integration", () => {
   beforeEach(() => {
     mockBack.mockReset();
+    mockPush.mockReset();
     mockRefreshTheme.mockReset();
     mockRefreshLanguage.mockReset();
     mockStorage.getProfile.mockReset();
@@ -141,6 +159,21 @@ describe("SettingsScreen integration", () => {
     mockRefreshLanguage.mockResolvedValue(undefined);
   });
 
+  it("opens language select with back navigation enabled", async () => {
+    const screen = render(<SettingsScreen />);
+
+    await waitFor(() => {
+      expect(screen.getByText("changeLanguage")).toBeTruthy();
+    });
+
+    fireEvent.press(screen.getByText("changeLanguage"));
+
+    expect(mockPush).toHaveBeenCalledWith({
+      pathname: "/language-select",
+      params: { allowBack: "1" },
+    });
+  });
+
   it("applies language/theme immediately and saves profile/settings", async () => {
     const screen = render(<SettingsScreen />);
 
@@ -148,7 +181,7 @@ describe("SettingsScreen integration", () => {
       expect(screen.getByText("saveChanges")).toBeTruthy();
     });
 
-    fireEvent.press(screen.getByText("german"));
+    fireEvent.press(screen.getByText("Deutsch"));
     await waitFor(() => {
       expect(mockStorage.setSettings).toHaveBeenCalledWith({
         language: "de",

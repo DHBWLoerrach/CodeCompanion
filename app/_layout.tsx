@@ -9,14 +9,32 @@ import { QueryClientProvider } from "@tanstack/react-query";
 import { queryClient } from "@/lib/query-client";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { ThemeProvider } from "@/contexts/ThemeContext";
+import { ProgrammingLanguageProvider } from "@/contexts/ProgrammingLanguageContext";
 import { ThemedStatusBar } from "@/components/ThemedStatusBar";
 import { useScreenOptions } from "@/hooks/useScreenOptions";
+import { useTranslation } from "@/hooks/useTranslation";
 
 function RootStack() {
   const screenOptions = useScreenOptions();
+  const { t } = useTranslation();
 
   return (
     <Stack screenOptions={screenOptions}>
+      <Stack.Screen name="index" options={{ headerShown: false }} />
+      <Stack.Screen
+        name="language-select"
+        options={({ route }) => {
+          const canNavigateBack =
+            (route.params as { allowBack?: string } | undefined)?.allowBack ===
+            "1";
+
+          return {
+            title: t("selectLanguage"),
+            headerBackVisible: canNavigateBack,
+            gestureEnabled: canNavigateBack,
+          };
+        }}
+      />
       <Stack.Screen name="(tabs)" options={{ headerShown: false, title: "" }} />
       <Stack.Screen
         name="quiz-session"
@@ -56,14 +74,16 @@ export default function RootLayout() {
     <ErrorBoundary>
       <QueryClientProvider client={queryClient}>
         <ThemeProvider>
-          <SafeAreaProvider>
-            <GestureHandlerRootView style={styles.root}>
-              <KeyboardProvider>
-                <RootStack />
-                <ThemedStatusBar />
-              </KeyboardProvider>
-            </GestureHandlerRootView>
-          </SafeAreaProvider>
+          <ProgrammingLanguageProvider>
+            <SafeAreaProvider>
+              <GestureHandlerRootView style={styles.root}>
+                <KeyboardProvider>
+                  <RootStack />
+                  <ThemedStatusBar />
+                </KeyboardProvider>
+              </GestureHandlerRootView>
+            </SafeAreaProvider>
+          </ProgrammingLanguageProvider>
         </ThemeProvider>
       </QueryClientProvider>
     </ErrorBoundary>

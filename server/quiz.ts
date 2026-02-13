@@ -1,4 +1,8 @@
 import type { QuizDifficultyLevel } from "@shared/skill-level";
+import {
+  DEFAULT_PROGRAMMING_LANGUAGE_ID,
+  type ProgrammingLanguageId,
+} from "@shared/programming-language";
 
 export interface QuizQuestion {
   id: string;
@@ -9,29 +13,50 @@ export interface QuizQuestion {
   explanation: string;
 }
 
-export const TOPIC_PROMPTS: Record<string, string> = {
-  variables:
-    "JavaScript variable declarations using let and const only (do not include var), including block scope and when to use each",
-  "data-types":
-    "JavaScript primitive data types (string, number, boolean, null, undefined, symbol, bigint) and type checking",
-  operators: "JavaScript arithmetic, comparison, and logical operators",
-  conditionals: "JavaScript if/else statements and ternary operators",
-  loops: "JavaScript for, while, do-while, and for...of loops",
-  switch: "JavaScript switch statements and case handling",
-  declarations: "JavaScript function declarations and function expressions",
-  "arrow-functions": "JavaScript ES6 arrow function syntax and behavior",
-  callbacks: "JavaScript callback functions and callback patterns",
-  objects: "JavaScript object literals, properties, and methods",
-  arrays: "JavaScript array methods like map, filter, reduce, find, forEach",
-  destructuring: "JavaScript object and array destructuring syntax",
-  promises: "JavaScript Promises, then/catch chaining, and Promise.all",
-  "async-await": "JavaScript async/await syntax for handling asynchronous code",
-  "error-handling": "JavaScript try/catch blocks and error management",
-  closures: "JavaScript closures and lexical scope",
-  prototypes: "JavaScript prototype chain and prototype-based inheritance",
-  classes: "JavaScript ES6 class syntax, constructors, and methods",
-  modules: "JavaScript ES6 import/export and module patterns",
+export const LANGUAGE_TOPIC_PROMPTS: Record<
+  ProgrammingLanguageId,
+  Record<string, string>
+> = {
+  [DEFAULT_PROGRAMMING_LANGUAGE_ID]: {
+    variables:
+      "JavaScript variable declarations using let and const only (do not include var), including block scope and when to use each",
+    "data-types":
+      "JavaScript primitive data types (string, number, boolean, null, undefined, symbol, bigint) and type checking",
+    operators: "JavaScript arithmetic, comparison, and logical operators",
+    conditionals: "JavaScript if/else statements and ternary operators",
+    loops: "JavaScript for, while, do-while, and for...of loops",
+    switch: "JavaScript switch statements and case handling",
+    declarations: "JavaScript function declarations and function expressions",
+    "arrow-functions": "JavaScript ES6 arrow function syntax and behavior",
+    callbacks: "JavaScript callback functions and callback patterns",
+    objects: "JavaScript object literals, properties, and methods",
+    arrays: "JavaScript array methods like map, filter, reduce, find, forEach",
+    destructuring: "JavaScript object and array destructuring syntax",
+    promises: "JavaScript Promises, then/catch chaining, and Promise.all",
+    "async-await":
+      "JavaScript async/await syntax for handling asynchronous code",
+    "error-handling": "JavaScript try/catch blocks and error management",
+    closures: "JavaScript closures and lexical scope",
+    prototypes: "JavaScript prototype chain and prototype-based inheritance",
+    classes: "JavaScript ES6 class syntax, constructors, and methods",
+    modules: "JavaScript ES6 import/export and module patterns",
+  },
 };
+
+const LANGUAGE_NAMES: Record<ProgrammingLanguageId, string> = {
+  [DEFAULT_PROGRAMMING_LANGUAGE_ID]: "JavaScript",
+};
+
+const LANGUAGE_CONTEXT_EXCLUSIONS: Record<ProgrammingLanguageId, string> = {
+  [DEFAULT_PROGRAMMING_LANGUAGE_ID]:
+    "Avoid web/HTML/CSS context - focus purely on JavaScript language concepts",
+};
+
+export function getAvailableTopicIds(
+  programmingLanguage: ProgrammingLanguageId,
+): string[] {
+  return Object.keys(LANGUAGE_TOPIC_PROMPTS[programmingLanguage] ?? {});
+}
 
 function getResponseText(response: unknown): string {
   if (
@@ -148,17 +173,26 @@ async function addStableIds(
 }
 
 export async function generateQuizQuestions(
+  programmingLanguage: ProgrammingLanguageId,
   topicId: string,
   count: number = 5,
   language: string = "en",
   skillLevel: QuizDifficultyLevel = 1,
 ): Promise<QuizQuestion[]> {
+  const topicPrompts =
+    LANGUAGE_TOPIC_PROMPTS[programmingLanguage] ??
+    LANGUAGE_TOPIC_PROMPTS[DEFAULT_PROGRAMMING_LANGUAGE_ID];
   const topicDescription =
-    TOPIC_PROMPTS[topicId] || "general JavaScript programming concepts";
+    topicPrompts[topicId] ||
+    `general ${LANGUAGE_NAMES[programmingLanguage] ?? programmingLanguage} programming concepts`;
+  const programmingLanguageName =
+    LANGUAGE_NAMES[programmingLanguage] ?? programmingLanguage;
+  const contextExclusion =
+    LANGUAGE_CONTEXT_EXCLUSIONS[programmingLanguage] ?? "";
 
   const languageInstruction =
     language === "de"
-      ? "Write all questions, answer options, and explanations in German (Deutsch). Keep code examples and JavaScript syntax in English as they are programming terms."
+      ? `Write all questions, answer options, and explanations in German (Deutsch). Keep code examples and ${programmingLanguageName} syntax in English as they are programming terms.`
       : "Write all questions, answer options, and explanations in English.";
 
   const difficultyInstruction =
@@ -168,7 +202,7 @@ export async function generateQuizQuestions(
         ? "Create INTERMEDIATE level questions: Include more complex scenarios, edge cases, and require deeper understanding. Use code snippets of 5-8 lines with subtle behavior."
         : "Create ADVANCED level questions: Focus on tricky edge cases, performance considerations, and expert-level understanding. Use complex code with multiple concepts combined.";
 
-  const prompt = `Generate ${count} multiple-choice quiz questions about ${topicDescription} for computer science students learning JavaScript programming.
+  const prompt = `Generate ${count} multiple-choice quiz questions about ${topicDescription} for computer science students learning ${programmingLanguageName} programming.
 
 ${languageInstruction}
 
@@ -197,12 +231,12 @@ Return a JSON array with this exact structure:
 Important:
 - Make questions progressively challenging
 - Use realistic code examples students would encounter
-- Avoid web/HTML/CSS context - focus purely on JavaScript language concepts
+${contextExclusion ? `- ${contextExclusion}` : ""}
 - Return ONLY valid JSON, no markdown or extra text`;
 
   const response = await requestOpenAI({
     model: process.env.OPENAI_MODEL || "gpt-5.2",
-    instructions: `You are a JavaScript programming tutor creating quiz questions. ${
+    instructions: `You are a ${programmingLanguageName} programming tutor creating quiz questions. ${
       language === "de" ? "Respond in German." : "Respond in English."
     } Always respond with valid JSON containing a 'questions' array.`,
     input: prompt,
@@ -221,15 +255,28 @@ Important:
 }
 
 export async function generateTopicExplanation(
+  programmingLanguage: ProgrammingLanguageId,
   topicId: string,
   language: string = "en",
 ): Promise<string> {
+  const topicPrompts =
+    LANGUAGE_TOPIC_PROMPTS[programmingLanguage] ??
+    LANGUAGE_TOPIC_PROMPTS[DEFAULT_PROGRAMMING_LANGUAGE_ID];
   const topicDescription =
-    TOPIC_PROMPTS[topicId] || "general JavaScript programming concepts";
+    topicPrompts[topicId] ||
+    `general ${LANGUAGE_NAMES[programmingLanguage] ?? programmingLanguage} programming concepts`;
+  const programmingLanguageName =
+    LANGUAGE_NAMES[programmingLanguage] ?? programmingLanguage;
+  const contextExclusion =
+    LANGUAGE_CONTEXT_EXCLUSIONS[programmingLanguage] ?? "";
+  const codeBlockLang =
+    programmingLanguage === DEFAULT_PROGRAMMING_LANGUAGE_ID
+      ? "javascript"
+      : programmingLanguage;
 
   const languageInstruction =
     language === "de"
-      ? "Write the ENTIRE explanation in German (Deutsch), including ALL headings and section titles. Keep only code examples and JavaScript syntax in English as they are programming terms."
+      ? `Write the ENTIRE explanation in German (Deutsch), including ALL headings and section titles. Keep only code examples and ${programmingLanguageName} syntax in English as they are programming terms.`
       : "Write the entire explanation in English.";
 
   const sectionHeadings =
@@ -245,20 +292,20 @@ export async function generateTopicExplanation(
 4. **Common Mistakes** - Things to avoid when using this concept
 5. **Best Practices** - Tips for using this concept effectively`;
 
-  const prompt = `Explain the following JavaScript topic for computer science students: ${topicDescription}
+  const prompt = `Explain the following ${programmingLanguageName} topic for computer science students: ${topicDescription}
 
 ${languageInstruction}
 
 Structure your explanation as follows:
 ${sectionHeadings}
 
-Format the response in Markdown. Use code blocks with \`\`\`javascript for code examples.
+Format the response in Markdown. Use code blocks with \`\`\`${codeBlockLang} for code examples.
 Keep the total length to about 500-700 words.
-Focus purely on JavaScript language concepts - avoid web/HTML/CSS context.`;
+${contextExclusion ? `${contextExclusion}.` : ""}`;
 
   const response = await requestOpenAI({
     model: process.env.OPENAI_MODEL || "gpt-5.2",
-    instructions: `You are an experienced JavaScript programming tutor explaining concepts to university students. ${
+    instructions: `You are an experienced ${programmingLanguageName} programming tutor explaining concepts to university students. ${
       language === "de" ? "Respond in German." : "Respond in English."
     } Use clear, concise language and practical examples.`,
     input: prompt,

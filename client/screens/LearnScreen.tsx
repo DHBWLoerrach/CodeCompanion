@@ -21,13 +21,13 @@ import { useTheme } from "@/hooks/useTheme";
 import { useTranslation } from "@/hooks/useTranslation";
 import { Spacing, BorderRadius, Shadows } from "@/constants/theme";
 import {
-  CATEGORIES,
   type Topic,
   type Category,
   getTopicName,
   getCategoryName,
 } from "@/lib/topics";
 import { storage, type TopicProgress, isTopicDue } from "@/lib/storage";
+import { useProgrammingLanguage } from "@/contexts/ProgrammingLanguageContext";
 import type { MasteryLevel } from "@shared/skill-level";
 
 const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
@@ -274,6 +274,9 @@ function CategoryCard({
 export default function LearnScreen() {
   const { theme } = useTheme();
   const { t, language, refreshLanguage } = useTranslation();
+  const { selectedLanguage } = useProgrammingLanguage();
+  const categories = selectedLanguage?.categories ?? [];
+  const languageId = selectedLanguage?.id ?? "javascript";
   const insets = useSafeAreaInsets();
   const router = useRouter();
   const [topicProgress, setTopicProgress] = useState<
@@ -284,13 +287,15 @@ export default function LearnScreen() {
   const loadProgress = useCallback(async () => {
     try {
       const progress = await storage.getProgress();
-      setTopicProgress(progress.topicProgress);
+      setTopicProgress(
+        storage.getTopicProgressForLanguage(progress.topicProgress, languageId),
+      );
     } catch (error) {
       console.error("Error loading progress:", error);
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [languageId]);
 
   useFocusEffect(
     useCallback(() => {
@@ -306,7 +311,7 @@ export default function LearnScreen() {
     });
   };
 
-  const allTopics = CATEGORIES.flatMap((cat) => cat.topics);
+  const allTopics = categories.flatMap((cat) => cat.topics);
   const dueTopics = allTopics.filter((topic) => {
     const progress = topicProgress[topic.id];
     return progress && progress.questionsAnswered > 0 && isTopicDue(progress);
@@ -370,7 +375,7 @@ export default function LearnScreen() {
           </View>
         ) : null}
 
-        {CATEGORIES.map((category) => (
+        {categories.map((category) => (
           <CategoryCard
             key={category.id}
             category={category}

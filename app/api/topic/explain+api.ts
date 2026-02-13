@@ -1,12 +1,17 @@
 import { generateTopicExplanation } from "@server/quiz";
 import { logApiError } from "@server/logging";
-import { requireTopicId, toLanguage } from "@server/validation";
+import {
+  requireTopicId,
+  toLanguage,
+  toProgrammingLanguage,
+} from "@server/validation";
 
 export async function POST(request: Request) {
   try {
     const body = (await request.json()) as {
       topicId?: string;
       language?: string;
+      programmingLanguage?: string;
     };
 
     const topicId = requireTopicId(body?.topicId);
@@ -21,7 +26,14 @@ export async function POST(request: Request) {
         { status: 400 },
       );
     }
-    const explanation = await generateTopicExplanation(topicId, language);
+    const programmingLanguage = toProgrammingLanguage(
+      body?.programmingLanguage,
+    );
+    const explanation = await generateTopicExplanation(
+      programmingLanguage,
+      topicId,
+      language,
+    );
 
     return Response.json({ explanation });
   } catch (error) {
