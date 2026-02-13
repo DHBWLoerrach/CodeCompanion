@@ -29,7 +29,7 @@ function RootStack() {
             "1";
 
           return {
-            title: t("selectLanguage"),
+            title: t("selectTechnology"),
             headerBackVisible: canNavigateBack,
             gestureEnabled: canNavigateBack,
           };

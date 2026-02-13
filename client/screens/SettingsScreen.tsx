@@ -329,7 +329,7 @@ export default function SettingsScreen() {
                           color={theme.tabIconDefault}
                         />
                         <ThemedText type="body">
-                          {t("changeLanguage")}
+                          {t("changeTechnology")}
                         </ThemedText>
                       </View>
                       <View
@@ -354,7 +354,7 @@ export default function SettingsScreen() {
                         />
                       </View>
                     </Pressable>
-                    <SettingRow icon="globe" label={t("language")}>
+                    <SettingRow icon="globe" label={t("appLanguage")}>
                       <SegmentedControl
                         values={["English", "Deutsch"]}
                         selectedIndex={languageIndex}

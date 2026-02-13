@@ -113,7 +113,7 @@ export default function LanguageSelectScreen() {
           marginBottom: Spacing.sm,
         }}
       >
-        {t("chooseLanguage")}
+        {t("chooseTechnology")}
       </ThemedText>
       {LANGUAGES.map((language, index) => {
         const topicCount = language.categories.reduce(
