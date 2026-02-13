@@ -32,10 +32,10 @@ describe("shared/curriculum", () => {
     const categoryOrders = python.categories.map((category) => category.order);
     expect(categoryOrders).toEqual([...categoryOrders].sort((a, b) => a - b));
 
-    const topicOrders = python.categories.flatMap((category) =>
-      category.topics.map((topic) => topic.order),
-    );
-    expect(topicOrders).toEqual([...topicOrders].sort((a, b) => a - b));
+    for (const category of python.categories) {
+      const topicOrders = category.topics.map((topic) => topic.order);
+      expect(topicOrders).toEqual([...topicOrders].sort((a, b) => a - b));
+    }
   });
 
   it("exposes topic lookup and validation helpers", () => {

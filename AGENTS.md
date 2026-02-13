@@ -2,14 +2,14 @@
 
 ## Project Overview
 
-DHBW Code Companion is a mobile learning app for JavaScript topics (Expo SDK 54, React Native 0.81, React 19, Expo Router 6). AI quiz/explanation generation runs through OpenAI Responses API in server-side API routes. All user data stored locally (AsyncStorage), no server-side user storage.
+DHBW Code Companion is a mobile learning app for programming topics (Expo SDK 54, React Native 0.81, React 19, Expo Router 6). Supports multiple languages (JavaScript, Python, Java) with JSON-based curricula. AI quiz/explanation generation runs through OpenAI Responses API in server-side API routes. All user data stored locally (AsyncStorage), no server-side user storage.
 
 ## Project Structure & Module Organization
 
 - `app/`: file-based routes and API endpoints (`app/api/*+api.ts`).
 - `client/`: app UI and client logic (`components/`, `screens/`, `hooks/`, `lib/`, `constants/`, `contexts/`).
 - `server/`: server-only logic for API routes (for example `server/quiz.ts`, `server/logging.ts`, `server/validation.ts`).
-- `shared/`: runtime-neutral shared types/utilities (for example `shared/skill-level.ts`).
+- `shared/`: runtime-neutral shared types/utilities (for example `shared/skill-level.ts`, `shared/curriculum/`).
 - `__tests__/unit` and `__tests__/integration`: Jest test suites.
 - `e2e/maestro`: Maestro end-to-end flows.
 - `test/setup.ts`: Jest setup/mocks.
@@ -53,7 +53,8 @@ DHBW Code Companion is a mobile learning app for JavaScript topics (Expo SDK 54,
 - Route files in `app/` should stay thin and delegate to `client/screens/`.
 - State management pattern: React Query + Context + AsyncStorage (no Redux/Zustand).
 - API routes: `POST /api/quiz/generate`, `POST /api/quiz/generate-mixed`, `POST /api/topic/explain`.
-- Add a topic in three places: `client/lib/topics.ts`, `client/lib/i18n.ts`, `server/quiz.ts` (`TOPIC_PROMPTS`).
+- Curricula are defined as JSON in `shared/curriculum/<language>.json` and loaded via `shared/curriculum/index.ts`.
+- Add a topic: add entry in `shared/curriculum/<language>.json`, add prompt in `server/topic-prompts.ts`.
 
 ## Environment Variables
 

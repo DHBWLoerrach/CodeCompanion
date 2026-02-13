@@ -121,7 +121,7 @@ jest.mock("@/contexts/ProgrammingLanguageContext", () => ({
   useProgrammingLanguage: () => ({
     selectedLanguage: {
       id: "javascript",
-      nameKey: "javascript",
+      name: { en: "JavaScript", de: "JavaScript" },
       shortName: "JS",
       color: "#F7DF1E",
       categories: [],

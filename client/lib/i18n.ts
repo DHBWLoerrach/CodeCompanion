@@ -329,3 +329,7 @@ export const translations = {
 } as const;
 
 export type TranslationKey = keyof typeof translations.en;
+
+export function isTranslationKey(value: string): value is TranslationKey {
+  return Object.prototype.hasOwnProperty.call(translations.en, value);
+}

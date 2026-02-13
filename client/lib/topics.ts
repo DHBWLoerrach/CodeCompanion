@@ -8,7 +8,12 @@ import {
   DEFAULT_PROGRAMMING_LANGUAGE_ID,
   type ProgrammingLanguageId,
 } from "@shared/programming-language";
-import { type Language, type TranslationKey, translations } from "./i18n";
+import {
+  isTranslationKey,
+  type Language,
+  type TranslationKey,
+  translations,
+} from "./i18n";
 
 export interface Topic {
   id: string;
@@ -20,9 +25,6 @@ export interface Topic {
   shortDescription: LocalizedText;
   legacyNameKey?: TranslationKey;
   legacyDescKey?: TranslationKey;
-  // Legacy aliases for older callers.
-  nameKey?: TranslationKey;
-  descKey?: TranslationKey;
 }
 
 export interface Category {
@@ -32,12 +34,6 @@ export interface Category {
   shortDescription: LocalizedText;
   topics: Topic[];
   legacyNameKey?: TranslationKey;
-  // Legacy alias for older callers.
-  nameKey?: TranslationKey;
-}
-
-function isTranslationKey(value: string): value is TranslationKey {
-  return Object.prototype.hasOwnProperty.call(translations.en, value);
 }
 
 function toTranslationKey(
@@ -61,8 +57,6 @@ function mapTopic(topic: CurriculumTopic, categoryId: string): Topic {
     shortDescription: topic.shortDescription,
     legacyNameKey,
     legacyDescKey,
-    nameKey: legacyNameKey,
-    descKey: legacyDescKey,
   };
 }
 
@@ -76,7 +70,6 @@ function mapCategory(category: CurriculumCategory): Category {
     shortDescription: category.shortDescription,
     topics: category.topics.map((topic) => mapTopic(topic, category.id)),
     legacyNameKey,
-    nameKey: legacyNameKey,
   };
 }
 
@@ -85,7 +78,7 @@ const CATEGORIES_BY_LANGUAGE = Object.fromEntries(
     curriculum.languageId,
     curriculum.categories.map(mapCategory),
   ]),
-) as Record<ProgrammingLanguageId, Category[]>;
+) as { [K in ProgrammingLanguageId]: Category[] };
 
 export const JAVASCRIPT_CATEGORIES =
   CATEGORIES_BY_LANGUAGE[DEFAULT_PROGRAMMING_LANGUAGE_ID];
