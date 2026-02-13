@@ -11,6 +11,7 @@ Hier sammeln wir Todos für später.
   - TypeScript? Frameworks (React, …) ? Konzepte (HTTPS)
 - Expo 55 und Expo Router 7 (upgrade skills)
 - Chat für Lernsessions einbauen? https://github.com/vercel/aix
+- prerequisites bei den Themen berücksichtigen
 
 ## Frontend (App)
 
