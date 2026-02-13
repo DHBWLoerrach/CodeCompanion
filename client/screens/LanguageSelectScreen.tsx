@@ -8,13 +8,18 @@ import { ThemedText } from "@/components/ThemedText";
 import { useTheme } from "@/hooks/useTheme";
 import { useTranslation } from "@/hooks/useTranslation";
 import { useProgrammingLanguage } from "@/contexts/ProgrammingLanguageContext";
-import { LANGUAGES, type ProgrammingLanguage } from "@/lib/languages";
+import {
+  LANGUAGES,
+  getLanguageDisplayName,
+  type ProgrammingLanguage,
+} from "@/lib/languages";
 import { Spacing, BorderRadius } from "@/constants/theme";
 
 const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
 
 interface LanguageCardProps {
   language: ProgrammingLanguage;
+  languageName: string;
   index: number;
   onPress: () => void;
   topicCount: number;
@@ -23,13 +28,13 @@ interface LanguageCardProps {
 
 function LanguageCard({
   language,
+  languageName,
   index,
   onPress,
   topicCount,
   topicLabel,
 }: LanguageCardProps) {
   const { theme } = useTheme();
-  const { t } = useTranslation();
 
   return (
     <AnimatedPressable
@@ -67,7 +72,7 @@ function LanguageCard({
         </ThemedText>
       </View>
       <View style={{ flex: 1, gap: 4 }}>
-        <ThemedText type="h4">{t(language.nameKey)}</ThemedText>
+        <ThemedText type="h4">{languageName}</ThemedText>
         <ThemedText type="caption" style={{ color: theme.tabIconDefault }}>
           {topicCount} {topicLabel}
         </ThemedText>
@@ -78,7 +83,7 @@ function LanguageCard({
 
 export default function LanguageSelectScreen() {
   const { theme } = useTheme();
-  const { t } = useTranslation();
+  const { t, language: appLanguage } = useTranslation();
   const router = useRouter();
   const { allowBack } = useLocalSearchParams<{ allowBack?: string }>();
   const { setSelectedLanguage } = useProgrammingLanguage();
@@ -115,19 +120,23 @@ export default function LanguageSelectScreen() {
       >
         {t("chooseTechnology")}
       </ThemedText>
-      {LANGUAGES.map((language, index) => {
-        const topicCount = language.categories.reduce(
+      {LANGUAGES.map((programmingLanguage, index) => {
+        const topicCount = programmingLanguage.categories.reduce(
           (sum, cat) => sum + cat.topics.length,
           0,
         );
         return (
           <LanguageCard
-            key={language.id}
-            language={language}
+            key={programmingLanguage.id}
+            language={programmingLanguage}
+            languageName={getLanguageDisplayName(
+              programmingLanguage,
+              appLanguage,
+            )}
             index={index}
             topicCount={topicCount}
             topicLabel={topicCount === 1 ? t("topic") : t("topics")}
-            onPress={() => handleSelectLanguage(language)}
+            onPress={() => handleSelectLanguage(programmingLanguage)}
           />
         );
       })}

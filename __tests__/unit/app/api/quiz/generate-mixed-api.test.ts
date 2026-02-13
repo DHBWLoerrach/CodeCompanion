@@ -38,14 +38,16 @@ describe("POST /api/quiz/generate-mixed", () => {
     jest.restoreAllMocks();
   });
 
-  it("returns 400 when provided topic IDs are all invalid", async () => {
+  it("returns 400 when provided topic IDs contain invalid entries", async () => {
     const response = await POST(
-      createRequest({ topicIds: ["invalid-a", "invalid-b"] }),
+      createRequest({ topicIds: ["loops", "invalid-b"] }),
     );
     const data = await response.json();
 
     expect(response.status).toBe(400);
-    expect(data).toEqual({ error: "No valid topic IDs" });
+    expect(data).toEqual({
+      error: "topicIds contains invalid entries for programmingLanguage",
+    });
     expect(mockGenerateQuizQuestions).not.toHaveBeenCalled();
   });
 
@@ -75,10 +77,10 @@ describe("POST /api/quiz/generate-mixed", () => {
     expect(mockGenerateQuizQuestions).not.toHaveBeenCalled();
   });
 
-  it("filters topicIds and generates requested count", async () => {
+  it("uses provided topicIds when all are valid and generates requested count", async () => {
     const response = await POST(
       createRequest({
-        topicIds: ["loops", "invalid", "variables"],
+        topicIds: ["loops", "variables"],
         count: 5,
         language: "de",
       }),
@@ -104,6 +106,22 @@ describe("POST /api/quiz/generate-mixed", () => {
       1,
     );
     expect(data.questions).toHaveLength(5);
+  });
+
+  it("returns 400 when topicIds are invalid for the selected programming language", async () => {
+    const response = await POST(
+      createRequest({
+        topicIds: ["variables"],
+        programmingLanguage: "python",
+      }),
+    );
+    const data = await response.json();
+
+    expect(response.status).toBe(400);
+    expect(data).toEqual({
+      error: "topicIds contains invalid entries for programmingLanguage",
+    });
+    expect(mockGenerateQuizQuestions).not.toHaveBeenCalled();
   });
 
   it("uses default topics/count/language when omitted", async () => {

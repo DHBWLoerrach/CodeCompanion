@@ -1,8 +1,14 @@
 import type { QuizDifficultyLevel } from "@shared/skill-level";
+import { getTopicIdsByLanguage } from "@shared/curriculum";
 import {
   DEFAULT_PROGRAMMING_LANGUAGE_ID,
   type ProgrammingLanguageId,
 } from "@shared/programming-language";
+import {
+  getTopicPrompt,
+  LANGUAGE_CONTEXT_EXCLUSIONS,
+  LANGUAGE_NAMES,
+} from "./topic-prompts";
 
 export interface QuizQuestion {
   id: string;
@@ -13,49 +19,10 @@ export interface QuizQuestion {
   explanation: string;
 }
 
-export const LANGUAGE_TOPIC_PROMPTS: Record<
-  ProgrammingLanguageId,
-  Record<string, string>
-> = {
-  [DEFAULT_PROGRAMMING_LANGUAGE_ID]: {
-    variables:
-      "JavaScript variable declarations using let and const only (do not include var), including block scope and when to use each",
-    "data-types":
-      "JavaScript primitive data types (string, number, boolean, null, undefined, symbol, bigint) and type checking",
-    operators: "JavaScript arithmetic, comparison, and logical operators",
-    conditionals: "JavaScript if/else statements and ternary operators",
-    loops: "JavaScript for, while, do-while, and for...of loops",
-    switch: "JavaScript switch statements and case handling",
-    declarations: "JavaScript function declarations and function expressions",
-    "arrow-functions": "JavaScript ES6 arrow function syntax and behavior",
-    callbacks: "JavaScript callback functions and callback patterns",
-    objects: "JavaScript object literals, properties, and methods",
-    arrays: "JavaScript array methods like map, filter, reduce, find, forEach",
-    destructuring: "JavaScript object and array destructuring syntax",
-    promises: "JavaScript Promises, then/catch chaining, and Promise.all",
-    "async-await":
-      "JavaScript async/await syntax for handling asynchronous code",
-    "error-handling": "JavaScript try/catch blocks and error management",
-    closures: "JavaScript closures and lexical scope",
-    prototypes: "JavaScript prototype chain and prototype-based inheritance",
-    classes: "JavaScript ES6 class syntax, constructors, and methods",
-    modules: "JavaScript ES6 import/export and module patterns",
-  },
-};
-
-const LANGUAGE_NAMES: Record<ProgrammingLanguageId, string> = {
-  [DEFAULT_PROGRAMMING_LANGUAGE_ID]: "JavaScript",
-};
-
-const LANGUAGE_CONTEXT_EXCLUSIONS: Record<ProgrammingLanguageId, string> = {
-  [DEFAULT_PROGRAMMING_LANGUAGE_ID]:
-    "Avoid web/HTML/CSS context - focus purely on JavaScript language concepts",
-};
-
 export function getAvailableTopicIds(
   programmingLanguage: ProgrammingLanguageId,
 ): string[] {
-  return Object.keys(LANGUAGE_TOPIC_PROMPTS[programmingLanguage] ?? {});
+  return getTopicIdsByLanguage(programmingLanguage);
 }
 
 function getResponseText(response: unknown): string {
@@ -179,11 +146,8 @@ export async function generateQuizQuestions(
   language: string = "en",
   skillLevel: QuizDifficultyLevel = 1,
 ): Promise<QuizQuestion[]> {
-  const topicPrompts =
-    LANGUAGE_TOPIC_PROMPTS[programmingLanguage] ??
-    LANGUAGE_TOPIC_PROMPTS[DEFAULT_PROGRAMMING_LANGUAGE_ID];
   const topicDescription =
-    topicPrompts[topicId] ||
+    getTopicPrompt(programmingLanguage, topicId) ||
     `general ${LANGUAGE_NAMES[programmingLanguage] ?? programmingLanguage} programming concepts`;
   const programmingLanguageName =
     LANGUAGE_NAMES[programmingLanguage] ?? programmingLanguage;
@@ -259,11 +223,8 @@ export async function generateTopicExplanation(
   topicId: string,
   language: string = "en",
 ): Promise<string> {
-  const topicPrompts =
-    LANGUAGE_TOPIC_PROMPTS[programmingLanguage] ??
-    LANGUAGE_TOPIC_PROMPTS[DEFAULT_PROGRAMMING_LANGUAGE_ID];
   const topicDescription =
-    topicPrompts[topicId] ||
+    getTopicPrompt(programmingLanguage, topicId) ||
     `general ${LANGUAGE_NAMES[programmingLanguage] ?? programmingLanguage} programming concepts`;
   const programmingLanguageName =
     LANGUAGE_NAMES[programmingLanguage] ?? programmingLanguage;

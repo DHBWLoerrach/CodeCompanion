@@ -1,0 +1,388 @@
+{
+  "languageId": "javascript",
+  "languageName": {
+    "en": "JavaScript",
+    "de": "JavaScript"
+  },
+  "languageNameKey": "javascript",
+  "shortName": "JS",
+  "color": "#F7DF1E",
+  "contextExclusion": "Avoid web/HTML/CSS context - focus purely on JavaScript language concepts",
+  "categories": [
+    {
+      "order": 1,
+      "id": "fundamentals",
+      "name": {
+        "en": "Fundamentals",
+        "de": "Grundlagen"
+      },
+      "legacyNameKey": "fundamentals",
+      "shortDescription": {
+        "en": "Learn variables, primitive data types, and operators.",
+        "de": "Lerne Variablen, primitive Datentypen und Operatoren."
+      },
+      "topics": [
+        {
+          "order": 1,
+          "id": "variables",
+          "name": {
+            "en": "Variables",
+            "de": "Variablen"
+          },
+          "legacyNameKey": "variables",
+          "shortDescription": {
+            "en": "let, const declarations",
+            "de": "let, const Deklarationen"
+          },
+          "legacyDescKey": "variablesDesc",
+          "prerequisites": []
+        },
+        {
+          "order": 2,
+          "id": "data-types",
+          "name": {
+            "en": "Data Types",
+            "de": "Datentypen"
+          },
+          "legacyNameKey": "dataTypes",
+          "shortDescription": {
+            "en": "Primitives and type checking",
+            "de": "Primitive und Typprüfung"
+          },
+          "legacyDescKey": "dataTypesDesc",
+          "prerequisites": ["variables"]
+        },
+        {
+          "order": 3,
+          "id": "operators",
+          "name": {
+            "en": "Operators",
+            "de": "Operatoren"
+          },
+          "legacyNameKey": "operators",
+          "shortDescription": {
+            "en": "Arithmetic, comparison, logical",
+            "de": "Arithmetisch, Vergleich, Logisch"
+          },
+          "legacyDescKey": "operatorsDesc",
+          "prerequisites": ["data-types"]
+        }
+      ]
+    },
+    {
+      "order": 2,
+      "id": "control-flow",
+      "name": {
+        "en": "Control Flow",
+        "de": "Kontrollfluss"
+      },
+      "legacyNameKey": "controlFlow",
+      "shortDescription": {
+        "en": "Build logic using conditions and loops.",
+        "de": "Baue Logik mit Bedingungen und Schleifen auf."
+      },
+      "topics": [
+        {
+          "order": 4,
+          "id": "conditionals",
+          "name": {
+            "en": "Conditionals",
+            "de": "Bedingungen"
+          },
+          "legacyNameKey": "conditionals",
+          "shortDescription": {
+            "en": "if/else, ternary operator",
+            "de": "if/else, Ternärer Operator"
+          },
+          "legacyDescKey": "conditionalsDesc",
+          "prerequisites": ["operators"]
+        },
+        {
+          "order": 5,
+          "id": "loops",
+          "name": {
+            "en": "Loops",
+            "de": "Schleifen"
+          },
+          "legacyNameKey": "loops",
+          "shortDescription": {
+            "en": "for, while, do-while, for...of",
+            "de": "for, while, do-while, for...of"
+          },
+          "legacyDescKey": "loopsDesc",
+          "prerequisites": ["conditionals"]
+        },
+        {
+          "order": 6,
+          "id": "switch",
+          "name": {
+            "en": "Switch",
+            "de": "Switch"
+          },
+          "legacyNameKey": "switch",
+          "shortDescription": {
+            "en": "Switch statements and cases",
+            "de": "Switch-Anweisungen und Fälle"
+          },
+          "legacyDescKey": "switchDesc",
+          "prerequisites": ["conditionals"]
+        }
+      ]
+    },
+    {
+      "order": 3,
+      "id": "functions",
+      "name": {
+        "en": "Functions",
+        "de": "Funktionen"
+      },
+      "legacyNameKey": "functionsCategory",
+      "shortDescription": {
+        "en": "Create reusable logic with functions.",
+        "de": "Erstelle wiederverwendbare Logik mit Funktionen."
+      },
+      "topics": [
+        {
+          "order": 7,
+          "id": "declarations",
+          "name": {
+            "en": "Declarations",
+            "de": "Deklarationen"
+          },
+          "legacyNameKey": "declarations",
+          "shortDescription": {
+            "en": "Function declarations and expressions",
+            "de": "Funktionsdeklarationen und -ausdrücke"
+          },
+          "legacyDescKey": "declarationsDesc",
+          "prerequisites": ["loops"]
+        },
+        {
+          "order": 8,
+          "id": "arrow-functions",
+          "name": {
+            "en": "Arrow Functions",
+            "de": "Pfeilfunktionen"
+          },
+          "legacyNameKey": "arrowFunctions",
+          "shortDescription": {
+            "en": "ES6 arrow function syntax",
+            "de": "ES6 Pfeilfunktions-Syntax"
+          },
+          "legacyDescKey": "arrowFunctionsDesc",
+          "prerequisites": ["declarations"]
+        },
+        {
+          "order": 9,
+          "id": "callbacks",
+          "name": {
+            "en": "Callbacks",
+            "de": "Callbacks"
+          },
+          "legacyNameKey": "callbacks",
+          "shortDescription": {
+            "en": "Callback functions and patterns",
+            "de": "Callback-Funktionen und Muster"
+          },
+          "legacyDescKey": "callbacksDesc",
+          "prerequisites": ["declarations"]
+        }
+      ]
+    },
+    {
+      "order": 4,
+      "id": "objects-arrays",
+      "name": {
+        "en": "Objects & Arrays",
+        "de": "Objekte & Arrays"
+      },
+      "legacyNameKey": "objectsArrays",
+      "shortDescription": {
+        "en": "Work with object and array data structures.",
+        "de": "Arbeite mit Objekt- und Array-Datenstrukturen."
+      },
+      "topics": [
+        {
+          "order": 10,
+          "id": "objects",
+          "name": {
+            "en": "Objects",
+            "de": "Objekte"
+          },
+          "legacyNameKey": "objects",
+          "shortDescription": {
+            "en": "Object literals and methods",
+            "de": "Objektliterale und Methoden"
+          },
+          "legacyDescKey": "objectsDesc",
+          "prerequisites": ["declarations"]
+        },
+        {
+          "order": 11,
+          "id": "arrays",
+          "name": {
+            "en": "Arrays",
+            "de": "Arrays"
+          },
+          "legacyNameKey": "arrays",
+          "shortDescription": {
+            "en": "Array methods and manipulation",
+            "de": "Array-Methoden und Manipulation"
+          },
+          "legacyDescKey": "arraysDesc",
+          "prerequisites": ["loops"]
+        },
+        {
+          "order": 12,
+          "id": "destructuring",
+          "name": {
+            "en": "Destructuring",
+            "de": "Destrukturierung"
+          },
+          "legacyNameKey": "destructuring",
+          "shortDescription": {
+            "en": "Object and array destructuring",
+            "de": "Objekt- und Array-Destrukturierung"
+          },
+          "legacyDescKey": "destructuringDesc",
+          "prerequisites": ["objects", "arrays"]
+        }
+      ]
+    },
+    {
+      "order": 5,
+      "id": "async",
+      "name": {
+        "en": "Async",
+        "de": "Async"
+      },
+      "legacyNameKey": "asyncCategory",
+      "shortDescription": {
+        "en": "Handle asynchronous operations and failures.",
+        "de": "Behandle asynchrone Operationen und Fehler."
+      },
+      "topics": [
+        {
+          "order": 13,
+          "id": "promises",
+          "name": {
+            "en": "Promises",
+            "de": "Promises"
+          },
+          "legacyNameKey": "promises",
+          "shortDescription": {
+            "en": "Promise creation and chaining",
+            "de": "Promise-Erstellung und Verkettung"
+          },
+          "legacyDescKey": "promisesDesc",
+          "prerequisites": ["callbacks"]
+        },
+        {
+          "order": 14,
+          "id": "async-await",
+          "name": {
+            "en": "Async/Await",
+            "de": "Async/Await"
+          },
+          "legacyNameKey": "asyncAwait",
+          "shortDescription": {
+            "en": "Modern async syntax",
+            "de": "Moderne Async-Syntax"
+          },
+          "legacyDescKey": "asyncAwaitDesc",
+          "prerequisites": ["promises"]
+        },
+        {
+          "order": 15,
+          "id": "error-handling",
+          "name": {
+            "en": "Error Handling",
+            "de": "Fehlerbehandlung"
+          },
+          "legacyNameKey": "errorHandling",
+          "shortDescription": {
+            "en": "try/catch and error management",
+            "de": "try/catch und Fehlermanagement"
+          },
+          "legacyDescKey": "errorHandlingDesc",
+          "prerequisites": ["conditionals"]
+        }
+      ]
+    },
+    {
+      "order": 6,
+      "id": "advanced",
+      "name": {
+        "en": "Advanced",
+        "de": "Fortgeschritten"
+      },
+      "legacyNameKey": "advancedCategory",
+      "shortDescription": {
+        "en": "Understand advanced language behavior and structure.",
+        "de": "Verstehe fortgeschrittenes Sprachverhalten und Struktur."
+      },
+      "topics": [
+        {
+          "order": 16,
+          "id": "closures",
+          "name": {
+            "en": "Closures",
+            "de": "Closures"
+          },
+          "legacyNameKey": "closures",
+          "shortDescription": {
+            "en": "Lexical scope and closures",
+            "de": "Lexikalischer Gültigkeitsbereich und Closures"
+          },
+          "legacyDescKey": "closuresDesc",
+          "prerequisites": ["declarations"]
+        },
+        {
+          "order": 17,
+          "id": "prototypes",
+          "name": {
+            "en": "Prototypes",
+            "de": "Prototypen"
+          },
+          "legacyNameKey": "prototypes",
+          "shortDescription": {
+            "en": "Prototype chain and inheritance",
+            "de": "Prototypen-Kette und Vererbung"
+          },
+          "legacyDescKey": "prototypesDesc",
+          "prerequisites": ["objects"]
+        },
+        {
+          "order": 18,
+          "id": "classes",
+          "name": {
+            "en": "Classes",
+            "de": "Klassen"
+          },
+          "legacyNameKey": "classes",
+          "shortDescription": {
+            "en": "ES6 class syntax",
+            "de": "ES6 Klassen-Syntax"
+          },
+          "legacyDescKey": "classesDesc",
+          "prerequisites": ["objects", "prototypes"]
+        },
+        {
+          "order": 19,
+          "id": "modules",
+          "name": {
+            "en": "Modules",
+            "de": "Module"
+          },
+          "legacyNameKey": "modules",
+          "shortDescription": {
+            "en": "import/export and module patterns",
+            "de": "import/export und Modul-Muster"
+          },
+          "legacyDescKey": "modulesDesc",
+          "prerequisites": ["declarations"]
+        }
+      ]
+    }
+  ]
+}

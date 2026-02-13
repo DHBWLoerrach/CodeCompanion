@@ -8,6 +8,7 @@ import { useTheme } from "@/hooks/useTheme";
 import { useTranslation } from "@/hooks/useTranslation";
 import { useProgrammingLanguage } from "@/contexts/ProgrammingLanguageContext";
 import { BorderRadius } from "@/constants/theme";
+import { getLanguageDisplayName } from "@/lib/languages";
 
 function HeaderBrand() {
   const { theme } = useTheme();
@@ -33,7 +34,7 @@ function HeaderBrand() {
 
 export default function LearnStack() {
   const { theme } = useTheme();
-  const { t, refreshLanguage } = useTranslation();
+  const { t, language, refreshLanguage } = useTranslation();
   const { selectedLanguage } = useProgrammingLanguage();
   const router = useRouter();
 
@@ -56,7 +57,7 @@ export default function LearnStack() {
         name="index"
         options={{
           title: selectedLanguage
-            ? `${t("learn")} ${t(selectedLanguage.nameKey)}`
+            ? `${t("learn")} ${getLanguageDisplayName(selectedLanguage, language)}`
             : t("learn"),
           headerLeft: () => <HeaderBrand />,
           headerRight: () => (

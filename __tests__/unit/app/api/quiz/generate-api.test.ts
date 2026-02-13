@@ -44,6 +44,22 @@ describe("POST /api/quiz/generate", () => {
     expect(mockGenerateQuizQuestions).not.toHaveBeenCalled();
   });
 
+  it("returns 400 when topicId is invalid for programmingLanguage", async () => {
+    const response = await POST(
+      createRequest({
+        topicId: "variables",
+        programmingLanguage: "python",
+      }),
+    );
+    const data = await response.json();
+
+    expect(response.status).toBe(400);
+    expect(data).toEqual({
+      error: "Invalid topicId for programmingLanguage",
+    });
+    expect(mockGenerateQuizQuestions).not.toHaveBeenCalled();
+  });
+
   it("uses defaults and clamps skill level", async () => {
     mockGenerateQuizQuestions.mockResolvedValueOnce([
       {

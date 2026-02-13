@@ -2,6 +2,7 @@ import {
   clampQuizDifficultyLevel,
   type QuizDifficultyLevel,
 } from "@shared/skill-level";
+import { isValidTopicId } from "@shared/curriculum";
 import {
   DEFAULT_PROGRAMMING_LANGUAGE_ID,
   SUPPORTED_PROGRAMMING_LANGUAGE_IDS,
@@ -48,4 +49,28 @@ export function toQuizDifficultyLevel(
   fallback: QuizDifficultyLevel = 1,
 ): QuizDifficultyLevel {
   return clampQuizDifficultyLevel(value, fallback);
+}
+
+export function validateTopicIdForLanguage(
+  topicId: string,
+  languageId: ProgrammingLanguageId,
+): boolean {
+  if (typeof topicId !== "string" || topicId.length === 0) {
+    return false;
+  }
+
+  return isValidTopicId(languageId, topicId);
+}
+
+export function validateTopicIdsForLanguage(
+  topicIds: string[],
+  languageId: ProgrammingLanguageId,
+): boolean {
+  if (!Array.isArray(topicIds)) {
+    return false;
+  }
+
+  return topicIds.every((topicId) =>
+    validateTopicIdForLanguage(topicId, languageId),
+  );
 }

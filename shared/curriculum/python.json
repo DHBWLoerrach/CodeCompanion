@@ -1,0 +1,453 @@
+{
+  "languageId": "python",
+  "languageName": {
+    "en": "Python",
+    "de": "Python"
+  },
+  "shortName": "PY",
+  "color": "#3776AB",
+  "contextExclusion": "Avoid framework-specific context and focus on core Python language concepts",
+  "categories": [
+    {
+      "order": 1,
+      "id": "fundamentals",
+      "name": {
+        "en": "Fundamentals",
+        "de": "Grundlagen"
+      },
+      "shortDescription": {
+        "en": "Start with syntax, data types, and console I/O.",
+        "de": "Erste Syntax, Datentypen und Ein-/Ausgabe für schnelle Erfolgserlebnisse."
+      },
+      "topics": [
+        {
+          "order": 1,
+          "id": "variables-assignment",
+          "name": {
+            "en": "Variables & Assignment",
+            "de": "Variablen & Zuweisung"
+          },
+          "shortDescription": {
+            "en": "Store values in variables and organize naming cleanly.",
+            "de": "Werte in Variablen speichern, umbenennen und sauber organisieren."
+          },
+          "prerequisites": []
+        },
+        {
+          "order": 2,
+          "id": "data-types",
+          "name": {
+            "en": "Data Types",
+            "de": "Datentypen"
+          },
+          "shortDescription": {
+            "en": "Use int, float, str, bool, and None correctly.",
+            "de": "int, float, str, bool und None richtig erkennen und einsetzen."
+          },
+          "prerequisites": ["variables-assignment"]
+        },
+        {
+          "order": 3,
+          "id": "operators",
+          "name": {
+            "en": "Operators",
+            "de": "Operatoren"
+          },
+          "shortDescription": {
+            "en": "Apply arithmetic, comparison, and logical operators safely.",
+            "de": "Arithmetische, Vergleichs- und logische Operatoren sicher anwenden."
+          },
+          "prerequisites": ["data-types"]
+        },
+        {
+          "order": 4,
+          "id": "comparisons-identity-truthiness",
+          "name": {
+            "en": "Comparisons, Identity & Truthiness",
+            "de": "Vergleiche, Identität & Truthiness"
+          },
+          "shortDescription": {
+            "en": "Understand == vs is, comparisons, and truthy/falsy values.",
+            "de": "== vs is, Vergleichsoperatoren und Truthy/Falsy-Werte in if/while korrekt verwenden."
+          },
+          "prerequisites": ["operators"]
+        },
+        {
+          "order": 5,
+          "id": "strings-formatting",
+          "name": {
+            "en": "Strings & Formatting",
+            "de": "Strings & Formatting"
+          },
+          "shortDescription": {
+            "en": "Use f-strings, slicing, and core string operations including split/join.",
+            "de": "f-Strings, Slicing, grundlegende String-Methoden sowie split/join nutzen."
+          },
+          "prerequisites": ["variables-assignment", "data-types"]
+        },
+        {
+          "order": 6,
+          "id": "input-output",
+          "name": {
+            "en": "Console Input/Output",
+            "de": "Ein-/Ausgabe (Konsole)"
+          },
+          "shortDescription": {
+            "en": "Build simple interactive programs with print and input.",
+            "de": "Mit print/input einfache interaktive Programme schreiben."
+          },
+          "prerequisites": ["variables-assignment", "data-types"]
+        }
+      ]
+    },
+    {
+      "order": 2,
+      "id": "control-flow",
+      "name": {
+        "en": "Control Flow",
+        "de": "Kontrollfluss"
+      },
+      "shortDescription": {
+        "en": "Build logic with branching and repetition.",
+        "de": "Programmlogik mit Verzweigungen und Wiederholungen aufbauen."
+      },
+      "topics": [
+        {
+          "order": 7,
+          "id": "conditionals",
+          "name": {
+            "en": "Conditionals",
+            "de": "Bedingungen"
+          },
+          "shortDescription": {
+            "en": "Use if/elif/else to control decision branches.",
+            "de": "if/elif/else nutzen, um Entscheidungen im Code zu treffen."
+          },
+          "prerequisites": ["comparisons-identity-truthiness"]
+        },
+        {
+          "order": 8,
+          "id": "loops",
+          "name": {
+            "en": "Loops",
+            "de": "Schleifen"
+          },
+          "shortDescription": {
+            "en": "Use for/while, range, enumerate, zip, break, and continue effectively.",
+            "de": "for/while, range, enumerate, zip, break und continue gezielt einsetzen."
+          },
+          "prerequisites": ["conditionals"]
+        }
+      ]
+    },
+    {
+      "order": 3,
+      "id": "functions-scope",
+      "name": {
+        "en": "Functions & Scope",
+        "de": "Funktionen & Scope"
+      },
+      "shortDescription": {
+        "en": "Structure code and reason about variable visibility.",
+        "de": "Code strukturieren und verstehen, wo Variablen gültig sind."
+      },
+      "topics": [
+        {
+          "order": 9,
+          "id": "function-definitions",
+          "name": {
+            "en": "Function Definitions",
+            "de": "Funktionsdefinitionen"
+          },
+          "shortDescription": {
+            "en": "Define functions with def and work with return values.",
+            "de": "Mit def Funktionen schreiben, aufrufen und Rückgabewerte verwenden."
+          },
+          "prerequisites": ["loops"]
+        },
+        {
+          "order": 10,
+          "id": "function-arguments",
+          "name": {
+            "en": "Parameters & Arguments",
+            "de": "Parameter & Argumente"
+          },
+          "shortDescription": {
+            "en": "Use positional, keyword, default, *args, and **kwargs correctly.",
+            "de": "Positional, keyword, default, *args und **kwargs korrekt einsetzen."
+          },
+          "prerequisites": ["function-definitions"]
+        },
+        {
+          "order": 11,
+          "id": "default-argument-pitfalls",
+          "name": {
+            "en": "Default Argument Pitfalls",
+            "de": "Default-Argument-Fallen"
+          },
+          "shortDescription": {
+            "en": "Avoid bugs caused by mutable default arguments with quick mutability basics.",
+            "de": "Mutable Default-Argumente verstehen und typische Bugs vermeiden (inkl. kurzer Mutability-Basics)."
+          },
+          "prerequisites": ["function-arguments"]
+        },
+        {
+          "order": 12,
+          "id": "type-hints",
+          "name": {
+            "en": "Type Hints",
+            "de": "Type Hints"
+          },
+          "shortDescription": {
+            "en": "Annotate parameters and return types, including list[str] and Optional.",
+            "de": "Parameter- und Rückgabetypen mit : und -> annotieren, inkl. list[str] und Optional-Typen."
+          },
+          "prerequisites": ["function-arguments"]
+        },
+        {
+          "order": 13,
+          "id": "scope",
+          "name": {
+            "en": "Scope (local/global/nonlocal)",
+            "de": "Scope (lokal/global/nonlocal)"
+          },
+          "shortDescription": {
+            "en": "Understand variable scope and avoid common scope mistakes.",
+            "de": "Variablenreichweite verstehen und typische Scope-Fehler vermeiden."
+          },
+          "prerequisites": ["function-definitions"]
+        },
+        {
+          "order": 14,
+          "id": "lambda-functions",
+          "name": {
+            "en": "Lambda Functions",
+            "de": "Lambda-Funktionen"
+          },
+          "shortDescription": {
+            "en": "Use short anonymous functions for simple expressions.",
+            "de": "Kurze anonyme Funktionen für einfache Ausdrücke verwenden."
+          },
+          "prerequisites": ["function-definitions"]
+        }
+      ]
+    },
+    {
+      "order": 4,
+      "id": "data-structures",
+      "name": {
+        "en": "Data Structures",
+        "de": "Datenstrukturen"
+      },
+      "shortDescription": {
+        "en": "Use Python containers efficiently.",
+        "de": "Mit den wichtigsten Python-Containern effizient arbeiten."
+      },
+      "topics": [
+        {
+          "order": 15,
+          "id": "lists-tuples",
+          "name": {
+            "en": "Lists & Tuples",
+            "de": "Listen & Tupel"
+          },
+          "shortDescription": {
+            "en": "Create, index, slice, sort, and iterate over sequences.",
+            "de": "Sequenzen erstellen, indizieren, slicen, sortieren und iterieren."
+          },
+          "prerequisites": ["loops"]
+        },
+        {
+          "order": 16,
+          "id": "dicts-sets",
+          "name": {
+            "en": "Dictionaries & Sets",
+            "de": "Dictionaries & Sets"
+          },
+          "shortDescription": {
+            "en": "Work with key-value data and set operations.",
+            "de": "Key-Value-Daten verwalten und Mengenoperationen nutzen."
+          },
+          "prerequisites": ["lists-tuples"]
+        },
+        {
+          "order": 17,
+          "id": "comprehensions",
+          "name": {
+            "en": "Comprehensions",
+            "de": "Comprehensions"
+          },
+          "shortDescription": {
+            "en": "Write list, set, and dict comprehensions concisely.",
+            "de": "Listen-, Set- und Dict-Comprehensions kompakt formulieren."
+          },
+          "prerequisites": ["lists-tuples", "conditionals"]
+        },
+        {
+          "order": 18,
+          "id": "mutability-copying",
+          "name": {
+            "en": "Mutability & Copying",
+            "de": "Mutability & Kopieren"
+          },
+          "shortDescription": {
+            "en": "Differentiate mutable vs immutable values, references, and shallow/deep copy.",
+            "de": "Mutable vs. immutable, Referenzen sowie shallow/deep copy sicher unterscheiden."
+          },
+          "prerequisites": ["lists-tuples", "dicts-sets"]
+        },
+        {
+          "order": 19,
+          "id": "unpacking-multiple-assignment",
+          "name": {
+            "en": "Unpacking & Multiple Assignment",
+            "de": "Unpacking & Mehrfachzuweisung"
+          },
+          "shortDescription": {
+            "en": "Unpack sequences and use starred assignment patterns.",
+            "de": "Sequenzen per Destructuring entpacken und mit * erweitert zuweisen."
+          },
+          "prerequisites": ["lists-tuples"]
+        }
+      ]
+    },
+    {
+      "order": 5,
+      "id": "robustness-modularity",
+      "name": {
+        "en": "Robustness & Modularity",
+        "de": "Robustheit & Modularität"
+      },
+      "shortDescription": {
+        "en": "Write stable programs and structure modules cleanly.",
+        "de": "Stabile Programme schreiben und Code sauber aufteilen."
+      },
+      "topics": [
+        {
+          "order": 20,
+          "id": "error-handling",
+          "name": {
+            "en": "Error Handling",
+            "de": "Fehlerbehandlung"
+          },
+          "shortDescription": {
+            "en": "Use try/except/finally, raise, and custom exceptions effectively.",
+            "de": "try/except/finally, raise und eigene Exceptions sinnvoll einsetzen."
+          },
+          "prerequisites": ["function-definitions"]
+        },
+        {
+          "order": 21,
+          "id": "files-context-managers",
+          "name": {
+            "en": "Files & Context Managers",
+            "de": "Dateien & Context Manager"
+          },
+          "shortDescription": {
+            "en": "Open, read, and write files safely with with.",
+            "de": "Dateien sicher mit with öffnen, lesen und schreiben."
+          },
+          "prerequisites": ["error-handling"]
+        },
+        {
+          "order": 22,
+          "id": "modules-packages",
+          "name": {
+            "en": "Modules & Packages",
+            "de": "Module & Pakete"
+          },
+          "shortDescription": {
+            "en": "Organize code into modules and import correctly.",
+            "de": "Code in Module strukturieren und korrekt importieren."
+          },
+          "prerequisites": ["function-definitions"]
+        }
+      ]
+    },
+    {
+      "order": 6,
+      "id": "advanced",
+      "name": {
+        "en": "Advanced",
+        "de": "Fortgeschritten"
+      },
+      "shortDescription": {
+        "en": "Learn advanced language features for larger systems.",
+        "de": "Abstraktere Sprachfeatures für größere und modernere Anwendungen."
+      },
+      "topics": [
+        {
+          "order": 23,
+          "id": "classes-dataclasses",
+          "name": {
+            "en": "Classes & Dataclasses",
+            "de": "Klassen & Dataclasses"
+          },
+          "shortDescription": {
+            "en": "Model object-oriented code and use dataclasses efficiently.",
+            "de": "Objektorientiert modellieren und Dataclasses effizient nutzen."
+          },
+          "prerequisites": [
+            "function-arguments",
+            "dicts-sets",
+            "mutability-copying"
+          ]
+        },
+        {
+          "order": 24,
+          "id": "iterators-generators",
+          "name": {
+            "en": "Iterators & Generators",
+            "de": "Iteratoren & Generatoren"
+          },
+          "shortDescription": {
+            "en": "Use iterator protocol and yield for memory-efficient flows.",
+            "de": "Speichereffizient mit Iterator-Protokoll und yield arbeiten."
+          },
+          "prerequisites": ["classes-dataclasses", "loops"]
+        },
+        {
+          "order": 25,
+          "id": "decorators",
+          "name": {
+            "en": "Decorators",
+            "de": "Dekoratoren"
+          },
+          "shortDescription": {
+            "en": "Extend function behavior without changing function bodies.",
+            "de": "Funktionen ohne direkte Änderung um Verhalten erweitern."
+          },
+          "prerequisites": ["lambda-functions", "scope"]
+        },
+        {
+          "order": 26,
+          "id": "async-await",
+          "name": {
+            "en": "Async/Await",
+            "de": "Async/Await"
+          },
+          "shortDescription": {
+            "en": "Coordinate asynchronous I/O flows using async and await.",
+            "de": "Asynchrone I/O-Abläufe mit async/await koordinieren."
+          },
+          "optional": true,
+          "prerequisites": ["iterators-generators", "error-handling"]
+        },
+        {
+          "order": 27,
+          "id": "match-case",
+          "name": {
+            "en": "Match/Case",
+            "de": "Match/Case"
+          },
+          "shortDescription": {
+            "en": "Use pattern matching with match/case in Python 3.10+, including optional class patterns.",
+            "de": "Pattern Matching mit match/case ab Python 3.10 anwenden (inkl. optionaler Klassen-Patterns)."
+          },
+          "optional": true,
+          "prerequisites": ["conditionals", "classes-dataclasses"]
+        }
+      ]
+    }
+  ]
+}

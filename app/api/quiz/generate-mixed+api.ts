@@ -9,6 +9,7 @@ import {
   toProgrammingLanguage,
   toQuestionCount,
   toQuizDifficultyLevel,
+  validateTopicIdsForLanguage,
 } from "@server/validation";
 
 function hasTooManyTopicIds(value: unknown): boolean {
@@ -56,10 +57,15 @@ export async function POST(request: Request) {
     const allTopicKeys = getAvailableTopicIds(programmingLanguage);
     let selectedTopics: string[];
     if (Array.isArray(body?.topicIds) && body.topicIds.length > 0) {
-      selectedTopics = body.topicIds.filter((id) => allTopicKeys.includes(id));
-      if (selectedTopics.length === 0) {
-        return Response.json({ error: "No valid topic IDs" }, { status: 400 });
+      if (!validateTopicIdsForLanguage(body.topicIds, programmingLanguage)) {
+        return Response.json(
+          {
+            error: "topicIds contains invalid entries for programmingLanguage",
+          },
+          { status: 400 },
+        );
       }
+      selectedTopics = body.topicIds;
     } else {
       selectedTopics = shuffleArray(allTopicKeys).slice(0, 3);
     }

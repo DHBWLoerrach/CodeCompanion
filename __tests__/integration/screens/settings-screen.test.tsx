@@ -163,10 +163,10 @@ describe("SettingsScreen integration", () => {
     const screen = render(<SettingsScreen />);
 
     await waitFor(() => {
-      expect(screen.getByText("changeLanguage")).toBeTruthy();
+      expect(screen.getByText("changeTechnology")).toBeTruthy();
     });
 
-    fireEvent.press(screen.getByText("changeLanguage"));
+    fireEvent.press(screen.getByText("changeTechnology"));
 
     expect(mockPush).toHaveBeenCalledWith({
       pathname: "/language-select",

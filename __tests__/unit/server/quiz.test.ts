@@ -1,4 +1,8 @@
-import { generateQuizQuestions, generateTopicExplanation } from "@server/quiz";
+import {
+  generateQuizQuestions,
+  generateTopicExplanation,
+  getAvailableTopicIds,
+} from "@server/quiz";
 
 type MockResponseInit = {
   ok?: boolean;
@@ -63,6 +67,14 @@ describe("server/quiz", () => {
     process.env = originalEnv;
     global.fetch = originalFetch;
     global.crypto = originalCrypto;
+  });
+
+  describe("getAvailableTopicIds", () => {
+    it("returns language-specific topic IDs from curriculum", () => {
+      expect(getAvailableTopicIds("javascript")).toContain("variables");
+      expect(getAvailableTopicIds("python")).toContain("variables-assignment");
+      expect(getAvailableTopicIds("java")).toContain("variables-constants");
+    });
   });
 
   describe("generateQuizQuestions", () => {
@@ -180,6 +192,28 @@ describe("server/quiz", () => {
       await expect(
         generateQuizQuestions("javascript", "variables"),
       ).rejects.toThrow("Empty response from OpenAI");
+    });
+
+    it("uses python language context when generating python quizzes", async () => {
+      fetchMock.mockResolvedValueOnce(
+        mockFetchResponse({
+          json: {
+            output_text:
+              '{"questions":[{"id":"x","question":"Q?","options":["A","B","C","D"],"correctIndex":0,"explanation":"Because"}]}',
+          },
+        }),
+      );
+
+      await generateQuizQuestions("python", "variables-assignment", 1, "en", 1);
+
+      const fetchOptions = fetchMock.mock.calls[0][1] as RequestInit;
+      const payload = JSON.parse(String(fetchOptions.body)) as {
+        instructions: string;
+        input: string;
+      };
+
+      expect(payload.instructions).toContain("Python programming tutor");
+      expect(payload.input).toContain("Python variable assignment");
     });
   });
 

@@ -40,6 +40,22 @@ describe("POST /api/topic/explain", () => {
     expect(mockGenerateTopicExplanation).not.toHaveBeenCalled();
   });
 
+  it("returns 400 when topicId is invalid for programmingLanguage", async () => {
+    const response = await POST(
+      createRequest({
+        topicId: "variables",
+        programmingLanguage: "python",
+      }),
+    );
+    const data = await response.json();
+
+    expect(response.status).toBe(400);
+    expect(data).toEqual({
+      error: "Invalid topicId for programmingLanguage",
+    });
+    expect(mockGenerateTopicExplanation).not.toHaveBeenCalled();
+  });
+
   it("uses default language en", async () => {
     mockGenerateTopicExplanation.mockResolvedValueOnce("Explanation text");
 

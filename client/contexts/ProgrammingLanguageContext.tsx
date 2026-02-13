@@ -7,10 +7,7 @@ import React, {
   useMemo,
 } from "react";
 import { storage } from "@/lib/storage";
-import {
-  getLanguageById,
-  type ProgrammingLanguage,
-} from "@/lib/languages";
+import { getLanguageById, type ProgrammingLanguage } from "@/lib/languages";
 
 interface ProgrammingLanguageContextType {
   selectedLanguageId: string | null;

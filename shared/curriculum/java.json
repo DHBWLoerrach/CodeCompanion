@@ -1,0 +1,497 @@
+{
+  "languageId": "java",
+  "languageName": {
+    "en": "Java",
+    "de": "Java"
+  },
+  "shortName": "JV",
+  "color": "#F89820",
+  "contextExclusion": "Avoid framework-specific context (e.g. Spring/Android) and focus on core Java language concepts",
+  "categories": [
+    {
+      "order": 1,
+      "id": "fundamentals",
+      "name": {
+        "en": "Fundamentals",
+        "de": "Grundlagen"
+      },
+      "shortDescription": {
+        "en": "Build a stable foundation with types, arrays, strings, and console output.",
+        "de": "Typen, Arrays, Strings und erste Ausgabe als stabiles Fundament aufbauen."
+      },
+      "topics": [
+        {
+          "order": 1,
+          "id": "variables-constants",
+          "name": {
+            "en": "Variables & Constants",
+            "de": "Variablen & Konstanten"
+          },
+          "shortDescription": {
+            "en": "Declare variables and use constants with final correctly.",
+            "de": "Variablen deklarieren und Konstanten mit final korrekt verwenden."
+          },
+          "prerequisites": []
+        },
+        {
+          "order": 2,
+          "id": "primitive-types",
+          "name": {
+            "en": "Primitive Types",
+            "de": "Primitive Datentypen"
+          },
+          "shortDescription": {
+            "en": "Use byte to double, char, and boolean safely.",
+            "de": "byte bis double, char und boolean sicher einsetzen."
+          },
+          "prerequisites": ["variables-constants"]
+        },
+        {
+          "order": 3,
+          "id": "operators",
+          "name": {
+            "en": "Operators",
+            "de": "Operatoren"
+          },
+          "shortDescription": {
+            "en": "Apply arithmetic, comparison, and logical operators.",
+            "de": "Arithmetische, Vergleichs- und logische Operatoren anwenden."
+          },
+          "prerequisites": ["primitive-types"]
+        },
+        {
+          "order": 4,
+          "id": "type-casting-autoboxing",
+          "name": {
+            "en": "Casting, Wrappers & Autoboxing",
+            "de": "Casting, Wrapper & Autoboxing"
+          },
+          "shortDescription": {
+            "en": "Understand type conversion, wrapper classes, autoboxing/unboxing, and common == vs equals() pitfalls for wrappers.",
+            "de": "Typumwandlungen, Wrapper-Klassen sowie Autoboxing/Unboxing verstehen, inkl. typischer Fallen mit == vs equals() bei Wrappern und Null-Unboxing."
+          },
+          "prerequisites": ["primitive-types"]
+        },
+        {
+          "order": 5,
+          "id": "input-output",
+          "name": {
+            "en": "Console Input/Output",
+            "de": "Ein-/Ausgabe (Konsole)"
+          },
+          "shortDescription": {
+            "en": "Print output with System.out.println and read input with Scanner.",
+            "de": "Mit System.out.println ausgeben und mit Scanner Benutzereingaben einlesen."
+          },
+          "prerequisites": ["variables-constants"]
+        },
+        {
+          "order": 6,
+          "id": "arrays-basics",
+          "name": {
+            "en": "Arrays",
+            "de": "Arrays"
+          },
+          "shortDescription": {
+            "en": "Create arrays, iterate over them, and avoid common mistakes.",
+            "de": "Arrays anlegen, durchlaufen und typische Fehler vermeiden."
+          },
+          "prerequisites": ["primitive-types"]
+        },
+        {
+          "order": 7,
+          "id": "strings-basics",
+          "name": {
+            "en": "Strings",
+            "de": "Strings"
+          },
+          "shortDescription": {
+            "en": "Use string immutability, equals vs ==, and StringBuilder correctly.",
+            "de": "Immutability, equals vs == und StringBuilder richtig nutzen."
+          },
+          "prerequisites": ["primitive-types"]
+        },
+        {
+          "order": 8,
+          "id": "packages-imports",
+          "name": {
+            "en": "Packages & Imports",
+            "de": "Packages & Imports"
+          },
+          "shortDescription": {
+            "en": "Use package declarations, imports, and namespaces correctly.",
+            "de": "package-Deklaration, Imports und Namensräume korrekt nutzen; Klassen sauber über Dateien und Pakete strukturieren."
+          },
+          "prerequisites": ["variables-constants"]
+        }
+      ]
+    },
+    {
+      "order": 2,
+      "id": "control-flow",
+      "name": {
+        "en": "Control Flow",
+        "de": "Kontrollfluss"
+      },
+      "shortDescription": {
+        "en": "Control program flow with conditions and loops.",
+        "de": "Logik mit Bedingungen und Schleifen zuverlässig steuern."
+      },
+      "topics": [
+        {
+          "order": 9,
+          "id": "conditionals",
+          "name": {
+            "en": "Conditionals",
+            "de": "Bedingungen"
+          },
+          "shortDescription": {
+            "en": "Use if/else and ternary expressions for decisions.",
+            "de": "if/else und ternäre Ausdrücke für Entscheidungen einsetzen."
+          },
+          "prerequisites": ["operators"]
+        },
+        {
+          "order": 10,
+          "id": "loops",
+          "name": {
+            "en": "Loops",
+            "de": "Schleifen"
+          },
+          "shortDescription": {
+            "en": "Use for, enhanced for, while, and do-while effectively.",
+            "de": "for, enhanced for, while und do-while für Wiederholungen verwenden."
+          },
+          "prerequisites": ["conditionals", "arrays-basics"]
+        },
+        {
+          "order": 11,
+          "id": "switch",
+          "name": {
+            "en": "Switch",
+            "de": "Switch"
+          },
+          "shortDescription": {
+            "en": "Use switch statements and modern switch expressions (->).",
+            "de": "switch-Anweisungen und moderne switch-Ausdrücke (mit ->) anwenden."
+          },
+          "prerequisites": ["conditionals"]
+        }
+      ]
+    },
+    {
+      "order": 3,
+      "id": "methods",
+      "name": {
+        "en": "Methods",
+        "de": "Methoden"
+      },
+      "shortDescription": {
+        "en": "Split code into reusable, readable units.",
+        "de": "Code in wiederverwendbare und gut lesbare Einheiten zerlegen."
+      },
+      "topics": [
+        {
+          "order": 12,
+          "id": "method-declarations",
+          "name": {
+            "en": "Method Declarations",
+            "de": "Methodendeklarationen"
+          },
+          "shortDescription": {
+            "en": "Define methods with parameters and return values.",
+            "de": "Methoden mit Parametern und Rückgabewerten korrekt definieren."
+          },
+          "prerequisites": ["loops"]
+        },
+        {
+          "order": 13,
+          "id": "overloading",
+          "name": {
+            "en": "Method Overloading",
+            "de": "Method Overloading"
+          },
+          "shortDescription": {
+            "en": "Use identical method names with different signatures.",
+            "de": "Gleiche Methodennamen mit verschiedenen Signaturen nutzen."
+          },
+          "prerequisites": ["method-declarations"]
+        },
+        {
+          "order": 14,
+          "id": "static-vs-instance",
+          "name": {
+            "en": "Static vs Instance",
+            "de": "Static vs Instance"
+          },
+          "shortDescription": {
+            "en": "Understand class context vs object instance context.",
+            "de": "Unterschied zwischen Klassen- und Objektkontext verstehen."
+          },
+          "prerequisites": ["method-declarations"]
+        }
+      ]
+    },
+    {
+      "order": 4,
+      "id": "oop",
+      "name": {
+        "en": "Object-Oriented Programming",
+        "de": "Objektorientierung"
+      },
+      "shortDescription": {
+        "en": "Design classes and apply core OOP concepts.",
+        "de": "Klassen entwerfen und OOP-Konzepte sauber anwenden."
+      },
+      "topics": [
+        {
+          "order": 15,
+          "id": "classes-objects",
+          "name": {
+            "en": "Classes & Objects",
+            "de": "Klassen & Objekte"
+          },
+          "shortDescription": {
+            "en": "Model objects, instantiate them, and use toString for readable debugging.",
+            "de": "Objekte modellieren, instanziieren und mit toString für Debugging lesbar machen."
+          },
+          "prerequisites": ["method-declarations", "static-vs-instance"]
+        },
+        {
+          "order": 16,
+          "id": "constructors-this-super",
+          "name": {
+            "en": "Constructors, this & super",
+            "de": "Konstruktoren, this & super"
+          },
+          "shortDescription": {
+            "en": "Master object initialization and inheritance context.",
+            "de": "Objekterzeugung, Initialisierung und Vererbungskontext beherrschen."
+          },
+          "prerequisites": ["classes-objects"]
+        },
+        {
+          "order": 17,
+          "id": "encapsulation-access-modifiers",
+          "name": {
+            "en": "Encapsulation & Access Modifiers",
+            "de": "Kapselung & Sichtbarkeit"
+          },
+          "shortDescription": {
+            "en": "Use public/private/protected to build stable APIs.",
+            "de": "public/private/protected gezielt für stabile APIs einsetzen."
+          },
+          "prerequisites": ["classes-objects"]
+        },
+        {
+          "order": 18,
+          "id": "equals-hashcode-contract",
+          "name": {
+            "en": "equals & hashCode",
+            "de": "equals & hashCode"
+          },
+          "shortDescription": {
+            "en": "Implement equality correctly and honor the equals/hashCode contract.",
+            "de": "Objektgleichheit korrekt implementieren und den equals/hashCode-Vertrag einhalten."
+          },
+          "prerequisites": ["classes-objects"]
+        },
+        {
+          "order": 19,
+          "id": "inheritance-polymorphism",
+          "name": {
+            "en": "Inheritance & Polymorphism",
+            "de": "Vererbung & Polymorphie"
+          },
+          "shortDescription": {
+            "en": "Abstract shared behavior and use polymorphic dispatch.",
+            "de": "Gemeinsames Verhalten abstrahieren und polymorph nutzen."
+          },
+          "prerequisites": [
+            "constructors-this-super",
+            "encapsulation-access-modifiers"
+          ]
+        },
+        {
+          "order": 20,
+          "id": "interfaces-abstract-classes",
+          "name": {
+            "en": "Interfaces & Abstract Classes",
+            "de": "Interfaces & Abstrakte Klassen"
+          },
+          "shortDescription": {
+            "en": "Define contracts and choose suitable abstractions.",
+            "de": "Verträge definieren und geeignete Abstraktionen wählen."
+          },
+          "prerequisites": ["inheritance-polymorphism"]
+        }
+      ]
+    },
+    {
+      "order": 5,
+      "id": "robustness-io-collections",
+      "name": {
+        "en": "Robustness, I/O & Collections",
+        "de": "Robustheit, I/O & Collections"
+      },
+      "shortDescription": {
+        "en": "Combine error handling, file access, and collections in practice.",
+        "de": "Fehlerbehandlung, Dateizugriff und Datencontainer praxisnah kombinieren."
+      },
+      "topics": [
+        {
+          "order": 21,
+          "id": "exception-handling",
+          "name": {
+            "en": "Exception Handling",
+            "de": "Exception Handling"
+          },
+          "shortDescription": {
+            "en": "Handle checked and unchecked exceptions with try/catch/finally.",
+            "de": "Checked/Unchecked Exceptions mit try/catch/finally behandeln."
+          },
+          "prerequisites": ["method-declarations", "classes-objects"]
+        },
+        {
+          "order": 22,
+          "id": "file-io-path-files",
+          "name": {
+            "en": "File I/O (Path/Files)",
+            "de": "I/O & Dateien (Path/Files)"
+          },
+          "shortDescription": {
+            "en": "Process files and directories safely using java.nio.file.",
+            "de": "Dateien und Verzeichnisse mit java.nio.file sicher verarbeiten."
+          },
+          "prerequisites": ["exception-handling"]
+        },
+        {
+          "order": 23,
+          "id": "collections-framework",
+          "name": {
+            "en": "Collections Framework",
+            "de": "Collections Framework"
+          },
+          "shortDescription": {
+            "en": "Choose and use List, Set, and Map effectively.",
+            "de": "List, Set und Map passend auswählen und nutzen."
+          },
+          "prerequisites": ["arrays-basics", "equals-hashcode-contract"]
+        },
+        {
+          "order": 24,
+          "id": "generics",
+          "name": {
+            "en": "Generics",
+            "de": "Generics"
+          },
+          "shortDescription": {
+            "en": "Write type-safe reusable code with generic type parameters.",
+            "de": "Typsicheren, wiederverwendbaren Code mit Parametertypen schreiben."
+          },
+          "prerequisites": ["collections-framework"]
+        }
+      ]
+    },
+    {
+      "order": 6,
+      "id": "modern-java",
+      "name": {
+        "en": "Modern Java",
+        "de": "Modernes Java"
+      },
+      "shortDescription": {
+        "en": "Apply modern language features and concurrency basics.",
+        "de": "Aktuelle Sprachmittel und Nebenläufigkeit einordnen und einsetzen."
+      },
+      "topics": [
+        {
+          "order": 25,
+          "id": "records",
+          "name": {
+            "en": "Records",
+            "de": "Records"
+          },
+          "shortDescription": {
+            "en": "Define immutable data carriers concisely with record.",
+            "de": "Unveränderliche Datenklassen mit record prägnant definieren und einsetzen."
+          },
+          "prerequisites": ["classes-objects"]
+        },
+        {
+          "order": 26,
+          "id": "sealed-classes",
+          "name": {
+            "en": "Sealed Classes",
+            "de": "Sealed Classes"
+          },
+          "shortDescription": {
+            "en": "Constrain class hierarchies with sealed and explicit permitted subtypes (Java 17+).",
+            "de": "Klassenhierarchien mit sealed kontrollieren und erlaubte Subtypen explizit festlegen (Java 17+)."
+          },
+          "optional": true,
+          "prerequisites": ["inheritance-polymorphism"]
+        },
+        {
+          "order": 27,
+          "id": "optional-api",
+          "name": {
+            "en": "Optional",
+            "de": "Optional"
+          },
+          "shortDescription": {
+            "en": "Model missing values explicitly with Optional instead of null.",
+            "de": "Fehlende Werte explizit mit Optional modellieren statt null zurückzugeben."
+          },
+          "prerequisites": ["generics"]
+        },
+        {
+          "order": 28,
+          "id": "lambdas-functional-interfaces",
+          "name": {
+            "en": "Lambdas & Functional Interfaces",
+            "de": "Lambdas & Functional Interfaces"
+          },
+          "shortDescription": {
+            "en": "Express behavior compactly with lambda expressions.",
+            "de": "Verhaltenslogik kompakt mit Lambda-Ausdrücken formulieren."
+          },
+          "prerequisites": ["interfaces-abstract-classes"]
+        },
+        {
+          "order": 29,
+          "id": "streams",
+          "name": {
+            "en": "Stream API",
+            "de": "Stream API"
+          },
+          "shortDescription": {
+            "en": "Process data declaratively using map/filter/reduce.",
+            "de": "Daten deklarativ mit map/filter/reduce verarbeiten."
+          },
+          "prerequisites": [
+            "lambdas-functional-interfaces",
+            "collections-framework"
+          ]
+        },
+        {
+          "order": 30,
+          "id": "concurrency-basics",
+          "name": {
+            "en": "Concurrency Basics",
+            "de": "Concurrency Basics"
+          },
+          "shortDescription": {
+            "en": "Use threads, ExecutorService, and synchronization fundamentals.",
+            "de": "Threads, ExecutorService und Synchronisierung grundlegend nutzen."
+          },
+          "optional": true,
+          "prerequisites": [
+            "lambdas-functional-interfaces",
+            "exception-handling"
+          ]
+        }
+      ]
+    }
+  ]
+}

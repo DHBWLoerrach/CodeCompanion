@@ -3,7 +3,10 @@ import {
   toQuestionCount,
   toLanguage,
   requireTopicId,
+  toProgrammingLanguage,
   toQuizDifficultyLevel,
+  validateTopicIdForLanguage,
+  validateTopicIdsForLanguage,
 } from "@server/validation";
 
 describe("server/validation", () => {
@@ -119,6 +122,57 @@ describe("server/validation", () => {
 
     it("uses default fallback of 1", () => {
       expect(toQuizDifficultyLevel(undefined)).toBe(1);
+    });
+  });
+
+  describe("toProgrammingLanguage", () => {
+    it("accepts all supported programming languages", () => {
+      expect(toProgrammingLanguage("javascript")).toBe("javascript");
+      expect(toProgrammingLanguage("python")).toBe("python");
+      expect(toProgrammingLanguage("java")).toBe("java");
+    });
+
+    it("falls back to javascript for unsupported values", () => {
+      expect(toProgrammingLanguage("rust")).toBe("javascript");
+      expect(toProgrammingLanguage(undefined)).toBe("javascript");
+      expect(toProgrammingLanguage(null)).toBe("javascript");
+    });
+  });
+
+  describe("validateTopicIdForLanguage", () => {
+    it("validates topic IDs against the selected language", () => {
+      expect(validateTopicIdForLanguage("variables", "javascript")).toBe(true);
+      expect(validateTopicIdForLanguage("variables", "python")).toBe(false);
+      expect(validateTopicIdForLanguage("variables-assignment", "python")).toBe(
+        true,
+      );
+      expect(validateTopicIdForLanguage("variables-constants", "java")).toBe(
+        true,
+      );
+    });
+
+    it("rejects empty topic IDs", () => {
+      expect(validateTopicIdForLanguage("", "javascript")).toBe(false);
+    });
+  });
+
+  describe("validateTopicIdsForLanguage", () => {
+    it("returns true when every topic ID is valid for the language", () => {
+      expect(
+        validateTopicIdsForLanguage(
+          ["variables-assignment", "data-types", "loops"],
+          "python",
+        ),
+      ).toBe(true);
+    });
+
+    it("returns false when at least one topic ID is invalid", () => {
+      expect(
+        validateTopicIdsForLanguage(
+          ["variables-assignment", "not-a-python-topic"],
+          "python",
+        ),
+      ).toBe(false);
     });
   });
 });

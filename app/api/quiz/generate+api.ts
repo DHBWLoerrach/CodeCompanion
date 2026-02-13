@@ -6,6 +6,7 @@ import {
   toProgrammingLanguage,
   toQuestionCount,
   toQuizDifficultyLevel,
+  validateTopicIdForLanguage,
 } from "@server/validation";
 
 export async function POST(request: Request) {
@@ -35,6 +36,12 @@ export async function POST(request: Request) {
     const programmingLanguage = toProgrammingLanguage(
       body?.programmingLanguage,
     );
+    if (!validateTopicIdForLanguage(topicId, programmingLanguage)) {
+      return Response.json(
+        { error: "Invalid topicId for programmingLanguage" },
+        { status: 400 },
+      );
+    }
 
     const questions = await generateQuizQuestions(
       programmingLanguage,

@@ -18,6 +18,7 @@ import { KeyboardAwareScrollViewCompat } from "@/components/KeyboardAwareScrollV
 import { AppIcon } from "@/components/AppIcon";
 import { useTheme } from "@/hooks/useTheme";
 import { useTranslation } from "@/hooks/useTranslation";
+import { getLanguageDisplayName } from "@/lib/languages";
 import {
   Spacing,
   BorderRadius,
@@ -88,7 +89,7 @@ function SettingRow({ icon, label, children }: SettingRowProps) {
 
 export default function SettingsScreen() {
   const { theme, refreshTheme } = useTheme();
-  const { t, refreshLanguage } = useTranslation();
+  const { t, language, refreshLanguage } = useTranslation();
   const { selectedLanguage } = useProgrammingLanguage();
   const insets = useSafeAreaInsets();
   const router = useRouter();
@@ -344,7 +345,7 @@ export default function SettingsScreen() {
                           style={{ color: theme.tabIconDefault }}
                         >
                           {selectedLanguage
-                            ? t(selectedLanguage.nameKey)
+                            ? getLanguageDisplayName(selectedLanguage, language)
                             : t("javascript")}
                         </ThemedText>
                         <AppIcon
