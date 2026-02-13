@@ -57,7 +57,10 @@ export default function LearnStack() {
         name="index"
         options={{
           title: selectedLanguage
-            ? `${t("learn")} ${getLanguageDisplayName(selectedLanguage, language)}`
+            ? t("learnTechnology").replace(
+                "{name}",
+                getLanguageDisplayName(selectedLanguage, language),
+              )
             : t("learn"),
           headerLeft: () => <HeaderBrand />,
           headerRight: () => (

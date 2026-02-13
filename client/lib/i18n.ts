@@ -2,7 +2,7 @@ export type Language = "en" | "de";
 
 export const translations = {
   en: {
-    learnJavaScript: "Learn JavaScript",
+    learnTechnology: "Learn {name}",
 
     learn: "Learn",
     progress: "Progress",
@@ -163,7 +163,7 @@ export const translations = {
     selectCategory: "Select Category",
   },
   de: {
-    learnJavaScript: "JavaScript lernen",
+    learnTechnology: "{name} lernen",
 
     learn: "Lernen",
     progress: "Fortschritt",
