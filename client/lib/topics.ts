@@ -105,7 +105,12 @@ function resolveLegacyTranslation(
   language: Language,
 ): string | undefined {
   if (!key) return undefined;
-  return translations[language][key] || translations.en[key];
+  const localizedTranslations = translations[language] as Record<
+    TranslationKey,
+    string
+  >;
+  const englishTranslations = translations.en as Record<TranslationKey, string>;
+  return localizedTranslations[key] || englishTranslations[key];
 }
 
 export function getTopicName(topic: Topic, language: Language): string {

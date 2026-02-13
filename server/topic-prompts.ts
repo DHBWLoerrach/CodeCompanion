@@ -17,19 +17,37 @@ export const LANGUAGE_TOPIC_PROMPTS: Record<
     "data-types":
       "JavaScript primitive data types (string, number, boolean, null, undefined, symbol, bigint) and type checking",
     operators: "JavaScript arithmetic, comparison, and logical operators",
+    "equality-coercion-truthiness":
+      "JavaScript equality operators (== vs ===), type coercion, and truthy/falsy behavior",
+    "null-undefined":
+      "JavaScript null and undefined semantics, differences, and common pitfalls",
+    "strings-template-literals":
+      "JavaScript string operations with template literals, interpolation, and multiline strings",
     conditionals: "JavaScript if/else statements and ternary operators",
     loops: "JavaScript for, while, do-while, and for...of loops",
     switch: "JavaScript switch statements and case handling",
     declarations: "JavaScript function declarations and function expressions",
     "arrow-functions": "JavaScript ES6 arrow function syntax and behavior",
     callbacks: "JavaScript callback functions and callback patterns",
+    "function-parameters-rest-spread":
+      "JavaScript function parameters, default values, rest parameters, and spread syntax",
+    "scope-hoisting-tdz":
+      "JavaScript lexical scope, hoisting rules, and temporal dead zone behavior",
+    "this-binding":
+      "JavaScript this binding in regular functions, methods, arrow functions, and explicit binding",
     objects: "JavaScript object literals, properties, and methods",
     arrays: "JavaScript array methods like map, filter, reduce, find, forEach",
     destructuring: "JavaScript object and array destructuring syntax",
+    "map-set":
+      "JavaScript Map and Set usage, differences from objects/arrays, and iteration patterns",
+    "optional-chaining-nullish":
+      "JavaScript optional chaining (?.) and nullish coalescing (??) for safe property access and defaults",
     promises: "JavaScript Promises, then/catch chaining, and Promise.all",
     "async-await":
       "JavaScript async/await syntax for handling asynchronous code",
     "error-handling": "JavaScript try/catch blocks and error management",
+    "event-loop-microtasks":
+      "JavaScript event loop fundamentals, task queue vs microtask queue, and execution order",
     closures: "JavaScript closures and lexical scope",
     prototypes: "JavaScript prototype chain and prototype-based inheritance",
     classes: "JavaScript ES6 class syntax, constructors, and methods",

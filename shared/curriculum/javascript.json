@@ -66,6 +66,45 @@
           },
           "legacyDescKey": "operatorsDesc",
           "prerequisites": ["data-types"]
+        },
+        {
+          "order": 4,
+          "id": "equality-coercion-truthiness",
+          "name": {
+            "en": "Equality, Coercion & Truthiness",
+            "de": "Gleichheit, Coercion & Truthiness"
+          },
+          "shortDescription": {
+            "en": "Understand == vs ===, implicit coercion, and truthy/falsy values.",
+            "de": "== vs ===, implizite Typumwandlung und Truthy/Falsy-Werte sicher anwenden."
+          },
+          "prerequisites": ["operators"]
+        },
+        {
+          "order": 5,
+          "id": "null-undefined",
+          "name": {
+            "en": "null & undefined",
+            "de": "null & undefined"
+          },
+          "shortDescription": {
+            "en": "Use null and undefined intentionally and avoid common pitfalls.",
+            "de": "null und undefined gezielt einsetzen und typische Stolperfallen vermeiden."
+          },
+          "prerequisites": ["data-types"]
+        },
+        {
+          "order": 6,
+          "id": "strings-template-literals",
+          "name": {
+            "en": "Strings & Template Literals",
+            "de": "Strings & Template Literals"
+          },
+          "shortDescription": {
+            "en": "Work with string methods, interpolation, and multiline templates.",
+            "de": "String-Methoden, Interpolation und mehrzeilige Templates sauber nutzen."
+          },
+          "prerequisites": ["data-types"]
         }
       ]
     },
@@ -78,12 +117,12 @@
       },
       "legacyNameKey": "controlFlow",
       "shortDescription": {
-        "en": "Build logic using conditions and loops.",
-        "de": "Baue Logik mit Bedingungen und Schleifen auf."
+        "en": "Build logic using conditions, loops, and error handling.",
+        "de": "Baue Logik mit Bedingungen, Schleifen und Fehlerbehandlung auf."
       },
       "topics": [
         {
-          "order": 4,
+          "order": 7,
           "id": "conditionals",
           "name": {
             "en": "Conditionals",
@@ -98,7 +137,7 @@
           "prerequisites": ["operators"]
         },
         {
-          "order": 5,
+          "order": 8,
           "id": "loops",
           "name": {
             "en": "Loops",
@@ -113,7 +152,7 @@
           "prerequisites": ["conditionals"]
         },
         {
-          "order": 6,
+          "order": 9,
           "id": "switch",
           "name": {
             "en": "Switch",
@@ -125,6 +164,21 @@
             "de": "Switch-Anweisungen und Fälle"
           },
           "legacyDescKey": "switchDesc",
+          "prerequisites": ["conditionals"]
+        },
+        {
+          "order": 10,
+          "id": "error-handling",
+          "name": {
+            "en": "Error Handling",
+            "de": "Fehlerbehandlung"
+          },
+          "legacyNameKey": "errorHandling",
+          "shortDescription": {
+            "en": "try/catch and error management",
+            "de": "try/catch und Fehlermanagement"
+          },
+          "legacyDescKey": "errorHandlingDesc",
           "prerequisites": ["conditionals"]
         }
       ]
@@ -143,7 +197,7 @@
       },
       "topics": [
         {
-          "order": 7,
+          "order": 11,
           "id": "declarations",
           "name": {
             "en": "Declarations",
@@ -155,10 +209,10 @@
             "de": "Funktionsdeklarationen und -ausdrücke"
           },
           "legacyDescKey": "declarationsDesc",
-          "prerequisites": ["loops"]
+          "prerequisites": ["conditionals"]
         },
         {
-          "order": 8,
+          "order": 12,
           "id": "arrow-functions",
           "name": {
             "en": "Arrow Functions",
@@ -173,7 +227,7 @@
           "prerequisites": ["declarations"]
         },
         {
-          "order": 9,
+          "order": 13,
           "id": "callbacks",
           "name": {
             "en": "Callbacks",
@@ -186,6 +240,45 @@
           },
           "legacyDescKey": "callbacksDesc",
           "prerequisites": ["declarations"]
+        },
+        {
+          "order": 14,
+          "id": "function-parameters-rest-spread",
+          "name": {
+            "en": "Parameters, Rest & Spread",
+            "de": "Parameter, Rest & Spread"
+          },
+          "shortDescription": {
+            "en": "Use default params, rest parameters, and spread syntax correctly.",
+            "de": "Default-Parameter, Rest-Parameter und Spread-Syntax korrekt einsetzen."
+          },
+          "prerequisites": ["declarations"]
+        },
+        {
+          "order": 15,
+          "id": "scope-hoisting-tdz",
+          "name": {
+            "en": "Scope, Hoisting & TDZ",
+            "de": "Scope, Hoisting & TDZ"
+          },
+          "shortDescription": {
+            "en": "Understand lexical scope, hoisting behavior, and the temporal dead zone.",
+            "de": "Lexical Scope, Hoisting-Verhalten und die Temporal Dead Zone verstehen."
+          },
+          "prerequisites": ["variables", "declarations"]
+        },
+        {
+          "order": 16,
+          "id": "this-binding",
+          "name": {
+            "en": "this Binding",
+            "de": "this-Binding"
+          },
+          "shortDescription": {
+            "en": "Understand how this is bound in functions, methods, and arrow functions.",
+            "de": "Verstehen, wie this in Funktionen, Methoden und Arrow Functions gebunden wird."
+          },
+          "prerequisites": ["declarations", "arrow-functions"]
         }
       ]
     },
@@ -203,7 +296,7 @@
       },
       "topics": [
         {
-          "order": 10,
+          "order": 17,
           "id": "objects",
           "name": {
             "en": "Objects",
@@ -218,7 +311,7 @@
           "prerequisites": ["declarations"]
         },
         {
-          "order": 11,
+          "order": 18,
           "id": "arrays",
           "name": {
             "en": "Arrays",
@@ -233,7 +326,7 @@
           "prerequisites": ["loops"]
         },
         {
-          "order": 12,
+          "order": 19,
           "id": "destructuring",
           "name": {
             "en": "Destructuring",
@@ -246,6 +339,32 @@
           },
           "legacyDescKey": "destructuringDesc",
           "prerequisites": ["objects", "arrays"]
+        },
+        {
+          "order": 20,
+          "id": "map-set",
+          "name": {
+            "en": "Map & Set",
+            "de": "Map & Set"
+          },
+          "shortDescription": {
+            "en": "Choose Map/Set over plain objects/arrays when appropriate.",
+            "de": "Map/Set sinnvoll statt plain Objects/Arrays einsetzen."
+          },
+          "prerequisites": ["objects", "arrays"]
+        },
+        {
+          "order": 21,
+          "id": "optional-chaining-nullish",
+          "name": {
+            "en": "Optional Chaining & Nullish Coalescing",
+            "de": "Optional Chaining & Nullish Coalescing"
+          },
+          "shortDescription": {
+            "en": "Safely access nested values with ?. and set defaults with ??.",
+            "de": "Verschachtelte Werte mit ?. sicher lesen und mit ?? sinnvolle Defaults setzen."
+          },
+          "prerequisites": ["objects", "null-undefined"]
         }
       ]
     },
@@ -258,12 +377,12 @@
       },
       "legacyNameKey": "asyncCategory",
       "shortDescription": {
-        "en": "Handle asynchronous operations and failures.",
-        "de": "Behandle asynchrone Operationen und Fehler."
+        "en": "Handle asynchronous operations.",
+        "de": "Behandle asynchrone Operationen."
       },
       "topics": [
         {
-          "order": 13,
+          "order": 22,
           "id": "promises",
           "name": {
             "en": "Promises",
@@ -278,7 +397,7 @@
           "prerequisites": ["callbacks"]
         },
         {
-          "order": 14,
+          "order": 23,
           "id": "async-await",
           "name": {
             "en": "Async/Await",
@@ -293,19 +412,17 @@
           "prerequisites": ["promises"]
         },
         {
-          "order": 15,
-          "id": "error-handling",
+          "order": 24,
+          "id": "event-loop-microtasks",
           "name": {
-            "en": "Error Handling",
-            "de": "Fehlerbehandlung"
+            "en": "Event Loop & Microtasks",
+            "de": "Event Loop & Microtasks"
           },
-          "legacyNameKey": "errorHandling",
           "shortDescription": {
-            "en": "try/catch and error management",
-            "de": "try/catch und Fehlermanagement"
+            "en": "Understand execution order of call stack, task queue, and microtask queue.",
+            "de": "Ausführungsreihenfolge von Call Stack, Task Queue und Microtask Queue verstehen."
           },
-          "legacyDescKey": "errorHandlingDesc",
-          "prerequisites": ["conditionals"]
+          "prerequisites": ["callbacks", "promises", "async-await"]
         }
       ]
     },
@@ -323,7 +440,7 @@
       },
       "topics": [
         {
-          "order": 16,
+          "order": 25,
           "id": "closures",
           "name": {
             "en": "Closures",
@@ -335,10 +452,10 @@
             "de": "Lexikalischer Gültigkeitsbereich und Closures"
           },
           "legacyDescKey": "closuresDesc",
-          "prerequisites": ["declarations"]
+          "prerequisites": ["declarations", "scope-hoisting-tdz"]
         },
         {
-          "order": 17,
+          "order": 26,
           "id": "prototypes",
           "name": {
             "en": "Prototypes",
@@ -353,7 +470,7 @@
           "prerequisites": ["objects"]
         },
         {
-          "order": 18,
+          "order": 27,
           "id": "classes",
           "name": {
             "en": "Classes",
@@ -368,7 +485,7 @@
           "prerequisites": ["objects", "prototypes"]
         },
         {
-          "order": 19,
+          "order": 28,
           "id": "modules",
           "name": {
             "en": "Modules",

@@ -23,7 +23,15 @@ export function useTranslation() {
 
   const t = useCallback(
     (key: TranslationKey): string => {
-      return translations[language][key] || translations.en[key] || key;
+      const localizedTranslations = translations[language] as Record<
+        TranslationKey,
+        string
+      >;
+      const englishTranslations = translations.en as Record<
+        TranslationKey,
+        string
+      >;
+      return localizedTranslations[key] || englishTranslations[key] || key;
     },
     [language],
   );

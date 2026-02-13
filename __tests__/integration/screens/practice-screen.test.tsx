@@ -6,6 +6,11 @@ const mockPush = jest.fn();
 const mockGetProgress = jest.fn();
 const mockIsTopicDue = jest.fn();
 const mockRefreshLanguage = jest.fn();
+const fundamentalsTopicIds = (
+  require("@/lib/topics").JAVASCRIPT_CATEGORIES.find(
+    (category: { id: string }) => category.id === "fundamentals",
+  )?.topics ?? []
+).map((topic: { id: string }) => topic.id);
 
 jest.mock("expo-router", () => ({
   useRouter: () => ({
@@ -175,10 +180,22 @@ describe("PracticeScreen integration", () => {
       pathname: "/quiz-session",
       params: { count: "5", programmingLanguage: "javascript" },
     });
+
+    const categoryCall = mockPush.mock.calls.find(([call]) => {
+      const route = call as { pathname?: string; params?: { topicIds?: string } };
+      return (
+        route.pathname === "/quiz-session" &&
+        typeof route.params?.topicIds === "string"
+      );
+    });
+    expect(categoryCall).toBeDefined();
+
+    const route = categoryCall?.[0] as { params: { topicIds: string } };
+    expect(route.params.topicIds.split(",")).toEqual(fundamentalsTopicIds);
     expect(mockPush).toHaveBeenCalledWith({
       pathname: "/quiz-session",
       params: {
-        topicIds: "variables,data-types,operators",
+        topicIds: route.params.topicIds,
         programmingLanguage: "javascript",
       },
     });
