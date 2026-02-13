@@ -1,12 +1,7 @@
 import { getAllCurricula, getLocalizedText } from "@shared/curriculum";
 import type { LocalizedText } from "@shared/curriculum/types";
 import type { ProgrammingLanguageId } from "@shared/programming-language";
-import {
-  isTranslationKey,
-  type Language,
-  type TranslationKey,
-  translations,
-} from "./i18n";
+import type { Language } from "./i18n";
 import { getCategoriesByLanguage, type Category } from "./topics";
 
 export interface ProgrammingLanguage {
