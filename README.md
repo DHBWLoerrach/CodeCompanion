@@ -1,73 +1,77 @@
 # DHBW Code Companion
 
-Mobile Lern- und Übungsapp für JavaScript-Themen an der DHBW Lörrach.
+Mobile Lern- und Übungsapp für Programmiergrundlagen an der DHBW Lörrach.
 
 ## Überblick
 
 Code Companion unterstützt Studierende beim selbstgesteuerten Lernen:
 
-- Themenbasiertes Lernen (z. B. Variablen, Funktionen, Async/Await)
-- KI-gestützte Quiz-Generierung
-- Erklärungen zu Themen als Modal-Ansicht
-- Fortschritt, Skill-Level und Lernstreaks
-- Deutsch/Englisch und Light/Dark/System Theme
+- Themenbasiertes Lernen mit Curricula für JavaScript, Python und Java
+- KI-gestützte Quiz-Generierung pro Thema oder als Mixed Quiz
+- KI-Erklärungen zu Themen als Markdown-Modal
+- Fortschritt, Skill-Level und Lernstreaks pro Programmiersprache
+- App-Lokalisierung (Deutsch/Englisch) und Theme-Modi (System/Hell/Dunkel)
 
 Die App wurde am Studienzentrum IT-Management & Informatik (SZI) der DHBW Lörrach unter Leitung von Prof. Dr. Erik Behrends entwickelt.
 
-SZI: https://www.dhbw-loerrach.de/szi  
-Quellcode: https://github.com/DHBWLoerrach/CodeCompanion  
-Feedback: apps@dhbw-loerrach.de
+- SZI: https://www.dhbw-loerrach.de/szi
+- Quellcode: https://github.com/DHBWLoerrach/CodeCompanion
+- Feedback: apps@dhbw-loerrach.de
 
 ## Datenschutz
 
 - Es werden keine benutzerbezogenen Daten auf Servern gespeichert.
-- Nur der Lernfortschritt wird lokal auf dem Gerät gespeichert (AsyncStorage).
+- Lernfortschritt, Profil und Einstellungen liegen ausschließlich lokal auf dem Gerät (AsyncStorage).
 
 ## Tech Stack
 
-- Expo SDK 54 + React Native 0.81
-- Expo Router (file-based routing)
+- Expo SDK 54 + React Native 0.81 + React 19
+- Expo Router 6 (file-based routing)
 - React Query
 - Expo API Routes (`app/api/*`)
-- OpenAI Responses API (über HTTP in `server/quiz.ts`)
+- OpenAI Responses API (Server-seitig in `server/quiz.ts`)
 - AsyncStorage (lokale Persistenz)
 
 ## Projektstruktur
 
 ```text
-app/                    Expo Router Routen + API Routes
-  (tabs)/               Learn/Practice/Progress
-  api/                  quiz + topic explain endpoints
-  _layout.tsx           globales Stack-Layout
+app/                            Expo Router Routen + API Routes
+  (tabs)/                       Learn, Practice, Progress
+  api/                          quiz + topic explain endpoints
+  _layout.tsx                   globale Provider + Stack-Layout
 
 client/
-  components/           UI-Bausteine
-  screens/              Screen-Implementierungen
-  hooks/                Theme, i18n, Screen Options
-  lib/                  storage, topics, query-client, i18n
-  constants/            Farben, Spacing, Typografie
+  components/                   UI-Bausteine
+  screens/                      Screen-Implementierungen
+  hooks/                        Hooks (z. B. useTranslation)
+  contexts/                     Theme/Language/ProgrammingLanguage Contexts
+  lib/                          storage, i18n, topics-Adapter, query-client
+  constants/                    Design-Tokens
 
 server/
-  quiz.ts               Prompting + OpenAI-Integration
-  logging.ts            API-Error-Logging
-  validation.ts         Request-Validierung
+  quiz.ts                       Prompting + OpenAI-Integration
+  topic-prompts.ts              Topic-ID -> Prompt-Mapping je Sprache
+  validation.ts                 Request-Validierung für API Routes
+  logging.ts                    API-Error-Logging
 
 shared/
-  skill-level.ts        Shared Types (MasteryLevel, QuizDifficultyLevel)
+  curriculum/                   JSON-Curricula + Loader/Validierung
+  programming-language.ts       unterstützte Programmiersprachen
+  skill-level.ts                Shared Types (Skill/Difficulty)
 
 __tests__/
-  unit/                 Unit Tests
-  integration/          Integrationstests
+  unit/                         Unit Tests
+  integration/                  Integrationstests
 
 e2e/
-  maestro/              E2E Tests (Maestro)
+  maestro/                      E2E Tests (Maestro)
 ```
 
 ## Voraussetzungen
 
 - Node.js 20+
 - npm 10+
-- Expo Go App (optional, empfohlen für schnelles Testen)
+- Expo Go App (optional, für schnelles Testen)
 
 ## Installation
 
@@ -79,27 +83,23 @@ npm install
 
 ### Erforderlich für KI-Funktionen
 
-- `OPENAI_API_KEY`  
-  API-Key für den Aufruf von `POST /v1/responses` in `server/quiz.ts`.
-  In Produktion wird dieser Wert aus der EAS-Environment `production` gelesen.
-  Lokal kann ein eigener Dev-Key genutzt werden.
+- `OPENAI_API_KEY`
+  - API-Key für `POST /v1/responses`.
+  - Nur server-seitig verwenden.
+  - In Produktion aus der EAS-Environment `production`.
 
 ### Optional
 
-- `OPENAI_MODEL`  
-  Modellname. Standard: `gpt-5.2`.
+- `OPENAI_MODEL`
+  - Modellname, Standard: `gpt-5.2`.
 - `EXPO_PUBLIC_API_URL`
-  Basis-URL für API-Calls aus dem Client. In der lokalen Entwicklung wird
-  die URL automatisch über Expo Constants (`hostUri`) ermittelt. Für
-  Deployments (z. B. EAS) muss diese Variable gesetzt werden.
+  - Basis-URL für API-Calls im Client (für Deployments erforderlich).
 
-### Empfohlene Trennung für Keys
+### Sicherheitshinweise
 
-- Lokal: eigener Dev-Key in `.env.local` (oder vor Start per Shell-Variable exportieren).
-- Produktion: Key nur in EAS Environment `production`.
 - Niemals `EXPO_PUBLIC_OPENAI_API_KEY` verwenden.
-- OpenAI-Key immer als `Restricted` anlegen und nur `Responses` mit `Write` erlauben.
-- Hinweis: `.env` und `.env*.local` sind per `.gitignore` vom Commit ausgeschlossen.
+- OpenAI-Key als `Restricted` anlegen und nur `Responses: Write` erlauben.
+- `.env` und `.env*.local` sind per `.gitignore` vom Commit ausgeschlossen.
 
 ## Entwicklung starten
 
@@ -107,9 +107,8 @@ npm install
 npm run start
 ```
 
-Dann:
+Danach in Expo:
 
-- in Expo Go öffnen (QR)
 - iOS Simulator (`i`)
 - Android Emulator (`a`)
 - Web (`w`)
@@ -117,6 +116,8 @@ Dann:
 ## Verfügbare Skripte
 
 - `npm run start` - Expo Dev Server starten
+- `npm run ios` - iOS Build starten
+- `npm run android` - Android Build starten
 - `npm run lint` - ESLint
 - `npm run lint:fix` - ESLint mit Auto-Fixes
 - `npm run check:types` - TypeScript Check (`tsc --noEmit`)
@@ -127,101 +128,109 @@ Dann:
 - `npm run test:integration` - Integrationstests
 - `npm run test:watch` - Tests im Watch-Modus
 - `npm run test:coverage` - Tests mit Coverage-Report
-- `npm run test:e2e` - E2E Tests (Maestro)
-- `npm run test:e2e:ai` - E2E Tests mit AI-Tag (Maestro)
-- `npm run ios` - iOS Build starten
-- `npm run android` - Android Build starten
+- `npm run test:e2e` - E2E Smoke Tests (Maestro)
+- `npm run test:e2e:ai` - E2E AI-Tests (Maestro)
 
 ## API Routen
 
-- `POST /api/quiz/generate`  
-  Quiz für ein konkretes Topic (`topicId`, `count`, `language`, `skillLevel`).
-- `POST /api/quiz/generate-mixed`  
-  Gemischtes Quiz über mehrere Topics.
-- `POST /api/topic/explain`  
-  Erklärungstext für ein Topic.
+### `POST /api/quiz/generate`
 
-Implementierung: `app/api/*`  
-Prompt- und OpenAI-Logik: `server/quiz.ts`
+Erzeugt ein Quiz für ein einzelnes Topic.
+
+Request-Body:
+
+- `topicId` (string, required)
+- `count` (number, optional, 1-20, default 5)
+- `language` (`en` | `de`, optional, default `en`)
+- `skillLevel` (number, optional, default 1)
+- `programmingLanguage` (`javascript` | `python` | `java`, optional, default `javascript`)
+
+### `POST /api/quiz/generate-mixed`
+
+Erzeugt ein gemischtes Quiz über mehrere Topics.
+
+Request-Body:
+
+- `count` (number, optional, 1-20, default 10)
+- `language` (`en` | `de`, optional, default `en`)
+- `skillLevel` (number, optional, default 1)
+- `programmingLanguage` (`javascript` | `python` | `java`, optional, default `javascript`)
+- `topicIds` (string[], optional, max 20; wenn leer, zufällige Topics)
+
+### `POST /api/topic/explain`
+
+Erzeugt eine Themen-Erklärung.
+
+Request-Body:
+
+- `topicId` (string, required)
+- `language` (`en` | `de`, optional, default `en`)
+- `programmingLanguage` (`javascript` | `python` | `java`, optional, default `javascript`)
+
+Hinweis: Topic-IDs werden gegen das gewählte Curriculum validiert.
+
+## Curricula und Inhalte
+
+- Source of truth für Lerninhalte: `shared/curriculum/<language>.json`
+- Loader/Validierung: `shared/curriculum/index.ts`
+- UI-Adapter: `client/lib/topics.ts`
+- Prompt-Mapping: `server/topic-prompts.ts`
+
+Beim Start wird die Konsistenz zwischen Topic-IDs und Prompt-Mapping geprüft.
 
 ## Deployment (EAS Hosting)
 
-### Deployment-Policy (verbindlich)
+### Verbindliche Deployment-Policy
 
-- Deployments nach EAS Hosting sind ausschließlich über GitHub Actions erlaubt.
-- `eas deploy` darf niemals auf lokalen Dev-Maschinen ausgeführt werden.
-- Produktions-Deployments laufen nur über `.github/workflows/deploy.yml`.
-- Bei versehentlichem lokalem Deploy: sofort per GitHub Action neu deployen und `OPENAI_API_KEY` rotieren.
+- Deployments sind ausschließlich über GitHub Actions erlaubt.
+- Lokales `eas deploy` ist nicht erlaubt.
+- Produktion läuft über `.github/workflows/deploy.yml` (manueller Trigger `workflow_dispatch`).
 
-### Manuell per GitHub Action
-
-Deployment läuft nur manuell über `.github/workflows/deploy.yml`:
-
-- Trigger: `workflow_dispatch` (kein Push-Trigger)
-- Export: `eas env:exec production 'npx expo export --platform web --no-ssg' --non-interactive`
-- Deploy: `eas deploy --environment production --prod --non-interactive`
+### Ablauf über GitHub Action
 
 Voraussetzungen:
 
-1. GitHub Secret `EXPO_TOKEN` setzen
-2. In EAS Environment `production` mindestens `OPENAI_API_KEY` setzen
-3. Action starten: `GitHub -> Actions -> Manual EAS Deploy -> Run workflow`
+1. GitHub Secret `EXPO_TOKEN` ist gesetzt.
+2. In EAS-Environment `production` ist mindestens `OPENAI_API_KEY` gesetzt.
 
-### Wichtiges Verhalten von EAS-Env-Variablen
+Workflow-Schritte (vereinfacht):
 
-- Environment-Variablen sind pro Deployment gebunden.
-- Deployments sind immutable.
-- Wenn eine Variable (z. B. `OPENAI_API_KEY`) in EAS geändert oder gelöscht wird,
-  wirkt das erst nach einem neuen Export + Deploy.
+1. `npm ci`
+2. `eas env:exec production 'npx expo export --platform web --no-ssg' --non-interactive`
+3. `eas deploy --environment production --prod --non-interactive`
 
-Offizielle Doku:
+### Wichtiges Verhalten von EAS-Variablen
 
-- https://docs.expo.dev/eas/environment-variables/usage/#using-environment-variables-with-eas-hosting
-- https://docs.expo.dev/eas/hosting/environment-variables/
+- Variablen sind pro Deployment gebunden (immutable Deployments).
+- Änderungen an Variablen wirken erst nach neuem Export + Deploy.
 
-### Warum kein lokales `eas deploy`
+## Typische Änderungen für Entwickler:innen
 
-Lokale Deploys können versehentlich lokale `.env`-Werte einbeziehen (z. B. wenn
-`--environment production` vergessen wird).
+### Neues Thema hinzufügen
 
-Verbindliche Regel: `eas deploy` wird niemals lokal ausgeführt, sondern nur über
-den manuellen GitHub-Workflow.
+1. Topic in `shared/curriculum/<language>.json` ergänzen.
+2. Prompt in `server/topic-prompts.ts` ergänzen.
+3. Auf gültige `prerequisites` und eindeutige IDs achten.
 
-## API-Key Rotation (OpenAI)
+### Neue Programmiersprache hinzufügen
 
-Empfohlener Ablauf:
+1. ID in `shared/programming-language.ts` ergänzen.
+2. Neues Curriculum in `shared/curriculum/` anlegen.
+3. Prompt-Mapping in `server/topic-prompts.ts` ergänzen.
 
-1. Neuen OpenAI-Key erstellen (Typ `Restricted`, nur `Responses: Write`).
-2. In EAS Environment `production` `OPENAI_API_KEY` auf den neuen Wert setzen.
-3. Manuellen GitHub-Deploy-Workflow ausführen.
-4. API-Route testen (`/api/quiz/generate`, `/api/topic/explain`).
-5. Alten OpenAI-Key erst nach erfolgreichem Test deaktivieren.
+### UI-Übersetzungen anpassen
 
-Kurzregel: Key-Änderung ohne neuen Deploy hat keinen Effekt auf den laufenden Service.
-
-## Navigation & Modals
-
-- Hauptnavigation über `app/(tabs)/_layout.tsx`
-- Globale Stack-Konfiguration in `app/_layout.tsx`
-- Reusable Modal-Ansicht für "Über diese App" / "Impressum":  
-  `app/info-modal.tsx` + `client/screens/InfoModalScreen.tsx`
-
-## Typische Änderungen für Devs
-
-### Neues Lernthema hinzufügen
-
-1. Topic in `client/lib/topics.ts` ergänzen
-2. Übersetzungen in `client/lib/i18n.ts` ergänzen
-3. Prompt-Mapping in `server/quiz.ts` (`TOPIC_PROMPTS`) ergänzen
+- App-Texte in `client/lib/i18n.ts` pflegen.
+- Themen-/Kategorie-Texte bevorzugt im Curriculum (`shared/curriculum/*.json`) pflegen.
 
 ### Styling/Theme anpassen
 
-- Farben und Tokens in `client/constants/theme.ts`
+- Farben/Tokens in `client/constants/theme.ts`
 - Header/Stack-Defaults in `client/hooks/useScreenOptions.ts`
 
 ### Lokale Datenlogik anpassen
 
-- Storage und Progress in `client/lib/storage.ts`
+- Storage, Settings, Progress in `client/lib/storage.ts`
 
 ## Qualitätssicherung
 
