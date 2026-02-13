@@ -343,7 +343,9 @@ export default function SettingsScreen() {
                           type="body"
                           style={{ color: theme.tabIconDefault }}
                         >
-                          {selectedLanguage?.shortName ?? "JS"}
+                          {selectedLanguage
+                            ? t(selectedLanguage.nameKey)
+                            : t("javascript")}
                         </ThemedText>
                         <AppIcon
                           name="chevron-right"
