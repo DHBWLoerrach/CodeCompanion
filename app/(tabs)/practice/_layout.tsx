@@ -2,7 +2,7 @@ import React, { useCallback } from "react";
 import { Stack, useFocusEffect, useRouter } from "expo-router";
 
 import { HeaderIconButton } from "@/components/HeaderIconButton";
-import { useTheme } from "@/hooks/useTheme";
+import { useTheme } from "@/contexts/ThemeContext";
 import { useTranslation } from "@/hooks/useTranslation";
 
 export default function PracticeStack() {

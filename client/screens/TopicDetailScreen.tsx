@@ -1,11 +1,5 @@
 import React, { useState, useCallback } from "react";
-import {
-  View,
-  ScrollView,
-  StyleSheet,
-  Pressable,
-  ActivityIndicator,
-} from "react-native";
+import { View, ScrollView, StyleSheet, Pressable } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import {
   useFocusEffect,
@@ -13,17 +7,15 @@ import {
   useLocalSearchParams,
   useRouter,
 } from "expo-router";
-import Animated, {
-  useAnimatedStyle,
-  useSharedValue,
-  withSpring,
-} from "react-native-reanimated";
+import Animated from "react-native-reanimated";
 
 import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
 import { AppIcon } from "@/components/AppIcon";
-import { useTheme } from "@/hooks/useTheme";
+import { LoadingScreen } from "@/components/LoadingScreen";
+import { useTheme } from "@/contexts/ThemeContext";
 import { useTranslation } from "@/hooks/useTranslation";
+import { usePressAnimation } from "@/hooks/usePressAnimation";
 import { Spacing, BorderRadius, Shadows } from "@/constants/theme";
 import {
   getTopicById,
@@ -31,6 +23,7 @@ import {
   getTopicDescription,
   type Topic,
 } from "@/lib/topics";
+import { getParam } from "@/lib/router-utils";
 import { storage, type TopicProgress, isTopicDue } from "@/lib/storage";
 import { useProgrammingLanguage } from "@/contexts/ProgrammingLanguageContext";
 
@@ -47,37 +40,18 @@ export default function TopicDetailScreen() {
   const languageId = selectedLanguage?.id ?? "javascript";
   const categories = selectedLanguage?.categories ?? [];
   const { topicId } = useLocalSearchParams<{ topicId?: string }>();
-  const resolvedTopicId = Array.isArray(topicId) ? topicId[0] : topicId;
+  const resolvedTopicId = getParam(topicId);
 
   const [topic, setTopic] = useState<Topic | null>(null);
   const [progress, setProgress] = useState<TopicProgress | null>(null);
   const [loading, setLoading] = useState(true);
-  const scale = useSharedValue(1);
-  const explainScale = useSharedValue(1);
-
-  const animatedStyle = useAnimatedStyle(() => ({
-    transform: [{ scale: scale.value }],
-  }));
-
-  const explainAnimatedStyle = useAnimatedStyle(() => ({
-    transform: [{ scale: explainScale.value }],
-  }));
-
-  const handlePressIn = () => {
-    scale.value = withSpring(0.98, { damping: 15, stiffness: 150 });
-  };
-
-  const handlePressOut = () => {
-    scale.value = withSpring(1, { damping: 15, stiffness: 150 });
-  };
-
-  const handleExplainPressIn = () => {
-    explainScale.value = withSpring(0.98, { damping: 15, stiffness: 150 });
-  };
-
-  const handleExplainPressOut = () => {
-    explainScale.value = withSpring(1, { damping: 15, stiffness: 150 });
-  };
+  const { animatedStyle, handlePressIn, handlePressOut } =
+    usePressAnimation(0.98);
+  const {
+    animatedStyle: explainAnimatedStyle,
+    handlePressIn: handleExplainPressIn,
+    handlePressOut: handleExplainPressOut,
+  } = usePressAnimation(0.98);
 
   const loadData = useCallback(
     async (activeLanguage: "en" | "de" = language) => {
@@ -155,11 +129,7 @@ export default function TopicDetailScreen() {
   };
 
   if (loading) {
-    return (
-      <ThemedView style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color={theme.primary} />
-      </ThemedView>
-    );
+    return <LoadingScreen />;
   }
 
   if (!topic) {
@@ -372,11 +342,6 @@ export default function TopicDetailScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-  },
-  loadingContainer: {
-    flex: 1,
-    alignItems: "center",
-    justifyContent: "center",
   },
   errorContainer: {
     flex: 1,

@@ -1,4 +1,5 @@
 import type { QuizDifficultyLevel } from "@shared/skill-level";
+import type { QuizQuestion } from "@shared/quiz-question";
 import { getTopicIdsByLanguage } from "@shared/curriculum";
 import {
   DEFAULT_PROGRAMMING_LANGUAGE_ID,
@@ -10,14 +11,7 @@ import {
   LANGUAGE_NAMES,
 } from "./topic-prompts";
 
-export interface QuizQuestion {
-  id: string;
-  question: string;
-  code?: string;
-  options: string[];
-  correctIndex: number;
-  explanation: string;
-}
+export type { QuizQuestion };
 
 export function getAvailableTopicIds(
   programmingLanguage: ProgrammingLanguageId,
@@ -139,6 +133,21 @@ async function addStableIds(
   return withIds;
 }
 
+function resolveLanguageContext(
+  programmingLanguage: ProgrammingLanguageId,
+  topicId: string,
+) {
+  const programmingLanguageName =
+    LANGUAGE_NAMES[programmingLanguage] ?? programmingLanguage;
+  const topicDescription =
+    getTopicPrompt(programmingLanguage, topicId) ||
+    `general ${programmingLanguageName} programming concepts`;
+  const contextExclusion =
+    LANGUAGE_CONTEXT_EXCLUSIONS[programmingLanguage] ?? "";
+
+  return { topicDescription, programmingLanguageName, contextExclusion };
+}
+
 export async function generateQuizQuestions(
   programmingLanguage: ProgrammingLanguageId,
   topicId: string,
@@ -146,13 +155,8 @@ export async function generateQuizQuestions(
   language: string = "en",
   skillLevel: QuizDifficultyLevel = 1,
 ): Promise<QuizQuestion[]> {
-  const topicDescription =
-    getTopicPrompt(programmingLanguage, topicId) ||
-    `general ${LANGUAGE_NAMES[programmingLanguage] ?? programmingLanguage} programming concepts`;
-  const programmingLanguageName =
-    LANGUAGE_NAMES[programmingLanguage] ?? programmingLanguage;
-  const contextExclusion =
-    LANGUAGE_CONTEXT_EXCLUSIONS[programmingLanguage] ?? "";
+  const { topicDescription, programmingLanguageName, contextExclusion } =
+    resolveLanguageContext(programmingLanguage, topicId);
 
   const languageInstruction =
     language === "de"
@@ -223,13 +227,8 @@ export async function generateTopicExplanation(
   topicId: string,
   language: string = "en",
 ): Promise<string> {
-  const topicDescription =
-    getTopicPrompt(programmingLanguage, topicId) ||
-    `general ${LANGUAGE_NAMES[programmingLanguage] ?? programmingLanguage} programming concepts`;
-  const programmingLanguageName =
-    LANGUAGE_NAMES[programmingLanguage] ?? programmingLanguage;
-  const contextExclusion =
-    LANGUAGE_CONTEXT_EXCLUSIONS[programmingLanguage] ?? "";
+  const { topicDescription, programmingLanguageName, contextExclusion } =
+    resolveLanguageContext(programmingLanguage, topicId);
   const codeBlockLang =
     programmingLanguage === DEFAULT_PROGRAMMING_LANGUAGE_ID
       ? "javascript"

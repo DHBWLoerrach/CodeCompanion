@@ -4,7 +4,7 @@ import { Stack, useFocusEffect, useRouter } from "expo-router";
 
 import { HeaderIconButton } from "@/components/HeaderIconButton";
 import { ThemedText } from "@/components/ThemedText";
-import { useTheme } from "@/hooks/useTheme";
+import { useTheme } from "@/contexts/ThemeContext";
 import { useTranslation } from "@/hooks/useTranslation";
 import { useProgrammingLanguage } from "@/contexts/ProgrammingLanguageContext";
 import { BorderRadius } from "@/constants/theme";

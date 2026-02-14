@@ -2,7 +2,7 @@ import type { ComponentProps } from "react";
 import { Stack } from "expo-router";
 import { isLiquidGlassAvailable } from "expo-glass-effect";
 
-import { useTheme } from "@/hooks/useTheme";
+import { useTheme } from "@/contexts/ThemeContext";
 
 interface UseScreenOptionsParams {
   transparent?: boolean;

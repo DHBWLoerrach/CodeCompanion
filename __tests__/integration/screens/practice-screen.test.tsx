@@ -35,7 +35,7 @@ jest.mock("@/components/AppIcon", () => ({
   AppIcon: () => null,
 }));
 
-jest.mock("@/hooks/useTheme", () => ({
+jest.mock("@/contexts/ThemeContext", () => ({
   useTheme: () => ({
     isDark: false,
     refreshTheme: jest.fn(),
@@ -182,7 +182,10 @@ describe("PracticeScreen integration", () => {
     });
 
     const categoryCall = mockPush.mock.calls.find(([call]) => {
-      const route = call as { pathname?: string; params?: { topicIds?: string } };
+      const route = call as {
+        pathname?: string;
+        params?: { topicIds?: string };
+      };
       return (
         route.pathname === "/quiz-session" &&
         typeof route.params?.topicIds === "string"

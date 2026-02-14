@@ -7,10 +7,11 @@ import Svg, { Circle } from "react-native-svg";
 import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
 import { AppIcon } from "@/components/AppIcon";
-import { useTheme } from "@/hooks/useTheme";
+import { useTheme } from "@/contexts/ThemeContext";
 import { useTranslation } from "@/hooks/useTranslation";
 import { Spacing, BorderRadius, Shadows } from "@/constants/theme";
 import { getTopicById, getTopicName } from "@/lib/topics";
+import { getParam, getParamWithDefault } from "@/lib/router-utils";
 import { storage } from "@/lib/storage";
 import { getLanguageById } from "@/lib/languages";
 
@@ -130,15 +131,14 @@ export default function SessionSummaryScreen() {
     programmingLanguage?: string;
   }>();
 
-  const getParam = (value?: string | string[]) =>
-    Array.isArray(value) ? value[0] : value;
-
   const scoreParam = getParam(params.score);
   const totalParam = getParam(params.total);
   const topicIdParam = getParam(params.topicId);
   const answersParam = getParam(params.answers);
-  const programmingLanguageParam =
-    getParam(params.programmingLanguage) || "javascript";
+  const programmingLanguageParam = getParamWithDefault(
+    params.programmingLanguage,
+    "javascript",
+  );
 
   const score = Number(scoreParam ?? 0);
   const total = Number(totalParam ?? 0);
@@ -169,7 +169,6 @@ export default function SessionSummaryScreen() {
   }, [topicIdParam, percentage, programmingLanguageParam]);
 
   const getFeedbackMessage = (pct: number): string => {
-    if (pct === 100) return t("excellentWork");
     if (pct >= 80) return t("excellentWork");
     if (pct >= 70) return t("greatJob");
     if (pct >= 50) return t("goodStart");

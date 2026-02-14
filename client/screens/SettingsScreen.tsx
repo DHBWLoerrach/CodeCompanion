@@ -16,7 +16,7 @@ import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
 import { KeyboardAwareScrollViewCompat } from "@/components/KeyboardAwareScrollViewCompat";
 import { AppIcon } from "@/components/AppIcon";
-import { useTheme } from "@/hooks/useTheme";
+import { useTheme } from "@/contexts/ThemeContext";
 import { useTranslation } from "@/hooks/useTranslation";
 import { getLanguageDisplayName } from "@/lib/languages";
 import {
@@ -24,6 +24,7 @@ import {
   BorderRadius,
   Shadows,
   AvatarColors,
+  AVATARS,
 } from "@/constants/theme";
 import {
   storage,
@@ -32,8 +33,6 @@ import {
   type ThemeMode,
 } from "@/lib/storage";
 import { useProgrammingLanguage } from "@/contexts/ProgrammingLanguageContext";
-
-const AVATARS = ["monitor", "award", "code", "zap"] as const;
 
 interface AvatarSelectorProps {
   selectedIndex: number;

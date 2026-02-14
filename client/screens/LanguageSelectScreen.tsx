@@ -5,8 +5,9 @@ import Animated, { FadeInUp } from "react-native-reanimated";
 import * as Haptics from "expo-haptics";
 
 import { ThemedText } from "@/components/ThemedText";
-import { useTheme } from "@/hooks/useTheme";
+import { useTheme } from "@/contexts/ThemeContext";
 import { useTranslation } from "@/hooks/useTranslation";
+import { getParam } from "@/lib/router-utils";
 import { useProgrammingLanguage } from "@/contexts/ProgrammingLanguageContext";
 import {
   LANGUAGES,
@@ -87,8 +88,7 @@ export default function LanguageSelectScreen() {
   const router = useRouter();
   const { allowBack } = useLocalSearchParams<{ allowBack?: string }>();
   const { setSelectedLanguage } = useProgrammingLanguage();
-  const canReturnToPreviousScreen =
-    (Array.isArray(allowBack) ? allowBack[0] : allowBack) === "1";
+  const canReturnToPreviousScreen = getParam(allowBack) === "1";
 
   const handleSelectLanguage = async (language: ProgrammingLanguage) => {
     if (process.env.EXPO_OS === "ios") {

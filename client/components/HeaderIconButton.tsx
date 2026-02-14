@@ -8,9 +8,9 @@ import {
 } from "react-native";
 
 import { AppIcon } from "@/components/AppIcon";
-import { useTheme } from "@/hooks/useTheme";
+import { useTheme } from "@/contexts/ThemeContext";
 
-export const HEADER_ICON_BUTTON_SIZE = 36;
+const HEADER_ICON_BUTTON_SIZE = 36;
 
 interface HeaderIconButtonProps {
   icon: string;

@@ -148,3 +148,5 @@ export const Shadows = {
 };
 
 export const AvatarColors = ["#E2001A", "#4A90E2", "#34C759", "#FFB800"];
+
+export const AVATARS = ["monitor", "award", "code", "zap"] as const;

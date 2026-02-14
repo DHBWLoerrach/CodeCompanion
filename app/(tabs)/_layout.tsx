@@ -8,7 +8,7 @@ import {
 import { useFocusEffect } from "expo-router";
 import Feather from "@expo/vector-icons/Feather";
 
-import { useTheme } from "@/hooks/useTheme";
+import { useTheme } from "@/contexts/ThemeContext";
 import { useTranslation } from "@/hooks/useTranslation";
 
 export default function TabsLayout() {

@@ -12,13 +12,14 @@ import { useFocusEffect, useRouter } from "expo-router";
 import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
 import { AppIcon } from "@/components/AppIcon";
-import { useTheme } from "@/hooks/useTheme";
+import { useTheme } from "@/contexts/ThemeContext";
 import { useTranslation } from "@/hooks/useTranslation";
 import {
   Spacing,
   BorderRadius,
   Shadows,
   AvatarColors,
+  AVATARS,
 } from "@/constants/theme";
 import {
   storage,
@@ -27,8 +28,6 @@ import {
   type StreakData,
 } from "@/lib/storage";
 import { useProgrammingLanguage } from "@/contexts/ProgrammingLanguageContext";
-
-const AVATARS = ["monitor", "award", "code", "zap"] as const;
 
 interface StatCardProps {
   title: string;

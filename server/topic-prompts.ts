@@ -7,7 +7,7 @@ import {
   type ProgrammingLanguageId,
 } from "@shared/programming-language";
 
-export const LANGUAGE_TOPIC_PROMPTS: Record<
+const LANGUAGE_TOPIC_PROMPTS: Record<
   ProgrammingLanguageId,
   Record<string, string>
 > = {

@@ -6,6 +6,7 @@ function toFiniteNumber(value: unknown, fallback: number): number {
   return Number.isFinite(parsed) ? parsed : fallback;
 }
 
+// @visibleForTesting
 export function clampMasteryLevel(
   value: unknown,
   fallback: MasteryLevel = 1,
@@ -22,6 +23,7 @@ export function clampQuizDifficultyLevel(
   return Math.min(3, Math.max(1, parsed)) as QuizDifficultyLevel;
 }
 
+// @visibleForTesting
 export function masteryToQuizDifficulty(level: number): QuizDifficultyLevel {
   if (level <= 2) return 1;
   if (level <= 3) return 2;

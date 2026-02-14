@@ -74,7 +74,7 @@ jest.mock("@react-native-segmented-control/segmented-control", () => {
     );
 });
 
-jest.mock("@/hooks/useTheme", () => ({
+jest.mock("@/contexts/ThemeContext", () => ({
   useTheme: () => ({
     isDark: false,
     refreshTheme: mockRefreshTheme,

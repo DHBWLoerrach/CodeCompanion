@@ -66,7 +66,7 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
   );
 }
 
-export function useThemeContext() {
+export function useTheme() {
   const context = useContext(ThemeContext);
   if (!context) {
     return {
@@ -78,3 +78,5 @@ export function useThemeContext() {
   }
   return context;
 }
+
+export const useThemeContext = useTheme;

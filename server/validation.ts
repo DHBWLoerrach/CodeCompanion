@@ -9,8 +9,9 @@ import {
   type ProgrammingLanguageId,
 } from "@shared/programming-language";
 
-export type SupportedLanguage = "en" | "de";
+type SupportedLanguage = "en" | "de";
 
+// @visibleForTesting
 export function toNumber(value: unknown, fallback: number): number {
   const parsed = typeof value === "number" ? value : Number(value);
   return Number.isFinite(parsed) ? parsed : fallback;

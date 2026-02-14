@@ -7,10 +7,12 @@ import { HeaderIconButton } from "@/components/HeaderIconButton";
 import { ThemedView } from "@/components/ThemedView";
 import { ThemedText } from "@/components/ThemedText";
 import { MarkdownView } from "@/components/MarkdownView";
-import { useTheme } from "@/hooks/useTheme";
+import { useTheme } from "@/contexts/ThemeContext";
 import { useTranslation } from "@/hooks/useTranslation";
+import { useCloseHandler } from "@/hooks/useCloseHandler";
 import { Spacing } from "@/constants/theme";
 import { getApiUrl } from "@/lib/query-client";
+import { getParam, getParamWithDefault } from "@/lib/router-utils";
 
 export default function TopicExplanationScreen() {
   const { theme } = useTheme();
@@ -21,26 +23,16 @@ export default function TopicExplanationScreen() {
     topicId?: string;
     programmingLanguage?: string;
   }>();
-  const resolvedTopicId = Array.isArray(topicId) ? topicId[0] : topicId;
-  const resolvedProgrammingLanguage =
-    (Array.isArray(programmingLanguage)
-      ? programmingLanguage[0]
-      : programmingLanguage) || "javascript";
+  const resolvedTopicId = getParam(topicId);
+  const resolvedProgrammingLanguage = getParamWithDefault(
+    programmingLanguage,
+    "javascript",
+  );
 
   const [explanation, setExplanation] = useState("");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const handleClose = () => {
-    if (router.canDismiss()) {
-      router.dismiss();
-      return;
-    }
-    if (router.canGoBack()) {
-      router.back();
-      return;
-    }
-    router.replace("/learn");
-  };
+  const handleClose = useCloseHandler();
 
   useEffect(() => {
     let isActive = true;

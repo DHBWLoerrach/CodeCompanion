@@ -6,8 +6,9 @@ import { Stack, useLocalSearchParams, useRouter } from "expo-router";
 import { HeaderIconButton } from "@/components/HeaderIconButton";
 import { ThemedView } from "@/components/ThemedView";
 import { ThemedText } from "@/components/ThemedText";
-import { useTheme } from "@/hooks/useTheme";
+import { useTheme } from "@/contexts/ThemeContext";
 import { useTranslation } from "@/hooks/useTranslation";
+import { useCloseHandler } from "@/hooks/useCloseHandler";
 import { Spacing, BorderRadius, Shadows } from "@/constants/theme";
 
 type InfoModalType = "about" | "imprint";
@@ -36,17 +37,7 @@ export default function InfoModalScreen() {
     }
   };
 
-  const handleClose = () => {
-    if (router.canDismiss()) {
-      router.dismiss();
-      return;
-    }
-    if (router.canGoBack()) {
-      router.back();
-      return;
-    }
-    router.replace("/settings");
-  };
+  const handleClose = useCloseHandler("/settings");
 
   return (
     <>

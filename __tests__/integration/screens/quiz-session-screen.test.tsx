@@ -52,7 +52,7 @@ jest.mock("@/components/AppIcon", () => ({
   AppIcon: () => null,
 }));
 
-jest.mock("@/hooks/useTheme", () => ({
+jest.mock("@/contexts/ThemeContext", () => ({
   useTheme: () => ({
     isDark: false,
     refreshTheme: jest.fn(),

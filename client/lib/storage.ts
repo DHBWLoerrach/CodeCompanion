@@ -45,6 +45,7 @@ export function isTopicDue(progress: TopicProgress | undefined): boolean {
   return daysSinceLastPractice >= interval;
 }
 
+// @visibleForTesting
 export function getDaysUntilDue(progress: TopicProgress | undefined): number {
   if (!progress || !progress.lastPracticed) return 0;
 

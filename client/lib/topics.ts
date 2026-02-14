@@ -80,6 +80,7 @@ const CATEGORIES_BY_LANGUAGE = Object.fromEntries(
   ]),
 ) as { [K in ProgrammingLanguageId]: Category[] };
 
+// @visibleForTesting
 export const JAVASCRIPT_CATEGORIES =
   CATEGORIES_BY_LANGUAGE[DEFAULT_PROGRAMMING_LANGUAGE_ID];
 

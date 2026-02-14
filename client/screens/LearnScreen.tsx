@@ -1,24 +1,21 @@
-import React, { useState, useCallback } from "react";
-import {
-  View,
-  ScrollView,
-  StyleSheet,
-  Pressable,
-  ActivityIndicator,
-} from "react-native";
+import React from "react";
+import { View, ScrollView, StyleSheet, Pressable } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { useFocusEffect, useRouter } from "expo-router";
-import Animated, {
-  useAnimatedStyle,
-  useSharedValue,
-  withSpring,
-} from "react-native-reanimated";
+import { useRouter } from "expo-router";
+import Animated from "react-native-reanimated";
 
 import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
 import { AppIcon } from "@/components/AppIcon";
-import { useTheme } from "@/hooks/useTheme";
+import { SkillLevelDots } from "@/components/SkillLevelDots";
+import { LoadingScreen } from "@/components/LoadingScreen";
+import { useTheme } from "@/contexts/ThemeContext";
 import { useTranslation } from "@/hooks/useTranslation";
+import { usePressAnimation } from "@/hooks/usePressAnimation";
+import {
+  useTopicProgress,
+  getCategoryProgress,
+} from "@/hooks/useTopicProgress";
 import { Spacing, BorderRadius, Shadows } from "@/constants/theme";
 import {
   type Topic,
@@ -26,9 +23,8 @@ import {
   getTopicName,
   getCategoryName,
 } from "@/lib/topics";
-import { storage, type TopicProgress, isTopicDue } from "@/lib/storage";
+import { type TopicProgress, isTopicDue } from "@/lib/storage";
 import { useProgrammingLanguage } from "@/contexts/ProgrammingLanguageContext";
-import type { MasteryLevel } from "@shared/skill-level";
 
 const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
 
@@ -38,28 +34,6 @@ interface TopicChipProps {
   topicName: string;
   isRecommended?: boolean;
   testID?: string;
-}
-
-function SkillLevelIndicator({
-  level,
-  color,
-}: {
-  level: MasteryLevel;
-  color: string;
-}) {
-  return (
-    <View style={styles.levelIndicator}>
-      {[1, 2, 3, 4, 5].map((i) => (
-        <View
-          key={i}
-          style={[
-            styles.levelDot,
-            { backgroundColor: i <= level ? color : color + "40" },
-          ]}
-        />
-      ))}
-    </View>
-  );
 }
 
 function getLastPracticedTime(progress: TopicProgress | undefined) {
@@ -112,19 +86,8 @@ function TopicChip({
   testID,
 }: TopicChipProps) {
   const { theme } = useTheme();
-  const scale = useSharedValue(1);
-
-  const animatedStyle = useAnimatedStyle(() => ({
-    transform: [{ scale: scale.value }],
-  }));
-
-  const handlePressIn = () => {
-    scale.value = withSpring(0.95, { damping: 15, stiffness: 150 });
-  };
-
-  const handlePressOut = () => {
-    scale.value = withSpring(1, { damping: 15, stiffness: 150 });
-  };
+  const { animatedStyle, handlePressIn, handlePressOut } =
+    usePressAnimation(0.95);
 
   const isMastered = progress?.skillLevel === 5;
   const isDue = isTopicDue(progress);
@@ -194,7 +157,7 @@ function TopicChip({
         {topicName}
       </ThemedText>
       {hasStarted ? (
-        <SkillLevelIndicator level={skillLevel} color={levelColor} />
+        <SkillLevelDots level={skillLevel} color={levelColor} />
       ) : null}
     </AnimatedPressable>
   );
@@ -220,13 +183,7 @@ function CategoryCard({
   recommendedTopicId,
 }: CategoryCardProps) {
   const { theme } = useTheme();
-
-  const avgSkillLevel =
-    category.topics.reduce((sum, topic) => {
-      return sum + (topicProgress[topic.id]?.skillLevel ?? 0);
-    }, 0) / category.topics.length;
-
-  const progressPercent = (avgSkillLevel / 5) * 100;
+  const { progressPercent } = getCategoryProgress(category, topicProgress);
 
   return (
     <View
@@ -279,30 +236,12 @@ export default function LearnScreen() {
   const languageId = selectedLanguage?.id ?? "javascript";
   const insets = useSafeAreaInsets();
   const router = useRouter();
-  const [topicProgress, setTopicProgress] = useState<
-    Record<string, TopicProgress>
-  >({});
-  const [loading, setLoading] = useState(true);
 
-  const loadProgress = useCallback(async () => {
-    try {
-      const progress = await storage.getProgress();
-      setTopicProgress(
-        storage.getTopicProgressForLanguage(progress.topicProgress, languageId),
-      );
-    } catch (error) {
-      console.error("Error loading progress:", error);
-    } finally {
-      setLoading(false);
-    }
-  }, [languageId]);
-
-  useFocusEffect(
-    useCallback(() => {
-      loadProgress();
-      refreshLanguage();
-    }, [loadProgress, refreshLanguage]),
-  );
+  const { topicProgress, loading, dueTopics } = useTopicProgress({
+    languageId,
+    categories,
+    refreshLanguage,
+  });
 
   const handleTopicPress = (topic: Topic) => {
     router.push({
@@ -311,20 +250,10 @@ export default function LearnScreen() {
     });
   };
 
-  const allTopics = categories.flatMap((cat) => cat.topics);
-  const dueTopics = allTopics.filter((topic) => {
-    const progress = topicProgress[topic.id];
-    return progress && progress.questionsAnswered > 0 && isTopicDue(progress);
-  });
-
   const showRecommendations = dueTopics.length === 0;
 
   if (loading) {
-    return (
-      <ThemedView style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color={theme.primary} />
-      </ThemedView>
-    );
+    return <LoadingScreen />;
   }
 
   return (
@@ -400,11 +329,6 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
   },
-  loadingContainer: {
-    flex: 1,
-    alignItems: "center",
-    justifyContent: "center",
-  },
   scrollView: {
     flex: 1,
   },
@@ -447,16 +371,6 @@ const styles = StyleSheet.create({
   },
   chipText: {
     fontWeight: "500",
-  },
-  levelIndicator: {
-    flexDirection: "row",
-    marginLeft: Spacing.xs,
-    gap: 2,
-  },
-  levelDot: {
-    width: 6,
-    height: 6,
-    borderRadius: 3,
   },
   dueSection: {
     borderRadius: BorderRadius.lg,

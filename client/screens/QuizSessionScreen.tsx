@@ -8,35 +8,26 @@ import {
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Stack, useLocalSearchParams, useRouter } from "expo-router";
-import Animated, {
-  useAnimatedStyle,
-  useSharedValue,
-  withSpring,
-} from "react-native-reanimated";
+import Animated from "react-native-reanimated";
 import * as Haptics from "expo-haptics";
 
 import { HeaderIconButton } from "@/components/HeaderIconButton";
 import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
 import { AppIcon } from "@/components/AppIcon";
-import { useTheme } from "@/hooks/useTheme";
+import { useTheme } from "@/contexts/ThemeContext";
 import { useTranslation } from "@/hooks/useTranslation";
+import { useCloseHandler } from "@/hooks/useCloseHandler";
+import { usePressAnimation } from "@/hooks/usePressAnimation";
 import { Spacing, BorderRadius, Shadows, Fonts } from "@/constants/theme";
 import { apiRequest } from "@/lib/query-client";
+import { getParam, getParamWithDefault } from "@/lib/router-utils";
 import { storage, type ProgressData } from "@/lib/storage";
+import type { QuizQuestion } from "@shared/quiz-question";
 import {
   averageMasteryToQuizDifficulty,
   type QuizDifficultyLevel,
 } from "@shared/skill-level";
-
-interface Question {
-  id: string;
-  question: string;
-  code?: string;
-  options: string[];
-  correctIndex: number;
-  explanation: string;
-}
 
 interface QuizAnswerResult {
   questionId: string;
@@ -61,7 +52,7 @@ function resolveMixedQuizDifficulty(
   return averageMasteryToQuizDifficulty(levels, 1);
 }
 
-function shuffleOptionsForQuestion(question: Question): Question {
+function shuffleOptionsForQuestion(question: QuizQuestion): QuizQuestion {
   const indexedOptions = question.options.map((option, index) => ({
     option,
     originalIndex: index,
@@ -116,20 +107,14 @@ function AnswerButton({
   testID,
 }: AnswerButtonProps) {
   const { theme } = useTheme();
-  const scale = useSharedValue(1);
-
-  const animatedStyle = useAnimatedStyle(() => ({
-    transform: [{ scale: scale.value }],
-  }));
+  const {
+    animatedStyle,
+    handlePressIn: pressIn,
+    handlePressOut,
+  } = usePressAnimation(0.98);
 
   const handlePressIn = () => {
-    if (!disabled) {
-      scale.value = withSpring(0.98, { damping: 15, stiffness: 150 });
-    }
-  };
-
-  const handlePressOut = () => {
-    scale.value = withSpring(1, { damping: 15, stiffness: 150 });
+    if (!disabled) pressIn();
   };
 
   const getBackgroundColor = () => {
@@ -238,13 +223,13 @@ export default function QuizSessionScreen() {
       count?: string;
       programmingLanguage?: string;
     }>();
-  const resolvedTopicId = Array.isArray(topicId) ? topicId[0] : topicId;
-  const resolvedProgrammingLanguage =
-    (Array.isArray(programmingLanguage)
-      ? programmingLanguage[0]
-      : programmingLanguage) || "javascript";
+  const resolvedTopicId = getParam(topicId);
+  const resolvedProgrammingLanguage = getParamWithDefault(
+    programmingLanguage,
+    "javascript",
+  );
 
-  const [questions, setQuestions] = useState<Question[]>([]);
+  const [questions, setQuestions] = useState<QuizQuestion[]>([]);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [selectedAnswer, setSelectedAnswer] = useState<number | null>(null);
   const [showResult, setShowResult] = useState(false);
@@ -262,7 +247,7 @@ export default function QuizSessionScreen() {
 
       const settings = await storage.getSettings();
       const questionCount = count ? parseInt(count as string, 10) || 10 : 10;
-      const rawTopicIds = Array.isArray(topicIds) ? topicIds[0] : topicIds;
+      const rawTopicIds = getParam(topicIds);
       const resolvedTopicIds =
         typeof rawTopicIds === "string"
           ? rawTopicIds
@@ -313,7 +298,7 @@ export default function QuizSessionScreen() {
 
       if (data.questions && data.questions.length > 0) {
         setQuestions(
-          (data.questions as Question[]).map(shuffleOptionsForQuestion),
+          (data.questions as QuizQuestion[]).map(shuffleOptionsForQuestion),
         );
       } else {
         setError(unableToLoadQuizText);
@@ -411,17 +396,7 @@ export default function QuizSessionScreen() {
     }
   };
 
-  const handleClose = () => {
-    if (router.canDismiss()) {
-      router.dismiss();
-      return;
-    }
-    if (router.canGoBack()) {
-      router.back();
-      return;
-    }
-    router.replace("/learn");
-  };
+  const handleClose = useCloseHandler();
 
   const headerTitle =
     questions.length > 0 ? `${currentIndex + 1}/${questions.length}` : "";
