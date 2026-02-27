@@ -22,8 +22,9 @@ jest.mock("expo-router", () => ({
     canDismiss: () => false,
     canGoBack: () => true,
   }),
-  useFocusEffect: (callback: () => void) => {
-    callback();
+  useFocusEffect: (callback: () => void | (() => void)) => {
+    const React = require("react");
+    React.useEffect(() => callback(), [callback]);
   },
 }));
 

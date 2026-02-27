@@ -1,10 +1,5 @@
 import React, { useCallback } from "react";
-import {
-  NativeTabs,
-  Icon,
-  Label,
-  VectorIcon,
-} from "expo-router/unstable-native-tabs";
+import { NativeTabs } from "expo-router/unstable-native-tabs";
 import { useFocusEffect } from "expo-router";
 import Feather from "@expo/vector-icons/Feather";
 
@@ -36,24 +31,36 @@ export default function TabsLayout() {
       }}
     >
       <NativeTabs.Trigger name="learn">
-        <Label>{t("learn")}</Label>
-        <Icon
+        <NativeTabs.Trigger.Label>{t("learn")}</NativeTabs.Trigger.Label>
+        <NativeTabs.Trigger.Icon
           sf="book"
-          androidSrc={<VectorIcon family={Feather} name="book-open" />}
+          src={
+            <NativeTabs.Trigger.VectorIcon family={Feather} name="book-open" />
+          }
         />
       </NativeTabs.Trigger>
       <NativeTabs.Trigger name="practice">
-        <Label>{t("practice")}</Label>
-        <Icon
+        <NativeTabs.Trigger.Label>{t("practice")}</NativeTabs.Trigger.Label>
+        <NativeTabs.Trigger.Icon
           sf="questionmark.circle"
-          androidSrc={<VectorIcon family={Feather} name="help-circle" />}
+          src={
+            <NativeTabs.Trigger.VectorIcon
+              family={Feather}
+              name="help-circle"
+            />
+          }
         />
       </NativeTabs.Trigger>
       <NativeTabs.Trigger name="progress">
-        <Label>{t("progress")}</Label>
-        <Icon
+        <NativeTabs.Trigger.Label>{t("progress")}</NativeTabs.Trigger.Label>
+        <NativeTabs.Trigger.Icon
           sf="chart.bar"
-          androidSrc={<VectorIcon family={Feather} name="bar-chart-2" />}
+          src={
+            <NativeTabs.Trigger.VectorIcon
+              family={Feather}
+              name="bar-chart-2"
+            />
+          }
         />
       </NativeTabs.Trigger>
     </NativeTabs>

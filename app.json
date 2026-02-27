@@ -6,7 +6,6 @@
     "orientation": "portrait",
     "scheme": "dhbwcodecompanion",
     "userInterfaceStyle": "automatic",
-    "newArchEnabled": true,
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "de.dhbwloe.loerrach.CodeCompanion",
@@ -21,7 +20,6 @@
         "monochromeImage": "./assets/images/adaptive-icon.png",
         "backgroundColor": "#ffffff"
       },
-      "edgeToEdgeEnabled": true,
       "predictiveBackGestureEnabled": false,
       "package": "de.dhbwloe.loerrach.CodeCompanion"
     },
@@ -43,7 +41,8 @@
         }
       ],
       "expo-router",
-      "expo-web-browser"
+      "expo-web-browser",
+      "expo-font"
     ],
     "experiments": {
       "reactCompiler": true,

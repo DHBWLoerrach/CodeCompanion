@@ -14,7 +14,7 @@ export default function Index() {
   }
 
   if (!isLanguageSelected) {
-    return <Redirect href="/language-select" />;
+    return <Redirect href="./language-select" />;
   }
 
   return <Redirect href="/learn" />;

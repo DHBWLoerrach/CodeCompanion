@@ -317,7 +317,7 @@ export default function SettingsScreen() {
                       ]}
                       onPress={() =>
                         router.push({
-                          pathname: "/language-select",
+                          pathname: "../language-select",
                           params: { allowBack: "1" },
                         })
                       }

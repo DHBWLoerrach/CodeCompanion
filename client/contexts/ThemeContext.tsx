@@ -43,12 +43,15 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
     await loadTheme();
   }, [loadTheme]);
 
-  const effectiveColorScheme = useMemo(() => {
+  const effectiveColorScheme = useMemo<"light" | "dark">(() => {
+    const resolvedSystemScheme =
+      systemColorScheme === "dark" ? "dark" : "light";
+
     if (!isLoaded) {
-      return systemColorScheme ?? "light";
+      return resolvedSystemScheme;
     }
     if (themeMode === "auto") {
-      return systemColorScheme ?? "light";
+      return resolvedSystemScheme;
     }
     return themeMode;
   }, [isLoaded, themeMode, systemColorScheme]);

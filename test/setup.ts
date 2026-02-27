@@ -11,6 +11,10 @@ jest.mock("expo-haptics", () => ({
   notificationAsync: jest.fn(),
 }));
 
+jest.mock("react-native-worklets", () =>
+  require("react-native-worklets/lib/module/mock"),
+);
+
 jest.mock("react-native-reanimated", () => {
   const mockReanimated = require("react-native-reanimated/mock");
   mockReanimated.default.call = () => {};
