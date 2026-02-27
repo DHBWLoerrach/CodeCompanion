@@ -1,3 +1,6 @@
+import * as https from "node:https";
+import type { IncomingMessage } from "node:http";
+import { EventEmitter } from "node:events";
 import {
   generateQuizQuestions,
   generateTopicExplanation,
@@ -38,6 +41,51 @@ function mockDigest(input: BufferSource): Promise<ArrayBuffer> {
   return Promise.resolve(output.buffer);
 }
 
+function mockHttpsJsonResponse(json: unknown): {
+  requestSpy: jest.SpyInstance;
+  getLastTimeoutMs: () => number | undefined;
+} {
+  let lastTimeoutMs: number | undefined;
+  const requestSpy = jest.spyOn(https, "request").mockImplementation(((
+    ...args: unknown[]
+  ) => {
+    const callback = args[2] as
+      | ((response: IncomingMessage) => void)
+      | undefined;
+    const requestEmitter = new EventEmitter() as EventEmitter & {
+      setTimeout: (timeoutMs: number, cb: () => void) => typeof requestEmitter;
+      write: (chunk: string) => boolean;
+      end: () => void;
+      destroy: (error?: Error) => void;
+    };
+
+    requestEmitter.setTimeout = (timeoutMs: number) => {
+      lastTimeoutMs = timeoutMs;
+      return requestEmitter;
+    };
+    requestEmitter.write = () => true;
+    requestEmitter.end = () => {
+      const responseEmitter = new EventEmitter() as EventEmitter & {
+        statusCode?: number;
+        setEncoding: (encoding: BufferEncoding) => void;
+      };
+      responseEmitter.statusCode = 200;
+      responseEmitter.setEncoding = () => {};
+      callback?.(responseEmitter as unknown as IncomingMessage);
+      responseEmitter.emit("data", JSON.stringify(json));
+      responseEmitter.emit("end");
+    };
+    requestEmitter.destroy = (error?: Error) => {
+      if (error) {
+        requestEmitter.emit("error", error);
+      }
+    };
+
+    return requestEmitter as unknown as ReturnType<typeof https.request>;
+  }) as typeof https.request);
+  return { requestSpy, getLastTimeoutMs: () => lastTimeoutMs };
+}
+
 describe("server/quiz", () => {
   const originalEnv = process.env;
   const originalFetch = global.fetch;
@@ -53,6 +101,7 @@ describe("server/quiz", () => {
       OPENAI_API_KEY: "test-key",
     };
     delete process.env.OPENAI_MODEL;
+    delete process.env.OPENAI_REQUEST_TIMEOUT_MS;
 
     fetchMock.mockReset();
     global.fetch = fetchMock as unknown as typeof fetch;
@@ -264,6 +313,55 @@ describe("server/quiz", () => {
       await expect(
         generateTopicExplanation("javascript", "promises"),
       ).rejects.toThrow("Empty response from OpenAI");
+    });
+
+    it("falls back to https when fetch times out", async () => {
+      const timeoutError = new Error("Request timed out") as Error & {
+        code?: string;
+      };
+      timeoutError.code = "ETIMEDOUT";
+      fetchMock.mockRejectedValueOnce(timeoutError);
+
+      const { requestSpy, getLastTimeoutMs } = mockHttpsJsonResponse({
+        output_text: "## From fallback",
+      });
+
+      const explanation = await generateTopicExplanation(
+        "javascript",
+        "promises",
+        "en",
+      );
+
+      expect(explanation).toBe("## From fallback");
+      expect(fetchMock).toHaveBeenCalledTimes(1);
+      expect(requestSpy).toHaveBeenCalledTimes(1);
+      expect(requestSpy.mock.calls[0][0]).toBe(
+        "https://api.openai.com/v1/responses",
+      );
+      expect(getLastTimeoutMs()).toBe(30_000);
+
+      requestSpy.mockRestore();
+    });
+
+    it("uses configured timeout for https fallback", async () => {
+      process.env.OPENAI_REQUEST_TIMEOUT_MS = "12000";
+
+      const timeoutError = new Error("Request timed out") as Error & {
+        code?: string;
+      };
+      timeoutError.code = "ETIMEDOUT";
+      fetchMock.mockRejectedValueOnce(timeoutError);
+
+      const { requestSpy, getLastTimeoutMs } = mockHttpsJsonResponse({
+        output_text: "## Timeout override",
+      });
+
+      await generateTopicExplanation("javascript", "promises", "en");
+
+      expect(requestSpy).toHaveBeenCalledTimes(1);
+      expect(getLastTimeoutMs()).toBe(12_000);
+
+      requestSpy.mockRestore();
     });
   });
 });

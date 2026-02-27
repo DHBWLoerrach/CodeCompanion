@@ -1,3 +1,4 @@
+import * as https from "node:https";
 import type { QuizDifficultyLevel } from "@shared/skill-level";
 import type { QuizQuestion } from "@shared/quiz-question";
 import { getTopicIdsByLanguage } from "@shared/curriculum";
@@ -18,6 +19,9 @@ export function getAvailableTopicIds(
 ): string[] {
   return getTopicIdsByLanguage(programmingLanguage);
 }
+
+const OPENAI_RESPONSES_URL = "https://api.openai.com/v1/responses";
+const DEFAULT_OPENAI_TIMEOUT_MS = 30_000;
 
 function getResponseText(response: unknown): string {
   if (
@@ -86,20 +90,105 @@ async function requestOpenAI(payload: Record<string, unknown>) {
     throw new Error("OPENAI_API_KEY is not set");
   }
 
-  const response = await fetch(`https://api.openai.com/v1/responses`, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${apiKey}`,
-    },
-    body: JSON.stringify(payload),
-  });
+  try {
+    const response = await fetch(OPENAI_RESPONSES_URL, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${apiKey}`,
+      },
+      body: JSON.stringify(payload),
+    });
 
-  if (!response.ok) {
-    throw new Error(`OpenAI request failed with status ${response.status}`);
+    if (!response.ok) {
+      throw new Error(`OpenAI request failed with status ${response.status}`);
+    }
+
+    return response.json();
+  } catch (error) {
+    if (!isTimeoutError(error)) {
+      throw error;
+    }
+
+    // Expo's fetch-nodeshim uses a hard 5s socket timeout.
+    // Fall back to node:https with a configurable timeout for longer OpenAI responses.
+    return requestOpenAIViaHttps(apiKey, payload);
+  }
+}
+
+function isTimeoutError(error: unknown): boolean {
+  const timeoutError = error as { code?: unknown; message?: unknown } | null;
+  if (timeoutError?.code === "ETIMEDOUT") {
+    return true;
   }
 
-  return response.json();
+  return (
+    typeof timeoutError?.message === "string" &&
+    timeoutError.message.toLowerCase().includes("timed out")
+  );
+}
+
+function getOpenAIRequestTimeoutMs(): number {
+  const timeout = Number(process.env.OPENAI_REQUEST_TIMEOUT_MS);
+  if (Number.isFinite(timeout) && timeout > 0) {
+    return timeout;
+  }
+  return DEFAULT_OPENAI_TIMEOUT_MS;
+}
+
+async function requestOpenAIViaHttps(
+  apiKey: string,
+  payload: Record<string, unknown>,
+): Promise<unknown> {
+  const requestBody = JSON.stringify(payload);
+
+  return new Promise((resolve, reject) => {
+    const request = https.request(
+      OPENAI_RESPONSES_URL,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${apiKey}`,
+          "Content-Length": Buffer.byteLength(requestBody).toString(),
+        },
+      },
+      (response) => {
+        response.setEncoding("utf8");
+        let responseBody = "";
+        response.on("data", (chunk) => {
+          responseBody += chunk;
+        });
+        response.on("end", () => {
+          const statusCode = response.statusCode ?? 500;
+          if (statusCode < 200 || statusCode >= 300) {
+            reject(
+              new Error(`OpenAI request failed with status ${statusCode}`),
+            );
+            return;
+          }
+
+          try {
+            resolve(responseBody ? (JSON.parse(responseBody) as unknown) : {});
+          } catch {
+            reject(new Error("Invalid JSON response from OpenAI"));
+          }
+        });
+      },
+    );
+
+    request.setTimeout(getOpenAIRequestTimeoutMs(), () => {
+      const timeoutError = new Error(
+        "Request timed out",
+      ) as NodeJS.ErrnoException;
+      timeoutError.code = "ETIMEDOUT";
+      request.destroy(timeoutError);
+    });
+
+    request.on("error", reject);
+    request.write(requestBody);
+    request.end();
+  });
 }
 
 async function sha256Hex(input: string): Promise<string> {
