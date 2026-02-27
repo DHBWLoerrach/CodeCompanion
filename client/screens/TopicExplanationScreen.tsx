@@ -1,8 +1,15 @@
 import React, { useEffect, useState } from "react";
-import { View, ScrollView, StyleSheet, ActivityIndicator } from "react-native";
+import {
+  View,
+  ScrollView,
+  StyleSheet,
+  ActivityIndicator,
+  Pressable,
+} from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { Stack, useLocalSearchParams, useRouter } from "expo-router";
+import { Stack, useLocalSearchParams } from "expo-router";
 
+import { AppIcon } from "@/components/AppIcon";
 import { HeaderIconButton } from "@/components/HeaderIconButton";
 import { ThemedView } from "@/components/ThemedView";
 import { ThemedText } from "@/components/ThemedText";
@@ -10,7 +17,7 @@ import { MarkdownView } from "@/components/MarkdownView";
 import { useTheme } from "@/contexts/ThemeContext";
 import { useTranslation } from "@/hooks/useTranslation";
 import { useCloseHandler } from "@/hooks/useCloseHandler";
-import { Spacing } from "@/constants/theme";
+import { BorderRadius, Spacing } from "@/constants/theme";
 import { getApiUrl } from "@/lib/query-client";
 import { getParam, getParamWithDefault } from "@/lib/router-utils";
 
@@ -18,7 +25,6 @@ export default function TopicExplanationScreen() {
   const { theme } = useTheme();
   const { t, language } = useTranslation();
   const insets = useSafeAreaInsets();
-  const router = useRouter();
   const { topicId, programmingLanguage } = useLocalSearchParams<{
     topicId?: string;
     programmingLanguage?: string;
@@ -32,7 +38,11 @@ export default function TopicExplanationScreen() {
   const [explanation, setExplanation] = useState("");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [retryCount, setRetryCount] = useState(0);
   const handleClose = useCloseHandler();
+  const handleRetry = () => {
+    setRetryCount((count) => count + 1);
+  };
 
   useEffect(() => {
     let isActive = true;
@@ -87,7 +97,7 @@ export default function TopicExplanationScreen() {
     return () => {
       isActive = false;
     };
-  }, [resolvedTopicId, language, t, resolvedProgrammingLanguage]);
+  }, [resolvedTopicId, language, t, resolvedProgrammingLanguage, retryCount]);
 
   return (
     <>
@@ -119,9 +129,29 @@ export default function TopicExplanationScreen() {
               </ThemedText>
             </View>
           ) : error ? (
-            <ThemedText type="body" selectable style={{ color: theme.error }}>
-              {error}
-            </ThemedText>
+            <View style={styles.errorState}>
+              <ThemedText type="body" selectable style={{ color: theme.error }}>
+                {error}
+              </ThemedText>
+              <Pressable
+                testID="topic-explanation-retry-button"
+                style={[styles.retryButton, { backgroundColor: theme.primary }]}
+                onPress={handleRetry}
+              >
+                <AppIcon
+                  name="refresh-cw"
+                  size={18}
+                  color="#FFFFFF"
+                  style={{ marginRight: Spacing.sm }}
+                />
+                <ThemedText
+                  type="body"
+                  style={{ color: "#FFFFFF", fontWeight: "600" }}
+                >
+                  {t("tryAgain")}
+                </ThemedText>
+              </Pressable>
+            </View>
           ) : (
             <MarkdownView content={explanation} />
           )}
@@ -146,5 +176,16 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
     paddingVertical: Spacing.xl * 2,
+  },
+  errorState: {
+    gap: Spacing.lg,
+  },
+  retryButton: {
+    alignSelf: "flex-start",
+    flexDirection: "row",
+    alignItems: "center",
+    paddingHorizontal: Spacing.xl,
+    paddingVertical: Spacing.md,
+    borderRadius: BorderRadius.md,
   },
 });
