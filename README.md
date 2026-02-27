@@ -76,8 +76,25 @@ e2e/
 ## Installation
 
 ```bash
-npm install
+npm ci
 ```
+
+### Wichtig für das Team (macOS + Windows)
+
+Für das initiale Setup immer `npm ci` verwenden, nicht `npm install`.
+So werden exakt die Versionen aus `package-lock.json` installiert und unnötige Lockfile-Änderungen zwischen Betriebssystemen reduziert.
+
+## Abhängigkeiten ändern (add/update/remove)
+
+`npm ci` ist für ein reproduzierbares Setup gedacht.
+Wenn Abhängigkeiten geändert werden sollen, erfolgt das bewusst mit `npm install` oder `npm uninstall`:
+
+- Hinzufügen: `npm install <paket>` (bzw. `npm install -D <paket>` für Dev-Dependencies)
+- Aktualisieren: `npm install <paket>@<version>` oder `npm update <paket>`
+- Entfernen: `npm uninstall <paket>`
+
+Dabei werden `package.json` und `package-lock.json` aktualisiert.
+Beide Dateien müssen gemeinsam committed werden.
 
 ## Umgebungsvariablen
 
