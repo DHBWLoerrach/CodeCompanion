@@ -141,12 +141,12 @@ export default function TopicExplanationScreen() {
                 <AppIcon
                   name="refresh-cw"
                   size={18}
-                  color="#FFFFFF"
+                  color={theme.buttonText}
                   style={{ marginRight: Spacing.sm }}
                 />
                 <ThemedText
                   type="body"
-                  style={{ color: "#FFFFFF", fontWeight: "600" }}
+                  style={{ color: theme.buttonText, fontWeight: "600" }}
                 >
                   {t("tryAgain")}
                 </ThemedText>
