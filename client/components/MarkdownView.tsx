@@ -7,6 +7,98 @@ interface MarkdownViewProps {
   content: string;
 }
 
+type InlineTokenType = "bold" | "italic" | "code";
+
+interface InlineToken {
+  content: string;
+  index: number;
+  length: number;
+  type: InlineTokenType;
+}
+
+function isOpeningEmphasisBoundary(character?: string) {
+  return !character || /[\s([{"']/.test(character);
+}
+
+function isClosingEmphasisBoundary(character?: string) {
+  return !character || /[\s)\]}>"'.,!?;:]/.test(character);
+}
+
+function findItalicToken(text: string): InlineToken | null {
+  for (let index = 0; index < text.length; index += 1) {
+    if (text[index] !== "*" || text[index + 1] === "*") {
+      continue;
+    }
+
+    const previousCharacter = text[index - 1];
+    const nextCharacter = text[index + 1];
+    if (
+      !nextCharacter ||
+      /\s/.test(nextCharacter) ||
+      !isOpeningEmphasisBoundary(previousCharacter)
+    ) {
+      continue;
+    }
+
+    for (let endIndex = index + 1; endIndex < text.length; endIndex += 1) {
+      if (text[endIndex] !== "*" || text[endIndex - 1] === "*") {
+        continue;
+      }
+
+      const beforeClosingCharacter = text[endIndex - 1];
+      const afterClosingCharacter = text[endIndex + 1];
+      if (
+        /\s/.test(beforeClosingCharacter) ||
+        !isClosingEmphasisBoundary(afterClosingCharacter)
+      ) {
+        continue;
+      }
+
+      return {
+        content: text.slice(index + 1, endIndex),
+        index,
+        length: endIndex - index + 1,
+        type: "italic",
+      };
+    }
+  }
+
+  return null;
+}
+
+function findNextInlineToken(text: string): InlineToken | null {
+  const boldMatch = text.match(/\*\*(.+?)\*\*/);
+  const codeMatch = text.match(/`([^`]+)`/);
+  const italicMatch = findItalicToken(text);
+
+  const matches = [
+    boldMatch && boldMatch.index !== undefined
+      ? {
+          content: boldMatch[1],
+          index: boldMatch.index,
+          length: boldMatch[0].length,
+          type: "bold" as const,
+        }
+      : null,
+    codeMatch && codeMatch.index !== undefined
+      ? {
+          content: codeMatch[1],
+          index: codeMatch.index,
+          length: codeMatch[0].length,
+          type: "code" as const,
+        }
+      : null,
+    italicMatch,
+  ].filter((match): match is InlineToken => match !== null);
+
+  if (matches.length === 0) {
+    return null;
+  }
+
+  matches.sort((left, right) => left.index - right.index);
+  return matches[0];
+}
+
 export function MarkdownView({ content }: MarkdownViewProps) {
   const { theme, isDark } = useTheme();
 
@@ -26,34 +118,7 @@ export function MarkdownView({ content }: MarkdownViewProps) {
       let partKey = 0;
 
       while (remaining.length > 0) {
-        const boldMatch = remaining.match(/\*\*(.+?)\*\*/);
-        const codeMatch = remaining.match(/`([^`]+)`/);
-
-        let firstMatch: {
-          index: number;
-          length: number;
-          content: string;
-          type: string;
-        } | null = null;
-
-        if (boldMatch && boldMatch.index !== undefined) {
-          firstMatch = {
-            index: boldMatch.index,
-            length: boldMatch[0].length,
-            content: boldMatch[1],
-            type: "bold",
-          };
-        }
-        if (codeMatch && codeMatch.index !== undefined) {
-          if (!firstMatch || codeMatch.index < firstMatch.index) {
-            firstMatch = {
-              index: codeMatch.index,
-              length: codeMatch[0].length,
-              content: codeMatch[1],
-              type: "code",
-            };
-          }
-        }
+        const firstMatch = findNextInlineToken(remaining);
 
         if (firstMatch) {
           if (firstMatch.index > 0) {
@@ -74,6 +139,20 @@ export function MarkdownView({ content }: MarkdownViewProps) {
                 style={[
                   styles.text,
                   styles.bold,
+                  { color: theme.text },
+                  baseStyle,
+                ]}
+              >
+                {firstMatch.content}
+              </Text>,
+            );
+          } else if (firstMatch.type === "italic") {
+            parts.push(
+              <Text
+                key={partKey++}
+                style={[
+                  styles.text,
+                  styles.italic,
                   { color: theme.text },
                   baseStyle,
                 ]}
@@ -238,6 +317,9 @@ const styles = StyleSheet.create({
   },
   bold: {
     fontWeight: "700",
+  },
+  italic: {
+    fontStyle: "italic",
   },
   paragraph: {
     fontSize: 16,
