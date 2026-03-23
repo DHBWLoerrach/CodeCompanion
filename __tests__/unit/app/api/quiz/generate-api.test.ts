@@ -15,6 +15,14 @@ function createRequest(body: unknown): Request {
   });
 }
 
+function createInvalidJsonRequest(): Request {
+  return new Request("http://localhost/api/quiz/generate", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: "{",
+  });
+}
+
 describe("POST /api/quiz/generate", () => {
   beforeEach(() => {
     mockGenerateQuizQuestions.mockReset();
@@ -31,6 +39,18 @@ describe("POST /api/quiz/generate", () => {
     expect(response.status).toBe(400);
     expect(data).toEqual({ error: "topicId is required" });
     expect(mockGenerateQuizQuestions).not.toHaveBeenCalled();
+  });
+
+  it("returns 400 when request body is invalid JSON", async () => {
+    const errorSpy = jest.spyOn(console, "error").mockImplementation(() => {});
+
+    const response = await POST(createInvalidJsonRequest());
+    const data = await response.json();
+
+    expect(response.status).toBe(400);
+    expect(data).toEqual({ error: "Request body must be valid JSON" });
+    expect(mockGenerateQuizQuestions).not.toHaveBeenCalled();
+    expect(errorSpy).not.toHaveBeenCalled();
   });
 
   it("returns 400 when language is invalid", async () => {

@@ -1,6 +1,11 @@
 import { generateQuizQuestions } from "@server/quiz";
 import { logApiError } from "@server/logging";
 import {
+  invalidJsonBodyResponse,
+  InvalidJsonBodyError,
+  parseJsonBody,
+} from "@server/request";
+import {
   requireTopicId,
   toLanguage,
   toProgrammingLanguage,
@@ -11,13 +16,13 @@ import {
 
 export async function POST(request: Request) {
   try {
-    const body = (await request.json()) as {
+    const body = await parseJsonBody<{
       topicId?: string;
       count?: number;
       language?: string;
       skillLevel?: number;
       programmingLanguage?: string;
-    };
+    }>(request);
 
     const topicId = requireTopicId(body?.topicId);
     if (!topicId) {
@@ -60,6 +65,9 @@ export async function POST(request: Request) {
     );
     return Response.json({ questions });
   } catch (error) {
+    if (error instanceof InvalidJsonBodyError) {
+      return invalidJsonBodyResponse();
+    }
     logApiError("Quiz generation error", error);
     return Response.json(
       { error: "Failed to generate quiz questions" },

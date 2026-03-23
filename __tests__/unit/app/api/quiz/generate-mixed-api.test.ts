@@ -16,6 +16,14 @@ function createRequest(body: unknown): Request {
   });
 }
 
+function createInvalidJsonRequest(): Request {
+  return new Request("http://localhost/api/quiz/generate-mixed", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: "{",
+  });
+}
+
 function buildQuestions(topicId: string, count: number) {
   return Array.from({ length: count }, (_, index) => ({
     id: `${topicId}-${index + 1}`,
@@ -36,6 +44,18 @@ describe("POST /api/quiz/generate-mixed", () => {
 
   afterEach(() => {
     jest.restoreAllMocks();
+  });
+
+  it("returns 400 when request body is invalid JSON", async () => {
+    const errorSpy = jest.spyOn(console, "error").mockImplementation(() => {});
+
+    const response = await POST(createInvalidJsonRequest());
+    const data = await response.json();
+
+    expect(response.status).toBe(400);
+    expect(data).toEqual({ error: "Request body must be valid JSON" });
+    expect(mockGenerateQuizQuestions).not.toHaveBeenCalled();
+    expect(errorSpy).not.toHaveBeenCalled();
   });
 
   it("returns 400 when provided topic IDs contain invalid entries", async () => {

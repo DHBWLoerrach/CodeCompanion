@@ -15,9 +15,33 @@ function createRequest(body: unknown): Request {
   });
 }
 
+function createInvalidJsonRequest(): Request {
+  return new Request("http://localhost/api/topic/explain", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: "{",
+  });
+}
+
 describe("POST /api/topic/explain", () => {
   beforeEach(() => {
     mockGenerateTopicExplanation.mockReset();
+  });
+
+  afterEach(() => {
+    jest.restoreAllMocks();
+  });
+
+  it("returns 400 when request body is invalid JSON", async () => {
+    const errorSpy = jest.spyOn(console, "error").mockImplementation(() => {});
+
+    const response = await POST(createInvalidJsonRequest());
+    const data = await response.json();
+
+    expect(response.status).toBe(400);
+    expect(data).toEqual({ error: "Request body must be valid JSON" });
+    expect(mockGenerateTopicExplanation).not.toHaveBeenCalled();
+    expect(errorSpy).not.toHaveBeenCalled();
   });
 
   it("returns 400 when topicId is missing", async () => {

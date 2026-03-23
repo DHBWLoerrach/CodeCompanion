@@ -5,6 +5,11 @@ import {
 } from "@server/quiz";
 import { logApiError } from "@server/logging";
 import {
+  invalidJsonBodyResponse,
+  InvalidJsonBodyError,
+  parseJsonBody,
+} from "@server/request";
+import {
   toLanguage,
   toProgrammingLanguage,
   toQuestionCount,
@@ -27,13 +32,13 @@ function shuffleArray<T>(items: T[]): T[] {
 
 export async function POST(request: Request) {
   try {
-    const body = (await request.json()) as {
+    const body = await parseJsonBody<{
       count?: number;
       language?: string;
       topicIds?: string[];
       skillLevel?: number;
       programmingLanguage?: string;
-    };
+    }>(request);
 
     const count = toQuestionCount(body?.count, 10);
     const skillLevel = toQuizDifficultyLevel(body?.skillLevel, 1);
@@ -101,6 +106,9 @@ export async function POST(request: Request) {
     const shuffled = shuffleArray(allQuestions).slice(0, count);
     return Response.json({ questions: shuffled });
   } catch (error) {
+    if (error instanceof InvalidJsonBodyError) {
+      return invalidJsonBodyResponse();
+    }
     logApiError("Mixed quiz generation error", error);
     return Response.json(
       { error: "Failed to generate quiz questions" },
