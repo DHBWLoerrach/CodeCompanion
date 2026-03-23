@@ -172,8 +172,8 @@
             "de": "Switch"
           },
           "shortDescription": {
-            "en": "Use switch statements and modern switch expressions (->).",
-            "de": "switch-Anweisungen und moderne switch-Ausdrücke (mit ->) anwenden."
+            "en": "Use switch statements, enum cases, and modern switch expressions (->).",
+            "de": "switch-Anweisungen, Enum-Cases und moderne switch-Ausdrücke (mit ->) anwenden."
           },
           "prerequisites": ["conditionals"]
         }
@@ -259,6 +259,19 @@
         },
         {
           "order": 16,
+          "id": "null-references-parameter-passing",
+          "name": {
+            "en": "null, References & Parameter Passing",
+            "de": "null, Referenzen & Parameterübergabe"
+          },
+          "shortDescription": {
+            "en": "Understand references, null, aliasing, and Java's pass-by-value semantics.",
+            "de": "Referenzen, null, Aliasing und Javas Pass-by-Value-Semantik verstehen."
+          },
+          "prerequisites": ["classes-objects"]
+        },
+        {
+          "order": 17,
           "id": "constructors-this-super",
           "name": {
             "en": "Constructors, this & super",
@@ -271,7 +284,7 @@
           "prerequisites": ["classes-objects"]
         },
         {
-          "order": 17,
+          "order": 18,
           "id": "encapsulation-access-modifiers",
           "name": {
             "en": "Encapsulation & Access Modifiers",
@@ -284,7 +297,20 @@
           "prerequisites": ["classes-objects"]
         },
         {
-          "order": 18,
+          "order": 19,
+          "id": "enums",
+          "name": {
+            "en": "Enums",
+            "de": "Enums"
+          },
+          "shortDescription": {
+            "en": "Model fixed sets of constants safely with enum and use them in switch.",
+            "de": "Feste Mengen von Konstanten typsicher mit enum modellieren und in switch nutzen."
+          },
+          "prerequisites": ["classes-objects", "switch"]
+        },
+        {
+          "order": 20,
           "id": "equals-hashcode-contract",
           "name": {
             "en": "equals & hashCode",
@@ -297,7 +323,7 @@
           "prerequisites": ["classes-objects"]
         },
         {
-          "order": 19,
+          "order": 21,
           "id": "inheritance-polymorphism",
           "name": {
             "en": "Inheritance & Polymorphism",
@@ -313,7 +339,7 @@
           ]
         },
         {
-          "order": 20,
+          "order": 22,
           "id": "interfaces-abstract-classes",
           "name": {
             "en": "Interfaces & Abstract Classes",
@@ -340,20 +366,20 @@
       },
       "topics": [
         {
-          "order": 21,
+          "order": 23,
           "id": "exception-handling",
           "name": {
             "en": "Exception Handling",
             "de": "Exception Handling"
           },
           "shortDescription": {
-            "en": "Handle checked and unchecked exceptions with try/catch/finally.",
-            "de": "Checked/Unchecked Exceptions mit try/catch/finally behandeln."
+            "en": "Handle checked/unchecked exceptions and resources with try/catch/finally and try-with-resources.",
+            "de": "Checked/Unchecked Exceptions und Ressourcen mit try/catch/finally und try-with-resources behandeln."
           },
           "prerequisites": ["method-declarations", "classes-objects"]
         },
         {
-          "order": 22,
+          "order": 24,
           "id": "file-io-path-files",
           "name": {
             "en": "File I/O (Path/Files)",
@@ -366,20 +392,20 @@
           "prerequisites": ["exception-handling"]
         },
         {
-          "order": 23,
+          "order": 25,
           "id": "collections-framework",
           "name": {
             "en": "Collections Framework",
             "de": "Collections Framework"
           },
           "shortDescription": {
-            "en": "Choose and use List, Set, and Map effectively.",
-            "de": "List, Set und Map passend auswählen und nutzen."
+            "en": "Choose and use List, Set, and Map effectively, including ordering and sorting.",
+            "de": "List, Set und Map passend auswählen und inkl. Ordnung und Sortierung nutzen."
           },
           "prerequisites": ["arrays-basics", "equals-hashcode-contract"]
         },
         {
-          "order": 24,
+          "order": 26,
           "id": "generics",
           "name": {
             "en": "Generics",
@@ -406,7 +432,7 @@
       },
       "topics": [
         {
-          "order": 25,
+          "order": 27,
           "id": "records",
           "name": {
             "en": "Records",
@@ -419,7 +445,7 @@
           "prerequisites": ["classes-objects"]
         },
         {
-          "order": 26,
+          "order": 28,
           "id": "sealed-classes",
           "name": {
             "en": "Sealed Classes",
@@ -433,7 +459,21 @@
           "prerequisites": ["inheritance-polymorphism"]
         },
         {
-          "order": 27,
+          "order": 29,
+          "id": "pattern-matching",
+          "name": {
+            "en": "Pattern Matching",
+            "de": "Pattern Matching"
+          },
+          "shortDescription": {
+            "en": "Use instanceof patterns and modern switch pattern matching for safer type checks.",
+            "de": "`instanceof`-Patterns und modernes Pattern Matching in switch für sichere Typprüfungen nutzen."
+          },
+          "optional": true,
+          "prerequisites": ["inheritance-polymorphism", "switch"]
+        },
+        {
+          "order": 30,
           "id": "optional-api",
           "name": {
             "en": "Optional",
@@ -443,10 +483,10 @@
             "en": "Model missing values explicitly with Optional instead of null.",
             "de": "Fehlende Werte explizit mit Optional modellieren statt null zurückzugeben."
           },
-          "prerequisites": ["generics"]
+          "prerequisites": ["generics", "null-references-parameter-passing"]
         },
         {
-          "order": 28,
+          "order": 31,
           "id": "lambdas-functional-interfaces",
           "name": {
             "en": "Lambdas & Functional Interfaces",
@@ -459,7 +499,7 @@
           "prerequisites": ["interfaces-abstract-classes"]
         },
         {
-          "order": 29,
+          "order": 32,
           "id": "streams",
           "name": {
             "en": "Stream API",
@@ -475,7 +515,7 @@
           ]
         },
         {
-          "order": 30,
+          "order": 33,
           "id": "concurrency-basics",
           "name": {
             "en": "Concurrency Basics",
