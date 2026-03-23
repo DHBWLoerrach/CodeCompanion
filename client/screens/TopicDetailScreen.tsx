@@ -8,6 +8,7 @@ import {
   useRouter,
 } from "expo-router";
 import Animated from "react-native-reanimated";
+import { hasTopicExplanation } from "@shared/explanations";
 
 import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
@@ -150,6 +151,7 @@ export default function TopicDetailScreen() {
   const displayName = getTopicName(topic, language);
   const displayDescription = getTopicDescription(topic, language);
   const dateLocale = language === "de" ? "de-DE" : "en-US";
+  const canExplainTopic = hasTopicExplanation(languageId, topic.id, language);
 
   return (
     <ThemedView style={styles.container}>
@@ -297,19 +299,29 @@ export default function TopicDetailScreen() {
         <View style={styles.buttonRow}>
           <AnimatedPressable
             testID="topic-explain-button"
+            accessibilityState={{ disabled: !canExplainTopic }}
+            disabled={!canExplainTopic}
             style={[
               styles.secondaryButton,
-              { backgroundColor: theme.secondary },
-              explainAnimatedStyle,
+              {
+                backgroundColor: canExplainTopic
+                  ? theme.secondary
+                  : theme.disabled,
+              },
+              canExplainTopic ? explainAnimatedStyle : null,
             ]}
-            onPress={handleExplainTopic}
-            onPressIn={handleExplainPressIn}
-            onPressOut={handleExplainPressOut}
+            onPress={canExplainTopic ? handleExplainTopic : undefined}
+            onPressIn={canExplainTopic ? handleExplainPressIn : undefined}
+            onPressOut={canExplainTopic ? handleExplainPressOut : undefined}
           >
             <AppIcon name="book-open" size={20} color="#FFFFFF" />
             <ThemedText
               type="body"
-              style={{ color: "#FFFFFF", fontWeight: "600" }}
+              style={{
+                color: "#FFFFFF",
+                fontWeight: "600",
+                opacity: canExplainTopic ? 1 : 0.75,
+              }}
             >
               {t("explainTopic")}
             </ThemedText>

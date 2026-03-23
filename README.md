@@ -174,24 +174,13 @@ Request-Body:
 - `programmingLanguage` (`javascript` | `python` | `java`, optional, default `javascript`)
 - `topicIds` (string[], optional, max 20; wenn leer, zufällige Topics)
 
-### `POST /api/topic/explain`
-
-Erzeugt eine Themen-Erklärung.
-
-Request-Body:
-
-- `topicId` (string, required)
-- `language` (`en` | `de`, optional, default `en`)
-- `programmingLanguage` (`javascript` | `python` | `java`, optional, default `javascript`)
-
-Hinweis: Topic-IDs werden gegen das gewählte Curriculum validiert.
-
 ## Curricula und Inhalte
 
 - Source of truth für Lerninhalte: `shared/curriculum/<language>.json`
 - Loader/Validierung: `shared/curriculum/index.ts`
 - UI-Adapter: `client/lib/topics.ts`
-- Prompt-Mapping: `server/topic-prompts.ts`
+- Statische Erklärungen: `shared/explanations/*.json`
+- Prompt-Mapping: `shared/topic-prompts/*.json`
 
 Beim Start wird die Konsistenz zwischen Topic-IDs und Prompt-Mapping geprüft.
 
@@ -226,14 +215,14 @@ Workflow-Schritte (vereinfacht):
 ### Neues Thema hinzufügen
 
 1. Topic in `shared/curriculum/<language>.json` ergänzen.
-2. Prompt in `server/topic-prompts.ts` ergänzen.
+2. Prompt in `shared/topic-prompts/<language>.json` ergänzen.
 3. Auf gültige `prerequisites` und eindeutige IDs achten.
 
 ### Neue Programmiersprache hinzufügen
 
 1. ID in `shared/programming-language.ts` ergänzen.
 2. Neues Curriculum in `shared/curriculum/` anlegen.
-3. Prompt-Mapping in `server/topic-prompts.ts` ergänzen.
+3. Prompt-Mapping in `shared/topic-prompts/` ergänzen.
 
 ### UI-Übersetzungen anpassen
 

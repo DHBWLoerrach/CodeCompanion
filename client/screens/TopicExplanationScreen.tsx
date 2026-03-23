@@ -1,34 +1,36 @@
-import React, { useEffect, useState } from "react";
-import {
-  View,
-  ScrollView,
-  StyleSheet,
-  ActivityIndicator,
-  Pressable,
-  Linking,
-} from "react-native";
+import React from "react";
+import { View, ScrollView, StyleSheet, Linking } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Stack, useLocalSearchParams } from "expo-router";
 import {
   EnrichedMarkdownText,
   type MarkdownStyle,
 } from "react-native-enriched-markdown";
+import { getTopicExplanation } from "@shared/explanations";
+import {
+  DEFAULT_PROGRAMMING_LANGUAGE_ID,
+  SUPPORTED_PROGRAMMING_LANGUAGE_IDS,
+  type ProgrammingLanguageId,
+} from "@shared/programming-language";
 
-import { AppIcon } from "@/components/AppIcon";
 import { HeaderIconButton } from "@/components/HeaderIconButton";
 import { ThemedView } from "@/components/ThemedView";
 import { ThemedText } from "@/components/ThemedText";
 import { useTheme } from "@/contexts/ThemeContext";
 import { useTranslation } from "@/hooks/useTranslation";
 import { useCloseHandler } from "@/hooks/useCloseHandler";
-import {
-  BorderRadius,
-  Fonts,
-  Spacing,
-  Typography,
-} from "@/constants/theme";
-import { getApiUrl } from "@/lib/query-client";
+import { BorderRadius, Fonts, Spacing, Typography } from "@/constants/theme";
 import { getParam, getParamWithDefault } from "@/lib/router-utils";
+
+function resolveProgrammingLanguage(value: string): ProgrammingLanguageId {
+  if (
+    SUPPORTED_PROGRAMMING_LANGUAGE_IDS.includes(value as ProgrammingLanguageId)
+  ) {
+    return value as ProgrammingLanguageId;
+  }
+
+  return DEFAULT_PROGRAMMING_LANGUAGE_ID;
+}
 
 function getMarkdownStyle(
   theme: ReturnType<typeof useTheme>["theme"],
@@ -109,76 +111,21 @@ export default function TopicExplanationScreen() {
     programmingLanguage?: string;
   }>();
   const resolvedTopicId = getParam(topicId);
-  const resolvedProgrammingLanguage = getParamWithDefault(
-    programmingLanguage,
-    "javascript",
+  const resolvedProgrammingLanguage = resolveProgrammingLanguage(
+    getParamWithDefault(programmingLanguage, DEFAULT_PROGRAMMING_LANGUAGE_ID),
   );
-
-  const [explanation, setExplanation] = useState("");
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const [retryCount, setRetryCount] = useState(0);
+  const staticExplanation = resolvedTopicId
+    ? getTopicExplanation(
+        resolvedProgrammingLanguage,
+        resolvedTopicId,
+        language,
+      )
+    : undefined;
   const handleClose = useCloseHandler();
   const markdownStyle = getMarkdownStyle(theme, isDark);
-
-  const handleRetry = () => {
-    setRetryCount((count) => count + 1);
-  };
-
-  useEffect(() => {
-    let isActive = true;
-
-    const loadExplanation = async () => {
-      if (!resolvedTopicId) {
-        setError(t("topicNotFound"));
-        setLoading(false);
-        return;
-      }
-
-      setLoading(true);
-      setError(null);
-
-      try {
-        const apiUrl = getApiUrl();
-        const response = await fetch(
-          new URL("/api/topic/explain", apiUrl).toString(),
-          {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-              topicId: resolvedTopicId,
-              language,
-              programmingLanguage: resolvedProgrammingLanguage,
-            }),
-          },
-        );
-
-        if (!response.ok) {
-          throw new Error("Failed to generate explanation");
-        }
-
-        const data = await response.json();
-        if (isActive) {
-          setExplanation(data.explanation ?? "");
-        }
-      } catch (fetchError) {
-        console.error("Error generating explanation:", fetchError);
-        if (isActive) {
-          setError(t("failedToLoadExplanation"));
-        }
-      } finally {
-        if (isActive) {
-          setLoading(false);
-        }
-      }
-    };
-
-    loadExplanation();
-
-    return () => {
-      isActive = false;
-    };
-  }, [resolvedTopicId, language, t, resolvedProgrammingLanguage, retryCount]);
+  const errorMessage = !resolvedTopicId
+    ? t("topicNotFound")
+    : t("explanationUnavailable");
 
   return (
     <>
@@ -199,48 +146,20 @@ export default function TopicExplanationScreen() {
           ]}
           showsVerticalScrollIndicator
         >
-          {loading ? (
-            <View style={styles.loadingState}>
-              <ActivityIndicator size="large" color={theme.primary} />
-              <ThemedText
-                type="body"
-                style={{ color: theme.tabIconDefault, marginTop: Spacing.lg }}
-              >
-                {t("generatingExplanation")}
-              </ThemedText>
-            </View>
-          ) : error ? (
-            <View style={styles.errorState}>
-              <ThemedText type="body" selectable style={{ color: theme.error }}>
-                {error}
-              </ThemedText>
-              <Pressable
-                testID="topic-explanation-retry-button"
-                style={[styles.retryButton, { backgroundColor: theme.primary }]}
-                onPress={handleRetry}
-              >
-                <AppIcon
-                  name="refresh-cw"
-                  size={18}
-                  color={theme.buttonText}
-                  style={{ marginRight: Spacing.sm }}
-                />
-                <ThemedText
-                  type="body"
-                  style={{ color: theme.buttonText, fontWeight: "600" }}
-                >
-                  {t("tryAgain")}
-                </ThemedText>
-              </Pressable>
-            </View>
-          ) : (
+          {staticExplanation ? (
             <EnrichedMarkdownText
-              markdown={explanation}
+              markdown={staticExplanation}
               markdownStyle={markdownStyle}
               onLinkPress={({ url }) => {
                 void Linking.openURL(url);
               }}
             />
+          ) : (
+            <View style={styles.errorState}>
+              <ThemedText type="body" selectable style={{ color: theme.error }}>
+                {errorMessage}
+              </ThemedText>
+            </View>
           )}
         </ScrollView>
       </ThemedView>
@@ -258,21 +177,7 @@ const styles = StyleSheet.create({
   content: {
     padding: Spacing.lg,
   },
-  loadingState: {
-    flex: 1,
-    alignItems: "center",
-    justifyContent: "center",
-    paddingVertical: Spacing.xl * 2,
-  },
   errorState: {
     gap: Spacing.lg,
-  },
-  retryButton: {
-    alignSelf: "flex-start",
-    flexDirection: "row",
-    alignItems: "center",
-    paddingHorizontal: Spacing.xl,
-    paddingVertical: Spacing.md,
-    borderRadius: BorderRadius.md,
   },
 });

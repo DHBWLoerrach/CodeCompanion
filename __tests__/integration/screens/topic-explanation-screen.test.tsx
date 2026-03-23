@@ -1,11 +1,8 @@
 import React from "react";
-import { fireEvent, render, waitFor } from "@testing-library/react-native";
+import { render, waitFor } from "@testing-library/react-native";
 import TopicExplanationScreen from "@/screens/TopicExplanationScreen";
+import { getTopicExplanation } from "@shared/explanations";
 
-const mockFetch = jest.fn<
-  Promise<Response>,
-  [RequestInfo | URL, RequestInit?]
->();
 const mockTranslate = (key: string) => key;
 let mockSearchParams: { topicId?: string; programmingLanguage?: string } = {};
 
@@ -71,77 +68,38 @@ jest.mock("@/hooks/useTranslation", () => ({
   }),
 }));
 
-jest.mock("@/lib/query-client", () => ({
-  getApiUrl: jest.fn(() => "http://localhost:8081/"),
+jest.mock("@shared/explanations", () => ({
+  getTopicExplanation: jest.fn(),
 }));
 
-describe("TopicExplanationScreen integration", () => {
-  const originalFetch = global.fetch;
-  let consoleErrorSpy: jest.SpyInstance;
+const mockGetTopicExplanation = jest.mocked(getTopicExplanation);
 
+describe("TopicExplanationScreen integration", () => {
   beforeEach(() => {
-    mockFetch.mockReset();
-    global.fetch = mockFetch as unknown as typeof fetch;
-    consoleErrorSpy = jest.spyOn(console, "error").mockImplementation(() => {});
+    mockGetTopicExplanation.mockReset();
     mockSearchParams = {
       topicId: "variables",
       programmingLanguage: "javascript",
     };
   });
 
-  afterEach(() => {
-    consoleErrorSpy.mockRestore();
-  });
-
-  afterAll(() => {
-    global.fetch = originalFetch;
-  });
-
-  it("shows retry button on error and retries explanation request", async () => {
-    mockFetch.mockResolvedValueOnce({
-      ok: false,
-      status: 500,
-      json: async () => ({}),
-    } as Response);
-    mockFetch.mockResolvedValueOnce({
-      ok: true,
-      status: 200,
-      json: async () => ({ explanation: "## Retry success" }),
-    } as Response);
+  it("renders static explanations without issuing a network request", async () => {
+    mockGetTopicExplanation.mockReturnValue("## Static explanation");
 
     const screen = render(<TopicExplanationScreen />);
 
     await waitFor(() => {
-      expect(screen.getByText("failedToLoadExplanation")).toBeTruthy();
+      expect(screen.getByText("## Static explanation")).toBeTruthy();
     });
+  });
 
-    fireEvent.press(screen.getByTestId("topic-explanation-retry-button"));
+  it("shows a static unavailable message when no explanation exists", async () => {
+    mockGetTopicExplanation.mockReturnValue(undefined);
+
+    const screen = render(<TopicExplanationScreen />);
 
     await waitFor(() => {
-      expect(screen.getByText("## Retry success")).toBeTruthy();
-      expect(mockFetch).toHaveBeenCalledTimes(2);
+      expect(screen.getByText("explanationUnavailable")).toBeTruthy();
     });
-
-    const firstCallBody = JSON.parse(
-      String((mockFetch.mock.calls[0][1] as RequestInit).body),
-    ) as {
-      topicId: string;
-      language: string;
-      programmingLanguage: string;
-    };
-    const secondCallBody = JSON.parse(
-      String((mockFetch.mock.calls[1][1] as RequestInit).body),
-    ) as {
-      topicId: string;
-      language: string;
-      programmingLanguage: string;
-    };
-
-    expect(firstCallBody).toEqual({
-      topicId: "variables",
-      language: "en",
-      programmingLanguage: "javascript",
-    });
-    expect(secondCallBody).toEqual(firstCallBody);
   });
 });

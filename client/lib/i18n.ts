@@ -11,8 +11,8 @@ export const translations = {
 
     startQuiz: "Start Quiz",
     explainTopic: "Explain Topic",
-    generatingExplanation: "Generating explanation...",
     topicExplanation: "Topic Explanation",
+    explanationUnavailable: "Explanation not available for this topic yet.",
     dueForReview: "Due for review",
     mastered: "Mastered",
     level: "Level",
@@ -100,8 +100,6 @@ export const translations = {
     errorDetails: "Error Details",
     stackTrace: "Stack Trace",
     ok: "OK",
-    failedToLoadExplanation: "Failed to load explanation. Please try again.",
-
     fundamentals: "Fundamentals",
     controlFlow: "Control Flow",
     functionsCategory: "Functions",
@@ -172,8 +170,9 @@ export const translations = {
 
     startQuiz: "Quiz starten",
     explainTopic: "Thema erklären",
-    generatingExplanation: "Erklärung wird generiert...",
     topicExplanation: "Themen-Erklärung",
+    explanationUnavailable:
+      "Für dieses Thema ist noch keine Erklärung verfügbar.",
     dueForReview: "Zur Wiederholung",
     mastered: "Gemeistert",
     level: "Level",
@@ -262,9 +261,6 @@ export const translations = {
     errorDetails: "Fehlerdetails",
     stackTrace: "Stacktrace",
     ok: "OK",
-    failedToLoadExplanation:
-      "Erklärung konnte nicht geladen werden. Bitte versuche es erneut.",
-
     fundamentals: "Grundlagen",
     controlFlow: "Kontrollfluss",
     functionsCategory: "Funktionen",

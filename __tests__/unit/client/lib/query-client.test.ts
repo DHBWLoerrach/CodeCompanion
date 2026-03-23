@@ -212,7 +212,7 @@ describe("apiRequest", () => {
       json: async () => ({}),
     } as Response);
 
-    await apiRequest("GET", "/api/topic/explain");
+    await apiRequest("GET", "/api/quiz/generate");
 
     expect(fetchMock.mock.calls[0][1]).toMatchObject({
       method: "GET",

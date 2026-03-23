@@ -1,7 +1,7 @@
 import * as https from "node:https";
 import type { IncomingMessage } from "node:http";
 import { EventEmitter } from "node:events";
-import { generateQuizQuestions, generateTopicExplanation } from "@server/quiz";
+import { generateQuizQuestions } from "@server/quiz";
 
 type MockResponseInit = {
   ok?: boolean;
@@ -620,140 +620,6 @@ describe("server/quiz", () => {
       await expect(
         generateQuizQuestions("javascript", "variables"),
       ).rejects.toThrow("OpenAI response incomplete: max_output_tokens");
-    });
-  });
-
-  describe("generateTopicExplanation", () => {
-    it("returns explanation from output_text", async () => {
-      fetchMock.mockResolvedValueOnce(
-        mockFetchResponse({
-          json: { output_text: "## Introduction\nText" },
-        }),
-      );
-
-      const explanation = await generateTopicExplanation(
-        "javascript",
-        "promises",
-        "en",
-      );
-
-      expect(explanation).toBe("## Introduction\nText");
-      expect(fetchMock).toHaveBeenCalledTimes(1);
-    });
-
-    it("uses language-specific instructions for German", async () => {
-      fetchMock.mockResolvedValueOnce(
-        mockFetchResponse({
-          json: { output_text: "## Einführung\nText" },
-        }),
-      );
-
-      await generateTopicExplanation("javascript", "promises", "de");
-
-      const fetchOptions = fetchMock.mock.calls[0][1] as RequestInit;
-      const payload = JSON.parse(String(fetchOptions.body)) as {
-        instructions: string;
-        input: string;
-      };
-
-      expect(payload.instructions).toContain("Respond in German.");
-      expect(payload.input).toContain("Write the ENTIRE explanation in German");
-      expect(payload.input).toContain("**Einführung**");
-      expect(payload.input).toContain("Überblick");
-      expect(payload.input).toContain("verstehen müssen");
-      expect(payload.input).toContain("Erklärungen");
-      expect(payload.input).toContain("Häufige Fehler");
-      expect(payload.input).toContain("Tipps für den effektiven Einsatz");
-    });
-
-    it("throws when explanation response is empty", async () => {
-      fetchMock.mockResolvedValueOnce(
-        mockFetchResponse({
-          json: { output: [] },
-        }),
-      );
-
-      await expect(
-        generateTopicExplanation("javascript", "promises"),
-      ).rejects.toThrow("Empty response from OpenAI");
-    });
-
-    it("falls back to https when fetch times out", async () => {
-      const timeoutError = new Error("Request timed out") as Error & {
-        code?: string;
-      };
-      timeoutError.code = "ETIMEDOUT";
-      fetchMock.mockRejectedValueOnce(timeoutError);
-
-      const { requestSpy, getLastTimeoutMs } = mockHttpsJsonResponse({
-        output_text: "## From fallback",
-      });
-
-      const explanation = await generateTopicExplanation(
-        "javascript",
-        "promises",
-        "en",
-      );
-
-      expect(explanation).toBe("## From fallback");
-      expect(fetchMock).toHaveBeenCalledTimes(1);
-      expect(requestSpy).toHaveBeenCalledTimes(1);
-      expect(requestSpy.mock.calls[0][0]).toBe(
-        "https://api.openai.com/v1/responses",
-      );
-      expect(getLastTimeoutMs()).toBe(30_000);
-
-      requestSpy.mockRestore();
-    });
-
-    it("falls back to https when reading the fetch response times out", async () => {
-      const timeoutError = new Error("Request timed out") as Error & {
-        code?: string;
-      };
-      timeoutError.code = "ETIMEDOUT";
-      fetchMock.mockResolvedValueOnce(
-        mockFetchResponse({
-          jsonError: timeoutError,
-        }),
-      );
-
-      const { requestSpy, getLastTimeoutMs } = mockHttpsJsonResponse({
-        output_text: "## From parse-time fallback",
-      });
-
-      const explanation = await generateTopicExplanation(
-        "javascript",
-        "promises",
-        "en",
-      );
-
-      expect(explanation).toBe("## From parse-time fallback");
-      expect(fetchMock).toHaveBeenCalledTimes(1);
-      expect(requestSpy).toHaveBeenCalledTimes(1);
-      expect(getLastTimeoutMs()).toBe(30_000);
-
-      requestSpy.mockRestore();
-    });
-
-    it("uses configured timeout for https fallback", async () => {
-      process.env.OPENAI_REQUEST_TIMEOUT_MS = "12000";
-
-      const timeoutError = new Error("Request timed out") as Error & {
-        code?: string;
-      };
-      timeoutError.code = "ETIMEDOUT";
-      fetchMock.mockRejectedValueOnce(timeoutError);
-
-      const { requestSpy, getLastTimeoutMs } = mockHttpsJsonResponse({
-        output_text: "## Timeout override",
-      });
-
-      await generateTopicExplanation("javascript", "promises", "en");
-
-      expect(requestSpy).toHaveBeenCalledTimes(1);
-      expect(getLastTimeoutMs()).toBe(12_000);
-
-      requestSpy.mockRestore();
     });
   });
 });

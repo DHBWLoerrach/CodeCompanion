@@ -6,7 +6,7 @@ import {
   getTopicPrompt,
   LANGUAGE_CONTEXT_EXCLUSIONS,
   LANGUAGE_NAMES,
-} from "./topic-prompts";
+} from "@shared/topic-prompts";
 
 type GeneratedQuizQuestion = Omit<QuizQuestion, "id" | "code"> & {
   code?: string;
@@ -571,60 +571,4 @@ ${contextExclusion ? `- ${contextExclusion}` : ""}
   validateNormalizedQuizQuestions(questions);
 
   return addStableIds(programmingLanguage, topicId, questions);
-}
-
-export async function generateTopicExplanation(
-  programmingLanguage: ProgrammingLanguageId,
-  topicId: string,
-  language: string = "en",
-): Promise<string> {
-  const { topicDescription, programmingLanguageName, contextExclusion } =
-    resolveLanguageContext(programmingLanguage, topicId);
-
-  const languageInstruction =
-    language === "de"
-      ? `Write the ENTIRE explanation in German (Deutsch), including ALL headings and section titles. Keep only code examples and ${programmingLanguageName} syntax in English as they are programming terms.`
-      : "Write the entire explanation in English.";
-
-  const sectionHeadings =
-    language === "de"
-      ? `1. **Einführung** - Ein kurzer Überblick, was dieses Konzept ist und warum es wichtig ist
-2. **Kernkonzepte** - Die wichtigsten Punkte, die Studierende verstehen müssen
-3. **Code-Beispiele** - 2-3 praktische Code-Beispiele mit Erklärungen
-4. **Häufige Fehler** - Was man bei diesem Konzept vermeiden sollte
-5. **Best Practices** - Tipps für den effektiven Einsatz dieses Konzepts`
-      : `1. **Introduction** - A brief overview of what this concept is and why it's important
-2. **Key Concepts** - The main points students need to understand
-3. **Code Examples** - 2-3 practical code examples with explanations
-4. **Common Mistakes** - Things to avoid when using this concept
-5. **Best Practices** - Tips for using this concept effectively`;
-
-  const prompt = `Explain the following ${programmingLanguageName} topic for computer science students: ${topicDescription}
-
-${languageInstruction}
-
-Structure your explanation as follows:
-${sectionHeadings}
-
-Format the response in Markdown. Use code blocks with \`\`\`${programmingLanguage} for code examples.
-Keep the total length to about 500-700 words.
-${contextExclusion ? `${contextExclusion}.` : ""}`;
-
-  const response = await requestOpenAI({
-    model: process.env.OPENAI_MODEL || "gpt-5.4-mini",
-    instructions: `You are an experienced ${programmingLanguageName} programming tutor explaining concepts to university students. ${
-      language === "de" ? "Respond in German." : "Respond in English."
-    } Use clear, concise language and practical examples.`,
-    input: prompt,
-    max_output_tokens: 2048,
-  });
-
-  assertOpenAIResponseIsUsable(response);
-
-  const explanation = getResponseText(response);
-  if (!explanation) {
-    throw new Error("Empty response from OpenAI");
-  }
-
-  return explanation;
 }

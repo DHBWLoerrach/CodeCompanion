@@ -13,8 +13,8 @@ DHBW Code Companion is a mobile learning app for programming topics (Expo SDK 54
 
 - `app/`: Expo Router file-based routes and API endpoints (`app/api/*+api.ts`).
 - `client/`: app UI and client logic (`components/`, `screens/`, `hooks/`, `lib/`, `constants/`, `contexts/`).
-- `server/`: server-only route logic (for example `server/quiz.ts`, `server/topic-prompts.ts`, `server/validation.ts`, `server/logging.ts`).
-- `shared/`: runtime-neutral shared types/data (`shared/curriculum/`, `shared/programming-language.ts`, `shared/skill-level.ts`).
+- `server/`: server-only route logic (for example `server/quiz.ts`, `server/validation.ts`, `server/logging.ts`).
+- `shared/`: runtime-neutral shared types/data (`shared/curriculum/`, `shared/topic-prompts/`, `shared/programming-language.ts`, `shared/skill-level.ts`).
 - `__tests__/unit` and `__tests__/integration`: Jest test suites.
 - `e2e/maestro`: Maestro end-to-end flows.
 - `test/setup.ts`: Jest setup/mocks.
@@ -62,18 +62,19 @@ DHBW Code Companion is a mobile learning app for programming topics (Expo SDK 54
 - API routes:
   - `POST /api/quiz/generate`
   - `POST /api/quiz/generate-mixed`
-  - `POST /api/topic/explain`
 - API requests may include `programmingLanguage` (`javascript` | `python` | `java`), defaulting to `javascript` when omitted.
 - Curricula source of truth: `shared/curriculum/<language>.json`, loaded and validated in `shared/curriculum/index.ts`.
+- Static topic explanations live in `shared/explanations/*.json`.
 - `client/lib/topics.ts` adapts shared curricula for client screens and legacy translation fallback.
 - Add a topic:
   1. Add the topic to the target `shared/curriculum/<language>.json` file.
-  2. Add the topic prompt in `server/topic-prompts.ts`.
-  3. Ensure IDs and prerequisites remain valid for curriculum validation.
+  2. Add the topic prompt in `shared/topic-prompts/<language>.json`.
+  3. Add or generate the static explanation in `shared/explanations/`.
+  4. Ensure IDs and prerequisites remain valid for curriculum validation.
 - Add a programming language:
   1. Extend `shared/programming-language.ts`.
   2. Add a curriculum JSON in `shared/curriculum/`.
-  3. Add prompt mappings in `server/topic-prompts.ts`.
+  3. Add prompt mappings in `shared/topic-prompts/`.
 
 ## Environment Variables
 
