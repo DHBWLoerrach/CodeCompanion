@@ -53,12 +53,6 @@ function RootStack() {
         }}
       />
       <Stack.Screen
-        name="topic-explanation"
-        options={{
-          presentation: "modal",
-        }}
-      />
-      <Stack.Screen
         name="info-modal"
         options={{
           presentation: "modal",

@@ -1,7 +1,7 @@
 import React from "react";
 import { View, ScrollView, StyleSheet, Linking } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { Stack, useLocalSearchParams } from "expo-router";
+import { Stack, useLocalSearchParams, useRouter } from "expo-router";
 import {
   EnrichedMarkdownText,
   type MarkdownStyle,
@@ -21,6 +21,11 @@ import { useTranslation } from "@/hooks/useTranslation";
 import { useCloseHandler } from "@/hooks/useCloseHandler";
 import { BorderRadius, Fonts, Spacing, Typography } from "@/constants/theme";
 import { getParam, getParamWithDefault } from "@/lib/router-utils";
+import {
+  getCategoriesByLanguage,
+  getTopicById,
+  getTopicName,
+} from "@/lib/topics";
 
 function resolveProgrammingLanguage(value: string): ProgrammingLanguageId {
   if (
@@ -106,6 +111,7 @@ export default function TopicExplanationScreen() {
   const { theme, isDark } = useTheme();
   const { t, language } = useTranslation();
   const insets = useSafeAreaInsets();
+  const router = useRouter();
   const { topicId, programmingLanguage } = useLocalSearchParams<{
     topicId?: string;
     programmingLanguage?: string;
@@ -114,6 +120,12 @@ export default function TopicExplanationScreen() {
   const resolvedProgrammingLanguage = resolveProgrammingLanguage(
     getParamWithDefault(programmingLanguage, DEFAULT_PROGRAMMING_LANGUAGE_ID),
   );
+  const topic = resolvedTopicId
+    ? getTopicById(
+        resolvedTopicId,
+        getCategoriesByLanguage(resolvedProgrammingLanguage),
+      )
+    : undefined;
   const staticExplanation = resolvedTopicId
     ? getTopicExplanation(
         resolvedProgrammingLanguage,
@@ -123,6 +135,7 @@ export default function TopicExplanationScreen() {
     : undefined;
   const handleClose = useCloseHandler();
   const markdownStyle = getMarkdownStyle(theme, isDark);
+  const title = topic ? getTopicName(topic, language) : t("topicExplanation");
   const errorMessage = !resolvedTopicId
     ? t("topicNotFound")
     : t("explanationUnavailable");
@@ -131,9 +144,10 @@ export default function TopicExplanationScreen() {
     <>
       <Stack.Screen
         options={{
-          title: t("topicExplanation"),
-          headerLeft: () => <HeaderIconButton icon="x" onPress={handleClose} />,
-          headerBackVisible: false,
+          title,
+          headerLeft: router.canGoBack()
+            ? undefined
+            : () => <HeaderIconButton icon="x" onPress={handleClose} />,
         }}
       />
       <ThemedView style={styles.container}>
