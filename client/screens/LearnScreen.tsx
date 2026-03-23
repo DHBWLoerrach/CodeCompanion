@@ -32,7 +32,9 @@ interface TopicTileProps {
   onPress: () => void;
   topicName: string;
   testID?: string;
-  fullWidth?: boolean;
+  position?: number;
+  total?: number;
+  isCurrent?: boolean;
 }
 
 function getLastPracticedTime(progress: TopicProgress | undefined) {
@@ -115,17 +117,29 @@ function getTopicStateMeta(
     case "mastered":
       return { state, label: t("mastered"), iconName: "award" as const };
     case "due":
-      return { state, label: t("dueLabel"), iconName: "clock" as const };
+      return { state, label: t("reviewLabel"), iconName: "clock" as const };
     case "started":
       return {
         state,
-        label: `${t("level")} ${progress?.skillLevel ?? 1}`,
+        label: t("inProgressLabel"),
         iconName: "play" as const,
       };
     case "new":
     default:
       return { state: "new" as const, label: t("newLabel"), iconName: null };
   }
+}
+
+function getTopicPositionLabel(
+  position: number | undefined,
+  total: number | undefined,
+  t: TranslateFn,
+) {
+  if (!position || !total) {
+    return undefined;
+  }
+
+  return `${capitalizeLabel(t("topic"))} ${position} ${t("of")} ${total}`;
 }
 
 function getCategoryStatus(
@@ -198,7 +212,9 @@ function TopicTile({
   onPress,
   topicName,
   testID,
-  fullWidth,
+  position,
+  total,
+  isCurrent,
 }: TopicTileProps) {
   const { theme } = useTheme();
   const { t } = useTranslation();
@@ -206,10 +222,14 @@ function TopicTile({
     usePressAnimation(0.98);
   const { state, label, iconName } = getTopicStateMeta(progress, t);
   const accentColor = getStateAccentColor(state, theme);
-  const borderColor = state === "new" ? theme.cardBorder : `${accentColor}33`;
-  const tagBackgroundColor =
-    state === "new" ? theme.backgroundSecondary : `${accentColor}18`;
-  const tagTextColor = state === "new" ? theme.tabIconDefault : accentColor;
+  const positionLabel = getTopicPositionLabel(position, total, t);
+  const borderColor = isCurrent
+    ? `${accentColor}5C`
+    : state === "new"
+      ? theme.cardBorder
+      : `${accentColor}33`;
+  const backgroundColor = isCurrent ? `${accentColor}0D` : theme.backgroundRoot;
+  const metaTextColor = state === "new" ? theme.tabIconDefault : accentColor;
 
   return (
     <AnimatedPressable
@@ -219,44 +239,60 @@ function TopicTile({
       onPressOut={handlePressOut}
       style={[
         styles.topicTile,
-        fullWidth && styles.topicTileFullWidth,
         {
-          backgroundColor: theme.backgroundRoot,
+          backgroundColor,
           borderColor,
         },
         animatedStyle,
       ]}
     >
-      <ThemedText type="label" style={styles.topicTileTitle} numberOfLines={2}>
-        {topicName}
-      </ThemedText>
-      <View style={styles.topicTileFooter}>
+      {isCurrent ? (
         <View
           style={[
-            styles.topicTag,
+            styles.currentBadge,
             {
-              backgroundColor: tagBackgroundColor,
-              borderColor:
-                state === "new" ? theme.cardBorder : `${accentColor}1F`,
+              backgroundColor: `${accentColor}16`,
+              borderColor: `${accentColor}2E`,
             },
           ]}
         >
-          {iconName ? (
-            <AppIcon
-              name={iconName}
-              size={12}
-              color={tagTextColor}
-              style={styles.topicTagIcon}
-            />
-          ) : null}
           <ThemedText
             type="caption"
-            style={[styles.topicTagText, { color: tagTextColor }]}
-            numberOfLines={1}
+            style={[styles.currentBadgeText, { color: accentColor }]}
           >
-            {label}
+            {t("currentLabel")}
           </ThemedText>
         </View>
+      ) : null}
+      <ThemedText type="label" style={styles.topicTileTitle} numberOfLines={2}>
+        {topicName}
+      </ThemedText>
+      <View style={styles.topicMetaRow}>
+        {positionLabel ? (
+          <ThemedText
+            type="caption"
+            style={[styles.topicMetaText, { color: theme.tabIconDefault }]}
+            numberOfLines={1}
+          >
+            {positionLabel}
+          </ThemedText>
+        ) : null}
+        {positionLabel ? <View style={styles.topicMetaDot} /> : null}
+        {iconName ? (
+          <AppIcon
+            name={iconName}
+            size={12}
+            color={metaTextColor}
+            style={styles.topicMetaIcon}
+          />
+        ) : null}
+        <ThemedText
+          type="caption"
+          style={[styles.topicMetaText, { color: metaTextColor }]}
+          numberOfLines={1}
+        >
+          {label}
+        </ThemedText>
       </View>
     </AnimatedPressable>
   );
@@ -290,9 +326,7 @@ function NextStepCard({
       : state === "mastered"
         ? theme.success
         : theme.secondary;
-  const topicIndexLabel = `${capitalizeLabel(t("topic"))} ${position} ${t(
-    "of",
-  )} ${total}`;
+  const topicIndexLabel = getTopicPositionLabel(position, total, t);
 
   return (
     <AnimatedPressable
@@ -302,34 +336,45 @@ function NextStepCard({
       onPressOut={handlePressOut}
       style={[
         styles.nextStepCard,
-        { backgroundColor: accentColor },
+        {
+          backgroundColor: `${accentColor}12`,
+          borderColor: `${accentColor}30`,
+        },
         animatedStyle,
       ]}
     >
       <View style={styles.nextStepBody}>
-        <ThemedText type="caption" style={styles.nextStepEyebrow}>
+        <ThemedText
+          type="caption"
+          style={[styles.nextStepEyebrow, { color: accentColor }]}
+        >
           {t("nextStep")}
         </ThemedText>
         <ThemedText type="h4" style={styles.nextStepTitle} numberOfLines={2}>
           {topicName}
         </ThemedText>
         <View style={styles.nextStepMeta}>
-          <ThemedText type="caption" style={styles.nextStepMetaText}>
-            {topicIndexLabel}
-          </ThemedText>
-          <View style={styles.nextStepMetaDot} />
+          {topicIndexLabel ? (
+            <ThemedText
+              type="caption"
+              style={[styles.nextStepMetaText, { color: theme.tabIconDefault }]}
+            >
+              {topicIndexLabel}
+            </ThemedText>
+          ) : null}
+          {topicIndexLabel ? <View style={styles.nextStepMetaDot} /> : null}
           <View style={styles.nextStepMetaStatus}>
             {iconName ? (
               <AppIcon
                 name={iconName}
                 size={12}
-                color="#FFFFFF"
+                color={accentColor}
                 style={styles.nextStepMetaIcon}
               />
             ) : null}
             <ThemedText
               type="caption"
-              style={styles.nextStepMetaText}
+              style={[styles.nextStepMetaText, { color: accentColor }]}
               numberOfLines={1}
             >
               {label}
@@ -337,9 +382,12 @@ function NextStepCard({
           </View>
         </View>
       </View>
-      <View style={styles.nextStepChevron}>
-        <AppIcon name="chevron-right" size={18} color="#FFFFFF" />
-      </View>
+      <AppIcon
+        name="chevron-right"
+        size={18}
+        color={accentColor}
+        style={styles.nextStepChevron}
+      />
     </AnimatedPressable>
   );
 }
@@ -377,9 +425,7 @@ function CategoryCard({
   const recommendedTopicPosition = recommendedTopic
     ? category.topics.findIndex((topic) => topic.id === recommendedTopic.id) + 1
     : 0;
-  const visibleTopics = recommendedTopic
-    ? category.topics.filter((topic) => topic.id !== recommendedTopic.id)
-    : category.topics;
+  const visibleTopics = category.topics;
 
   return (
     <View
@@ -473,7 +519,7 @@ function CategoryCard({
 
       {visibleTopics.length > 0 ? (
         <View style={styles.topicsGrid}>
-          {visibleTopics.map((topic) => {
+          {visibleTopics.map((topic, index) => {
             const topicDisplayName = getTopicDisplayName(topic);
             return (
               <TopicTile
@@ -482,6 +528,9 @@ function CategoryCard({
                 progress={topicProgress[topic.id]}
                 testID={getTopicTestId(topic)}
                 onPress={() => onTopicPress(topic)}
+                position={index + 1}
+                total={category.topics.length}
+                isCurrent={topic.id === recommendedTopicId}
               />
             );
           })}
@@ -624,7 +673,7 @@ const styles = StyleSheet.create({
   },
   categoryProgressGroup: {
     gap: Spacing.sm,
-    marginBottom: Spacing.lg,
+    marginBottom: Spacing.md,
   },
   categorySegments: {
     flexDirection: "row",
@@ -649,12 +698,13 @@ const styles = StyleSheet.create({
     fontWeight: "600",
   },
   recommendedSection: {
-    marginBottom: Spacing.lg,
+    marginBottom: Spacing.md,
   },
   nextStepCard: {
     borderRadius: BorderRadius.md,
-    padding: Spacing.lg,
-    minHeight: 120,
+    borderWidth: 1,
+    padding: Spacing.md,
+    minHeight: 104,
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
@@ -667,25 +717,22 @@ const styles = StyleSheet.create({
     fontWeight: "700",
     letterSpacing: 0.8,
     textTransform: "uppercase",
-    color: "#FFFFFF",
-    opacity: 0.78,
-    marginBottom: Spacing.sm,
+    marginBottom: Spacing.xs,
   },
   nextStepTitle: {
-    color: "#FFFFFF",
-    marginBottom: Spacing.sm,
+    marginBottom: Spacing.xs,
   },
   nextStepMeta: {
     flexDirection: "row",
     alignItems: "center",
+    flexWrap: "wrap",
     gap: Spacing.sm,
   },
   nextStepMetaDot: {
     width: 4,
     height: 4,
     borderRadius: BorderRadius.full,
-    backgroundColor: "#FFFFFF",
-    opacity: 0.8,
+    backgroundColor: "#9BA1A6",
   },
   nextStepMetaStatus: {
     flexDirection: "row",
@@ -696,16 +743,10 @@ const styles = StyleSheet.create({
     marginRight: Spacing.xs,
   },
   nextStepMetaText: {
-    color: "#FFFFFF",
-    opacity: 0.92,
+    fontWeight: "600",
   },
   nextStepChevron: {
-    width: 36,
-    height: 36,
-    borderRadius: BorderRadius.sm,
-    alignItems: "center",
-    justifyContent: "center",
-    backgroundColor: "rgba(255,255,255,0.16)",
+    opacity: 0.72,
   },
   topicsGrid: {
     flexDirection: "row",
@@ -714,38 +755,46 @@ const styles = StyleSheet.create({
   },
   topicTile: {
     width: "48%",
-    minHeight: 96,
+    minHeight: 92,
     padding: Spacing.md,
     borderRadius: BorderRadius.md,
     borderWidth: 1,
     flexShrink: 1,
     justifyContent: "space-between",
   },
-  topicTileFullWidth: {
-    width: "100%",
-  },
-  topicTileTitle: {
-    lineHeight: 20,
-    marginBottom: Spacing.md,
-  },
-  topicTileFooter: {
-    flexDirection: "row",
-    alignItems: "center",
-  },
-  topicTag: {
-    flexDirection: "row",
-    alignItems: "center",
+  currentBadge: {
     alignSelf: "flex-start",
     borderRadius: BorderRadius.full,
     borderWidth: 1,
     paddingHorizontal: Spacing.sm,
-    paddingVertical: Spacing.xs,
-    maxWidth: "100%",
+    paddingVertical: 2,
+    marginBottom: Spacing.sm,
   },
-  topicTagIcon: {
+  currentBadgeText: {
+    fontWeight: "700",
+    textTransform: "uppercase",
+    letterSpacing: 0.3,
+  },
+  topicTileTitle: {
+    lineHeight: 20,
+    marginBottom: Spacing.sm,
+  },
+  topicMetaRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    flexWrap: "wrap",
+    gap: Spacing.xs,
+  },
+  topicMetaDot: {
+    width: 4,
+    height: 4,
+    borderRadius: BorderRadius.full,
+    backgroundColor: "#9BA1A6",
+  },
+  topicMetaIcon: {
     marginRight: Spacing.xs,
   },
-  topicTagText: {
+  topicMetaText: {
     fontWeight: "600",
   },
   dueSection: {
