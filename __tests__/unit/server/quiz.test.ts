@@ -418,7 +418,7 @@ describe("server/quiz", () => {
     it("uses language-specific instructions for German", async () => {
       fetchMock.mockResolvedValueOnce(
         mockFetchResponse({
-          json: { output_text: "## Einfuhrung\nText" },
+          json: { output_text: "## Einführung\nText" },
         }),
       );
 
@@ -432,6 +432,12 @@ describe("server/quiz", () => {
 
       expect(payload.instructions).toContain("Respond in German.");
       expect(payload.input).toContain("Write the ENTIRE explanation in German");
+      expect(payload.input).toContain("**Einführung**");
+      expect(payload.input).toContain("Überblick");
+      expect(payload.input).toContain("verstehen müssen");
+      expect(payload.input).toContain("Erklärungen");
+      expect(payload.input).toContain("Häufige Fehler");
+      expect(payload.input).toContain("Tipps für den effektiven Einsatz");
     });
 
     it("throws when explanation response is empty", async () => {

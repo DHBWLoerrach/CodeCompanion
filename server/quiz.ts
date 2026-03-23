@@ -496,11 +496,11 @@ export async function generateTopicExplanation(
 
   const sectionHeadings =
     language === "de"
-      ? `1. **Einfuhrung** - Ein kurzer Uberblick, was dieses Konzept ist und warum es wichtig ist
-2. **Kernkonzepte** - Die wichtigsten Punkte, die Studierende verstehen mussen
-3. **Code-Beispiele** - 2-3 praktische Code-Beispiele mit Erklarungen
-4. **Haufige Fehler** - Was man bei diesem Konzept vermeiden sollte
-5. **Best Practices** - Tipps fur den effektiven Einsatz dieses Konzepts`
+      ? `1. **Einführung** - Ein kurzer Überblick, was dieses Konzept ist und warum es wichtig ist
+2. **Kernkonzepte** - Die wichtigsten Punkte, die Studierende verstehen müssen
+3. **Code-Beispiele** - 2-3 praktische Code-Beispiele mit Erklärungen
+4. **Häufige Fehler** - Was man bei diesem Konzept vermeiden sollte
+5. **Best Practices** - Tipps für den effektiven Einsatz dieses Konzepts`
       : `1. **Introduction** - A brief overview of what this concept is and why it's important
 2. **Key Concepts** - The main points students need to understand
 3. **Code Examples** - 2-3 practical code examples with explanations
