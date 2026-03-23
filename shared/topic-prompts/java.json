@@ -1,5 +1,5 @@
 {
-  "variables-constants": "Java variable declarations, initialization, and constants with final",
+  "variables-constants": "Java variable declarations, initialization, local type inference with var, and constants with final",
   "primitive-types": "Java primitive types, numeric ranges, literals, and type-specific behavior",
   "operators": "Java arithmetic, comparison, logical, assignment, and increment operators",
   "type-casting-autoboxing": "Java type casting, wrapper classes, autoboxing/unboxing, and == vs equals pitfalls",

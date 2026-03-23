@@ -28,8 +28,8 @@
             "de": "Variablen & Konstanten"
           },
           "shortDescription": {
-            "en": "Declare variables and use constants with final correctly.",
-            "de": "Variablen deklarieren und Konstanten mit final korrekt verwenden."
+            "en": "Declare variables, use constants with final, and understand local type inference with var.",
+            "de": "Variablen deklarieren, Konstanten mit final nutzen und lokale Typinferenz mit var verstehen."
           },
           "prerequisites": []
         },
