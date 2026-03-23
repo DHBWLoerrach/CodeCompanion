@@ -48,6 +48,16 @@ function mockDigest(input: BufferSource): Promise<ArrayBuffer> {
   return Promise.resolve(output.buffer);
 }
 
+function buildStructuredQuizQuestions(count: number) {
+  return Array.from({ length: count }, (_, index) => ({
+    question: `Q${index + 1}?`,
+    code: null,
+    options: ["A", "B", "C", "D"],
+    correctIndex: 0,
+    explanation: `Because ${index + 1}`,
+  }));
+}
+
 function mockHttpsJsonResponse(json: unknown): {
   requestSpy: jest.SpyInstance;
   getLastTimeoutMs: () => number | undefined;
@@ -169,6 +179,7 @@ describe("server/quiz", () => {
 
       const fetchOptions = fetchMock.mock.calls[0][1] as RequestInit;
       const payload = JSON.parse(String(fetchOptions.body)) as {
+        max_output_tokens: number;
         text: {
           format: {
             type: string;
@@ -183,6 +194,36 @@ describe("server/quiz", () => {
       expect(payload.text.format.name).toBe("quiz_questions");
       expect(payload.text.format.strict).toBe(true);
       expect(payload.text.format.schema.required).toEqual(["questions"]);
+      expect(payload.max_output_tokens).toBe(4096);
+    });
+
+    it("scales max_output_tokens for larger quiz counts", async () => {
+      fetchMock.mockResolvedValueOnce(
+        mockFetchResponse({
+          json: {
+            output_text: JSON.stringify({
+              questions: buildStructuredQuizQuestions(20),
+            }),
+          },
+        }),
+      );
+
+      const questions = await generateQuizQuestions(
+        "javascript",
+        "variables",
+        20,
+        "en",
+        1,
+      );
+
+      expect(questions).toHaveLength(20);
+
+      const fetchOptions = fetchMock.mock.calls[0][1] as RequestInit;
+      const payload = JSON.parse(String(fetchOptions.body)) as {
+        max_output_tokens: number;
+      };
+
+      expect(payload.max_output_tokens).toBe(6000);
     });
 
     it("normalizes null code values and assigns stable IDs", async () => {

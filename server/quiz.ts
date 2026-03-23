@@ -71,6 +71,10 @@ const OPENAI_RESPONSES_URL = "https://api.openai.com/v1/responses";
 const DEFAULT_OPENAI_TIMEOUT_MS = 30_000;
 const MARKDOWN_CODE_BLOCK_PATTERN = /```(?:[^\n\r`]*)\r?\n([\s\S]*?)```/g;
 
+function quizMaxOutputTokens(count: number): number {
+  return Math.min(8192, Math.max(4096, count * 300));
+}
+
 function getResponseText(response: unknown): string {
   if (
     typeof (response as { output_text?: unknown })?.output_text === "string"
@@ -480,7 +484,7 @@ ${contextExclusion ? `- ${contextExclusion}` : ""}
     } Follow the provided response schema exactly.`,
     input: prompt,
     text: QUIZ_RESPONSE_FORMAT,
-    max_output_tokens: 4096,
+    max_output_tokens: quizMaxOutputTokens(count),
   });
 
   assertOpenAIResponseIsUsable(response);
