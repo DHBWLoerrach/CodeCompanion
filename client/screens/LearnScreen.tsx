@@ -32,9 +32,6 @@ interface TopicTileProps {
   onPress: () => void;
   topicName: string;
   testID?: string;
-  position?: number;
-  total?: number;
-  isCurrent?: boolean;
 }
 
 function getLastPracticedTime(progress: TopicProgress | undefined) {
@@ -207,28 +204,15 @@ function getStateAccentColor(
   }
 }
 
-function TopicTile({
-  progress,
-  onPress,
-  topicName,
-  testID,
-  position,
-  total,
-  isCurrent,
-}: TopicTileProps) {
+function TopicTile({ progress, onPress, topicName, testID }: TopicTileProps) {
   const { theme } = useTheme();
   const { t } = useTranslation();
   const { animatedStyle, handlePressIn, handlePressOut } =
     usePressAnimation(0.98);
   const { state, label, iconName } = getTopicStateMeta(progress, t);
   const accentColor = getStateAccentColor(state, theme);
-  const positionLabel = getTopicPositionLabel(position, total, t);
-  const borderColor = isCurrent
-    ? `${accentColor}5C`
-    : state === "new"
-      ? theme.cardBorder
-      : `${accentColor}33`;
-  const backgroundColor = isCurrent ? `${accentColor}0D` : theme.backgroundRoot;
+  const borderColor = state === "new" ? theme.cardBorder : `${accentColor}33`;
+  const backgroundColor = theme.backgroundRoot;
   const metaTextColor = state === "new" ? theme.tabIconDefault : accentColor;
 
   return (
@@ -246,38 +230,10 @@ function TopicTile({
         animatedStyle,
       ]}
     >
-      {isCurrent ? (
-        <View
-          style={[
-            styles.currentBadge,
-            {
-              backgroundColor: `${accentColor}16`,
-              borderColor: `${accentColor}2E`,
-            },
-          ]}
-        >
-          <ThemedText
-            type="caption"
-            style={[styles.currentBadgeText, { color: accentColor }]}
-          >
-            {t("currentLabel")}
-          </ThemedText>
-        </View>
-      ) : null}
       <ThemedText type="label" style={styles.topicTileTitle} numberOfLines={2}>
         {topicName}
       </ThemedText>
       <View style={styles.topicMetaRow}>
-        {positionLabel ? (
-          <ThemedText
-            type="caption"
-            style={[styles.topicMetaText, { color: theme.tabIconDefault }]}
-            numberOfLines={1}
-          >
-            {positionLabel}
-          </ThemedText>
-        ) : null}
-        {positionLabel ? <View style={styles.topicMetaDot} /> : null}
         {iconName ? (
           <AppIcon
             name={iconName}
@@ -425,7 +381,9 @@ function CategoryCard({
   const recommendedTopicPosition = recommendedTopic
     ? category.topics.findIndex((topic) => topic.id === recommendedTopic.id) + 1
     : 0;
-  const visibleTopics = category.topics;
+  const visibleTopics = recommendedTopic
+    ? category.topics.filter((topic) => topic.id !== recommendedTopic.id)
+    : category.topics;
 
   return (
     <View
@@ -528,9 +486,6 @@ function CategoryCard({
                 progress={topicProgress[topic.id]}
                 testID={getTopicTestId(topic)}
                 onPress={() => onTopicPress(topic)}
-                position={index + 1}
-                total={category.topics.length}
-                isCurrent={topic.id === recommendedTopicId}
               />
             );
           })}
@@ -755,41 +710,22 @@ const styles = StyleSheet.create({
   },
   topicTile: {
     width: "48%",
-    minHeight: 92,
+    minHeight: 80,
     padding: Spacing.md,
     borderRadius: BorderRadius.md,
     borderWidth: 1,
     flexShrink: 1,
     justifyContent: "space-between",
   },
-  currentBadge: {
-    alignSelf: "flex-start",
-    borderRadius: BorderRadius.full,
-    borderWidth: 1,
-    paddingHorizontal: Spacing.sm,
-    paddingVertical: 2,
-    marginBottom: Spacing.sm,
-  },
-  currentBadgeText: {
-    fontWeight: "700",
-    textTransform: "uppercase",
-    letterSpacing: 0.3,
-  },
   topicTileTitle: {
     lineHeight: 20,
-    marginBottom: Spacing.sm,
+    marginBottom: Spacing.xs,
   },
   topicMetaRow: {
     flexDirection: "row",
     alignItems: "center",
     flexWrap: "wrap",
     gap: Spacing.xs,
-  },
-  topicMetaDot: {
-    width: 4,
-    height: 4,
-    borderRadius: BorderRadius.full,
-    backgroundColor: "#9BA1A6",
   },
   topicMetaIcon: {
     marginRight: Spacing.xs,

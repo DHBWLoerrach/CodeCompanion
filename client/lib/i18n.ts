@@ -24,7 +24,6 @@ export const translations = {
     dueLabel: "due",
     nextStep: "Next step",
     newLabel: "New",
-    currentLabel: "Current",
     inProgressLabel: "In progress",
     reviewLabel: "Review",
 
@@ -193,7 +192,6 @@ export const translations = {
     dueLabel: "fällig",
     nextStep: "Nächster Schritt",
     newLabel: "Neu",
-    currentLabel: "Aktuell",
     inProgressLabel: "In Arbeit",
     reviewLabel: "Wiederholen",
 
