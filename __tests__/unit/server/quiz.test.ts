@@ -300,6 +300,80 @@ describe("server/quiz", () => {
       expect(question.code).toBe(code);
     });
 
+    it("includes programming language and full question content in stable ID input", async () => {
+      fetchMock
+        .mockResolvedValueOnce(
+          mockFetchResponse({
+            json: {
+              output_text: JSON.stringify({
+                questions: [
+                  {
+                    question: "Q?",
+                    code: "console.log('js');",
+                    options: ["A", "B", "C", "D"],
+                    correctIndex: 0,
+                    explanation: "JavaScript explanation",
+                  },
+                ],
+              }),
+            },
+          }),
+        )
+        .mockResolvedValueOnce(
+          mockFetchResponse({
+            json: {
+              output_text: JSON.stringify({
+                questions: [
+                  {
+                    question: "Q?",
+                    code: "print('py')",
+                    options: ["A", "B", "C", "D"],
+                    correctIndex: 0,
+                    explanation: "Python explanation",
+                  },
+                ],
+              }),
+            },
+          }),
+        );
+
+      const [javascriptQuestion] = await generateQuizQuestions(
+        "javascript",
+        "data-types",
+        1,
+        "en",
+        1,
+      );
+      const [pythonQuestion] = await generateQuizQuestions(
+        "python",
+        "data-types",
+        1,
+        "en",
+        1,
+      );
+
+      expect(javascriptQuestion.id).toMatch(/^data-types-[a-f0-9]{12}$/);
+      expect(pythonQuestion.id).toMatch(/^data-types-[a-f0-9]{12}$/);
+
+      const digestMock = jest.mocked(global.crypto.subtle.digest);
+      const firstDigestInput = new TextDecoder().decode(
+        digestMock.mock.calls[0][1] as BufferSource,
+      );
+      const secondDigestInput = new TextDecoder().decode(
+        digestMock.mock.calls[1][1] as BufferSource,
+      );
+
+      expect(firstDigestInput).toContain('"programmingLanguage":"javascript"');
+      expect(firstDigestInput).toContain('"code":"console.log(\'js\');"');
+      expect(firstDigestInput).toContain(
+        '"explanation":"JavaScript explanation"',
+      );
+      expect(secondDigestInput).toContain('"programmingLanguage":"python"');
+      expect(secondDigestInput).toContain('"code":"print(\'py\')"');
+      expect(secondDigestInput).toContain('"explanation":"Python explanation"');
+      expect(firstDigestInput).not.toBe(secondDigestInput);
+    });
+
     it("throws on non-ok OpenAI response", async () => {
       fetchMock.mockResolvedValueOnce(
         mockFetchResponse({

@@ -376,13 +376,23 @@ async function sha256Hex(input: string): Promise<string> {
 }
 
 async function addStableIds(
+  programmingLanguage: ProgrammingLanguageId,
   topicId: string,
   questions: GeneratedQuizQuestion[],
 ): Promise<QuizQuestion[]> {
   const withIds = await Promise.all(
     questions.map(async (question, index) => {
       const contentHash = await sha256Hex(
-        `${topicId}-${question.question}-${JSON.stringify(question.options)}-${index}`,
+        JSON.stringify({
+          programmingLanguage,
+          topicId,
+          question: question.question,
+          code: question.code ?? null,
+          options: question.options,
+          correctIndex: question.correctIndex,
+          explanation: question.explanation,
+          index,
+        }),
       );
       return {
         ...question,
@@ -474,7 +484,7 @@ ${contextExclusion ? `- ${contextExclusion}` : ""}
   const questions = normalizeStructuredQuizQuestions(parseQuestions(content));
   validateQuizQuestions(questions, count);
 
-  return addStableIds(topicId, questions);
+  return addStableIds(programmingLanguage, topicId, questions);
 }
 
 export async function generateTopicExplanation(
