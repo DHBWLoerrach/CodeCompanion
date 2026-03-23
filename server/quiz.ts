@@ -14,6 +14,53 @@ import {
 
 export type { QuizQuestion };
 
+type GeneratedQuizQuestion = Omit<QuizQuestion, "id" | "code"> & {
+  code?: string;
+};
+
+type StructuredQuizQuestion = Omit<GeneratedQuizQuestion, "code"> & {
+  code: string | null;
+};
+
+const QUIZ_RESPONSE_FORMAT = {
+  format: {
+    type: "json_schema",
+    name: "quiz_questions",
+    strict: true,
+    schema: {
+      type: "object",
+      properties: {
+        questions: {
+          type: "array",
+          items: {
+            type: "object",
+            properties: {
+              question: { type: "string" },
+              code: { type: ["string", "null"] },
+              options: {
+                type: "array",
+                items: { type: "string" },
+              },
+              correctIndex: { type: "integer" },
+              explanation: { type: "string" },
+            },
+            required: [
+              "question",
+              "code",
+              "options",
+              "correctIndex",
+              "explanation",
+            ],
+            additionalProperties: false,
+          },
+        },
+      },
+      required: ["questions"],
+      additionalProperties: false,
+    },
+  },
+} as const;
+
 export function getAvailableTopicIds(
   programmingLanguage: ProgrammingLanguageId,
 ): string[] {
@@ -68,20 +115,103 @@ function stripJsonFences(content: string): string {
   return cleanContent.trim();
 }
 
-function parseQuestions(content: string): QuizQuestion[] {
+function parseQuestions(content: string): StructuredQuizQuestion[] {
   const cleanContent = stripJsonFences(content);
   const parsed = JSON.parse(cleanContent) as unknown;
 
   if (Array.isArray(parsed)) {
-    return parsed as QuizQuestion[];
+    return parsed as StructuredQuizQuestion[];
   }
 
   const wrapped = parsed as { questions?: unknown } | null;
   if (wrapped?.questions && Array.isArray(wrapped.questions)) {
-    return wrapped.questions as QuizQuestion[];
+    return wrapped.questions as StructuredQuizQuestion[];
   }
 
   return [];
+}
+
+function getResponseRefusal(response: unknown): string | null {
+  const output = (response as { output?: unknown })?.output;
+  if (!Array.isArray(output)) {
+    return null;
+  }
+
+  for (const item of output) {
+    const content = (item as { content?: unknown })?.content;
+    if (!Array.isArray(content)) continue;
+    for (const block of content) {
+      if (
+        (block as { type?: string })?.type === "refusal" &&
+        typeof (block as { refusal?: unknown })?.refusal === "string"
+      ) {
+        return (block as { refusal: string }).refusal;
+      }
+    }
+  }
+
+  return null;
+}
+
+function assertOpenAIResponseIsUsable(response: unknown): void {
+  const refusal = getResponseRefusal(response);
+  if (refusal) {
+    throw new Error(`OpenAI refused the request: ${refusal}`);
+  }
+
+  const status = (response as { status?: unknown })?.status;
+  if (status !== "incomplete") {
+    return;
+  }
+
+  const reason = (
+    response as {
+      incomplete_details?: { reason?: unknown } | null;
+    }
+  )?.incomplete_details?.reason;
+
+  if (typeof reason === "string" && reason.length > 0) {
+    throw new Error(`OpenAI response incomplete: ${reason}`);
+  }
+
+  throw new Error("OpenAI response incomplete");
+}
+
+function normalizeStructuredQuizQuestions(
+  questions: StructuredQuizQuestion[],
+): GeneratedQuizQuestion[] {
+  return questions.map(({ code, ...question }) =>
+    code === null ? question : { ...question, code },
+  );
+}
+
+function validateQuizQuestions(
+  questions: GeneratedQuizQuestion[],
+  expectedCount: number,
+): void {
+  if (questions.length !== expectedCount) {
+    throw new Error(
+      `OpenAI returned ${questions.length} quiz questions, expected ${expectedCount}`,
+    );
+  }
+
+  for (const [index, question] of questions.entries()) {
+    if (question.options.length !== 4) {
+      throw new Error(
+        `Invalid quiz question at index ${index}: expected exactly 4 options`,
+      );
+    }
+
+    if (
+      !Number.isInteger(question.correctIndex) ||
+      question.correctIndex < 0 ||
+      question.correctIndex >= question.options.length
+    ) {
+      throw new Error(
+        `Invalid quiz question at index ${index}: correctIndex is out of bounds`,
+      );
+    }
+  }
 }
 
 async function requestOpenAI(payload: Record<string, unknown>) {
@@ -205,7 +335,7 @@ async function sha256Hex(input: string): Promise<string> {
 
 async function addStableIds(
   topicId: string,
-  questions: QuizQuestion[],
+  questions: GeneratedQuizQuestion[],
 ): Promise<QuizQuestion[]> {
   const withIds = await Promise.all(
     questions.map(async (question, index) => {
@@ -269,46 +399,39 @@ ${difficultyInstruction}
 Each question should:
 - Test understanding of the concept, not just memorization
 - Include a short code snippet when appropriate (keep code under 10 lines)
+- Use "code": null when a code snippet is not needed
 - Have exactly 4 answer options
 - Have only one correct answer
 - Include a brief explanation of why the correct answer is right
 
-Return a JSON array with this exact structure:
-[
-  {
-    "id": "unique-id-1",
-    "question": "What will be the output of this code?",
-    "code": "const x = 5;\\nlet y = x;\\ny = 10;\\nconsole.log(x);",
-    "options": ["5", "10", "undefined", "Error"],
-    "correctIndex": 0,
-    "explanation": "Primitives are copied by value, so changing y doesn't affect x."
-  }
-]
-
 Important:
 - Make questions progressively challenging
 - Use realistic code examples students would encounter
+- The response schema already defines the JSON shape, so focus on the question content
 ${contextExclusion ? `- ${contextExclusion}` : ""}
-- Return ONLY valid JSON, no markdown or extra text`;
+- Do not include any keys other than question, code, options, correctIndex, and explanation`;
 
   const response = await requestOpenAI({
     model: process.env.OPENAI_MODEL || "gpt-5.4-mini",
     instructions: `You are a ${programmingLanguageName} programming tutor creating quiz questions. ${
       language === "de" ? "Respond in German." : "Respond in English."
-    } Always respond with valid JSON containing a 'questions' array.`,
+    } Follow the provided response schema exactly.`,
     input: prompt,
+    text: QUIZ_RESPONSE_FORMAT,
     max_output_tokens: 4096,
   });
+
+  assertOpenAIResponseIsUsable(response);
 
   const content = getResponseText(response);
   if (!content) {
     throw new Error("Empty response from OpenAI");
   }
 
-  let questions = parseQuestions(content);
-  questions = await addStableIds(topicId, questions);
+  const questions = normalizeStructuredQuizQuestions(parseQuestions(content));
+  validateQuizQuestions(questions, count);
 
-  return questions;
+  return addStableIds(topicId, questions);
 }
 
 export async function generateTopicExplanation(
@@ -360,6 +483,8 @@ ${contextExclusion ? `${contextExclusion}.` : ""}`;
     input: prompt,
     max_output_tokens: 2048,
   });
+
+  assertOpenAIResponseIsUsable(response);
 
   const explanation = getResponseText(response);
   if (!explanation) {

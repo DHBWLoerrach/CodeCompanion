@@ -141,7 +141,7 @@ describe("server/quiz", () => {
         mockFetchResponse({
           json: {
             output_text:
-              '{"questions":[{"id":"x","question":"Q?","options":["A","B","C","D"],"correctIndex":0,"explanation":"Because"}]}',
+              '{"questions":[{"question":"Q?","code":null,"options":["A","B","C","D"],"correctIndex":0,"explanation":"Because"}]}',
           },
         }),
       );
@@ -159,14 +159,31 @@ describe("server/quiz", () => {
       expect(fetchMock.mock.calls[0][0].toString()).toBe(
         "https://api.openai.com/v1/responses",
       );
+
+      const fetchOptions = fetchMock.mock.calls[0][1] as RequestInit;
+      const payload = JSON.parse(String(fetchOptions.body)) as {
+        text: {
+          format: {
+            type: string;
+            name: string;
+            strict: boolean;
+            schema: { required: string[] };
+          };
+        };
+      };
+
+      expect(payload.text.format.type).toBe("json_schema");
+      expect(payload.text.format.name).toBe("quiz_questions");
+      expect(payload.text.format.strict).toBe(true);
+      expect(payload.text.format.schema.required).toEqual(["questions"]);
     });
 
-    it("parses fenced JSON and assigns stable IDs", async () => {
+    it("normalizes null code values and assigns stable IDs", async () => {
       fetchMock.mockResolvedValueOnce(
         mockFetchResponse({
           json: {
             output_text:
-              '```json\n[{"id":"original-1","question":"What is const?","options":["A","B","C","D"],"correctIndex":1,"explanation":"Because"}]\n```',
+              '{"questions":[{"question":"What is const?","code":null,"options":["A","B","C","D"],"correctIndex":1,"explanation":"Because"}]}',
           },
         }),
       );
@@ -180,8 +197,8 @@ describe("server/quiz", () => {
       );
 
       expect(question.id).toMatch(/^variables-[a-f0-9]{12}$/);
-      expect(question.id).not.toBe("original-1");
       expect(question.question).toBe("What is const?");
+      expect(question.code).toBeUndefined();
     });
 
     it("parses wrapped questions from output content blocks", async () => {
@@ -193,7 +210,7 @@ describe("server/quiz", () => {
                 content: [
                   {
                     type: "output_text",
-                    text: '{"questions":[{"id":"q1","question":"Q?","options":["A","B","C","D"],"correctIndex":2,"explanation":"E"}]}',
+                    text: '{"questions":[{"question":"Q?","code":"for (let i = 0; i < 1; i += 1) {}","options":["A","B","C","D"],"correctIndex":2,"explanation":"E"}]}',
                   },
                 ],
               },
@@ -213,6 +230,7 @@ describe("server/quiz", () => {
       expect(questions).toHaveLength(1);
       expect(questions[0].correctIndex).toBe(2);
       expect(questions[0].id).toMatch(/^loops-[a-f0-9]{12}$/);
+      expect(questions[0].code).toContain("for");
     });
 
     it("throws on non-ok OpenAI response", async () => {
@@ -248,7 +266,7 @@ describe("server/quiz", () => {
         mockFetchResponse({
           json: {
             output_text:
-              '{"questions":[{"id":"x","question":"Q?","options":["A","B","C","D"],"correctIndex":0,"explanation":"Because"}]}',
+              '{"questions":[{"question":"Q?","code":null,"options":["A","B","C","D"],"correctIndex":0,"explanation":"Because"}]}',
           },
         }),
       );
@@ -263,6 +281,49 @@ describe("server/quiz", () => {
 
       expect(payload.instructions).toContain("Python programming tutor");
       expect(payload.input).toContain("Python variable assignment");
+      expect(payload.input).toContain(
+        'Use "code": null when a code snippet is not needed',
+      );
+    });
+
+    it("throws when OpenAI refuses the quiz request", async () => {
+      fetchMock.mockResolvedValueOnce(
+        mockFetchResponse({
+          json: {
+            output: [
+              {
+                content: [
+                  {
+                    type: "refusal",
+                    refusal: "I cannot help with that.",
+                  },
+                ],
+              },
+            ],
+          },
+        }),
+      );
+
+      await expect(
+        generateQuizQuestions("javascript", "variables"),
+      ).rejects.toThrow("OpenAI refused the request: I cannot help with that.");
+    });
+
+    it("throws when quiz output is incomplete", async () => {
+      fetchMock.mockResolvedValueOnce(
+        mockFetchResponse({
+          json: {
+            status: "incomplete",
+            incomplete_details: {
+              reason: "max_output_tokens",
+            },
+          },
+        }),
+      );
+
+      await expect(
+        generateQuizQuestions("javascript", "variables"),
+      ).rejects.toThrow("OpenAI response incomplete: max_output_tokens");
     });
   });
 
