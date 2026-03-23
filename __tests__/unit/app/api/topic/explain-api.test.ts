@@ -1,9 +1,9 @@
+import { generateTopicExplanation } from "@server/quiz";
+import { POST } from "../../../../../app/api/topic/explain+api";
+
 jest.mock("@server/quiz", () => ({
   generateTopicExplanation: jest.fn(),
 }));
-
-import { generateTopicExplanation } from "@server/quiz";
-import { POST } from "../../../../../app/api/topic/explain+api";
 
 const mockGenerateTopicExplanation = jest.mocked(generateTopicExplanation);
 
@@ -37,6 +37,22 @@ describe("POST /api/topic/explain", () => {
 
     expect(response.status).toBe(400);
     expect(data).toEqual({ error: "language must be 'en' or 'de'" });
+    expect(mockGenerateTopicExplanation).not.toHaveBeenCalled();
+  });
+
+  it("returns 400 when programmingLanguage is invalid", async () => {
+    const response = await POST(
+      createRequest({
+        topicId: "variables",
+        programmingLanguage: "rust",
+      }),
+    );
+    const data = await response.json();
+
+    expect(response.status).toBe(400);
+    expect(data).toEqual({
+      error: "programmingLanguage must be one of: javascript, python, java",
+    });
     expect(mockGenerateTopicExplanation).not.toHaveBeenCalled();
   });
 

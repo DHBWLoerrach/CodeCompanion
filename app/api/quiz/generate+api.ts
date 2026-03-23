@@ -36,6 +36,14 @@ export async function POST(request: Request) {
     const programmingLanguage = toProgrammingLanguage(
       body?.programmingLanguage,
     );
+    if (!programmingLanguage) {
+      return Response.json(
+        {
+          error: "programmingLanguage must be one of: javascript, python, java",
+        },
+        { status: 400 },
+      );
+    }
     if (!validateTopicIdForLanguage(topicId, programmingLanguage)) {
       return Response.json(
         { error: "Invalid topicId for programmingLanguage" },

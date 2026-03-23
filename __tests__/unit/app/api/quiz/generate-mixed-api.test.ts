@@ -1,10 +1,10 @@
+import { generateQuizQuestions } from "@server/quiz";
+import { POST } from "../../../../../app/api/quiz/generate-mixed+api";
+
 jest.mock("@server/quiz", () => ({
   generateQuizQuestions: jest.fn(),
   getAvailableTopicIds: jest.fn(() => ["variables", "loops", "promises"]),
 }));
-
-import { generateQuizQuestions } from "@server/quiz";
-import { POST } from "../../../../../app/api/quiz/generate-mixed+api";
 
 const mockGenerateQuizQuestions = jest.mocked(generateQuizQuestions);
 
@@ -74,6 +74,22 @@ describe("POST /api/quiz/generate-mixed", () => {
 
     expect(response.status).toBe(400);
     expect(data).toEqual({ error: "language must be 'en' or 'de'" });
+    expect(mockGenerateQuizQuestions).not.toHaveBeenCalled();
+  });
+
+  it("returns 400 when programmingLanguage is invalid", async () => {
+    const response = await POST(
+      createRequest({
+        topicIds: ["variables"],
+        programmingLanguage: "rust",
+      }),
+    );
+    const data = await response.json();
+
+    expect(response.status).toBe(400);
+    expect(data).toEqual({
+      error: "programmingLanguage must be one of: javascript, python, java",
+    });
     expect(mockGenerateQuizQuestions).not.toHaveBeenCalled();
   });
 
@@ -202,6 +218,27 @@ describe("POST /api/quiz/generate-mixed", () => {
       2,
     );
     expect(data.questions).toHaveLength(10);
+  });
+
+  it("truncates decimal count and skillLevel", async () => {
+    const response = await POST(
+      createRequest({
+        topicIds: ["variables"],
+        count: 3.9,
+        skillLevel: 2.7,
+      }),
+    );
+    const data = await response.json();
+
+    expect(response.status).toBe(200);
+    expect(mockGenerateQuizQuestions).toHaveBeenCalledWith(
+      "javascript",
+      "variables",
+      3,
+      "en",
+      2,
+    );
+    expect(data.questions).toHaveLength(3);
   });
 
   it("clamps skillLevel to maximum", async () => {

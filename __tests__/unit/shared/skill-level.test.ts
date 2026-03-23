@@ -40,12 +40,16 @@ describe("shared/skill-level", () => {
       expect(clampMasteryLevel(0)).toBe(1);
       expect(clampMasteryLevel(99)).toBe(5);
       expect(clampMasteryLevel("abc", 4)).toBe(4);
+      expect(clampMasteryLevel(null, 3)).toBe(3);
+      expect(clampMasteryLevel(4.9)).toBe(4);
     });
 
     it("clamps quiz difficulty level to range 1..3", () => {
       expect(clampQuizDifficultyLevel(-2)).toBe(1);
       expect(clampQuizDifficultyLevel(42)).toBe(3);
       expect(clampQuizDifficultyLevel("abc", 2)).toBe(2);
+      expect(clampQuizDifficultyLevel(null, 2)).toBe(2);
+      expect(clampQuizDifficultyLevel(2.9)).toBe(2);
     });
   });
 });

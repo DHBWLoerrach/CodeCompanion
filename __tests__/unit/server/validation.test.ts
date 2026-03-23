@@ -58,6 +58,16 @@ describe("server/validation", () => {
     it("parses string count", () => {
       expect(toQuestionCount("7", 5)).toBe(7);
     });
+
+    it("uses fallback when count is null or undefined", () => {
+      expect(toQuestionCount(null, 5)).toBe(5);
+      expect(toQuestionCount(undefined, 5)).toBe(5);
+    });
+
+    it("truncates decimal counts before clamping", () => {
+      expect(toQuestionCount(2.9, 5)).toBe(2);
+      expect(toQuestionCount("3.8", 5)).toBe(3);
+    });
   });
 
   describe("toLanguage", () => {
@@ -123,6 +133,11 @@ describe("server/validation", () => {
     it("uses default fallback of 1", () => {
       expect(toQuizDifficultyLevel(undefined)).toBe(1);
     });
+
+    it("uses fallback for null and truncates decimals", () => {
+      expect(toQuizDifficultyLevel(null, 2)).toBe(2);
+      expect(toQuizDifficultyLevel(2.9)).toBe(2);
+    });
   });
 
   describe("toProgrammingLanguage", () => {
@@ -132,10 +147,14 @@ describe("server/validation", () => {
       expect(toProgrammingLanguage("java")).toBe("java");
     });
 
-    it("falls back to javascript for unsupported values", () => {
-      expect(toProgrammingLanguage("rust")).toBe("javascript");
+    it("uses javascript as the default when omitted", () => {
       expect(toProgrammingLanguage(undefined)).toBe("javascript");
       expect(toProgrammingLanguage(null)).toBe("javascript");
+    });
+
+    it("returns null for unsupported values", () => {
+      expect(toProgrammingLanguage("rust")).toBeNull();
+      expect(toProgrammingLanguage("python ")).toBeNull();
     });
   });
 

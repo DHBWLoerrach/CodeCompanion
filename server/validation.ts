@@ -18,8 +18,12 @@ export function toNumber(value: unknown, fallback: number): number {
 }
 
 export function toQuestionCount(value: unknown, fallback: number): number {
+  if (value === undefined || value === null) {
+    return fallback;
+  }
+
   const parsed = toNumber(value, fallback);
-  return Math.min(20, Math.max(1, parsed));
+  return Math.min(20, Math.max(1, Math.trunc(parsed)));
 }
 
 export function toLanguage(value: unknown): SupportedLanguage | null {
@@ -35,14 +39,20 @@ export function requireTopicId(value: unknown): string | null {
   return value;
 }
 
-export function toProgrammingLanguage(value: unknown): ProgrammingLanguageId {
+export function toProgrammingLanguage(
+  value: unknown,
+): ProgrammingLanguageId | null {
+  if (value === undefined || value === null) {
+    return DEFAULT_PROGRAMMING_LANGUAGE_ID;
+  }
+
   if (
     typeof value === "string" &&
     SUPPORTED_PROGRAMMING_LANGUAGE_IDS.includes(value as ProgrammingLanguageId)
   ) {
     return value as ProgrammingLanguageId;
   }
-  return DEFAULT_PROGRAMMING_LANGUAGE_ID;
+  return null;
 }
 
 export function toQuizDifficultyLevel(

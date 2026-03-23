@@ -1,9 +1,9 @@
+import { generateQuizQuestions } from "@server/quiz";
+import { POST } from "../../../../../app/api/quiz/generate+api";
+
 jest.mock("@server/quiz", () => ({
   generateQuizQuestions: jest.fn(),
 }));
-
-import { generateQuizQuestions } from "@server/quiz";
-import { POST } from "../../../../../app/api/quiz/generate+api";
 
 const mockGenerateQuizQuestions = jest.mocked(generateQuizQuestions);
 
@@ -41,6 +41,22 @@ describe("POST /api/quiz/generate", () => {
 
     expect(response.status).toBe(400);
     expect(data).toEqual({ error: "language must be 'en' or 'de'" });
+    expect(mockGenerateQuizQuestions).not.toHaveBeenCalled();
+  });
+
+  it("returns 400 when programmingLanguage is invalid", async () => {
+    const response = await POST(
+      createRequest({
+        topicId: "variables",
+        programmingLanguage: "rust",
+      }),
+    );
+    const data = await response.json();
+
+    expect(response.status).toBe(400);
+    expect(data).toEqual({
+      error: "programmingLanguage must be one of: javascript, python, java",
+    });
     expect(mockGenerateQuizQuestions).not.toHaveBeenCalled();
   });
 
@@ -91,6 +107,26 @@ describe("POST /api/quiz/generate", () => {
     expect(data.questions).toHaveLength(1);
   });
 
+  it("truncates decimal count and skill level", async () => {
+    mockGenerateQuizQuestions.mockResolvedValueOnce([]);
+
+    await POST(
+      createRequest({
+        topicId: "variables",
+        count: 2.9,
+        skillLevel: 2.8,
+      }),
+    );
+
+    expect(mockGenerateQuizQuestions).toHaveBeenCalledWith(
+      "javascript",
+      "variables",
+      2,
+      "en",
+      2,
+    );
+  });
+
   it("uses fallback count when count is invalid", async () => {
     mockGenerateQuizQuestions.mockResolvedValueOnce([]);
 
@@ -108,6 +144,25 @@ describe("POST /api/quiz/generate", () => {
       "loops",
       5,
       "de",
+      1,
+    );
+  });
+
+  it("uses fallback count when count is null", async () => {
+    mockGenerateQuizQuestions.mockResolvedValueOnce([]);
+
+    await POST(
+      createRequest({
+        topicId: "loops",
+        count: null,
+      }),
+    );
+
+    expect(mockGenerateQuizQuestions).toHaveBeenCalledWith(
+      "javascript",
+      "loops",
+      5,
+      "en",
       1,
     );
   });
