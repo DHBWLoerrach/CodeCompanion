@@ -262,8 +262,9 @@ async function requestOpenAI(payload: Record<string, unknown>) {
     throw new Error("OPENAI_API_KEY is not set");
   }
 
+  let response: Response;
   try {
-    const response = await fetch(OPENAI_RESPONSES_URL, {
+    response = await fetch(OPENAI_RESPONSES_URL, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -271,12 +272,6 @@ async function requestOpenAI(payload: Record<string, unknown>) {
       },
       body: JSON.stringify(payload),
     });
-
-    if (!response.ok) {
-      throw new Error(`OpenAI request failed with status ${response.status}`);
-    }
-
-    return response.json();
   } catch (error) {
     if (!isTimeoutError(error)) {
       throw error;
@@ -285,6 +280,20 @@ async function requestOpenAI(payload: Record<string, unknown>) {
     // Expo's fetch-nodeshim uses a hard 5s socket timeout.
     // Fall back to node:https with a configurable timeout for longer OpenAI responses.
     return requestOpenAIViaHttps(apiKey, payload);
+  }
+
+  if (!response.ok) {
+    throw new Error(`OpenAI request failed with status ${response.status}`);
+  }
+
+  try {
+    return await response.json();
+  } catch (error) {
+    if (isTimeoutError(error)) {
+      return requestOpenAIViaHttps(apiKey, payload);
+    }
+
+    throw new Error("Invalid JSON response from OpenAI");
   }
 }
 

@@ -13,6 +13,7 @@ type MockResponseInit = {
   statusText?: string;
   text?: string;
   json?: unknown;
+  jsonError?: unknown;
 };
 
 function mockFetchResponse({
@@ -21,13 +22,19 @@ function mockFetchResponse({
   statusText = "OK",
   text = "",
   json = {},
+  jsonError,
 }: MockResponseInit): Response {
   return {
     ok,
     status,
     statusText,
     text: async () => text,
-    json: async () => json,
+    json: async () => {
+      if (jsonError !== undefined) {
+        throw jsonError;
+      }
+      return json;
+    },
   } as Response;
 }
 
@@ -402,6 +409,18 @@ describe("server/quiz", () => {
       ).rejects.toThrow("Empty response from OpenAI");
     });
 
+    it("throws when OpenAI returns invalid JSON", async () => {
+      fetchMock.mockResolvedValueOnce(
+        mockFetchResponse({
+          jsonError: new SyntaxError("Unexpected token < in JSON"),
+        }),
+      );
+
+      await expect(
+        generateQuizQuestions("javascript", "variables"),
+      ).rejects.toThrow("Invalid JSON response from OpenAI");
+    });
+
     it("uses python language context when generating python quizzes", async () => {
       fetchMock.mockResolvedValueOnce(
         mockFetchResponse({
@@ -549,6 +568,35 @@ describe("server/quiz", () => {
       expect(requestSpy.mock.calls[0][0]).toBe(
         "https://api.openai.com/v1/responses",
       );
+      expect(getLastTimeoutMs()).toBe(30_000);
+
+      requestSpy.mockRestore();
+    });
+
+    it("falls back to https when reading the fetch response times out", async () => {
+      const timeoutError = new Error("Request timed out") as Error & {
+        code?: string;
+      };
+      timeoutError.code = "ETIMEDOUT";
+      fetchMock.mockResolvedValueOnce(
+        mockFetchResponse({
+          jsonError: timeoutError,
+        }),
+      );
+
+      const { requestSpy, getLastTimeoutMs } = mockHttpsJsonResponse({
+        output_text: "## From parse-time fallback",
+      });
+
+      const explanation = await generateTopicExplanation(
+        "javascript",
+        "promises",
+        "en",
+      );
+
+      expect(explanation).toBe("## From parse-time fallback");
+      expect(fetchMock).toHaveBeenCalledTimes(1);
+      expect(requestSpy).toHaveBeenCalledTimes(1);
       expect(getLastTimeoutMs()).toBe(30_000);
 
       requestSpy.mockRestore();
