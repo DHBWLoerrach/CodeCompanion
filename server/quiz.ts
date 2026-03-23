@@ -2,17 +2,12 @@ import * as https from "node:https";
 import type { QuizDifficultyLevel } from "@shared/skill-level";
 import type { QuizQuestion } from "@shared/quiz-question";
 import { getTopicIdsByLanguage } from "@shared/curriculum";
-import {
-  DEFAULT_PROGRAMMING_LANGUAGE_ID,
-  type ProgrammingLanguageId,
-} from "@shared/programming-language";
+import type { ProgrammingLanguageId } from "@shared/programming-language";
 import {
   getTopicPrompt,
   LANGUAGE_CONTEXT_EXCLUSIONS,
   LANGUAGE_NAMES,
 } from "./topic-prompts";
-
-export type { QuizQuestion };
 
 type GeneratedQuizQuestion = Omit<QuizQuestion, "id" | "code"> & {
   code?: string;
@@ -578,10 +573,6 @@ export async function generateTopicExplanation(
 ): Promise<string> {
   const { topicDescription, programmingLanguageName, contextExclusion } =
     resolveLanguageContext(programmingLanguage, topicId);
-  const codeBlockLang =
-    programmingLanguage === DEFAULT_PROGRAMMING_LANGUAGE_ID
-      ? "javascript"
-      : programmingLanguage;
 
   const languageInstruction =
     language === "de"
@@ -605,12 +596,12 @@ export async function generateTopicExplanation(
 
 ${languageInstruction}
 
-Structure your explanation as follows:
-${sectionHeadings}
-
-Format the response in Markdown. Use code blocks with \`\`\`${codeBlockLang} for code examples.
-Keep the total length to about 500-700 words.
-${contextExclusion ? `${contextExclusion}.` : ""}`;
+	Structure your explanation as follows:
+	${sectionHeadings}
+	
+	Format the response in Markdown. Use code blocks with \`\`\`${programmingLanguage} for code examples.
+	Keep the total length to about 500-700 words.
+	${contextExclusion ? `${contextExclusion}.` : ""}`;
 
   const response = await requestOpenAI({
     model: process.env.OPENAI_MODEL || "gpt-5.4-mini",
