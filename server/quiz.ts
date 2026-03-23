@@ -197,8 +197,16 @@ function normalizeStructuredQuizQuestions(
   });
 }
 
-function validateQuizQuestions(
-  questions: GeneratedQuizQuestion[],
+type StructuredQuizQuestionCandidate = {
+  question?: unknown;
+  code?: unknown;
+  options?: unknown;
+  correctIndex?: unknown;
+  explanation?: unknown;
+};
+
+function validateStructuredQuizQuestions(
+  questions: StructuredQuizQuestion[],
   expectedCount: number,
 ): void {
   if (questions.length !== expectedCount) {
@@ -207,10 +215,36 @@ function validateQuizQuestions(
     );
   }
 
-  for (const [index, question] of questions.entries()) {
+  for (const [index, rawQuestion] of questions.entries()) {
+    const question = rawQuestion as StructuredQuizQuestionCandidate | null;
+
+    if (!question || typeof question !== "object") {
+      throw new Error(
+        `Invalid quiz question at index ${index}: question must be an object`,
+      );
+    }
+
+    if (typeof question.question !== "string") {
+      throw new Error(
+        `Invalid quiz question at index ${index}: question text must be a string`,
+      );
+    }
+
     if (!question.question.trim()) {
       throw new Error(
         `Invalid quiz question at index ${index}: question text is empty`,
+      );
+    }
+
+    if (!(typeof question.code === "string" || question.code === null)) {
+      throw new Error(
+        `Invalid quiz question at index ${index}: code must be a string or null`,
+      );
+    }
+
+    if (!Array.isArray(question.options)) {
+      throw new Error(
+        `Invalid quiz question at index ${index}: options must be an array`,
       );
     }
 
@@ -221,13 +255,47 @@ function validateQuizQuestions(
     }
 
     if (
-      !Number.isInteger(question.correctIndex) ||
-      question.correctIndex < 0 ||
-      question.correctIndex >= question.options.length
+      question.options.some(
+        (option) => typeof option !== "string" || option.trim().length === 0,
+      )
+    ) {
+      throw new Error(
+        `Invalid quiz question at index ${index}: answer options must be non-empty strings`,
+      );
+    }
+
+    if (typeof question.explanation !== "string") {
+      throw new Error(
+        `Invalid quiz question at index ${index}: explanation must be a string`,
+      );
+    }
+
+    if (!question.explanation.trim()) {
+      throw new Error(
+        `Invalid quiz question at index ${index}: explanation is empty`,
+      );
+    }
+
+    const correctIndex = question.correctIndex;
+    if (
+      typeof correctIndex !== "number" ||
+      !Number.isInteger(correctIndex) ||
+      correctIndex < 0 ||
+      correctIndex >= question.options.length
     ) {
       throw new Error(
         `Invalid quiz question at index ${index}: correctIndex is out of bounds`,
       );
+    }
+  }
+}
+
+function validateNormalizedQuizQuestions(
+  questions: GeneratedQuizQuestion[],
+): void {
+  for (const [index, question] of questions.entries()) {
+    if (question.code !== undefined && !question.code.trim()) {
+      throw new Error(`Invalid quiz question at index ${index}: code is empty`);
     }
   }
 }
@@ -494,8 +562,11 @@ ${contextExclusion ? `- ${contextExclusion}` : ""}
     throw new Error("Empty response from OpenAI");
   }
 
-  const questions = normalizeStructuredQuizQuestions(parseQuestions(content));
-  validateQuizQuestions(questions, count);
+  const structuredQuestions = parseQuestions(content);
+  validateStructuredQuizQuestions(structuredQuestions, count);
+
+  const questions = normalizeStructuredQuizQuestions(structuredQuestions);
+  validateNormalizedQuizQuestions(questions);
 
   return addStableIds(programmingLanguage, topicId, questions);
 }

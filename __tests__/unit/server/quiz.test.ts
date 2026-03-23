@@ -58,6 +58,27 @@ function buildStructuredQuizQuestions(count: number) {
   }));
 }
 
+type StructuredQuizQuestionOverrides = {
+  question?: unknown;
+  code?: unknown;
+  options?: unknown;
+  correctIndex?: unknown;
+  explanation?: unknown;
+};
+
+function buildStructuredQuizQuestion(
+  overrides: StructuredQuizQuestionOverrides = {},
+) {
+  return {
+    question: "Q?",
+    code: null,
+    options: ["A", "B", "C", "D"],
+    correctIndex: 0,
+    explanation: "Because",
+    ...overrides,
+  };
+}
+
 function mockHttpsJsonResponse(json: unknown): {
   requestSpy: jest.SpyInstance;
   getLastTimeoutMs: () => number | undefined;
@@ -314,6 +335,27 @@ describe("server/quiz", () => {
       expect(question.code).not.toContain("```");
     });
 
+    it("throws when normalized code is an empty string", async () => {
+      fetchMock.mockResolvedValueOnce(
+        mockFetchResponse({
+          json: {
+            output_text: JSON.stringify({
+              questions: [
+                buildStructuredQuizQuestion({
+                  question: "What does this do?",
+                  code: "   ",
+                }),
+              ],
+            }),
+          },
+        }),
+      );
+
+      await expect(
+        generateQuizQuestions("javascript", "functions", 1, "en", 1),
+      ).rejects.toThrow("Invalid quiz question at index 0: code is empty");
+    });
+
     it("removes duplicate markdown code blocks from question text", async () => {
       const code =
         'function greet(name, callback) {\n  console.log("Hallo " + name);\n  callback();\n}\n\ngreet("Mia", function() {\n  console.log("Willkommen!");\n});';
@@ -448,6 +490,68 @@ describe("server/quiz", () => {
       await expect(
         generateQuizQuestions("javascript", "variables"),
       ).rejects.toThrow("Empty response from OpenAI");
+    });
+
+    it("throws when question text is not a string", async () => {
+      fetchMock.mockResolvedValueOnce(
+        mockFetchResponse({
+          json: {
+            output_text: JSON.stringify({
+              questions: [buildStructuredQuizQuestion({ question: 42 })],
+            }),
+          },
+        }),
+      );
+
+      await expect(
+        generateQuizQuestions("javascript", "variables", 1),
+      ).rejects.toThrow(
+        "Invalid quiz question at index 0: question text must be a string",
+      );
+    });
+
+    it("throws when answer options are not non-empty strings", async () => {
+      fetchMock.mockResolvedValueOnce(
+        mockFetchResponse({
+          json: {
+            output_text: JSON.stringify({
+              questions: [
+                buildStructuredQuizQuestion({
+                  options: ["A", " ", "C", "D"],
+                }),
+              ],
+            }),
+          },
+        }),
+      );
+
+      await expect(
+        generateQuizQuestions("javascript", "variables", 1),
+      ).rejects.toThrow(
+        "Invalid quiz question at index 0: answer options must be non-empty strings",
+      );
+    });
+
+    it("throws when explanation is empty", async () => {
+      fetchMock.mockResolvedValueOnce(
+        mockFetchResponse({
+          json: {
+            output_text: JSON.stringify({
+              questions: [
+                buildStructuredQuizQuestion({
+                  explanation: "   ",
+                }),
+              ],
+            }),
+          },
+        }),
+      );
+
+      await expect(
+        generateQuizQuestions("javascript", "variables", 1),
+      ).rejects.toThrow(
+        "Invalid quiz question at index 0: explanation is empty",
+      );
     });
 
     it("throws when OpenAI returns invalid JSON", async () => {
