@@ -3,7 +3,11 @@ import { POST } from "../../../../../app/api/quiz/generate-mixed+api";
 
 jest.mock("@server/quiz", () => ({
   generateQuizQuestions: jest.fn(),
-  getAvailableTopicIds: jest.fn(() => ["variables", "loops", "promises"]),
+}));
+
+jest.mock("@shared/curriculum", () => ({
+  ...jest.requireActual("@shared/curriculum"),
+  getTopicIdsByLanguage: jest.fn(() => ["variables", "loops", "promises"]),
 }));
 
 const mockGenerateQuizQuestions = jest.mocked(generateQuizQuestions);

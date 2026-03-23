@@ -1,11 +1,7 @@
 import * as https from "node:https";
 import type { IncomingMessage } from "node:http";
 import { EventEmitter } from "node:events";
-import {
-  generateQuizQuestions,
-  generateTopicExplanation,
-  getAvailableTopicIds,
-} from "@server/quiz";
+import { generateQuizQuestions, generateTopicExplanation } from "@server/quiz";
 
 type MockResponseInit = {
   ok?: boolean;
@@ -154,14 +150,6 @@ describe("server/quiz", () => {
     process.env = originalEnv;
     global.fetch = originalFetch;
     global.crypto = originalCrypto;
-  });
-
-  describe("getAvailableTopicIds", () => {
-    it("returns language-specific topic IDs from curriculum", () => {
-      expect(getAvailableTopicIds("javascript")).toContain("variables");
-      expect(getAvailableTopicIds("python")).toContain("variables-assignment");
-      expect(getAvailableTopicIds("java")).toContain("variables-constants");
-    });
   });
 
   describe("generateQuizQuestions", () => {

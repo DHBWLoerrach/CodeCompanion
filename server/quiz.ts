@@ -1,7 +1,6 @@
 import * as https from "node:https";
 import type { QuizDifficultyLevel } from "@shared/skill-level";
 import type { QuizQuestion } from "@shared/quiz-question";
-import { getTopicIdsByLanguage } from "@shared/curriculum";
 import type { ProgrammingLanguageId } from "@shared/programming-language";
 import {
   getTopicPrompt,
@@ -56,12 +55,6 @@ const QUIZ_RESPONSE_FORMAT = {
   },
 } as const;
 
-export function getAvailableTopicIds(
-  programmingLanguage: ProgrammingLanguageId,
-): string[] {
-  return getTopicIdsByLanguage(programmingLanguage);
-}
-
 const OPENAI_RESPONSES_URL = "https://api.openai.com/v1/responses";
 const DEFAULT_OPENAI_TIMEOUT_MS = 30_000;
 const MARKDOWN_CODE_BLOCK_PATTERN = /```(?:[^\n\r`]*)\r?\n([\s\S]*?)```/g;
@@ -115,17 +108,17 @@ function stripJsonFences(content: string): string {
   return cleanContent.trim();
 }
 
-function parseQuestions(content: string): StructuredQuizQuestion[] {
+function parseQuestions(content: string): unknown[] {
   const cleanContent = stripJsonFences(content);
   const parsed = JSON.parse(cleanContent) as unknown;
 
   if (Array.isArray(parsed)) {
-    return parsed as StructuredQuizQuestion[];
+    return parsed;
   }
 
   const wrapped = parsed as { questions?: unknown } | null;
   if (wrapped?.questions && Array.isArray(wrapped.questions)) {
-    return wrapped.questions as StructuredQuizQuestion[];
+    return wrapped.questions;
   }
 
   return [];
@@ -201,14 +194,16 @@ type StructuredQuizQuestionCandidate = {
 };
 
 function validateStructuredQuizQuestions(
-  questions: StructuredQuizQuestion[],
+  questions: unknown[],
   expectedCount: number,
-): void {
+): StructuredQuizQuestion[] {
   if (questions.length !== expectedCount) {
     throw new Error(
       `OpenAI returned ${questions.length} quiz questions, expected ${expectedCount}`,
     );
   }
+
+  const validatedQuestions: StructuredQuizQuestion[] = [];
 
   for (const [index, rawQuestion] of questions.entries()) {
     const question = rawQuestion as StructuredQuizQuestionCandidate | null;
@@ -282,7 +277,17 @@ function validateStructuredQuizQuestions(
         `Invalid quiz question at index ${index}: correctIndex is out of bounds`,
       );
     }
+
+    validatedQuestions.push({
+      question: question.question,
+      code: question.code,
+      options: question.options,
+      correctIndex,
+      explanation: question.explanation,
+    });
   }
+
+  return validatedQuestions;
 }
 
 function validateNormalizedQuizQuestions(
@@ -557,8 +562,10 @@ ${contextExclusion ? `- ${contextExclusion}` : ""}
     throw new Error("Empty response from OpenAI");
   }
 
-  const structuredQuestions = parseQuestions(content);
-  validateStructuredQuizQuestions(structuredQuestions, count);
+  const structuredQuestions = validateStructuredQuizQuestions(
+    parseQuestions(content),
+    count,
+  );
 
   const questions = normalizeStructuredQuizQuestions(structuredQuestions);
   validateNormalizedQuizQuestions(questions);

@@ -1,5 +1,6 @@
+import { getTopicIdsByLanguage } from "@shared/curriculum";
 import { mapWithConcurrency } from "@server/concurrency";
-import { generateQuizQuestions, getAvailableTopicIds } from "@server/quiz";
+import { generateQuizQuestions } from "@server/quiz";
 import { logApiError } from "@server/logging";
 import {
   invalidJsonBodyResponse,
@@ -86,7 +87,7 @@ export async function POST(request: Request) {
       );
     }
 
-    const allTopicKeys = getAvailableTopicIds(programmingLanguage);
+    const allTopicKeys = getTopicIdsByLanguage(programmingLanguage);
     let selectedTopics: string[];
     if (Array.isArray(body?.topicIds) && body.topicIds.length > 0) {
       if (!validateTopicIdsForLanguage(body.topicIds, programmingLanguage)) {
