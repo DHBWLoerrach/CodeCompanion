@@ -362,13 +362,13 @@ function NextStepCard({
       style={[
         styles.nextStepCard,
         {
-          backgroundColor: `${accentColor}18`,
-          borderColor: `${accentColor}42`,
+          backgroundColor: `${accentColor}20`,
+          borderColor: `${accentColor}52`,
           shadowColor: accentColor,
-          shadowOpacity: 0.08,
-          shadowRadius: 10,
-          shadowOffset: { width: 0, height: 4 },
-          elevation: 2,
+          shadowOpacity: 0.11,
+          shadowRadius: 12,
+          shadowOffset: { width: 0, height: 5 },
+          elevation: 3,
         },
         animatedStyle,
       ]}
@@ -419,7 +419,7 @@ function NextStepCard({
       </View>
       <AppIcon
         name="chevron-right"
-        size={18}
+        size={15}
         color={accentColor}
         style={styles.nextStepChevron}
       />
@@ -726,7 +726,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "space-between",
     gap: Spacing.md,
-    marginBottom: Spacing.sm,
+    marginBottom: Spacing.md,
   },
   categoryName: {
     flex: 1,
@@ -740,8 +740,8 @@ const styles = StyleSheet.create({
     fontWeight: "600",
   },
   categoryProgressGroup: {
-    gap: 6,
-    marginBottom: Spacing.xs + 6,
+    gap: Spacing.xs,
+    marginBottom: Spacing.md,
   },
   categoryProgressBar: {
     height: 8,
@@ -776,7 +776,7 @@ const styles = StyleSheet.create({
     fontWeight: "600",
   },
   recommendedSection: {
-    marginBottom: Spacing.xs + 6,
+    marginBottom: Spacing.md,
   },
   nextStepCard: {
     borderRadius: BorderRadius.md,
@@ -786,7 +786,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
-    gap: Spacing.md,
+    gap: Spacing.sm,
   },
   nextStepBody: {
     flex: 1,
@@ -824,7 +824,9 @@ const styles = StyleSheet.create({
     fontWeight: "600",
   },
   nextStepChevron: {
-    opacity: 0.72,
+    opacity: 0.66,
+    marginLeft: 2,
+    alignSelf: "center",
   },
   topicsGrid: {
     flexDirection: "row",
