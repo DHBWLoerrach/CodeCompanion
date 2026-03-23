@@ -32,6 +32,7 @@ interface TopicTileProps {
   onPress: () => void;
   topicName: string;
   testID?: string;
+  isWide?: boolean;
 }
 
 function getLastPracticedTime(progress: TopicProgress | undefined) {
@@ -139,6 +140,10 @@ function getTopicPositionLabel(
   return `${capitalizeLabel(t("topic"))} ${position} ${t("of")} ${total}`;
 }
 
+function shouldUseWideTopicTile(topicName: string) {
+  return topicName.length > 22;
+}
+
 function getCategoryStatus(
   category: Category,
   topicProgress: Record<string, TopicProgress>,
@@ -204,7 +209,13 @@ function getStateAccentColor(
   }
 }
 
-function TopicTile({ progress, onPress, topicName, testID }: TopicTileProps) {
+function TopicTile({
+  progress,
+  onPress,
+  topicName,
+  testID,
+  isWide,
+}: TopicTileProps) {
   const { theme } = useTheme();
   const { t } = useTranslation();
   const { animatedStyle, handlePressIn, handlePressOut } =
@@ -214,6 +225,7 @@ function TopicTile({ progress, onPress, topicName, testID }: TopicTileProps) {
   const borderColor = state === "new" ? theme.cardBorder : `${accentColor}33`;
   const backgroundColor = theme.backgroundRoot;
   const metaTextColor = state === "new" ? theme.tabIconDefault : accentColor;
+  const shouldShowMeta = state !== "new";
 
   return (
     <AnimatedPressable
@@ -223,6 +235,7 @@ function TopicTile({ progress, onPress, topicName, testID }: TopicTileProps) {
       onPressOut={handlePressOut}
       style={[
         styles.topicTile,
+        isWide && styles.topicTileWide,
         {
           backgroundColor,
           borderColor,
@@ -233,23 +246,25 @@ function TopicTile({ progress, onPress, topicName, testID }: TopicTileProps) {
       <ThemedText type="label" style={styles.topicTileTitle} numberOfLines={2}>
         {topicName}
       </ThemedText>
-      <View style={styles.topicMetaRow}>
-        {iconName ? (
-          <AppIcon
-            name={iconName}
-            size={12}
-            color={metaTextColor}
-            style={styles.topicMetaIcon}
-          />
-        ) : null}
-        <ThemedText
-          type="caption"
-          style={[styles.topicMetaText, { color: metaTextColor }]}
-          numberOfLines={1}
-        >
-          {label}
-        </ThemedText>
-      </View>
+      {shouldShowMeta ? (
+        <View style={styles.topicMetaRow}>
+          {iconName ? (
+            <AppIcon
+              name={iconName}
+              size={12}
+              color={metaTextColor}
+              style={styles.topicMetaIcon}
+            />
+          ) : null}
+          <ThemedText
+            type="caption"
+            style={[styles.topicMetaText, { color: metaTextColor }]}
+            numberOfLines={1}
+          >
+            {label}
+          </ThemedText>
+        </View>
+      ) : null}
     </AnimatedPressable>
   );
 }
@@ -293,8 +308,13 @@ function NextStepCard({
       style={[
         styles.nextStepCard,
         {
-          backgroundColor: `${accentColor}12`,
-          borderColor: `${accentColor}30`,
+          backgroundColor: `${accentColor}18`,
+          borderColor: `${accentColor}42`,
+          shadowColor: accentColor,
+          shadowOpacity: 0.08,
+          shadowRadius: 10,
+          shadowOffset: { width: 0, height: 4 },
+          elevation: 2,
         },
         animatedStyle,
       ]}
@@ -486,6 +506,7 @@ function CategoryCard({
                 progress={topicProgress[topic.id]}
                 testID={getTopicTestId(topic)}
                 onPress={() => onTopicPress(topic)}
+                isWide={shouldUseWideTopicTile(topicDisplayName)}
               />
             );
           })}
@@ -563,6 +584,7 @@ export default function LearnScreen() {
                   progress={topicProgress[topic.id]}
                   testID={`learn-due-topic-${topic.id}`}
                   onPress={() => handleTopicPress(topic)}
+                  isWide={shouldUseWideTopicTile(getTopicName(topic, language))}
                 />
               ))}
             </View>
@@ -706,26 +728,34 @@ const styles = StyleSheet.create({
   topicsGrid: {
     flexDirection: "row",
     flexWrap: "wrap",
-    gap: Spacing.sm,
+    alignItems: "flex-start",
+    gap: Spacing.xs + 2,
   },
   topicTile: {
+    alignSelf: "flex-start",
     width: "48%",
-    minHeight: 80,
-    padding: Spacing.md,
+    minHeight: 0,
+    paddingHorizontal: Spacing.md,
+    paddingVertical: Spacing.sm,
     borderRadius: BorderRadius.md,
     borderWidth: 1,
     flexShrink: 1,
-    justifyContent: "space-between",
+    justifyContent: "flex-start",
+    gap: 4,
+  },
+  topicTileWide: {
+    width: "100%",
   },
   topicTileTitle: {
-    lineHeight: 20,
-    marginBottom: Spacing.xs,
+    fontSize: 13,
+    lineHeight: 17,
+    marginBottom: 0,
   },
   topicMetaRow: {
     flexDirection: "row",
     alignItems: "center",
     flexWrap: "wrap",
-    gap: Spacing.xs,
+    gap: 6,
   },
   topicMetaIcon: {
     marginRight: Spacing.xs,
