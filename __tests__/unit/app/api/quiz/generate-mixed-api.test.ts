@@ -137,7 +137,7 @@ describe("POST /api/quiz/generate-mixed", () => {
       2,
       "javascript",
       "variables",
-      3,
+      2,
       "de",
       1,
     );
@@ -191,33 +191,40 @@ describe("POST /api/quiz/generate-mixed", () => {
   });
 
   it("uses default topics/count/language when omitted", async () => {
+    const randomSpy = jest.spyOn(Math, "random").mockReturnValue(0);
+
     const response = await POST(createRequest({}));
     const data = await response.json();
 
     expect(response.status).toBe(200);
     expect(mockGenerateQuizQuestions).toHaveBeenCalledTimes(3);
-    expect(mockGenerateQuizQuestions).toHaveBeenCalledWith(
-      "javascript",
-      "variables",
-      4,
-      "en",
+    expect(mockGenerateQuizQuestions).toHaveBeenNthCalledWith(
       1,
-    );
-    expect(mockGenerateQuizQuestions).toHaveBeenCalledWith(
       "javascript",
       "loops",
       4,
       "en",
       1,
     );
-    expect(mockGenerateQuizQuestions).toHaveBeenCalledWith(
+    expect(mockGenerateQuizQuestions).toHaveBeenNthCalledWith(
+      2,
       "javascript",
       "promises",
-      4,
+      3,
+      "en",
+      1,
+    );
+    expect(mockGenerateQuizQuestions).toHaveBeenNthCalledWith(
+      3,
+      "javascript",
+      "variables",
+      3,
       "en",
       1,
     );
     expect(data.questions).toHaveLength(10);
+
+    randomSpy.mockRestore();
   });
 
   it("limits auto-selected topics to the requested question count", async () => {

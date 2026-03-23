@@ -1,8 +1,5 @@
-import {
-  generateQuizQuestions,
-  getAvailableTopicIds,
-  type QuizQuestion,
-} from "@server/quiz";
+import { mapWithConcurrency } from "@server/concurrency";
+import { generateQuizQuestions, getAvailableTopicIds } from "@server/quiz";
 import { logApiError } from "@server/logging";
 import {
   invalidJsonBodyResponse,
@@ -28,6 +25,28 @@ function shuffleArray<T>(items: T[]): T[] {
     [shuffled[i], shuffled[randomIndex]] = [shuffled[randomIndex], shuffled[i]];
   }
   return shuffled;
+}
+
+type TopicQuestionPlan = {
+  topicId: string;
+  questionCount: number;
+};
+
+const MIXED_QUIZ_GENERATION_CONCURRENCY = 3;
+
+function buildTopicQuestionPlan(
+  topicIds: string[],
+  totalQuestionCount: number,
+): TopicQuestionPlan[] {
+  const baseCount = Math.floor(totalQuestionCount / topicIds.length);
+  const remainder = totalQuestionCount % topicIds.length;
+
+  return topicIds
+    .map((topicId, index) => ({
+      topicId,
+      questionCount: baseCount + (index < remainder ? 1 : 0),
+    }))
+    .filter((plan) => plan.questionCount > 0);
 }
 
 export async function POST(request: Request) {
@@ -89,22 +108,28 @@ export async function POST(request: Request) {
       return Response.json({ error: "No topics available" }, { status: 500 });
     }
 
-    const questionsPerTopic = Math.ceil(count / selectedTopics.length);
-    const allQuestions: QuizQuestion[] = [];
+    const topicPlan = buildTopicQuestionPlan(selectedTopics, count);
+    const questionGroups = await mapWithConcurrency(
+      topicPlan,
+      MIXED_QUIZ_GENERATION_CONCURRENCY,
+      ({ topicId, questionCount }) =>
+        generateQuizQuestions(
+          programmingLanguage,
+          topicId,
+          questionCount,
+          language,
+          skillLevel,
+        ),
+    );
 
-    for (const topicId of selectedTopics) {
-      const questions = await generateQuizQuestions(
-        programmingLanguage,
-        topicId,
-        questionsPerTopic,
-        language,
-        skillLevel,
+    const allQuestions = questionGroups.flat();
+    if (allQuestions.length !== count) {
+      throw new Error(
+        `Mixed quiz generation produced ${allQuestions.length} questions, expected ${count}`,
       );
-      allQuestions.push(...questions);
     }
 
-    const shuffled = shuffleArray(allQuestions).slice(0, count);
-    return Response.json({ questions: shuffled });
+    return Response.json({ questions: shuffleArray(allQuestions) });
   } catch (error) {
     if (error instanceof InvalidJsonBodyError) {
       return invalidJsonBodyResponse();
