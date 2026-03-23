@@ -18,12 +18,18 @@ function HeaderBrand() {
 
   return (
     <View style={styles.headerBrand}>
-      <View style={[styles.headerBadge, { backgroundColor: badgeColor }]}>
+      <View
+        style={[
+          styles.headerBadge,
+          {
+            backgroundColor: badgeColor + "1A",
+            borderColor: badgeColor + "2E",
+          },
+        ]}
+      >
         <ThemedText
           type="label"
-          style={styles.headerBadgeText}
-          lightColor="#000000"
-          darkColor="#000000"
+          style={[styles.headerBadgeText, { color: badgeColor }]}
         >
           {shortName}
         </ThemedText>
@@ -70,6 +76,7 @@ export default function LearnStack() {
               onPress={() => router.push("/settings")}
               hitSlop={8}
               color={theme.tabIconDefault}
+              iconSize={17}
             />
           ),
         }}
@@ -80,20 +87,22 @@ export default function LearnStack() {
 
 const styles = StyleSheet.create({
   headerBrand: {
-    width: 36,
-    height: 36,
+    width: 32,
+    height: 32,
     alignItems: "center",
     justifyContent: "center",
   },
   headerBadge: {
-    width: 30,
-    height: 30,
+    width: 28,
+    height: 28,
     borderRadius: BorderRadius.sm,
     alignItems: "center",
     justifyContent: "center",
     borderCurve: "continuous",
+    borderWidth: 1,
   },
   headerBadgeText: {
     fontWeight: "700",
+    fontSize: 13,
   },
 });

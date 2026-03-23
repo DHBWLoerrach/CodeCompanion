@@ -7,7 +7,6 @@ import Animated from "react-native-reanimated";
 import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
 import { AppIcon } from "@/components/AppIcon";
-import { SkillLevelDots } from "@/components/SkillLevelDots";
 import { LoadingScreen } from "@/components/LoadingScreen";
 import { useTheme } from "@/contexts/ThemeContext";
 import { useTranslation } from "@/hooks/useTranslation";
@@ -26,12 +25,12 @@ import { useProgrammingLanguage } from "@/contexts/ProgrammingLanguageContext";
 const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
 
 type TranslateFn = ReturnType<typeof useTranslation>["t"];
+type TopicVisualState = "new" | "started" | "due" | "mastered";
 
-interface TopicChipProps {
+interface TopicTileProps {
   progress?: TopicProgress;
   onPress: () => void;
   topicName: string;
-  isRecommended?: boolean;
   testID?: string;
   fullWidth?: boolean;
 }
@@ -82,6 +81,53 @@ function getTopicCountLabel(topicCount: number, t: TranslateFn) {
   return `${topicCount} ${topicCount === 1 ? t("topic") : t("topics")}`;
 }
 
+function capitalizeLabel(label: string) {
+  return label.charAt(0).toUpperCase() + label.slice(1);
+}
+
+function getTopicVisualState(
+  progress: TopicProgress | undefined,
+): TopicVisualState {
+  const hasStarted = Boolean(progress && progress.questionsAnswered > 0);
+
+  if (progress?.skillLevel === 5) {
+    return "mastered";
+  }
+
+  if (hasStarted && isTopicDue(progress)) {
+    return "due";
+  }
+
+  if (hasStarted) {
+    return "started";
+  }
+
+  return "new";
+}
+
+function getTopicStateMeta(
+  progress: TopicProgress | undefined,
+  t: TranslateFn,
+) {
+  const state = getTopicVisualState(progress);
+
+  switch (state) {
+    case "mastered":
+      return { state, label: t("mastered"), iconName: "award" as const };
+    case "due":
+      return { state, label: t("dueLabel"), iconName: "clock" as const };
+    case "started":
+      return {
+        state,
+        label: `${t("level")} ${progress?.skillLevel ?? 1}`,
+        iconName: "play" as const,
+      };
+    case "new":
+    default:
+      return { state: "new" as const, label: t("newLabel"), iconName: null };
+  }
+}
+
 function getCategoryStatus(
   category: Category,
   topicProgress: Record<string, TopicProgress>,
@@ -99,6 +145,7 @@ function getCategoryStatus(
   const dueCount = startedTopics.filter((topic) =>
     isTopicDue(topicProgress[topic.id]),
   ).length;
+  const topicLabel = totalTopics === 1 ? t("topic") : t("topics");
 
   if (startedCount === 0) {
     return {
@@ -110,57 +157,59 @@ function getCategoryStatus(
 
   const primaryLabel =
     masteredCount === totalTopics
-      ? `${masteredCount}/${totalTopics} ${t("mastered").toLowerCase()}`
-      : `${startedCount}/${totalTopics} ${t("started")}`;
+      ? `${masteredCount} ${t("of")} ${totalTopics} ${topicLabel} ${t(
+          "mastered",
+        ).toLowerCase()}`
+      : `${startedCount} ${t("of")} ${totalTopics} ${topicLabel} ${t(
+          "started",
+        )}`;
 
   return {
     primaryLabel,
-    secondaryLabel: dueCount > 0 ? `${dueCount} ${t("dueLabel")}` : undefined,
+    secondaryLabel:
+      dueCount > 0
+        ? `${dueCount} ${t("dueLabel")}`
+        : masteredCount > 0
+          ? `${masteredCount} ${t("mastered").toLowerCase()}`
+          : undefined,
     topicCountLabel: getTopicCountLabel(totalTopics, t),
   };
 }
 
-function TopicChip({
+function getStateAccentColor(
+  state: TopicVisualState,
+  theme: ReturnType<typeof useTheme>["theme"],
+) {
+  switch (state) {
+    case "mastered":
+      return theme.success;
+    case "due":
+      return theme.accent;
+    case "started":
+      return theme.secondary;
+    case "new":
+    default:
+      return theme.tabIconDefault;
+  }
+}
+
+function TopicTile({
   progress,
   onPress,
   topicName,
-  isRecommended,
   testID,
   fullWidth,
-}: TopicChipProps) {
+}: TopicTileProps) {
   const { theme } = useTheme();
+  const { t } = useTranslation();
   const { animatedStyle, handlePressIn, handlePressOut } =
-    usePressAnimation(0.95);
-
-  const isMastered = progress?.skillLevel === 5;
-  const isDue = isTopicDue(progress);
-  const hasStarted = progress && progress.questionsAnswered > 0;
-  const skillLevel = progress?.skillLevel ?? 1;
-
-  const chipStyle = isMastered
-    ? { backgroundColor: theme.success, borderColor: theme.success }
-    : isRecommended
-      ? {
-          backgroundColor: "transparent",
-          borderColor: theme.secondary,
-          borderWidth: 1,
-        }
-      : isDue && hasStarted
-        ? { backgroundColor: "transparent", borderColor: theme.accent }
-        : hasStarted
-          ? { backgroundColor: "transparent", borderColor: theme.secondary }
-          : { backgroundColor: "transparent", borderColor: theme.cardBorder };
-
-  const textColor = isMastered
-    ? "#FFFFFF"
-    : isRecommended
-      ? theme.secondary
-      : theme.text;
-  const levelColor = isMastered
-    ? "#FFFFFF"
-    : isRecommended
-      ? theme.secondary
-      : theme.accent;
+    usePressAnimation(0.98);
+  const { state, label, iconName } = getTopicStateMeta(progress, t);
+  const accentColor = getStateAccentColor(state, theme);
+  const borderColor = state === "new" ? theme.cardBorder : `${accentColor}33`;
+  const tagBackgroundColor =
+    state === "new" ? theme.backgroundSecondary : `${accentColor}18`;
+  const tagTextColor = state === "new" ? theme.tabIconDefault : accentColor;
 
   return (
     <AnimatedPressable
@@ -169,44 +218,128 @@ function TopicChip({
       onPressIn={handlePressIn}
       onPressOut={handlePressOut}
       style={[
-        styles.topicChip,
-        fullWidth && styles.topicChipFullWidth,
-        chipStyle,
+        styles.topicTile,
+        fullWidth && styles.topicTileFullWidth,
+        {
+          backgroundColor: theme.backgroundRoot,
+          borderColor,
+        },
         animatedStyle,
       ]}
     >
-      {isMastered ? (
-        <AppIcon
-          name="award"
-          size={14}
-          color="#FFFFFF"
-          style={styles.chipIcon}
-        />
-      ) : isRecommended ? (
-        <AppIcon
-          name="star"
-          size={14}
-          color={theme.secondary}
-          style={styles.chipIcon}
-        />
-      ) : isDue && hasStarted ? (
-        <AppIcon
-          name="clock"
-          size={14}
-          color={theme.accent}
-          style={styles.chipIcon}
-        />
-      ) : null}
-      <ThemedText
-        type="label"
-        style={[styles.chipText, { color: textColor }]}
-        numberOfLines={1}
-      >
+      <ThemedText type="label" style={styles.topicTileTitle} numberOfLines={2}>
         {topicName}
       </ThemedText>
-      {hasStarted ? (
-        <SkillLevelDots level={skillLevel} color={levelColor} />
-      ) : null}
+      <View style={styles.topicTileFooter}>
+        <View
+          style={[
+            styles.topicTag,
+            {
+              backgroundColor: tagBackgroundColor,
+              borderColor:
+                state === "new" ? theme.cardBorder : `${accentColor}1F`,
+            },
+          ]}
+        >
+          {iconName ? (
+            <AppIcon
+              name={iconName}
+              size={12}
+              color={tagTextColor}
+              style={styles.topicTagIcon}
+            />
+          ) : null}
+          <ThemedText
+            type="caption"
+            style={[styles.topicTagText, { color: tagTextColor }]}
+            numberOfLines={1}
+          >
+            {label}
+          </ThemedText>
+        </View>
+      </View>
+    </AnimatedPressable>
+  );
+}
+
+interface NextStepCardProps {
+  topicName: string;
+  progress?: TopicProgress;
+  onPress: () => void;
+  testID?: string;
+  position: number;
+  total: number;
+}
+
+function NextStepCard({
+  topicName,
+  progress,
+  onPress,
+  testID,
+  position,
+  total,
+}: NextStepCardProps) {
+  const { theme } = useTheme();
+  const { t } = useTranslation();
+  const { animatedStyle, handlePressIn, handlePressOut } =
+    usePressAnimation(0.98);
+  const { state, label, iconName } = getTopicStateMeta(progress, t);
+  const accentColor =
+    state === "due"
+      ? theme.accent
+      : state === "mastered"
+        ? theme.success
+        : theme.secondary;
+  const topicIndexLabel = `${capitalizeLabel(t("topic"))} ${position} ${t(
+    "of",
+  )} ${total}`;
+
+  return (
+    <AnimatedPressable
+      testID={testID}
+      onPress={onPress}
+      onPressIn={handlePressIn}
+      onPressOut={handlePressOut}
+      style={[
+        styles.nextStepCard,
+        { backgroundColor: accentColor },
+        animatedStyle,
+      ]}
+    >
+      <View style={styles.nextStepBody}>
+        <ThemedText type="caption" style={styles.nextStepEyebrow}>
+          {t("nextStep")}
+        </ThemedText>
+        <ThemedText type="h4" style={styles.nextStepTitle} numberOfLines={2}>
+          {topicName}
+        </ThemedText>
+        <View style={styles.nextStepMeta}>
+          <ThemedText type="caption" style={styles.nextStepMetaText}>
+            {topicIndexLabel}
+          </ThemedText>
+          <View style={styles.nextStepMetaDot} />
+          <View style={styles.nextStepMetaStatus}>
+            {iconName ? (
+              <AppIcon
+                name={iconName}
+                size={12}
+                color="#FFFFFF"
+                style={styles.nextStepMetaIcon}
+              />
+            ) : null}
+            <ThemedText
+              type="caption"
+              style={styles.nextStepMetaText}
+              numberOfLines={1}
+            >
+              {label}
+            </ThemedText>
+          </View>
+        </View>
+      </View>
+      <View style={styles.nextStepChevron}>
+        <AppIcon name="chevron-right" size={18} color="#FFFFFF" />
+      </View>
     </AnimatedPressable>
   );
 }
@@ -241,6 +374,9 @@ function CategoryCard({
   const recommendedTopic = recommendedTopicId
     ? category.topics.find((topic) => topic.id === recommendedTopicId)
     : undefined;
+  const recommendedTopicPosition = recommendedTopic
+    ? category.topics.findIndex((topic) => topic.id === recommendedTopic.id) + 1
+    : 0;
   const visibleTopics = recommendedTopic
     ? category.topics.filter((topic) => topic.id !== recommendedTopic.id)
     : category.topics;
@@ -249,7 +385,10 @@ function CategoryCard({
     <View
       style={[
         styles.categoryCard,
-        { backgroundColor: theme.backgroundDefault },
+        {
+          backgroundColor: theme.backgroundDefault,
+          borderColor: theme.cardBorder,
+        },
       ]}
     >
       <View style={styles.categoryHeader}>
@@ -271,10 +410,31 @@ function CategoryCard({
         </View>
       </View>
 
-      <View style={styles.categoryMeta}>
+      <View style={styles.categoryProgressGroup}>
+        <View style={styles.categorySegments}>
+          {category.topics.map((topic) => {
+            const state = getTopicVisualState(topicProgress[topic.id]);
+            const accentColor = getStateAccentColor(state, theme);
+
+            return (
+              <View
+                key={topic.id}
+                style={[
+                  styles.categorySegment,
+                  {
+                    backgroundColor:
+                      state === "new" ? theme.backgroundRoot : accentColor,
+                    borderColor:
+                      state === "new" ? theme.cardBorder : `${accentColor}33`,
+                  },
+                ]}
+              />
+            );
+          })}
+        </View>
         <ThemedText
-          type="label"
-          style={[styles.categoryStatus, { color: theme.text }]}
+          type="small"
+          style={[styles.categoryStatus, { color: theme.tabIconDefault }]}
         >
           {primaryLabel}
         </ThemedText>
@@ -283,14 +443,14 @@ function CategoryCard({
             style={[
               styles.statusPill,
               {
-                backgroundColor: theme.accent + "18",
-                borderColor: theme.accent + "2E",
+                backgroundColor: theme.backgroundRoot,
+                borderColor: theme.cardBorder,
               },
             ]}
           >
             <ThemedText
               type="caption"
-              style={[styles.statusPillText, { color: theme.accent }]}
+              style={[styles.statusPillText, { color: theme.text }]}
             >
               {secondaryLabel}
             </ThemedText>
@@ -299,38 +459,24 @@ function CategoryCard({
       </View>
 
       {recommendedTopic ? (
-        <View
-          style={[
-            styles.recommendedSection,
-            {
-              backgroundColor: theme.secondary + "10",
-              borderColor: theme.secondary + "24",
-            },
-          ]}
-        >
-          <ThemedText
-            type="caption"
-            style={[styles.recommendedLabel, { color: theme.secondary }]}
-          >
-            {t("nextStep")}
-          </ThemedText>
-          <TopicChip
+        <View style={styles.recommendedSection}>
+          <NextStepCard
             topicName={getTopicDisplayName(recommendedTopic)}
             progress={topicProgress[recommendedTopic.id]}
-            isRecommended
             testID={getTopicTestId(recommendedTopic)}
             onPress={() => onTopicPress(recommendedTopic)}
-            fullWidth
+            position={recommendedTopicPosition}
+            total={category.topics.length}
           />
         </View>
       ) : null}
 
       {visibleTopics.length > 0 ? (
-        <View style={styles.topicsWrap}>
+        <View style={styles.topicsGrid}>
           {visibleTopics.map((topic) => {
             const topicDisplayName = getTopicDisplayName(topic);
             return (
-              <TopicChip
+              <TopicTile
                 key={topic.id}
                 topicName={topicDisplayName}
                 progress={topicProgress[topic.id]}
@@ -388,7 +534,10 @@ export default function LearnScreen() {
           <View
             style={[
               styles.dueSection,
-              { backgroundColor: theme.accent + "15" },
+              {
+                backgroundColor: theme.accent + "10",
+                borderColor: theme.accent + "2A",
+              },
             ]}
           >
             <View style={styles.dueSectionHeader}>
@@ -402,9 +551,9 @@ export default function LearnScreen() {
                 {getTopicCountLabel(dueTopics.length, t)}
               </ThemedText>
             </View>
-            <View style={styles.topicsWrap}>
+            <View style={styles.topicsGrid}>
               {dueTopics.map((topic) => (
-                <TopicChip
+                <TopicTile
                   key={topic.id}
                   topicName={getTopicName(topic, language)}
                   progress={topicProgress[topic.id]}
@@ -452,6 +601,7 @@ const styles = StyleSheet.create({
   categoryCard: {
     borderRadius: BorderRadius.lg,
     padding: Spacing.lg,
+    borderWidth: 1,
     ...Shadows.card,
   },
   categoryHeader: {
@@ -472,15 +622,22 @@ const styles = StyleSheet.create({
   categoryBadgeText: {
     fontWeight: "600",
   },
-  categoryMeta: {
-    flexDirection: "row",
-    alignItems: "center",
-    flexWrap: "wrap",
+  categoryProgressGroup: {
     gap: Spacing.sm,
     marginBottom: Spacing.lg,
   },
+  categorySegments: {
+    flexDirection: "row",
+    gap: 6,
+  },
+  categorySegment: {
+    flex: 1,
+    height: 6,
+    borderRadius: BorderRadius.full,
+    borderWidth: 1,
+  },
   categoryStatus: {
-    fontWeight: "600",
+    fontWeight: "500",
   },
   statusPill: {
     borderRadius: BorderRadius.full,
@@ -492,48 +649,109 @@ const styles = StyleSheet.create({
     fontWeight: "600",
   },
   recommendedSection: {
-    borderRadius: BorderRadius.md,
-    borderWidth: 1,
-    padding: Spacing.md,
-    gap: Spacing.sm,
     marginBottom: Spacing.lg,
   },
-  recommendedLabel: {
-    fontWeight: "700",
-    letterSpacing: 0.4,
-    textTransform: "uppercase",
+  nextStepCard: {
+    borderRadius: BorderRadius.md,
+    padding: Spacing.lg,
+    minHeight: 120,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    gap: Spacing.md,
   },
-  topicsWrap: {
+  nextStepBody: {
+    flex: 1,
+  },
+  nextStepEyebrow: {
+    fontWeight: "700",
+    letterSpacing: 0.8,
+    textTransform: "uppercase",
+    color: "#FFFFFF",
+    opacity: 0.78,
+    marginBottom: Spacing.sm,
+  },
+  nextStepTitle: {
+    color: "#FFFFFF",
+    marginBottom: Spacing.sm,
+  },
+  nextStepMeta: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: Spacing.sm,
+  },
+  nextStepMetaDot: {
+    width: 4,
+    height: 4,
+    borderRadius: BorderRadius.full,
+    backgroundColor: "#FFFFFF",
+    opacity: 0.8,
+  },
+  nextStepMetaStatus: {
+    flexDirection: "row",
+    alignItems: "center",
+    flexShrink: 1,
+  },
+  nextStepMetaIcon: {
+    marginRight: Spacing.xs,
+  },
+  nextStepMetaText: {
+    color: "#FFFFFF",
+    opacity: 0.92,
+  },
+  nextStepChevron: {
+    width: 36,
+    height: 36,
+    borderRadius: BorderRadius.sm,
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: "rgba(255,255,255,0.16)",
+  },
+  topicsGrid: {
     flexDirection: "row",
     flexWrap: "wrap",
     gap: Spacing.sm,
   },
-  topicChip: {
-    alignSelf: "flex-start",
-    flexDirection: "row",
-    alignItems: "center",
-    paddingHorizontal: Spacing.md,
-    paddingVertical: Spacing.sm,
-    borderRadius: BorderRadius.sm,
-    borderWidth: 2,
-    maxWidth: "100%",
-    minHeight: 44,
+  topicTile: {
+    width: "48%",
+    minHeight: 96,
+    padding: Spacing.md,
+    borderRadius: BorderRadius.md,
+    borderWidth: 1,
     flexShrink: 1,
+    justifyContent: "space-between",
   },
-  topicChipFullWidth: {
+  topicTileFullWidth: {
     width: "100%",
   },
-  chipIcon: {
+  topicTileTitle: {
+    lineHeight: 20,
+    marginBottom: Spacing.md,
+  },
+  topicTileFooter: {
+    flexDirection: "row",
+    alignItems: "center",
+  },
+  topicTag: {
+    flexDirection: "row",
+    alignItems: "center",
+    alignSelf: "flex-start",
+    borderRadius: BorderRadius.full,
+    borderWidth: 1,
+    paddingHorizontal: Spacing.sm,
+    paddingVertical: Spacing.xs,
+    maxWidth: "100%",
+  },
+  topicTagIcon: {
     marginRight: Spacing.xs,
   },
-  chipText: {
-    fontWeight: "500",
-    flexShrink: 1,
-    marginRight: Spacing.xs,
+  topicTagText: {
+    fontWeight: "600",
   },
   dueSection: {
     borderRadius: BorderRadius.lg,
     padding: Spacing.lg,
+    borderWidth: 1,
   },
   dueSectionHeader: {
     flexDirection: "row",
