@@ -148,6 +148,26 @@ function shouldUseWideTopicTile(topicName: string) {
   );
 }
 
+function getWideTileIndexes(topicNames: string[]) {
+  const wideIndexes = new Set<number>();
+  let rowFill = 0;
+
+  for (let index = 0; index < topicNames.length; index += 1) {
+    const isLongTitle = shouldUseWideTopicTile(topicNames[index]);
+    const isLastItem = index === topicNames.length - 1;
+
+    if (isLongTitle || (isLastItem && rowFill === 0)) {
+      wideIndexes.add(index);
+      rowFill = 0;
+      continue;
+    }
+
+    rowFill = rowFill === 0 ? 1 : 0;
+  }
+
+  return wideIndexes;
+}
+
 function getCategoryVisualProgress(
   category: Category,
   topicProgress: Record<string, TopicProgress>,
@@ -246,11 +266,13 @@ function TopicTile({
   const { theme } = useTheme();
   const { t } = useTranslation();
   const { animatedStyle, handlePressIn, handlePressOut } =
-    usePressAnimation(0.98);
+    usePressAnimation(0.97);
   const { state, label, iconName } = getTopicStateMeta(progress, t);
   const accentColor = getStateAccentColor(state, theme);
-  const borderColor = state === "new" ? theme.cardBorder : `${accentColor}33`;
-  const backgroundColor = theme.backgroundRoot;
+  const borderColor =
+    state === "new" ? theme.backgroundTertiary : `${accentColor}40`;
+  const backgroundColor =
+    state === "new" ? theme.backgroundRoot : `${accentColor}0A`;
   const metaTextColor = state === "new" ? theme.tabIconDefault : accentColor;
   const shouldShowMeta = state !== "new";
 
@@ -446,6 +468,9 @@ function CategoryCard({
   const visibleTopics = recommendedTopic
     ? category.topics.filter((topic) => topic.id !== recommendedTopic.id)
     : category.topics;
+  const wideTileIndexes = getWideTileIndexes(
+    visibleTopics.map((topic) => getTopicDisplayName(topic)),
+  );
 
   return (
     <View
@@ -561,7 +586,7 @@ function CategoryCard({
 
       {visibleTopics.length > 0 ? (
         <View style={styles.topicsGrid}>
-          {visibleTopics.map((topic) => {
+          {visibleTopics.map((topic, index) => {
             const topicDisplayName = getTopicDisplayName(topic);
             return (
               <TopicTile
@@ -570,7 +595,7 @@ function CategoryCard({
                 progress={topicProgress[topic.id]}
                 testID={getTopicTestId(topic)}
                 onPress={() => onTopicPress(topic)}
-                isWide={shouldUseWideTopicTile(topicDisplayName)}
+                isWide={wideTileIndexes.has(index)}
               />
             );
           })}
@@ -594,6 +619,8 @@ export default function LearnScreen() {
     categories,
     refreshLanguage,
   });
+  const dueTopicNames = dueTopics.map((topic) => getTopicName(topic, language));
+  const wideDueTileIndexes = getWideTileIndexes(dueTopicNames);
 
   const handleTopicPress = (topic: Topic) => {
     router.push({
@@ -641,14 +668,14 @@ export default function LearnScreen() {
               </ThemedText>
             </View>
             <View style={styles.topicsGrid}>
-              {dueTopics.map((topic) => (
+              {dueTopics.map((topic, index) => (
                 <TopicTile
                   key={topic.id}
-                  topicName={getTopicName(topic, language)}
+                  topicName={dueTopicNames[index]}
                   progress={topicProgress[topic.id]}
                   testID={`learn-due-topic-${topic.id}`}
                   onPress={() => handleTopicPress(topic)}
-                  isWide={shouldUseWideTopicTile(getTopicName(topic, language))}
+                  isWide={wideDueTileIndexes.has(index)}
                 />
               ))}
             </View>
@@ -714,7 +741,7 @@ const styles = StyleSheet.create({
   },
   categoryProgressGroup: {
     gap: 6,
-    marginBottom: Spacing.sm,
+    marginBottom: Spacing.xs + 6,
   },
   categoryProgressBar: {
     height: 8,
@@ -749,7 +776,7 @@ const styles = StyleSheet.create({
     fontWeight: "600",
   },
   recommendedSection: {
-    marginBottom: Spacing.md,
+    marginBottom: Spacing.xs + 6,
   },
   nextStepCard: {
     borderRadius: BorderRadius.md,
@@ -817,8 +844,8 @@ const styles = StyleSheet.create({
     justifyContent: "flex-start",
     gap: 4,
     shadowColor: "#000000",
-    shadowOpacity: 0.03,
-    shadowRadius: 4,
+    shadowOpacity: 0.05,
+    shadowRadius: 5,
     shadowOffset: { width: 0, height: 1 },
     elevation: 1,
   },
