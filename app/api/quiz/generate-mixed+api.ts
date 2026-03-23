@@ -78,6 +78,8 @@ export async function POST(request: Request) {
       selectedTopics = shuffleArray(allTopicKeys).slice(0, 3);
     }
 
+    selectedTopics = selectedTopics.slice(0, count);
+
     if (selectedTopics.length === 0) {
       return Response.json({ error: "No topics available" }, { status: 500 });
     }

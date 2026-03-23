@@ -124,6 +124,36 @@ describe("POST /api/quiz/generate-mixed", () => {
     expect(data.questions).toHaveLength(5);
   });
 
+  it("limits explicit topicIds to the requested question count", async () => {
+    const response = await POST(
+      createRequest({
+        topicIds: ["loops", "variables", "promises"],
+        count: 2,
+      }),
+    );
+    const data = await response.json();
+
+    expect(response.status).toBe(200);
+    expect(mockGenerateQuizQuestions).toHaveBeenCalledTimes(2);
+    expect(mockGenerateQuizQuestions).toHaveBeenNthCalledWith(
+      1,
+      "javascript",
+      "loops",
+      1,
+      "en",
+      1,
+    );
+    expect(mockGenerateQuizQuestions).toHaveBeenNthCalledWith(
+      2,
+      "javascript",
+      "variables",
+      1,
+      "en",
+      1,
+    );
+    expect(data.questions).toHaveLength(2);
+  });
+
   it("returns 400 when topicIds are invalid for the selected programming language", async () => {
     const response = await POST(
       createRequest({
@@ -168,6 +198,23 @@ describe("POST /api/quiz/generate-mixed", () => {
       1,
     );
     expect(data.questions).toHaveLength(10);
+  });
+
+  it("limits auto-selected topics to the requested question count", async () => {
+    const randomSpy = jest.spyOn(Math, "random").mockReturnValue(0);
+
+    const response = await POST(
+      createRequest({
+        count: 2,
+      }),
+    );
+    const data = await response.json();
+
+    expect(response.status).toBe(200);
+    expect(mockGenerateQuizQuestions).toHaveBeenCalledTimes(2);
+    expect(data.questions).toHaveLength(2);
+
+    randomSpy.mockRestore();
   });
 
   it("caps count to maximum to avoid oversized mixed quiz generation", async () => {
