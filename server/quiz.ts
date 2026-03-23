@@ -596,12 +596,12 @@ export async function generateTopicExplanation(
 
 ${languageInstruction}
 
-	Structure your explanation as follows:
-	${sectionHeadings}
-	
-	Format the response in Markdown. Use code blocks with \`\`\`${programmingLanguage} for code examples.
-	Keep the total length to about 500-700 words.
-	${contextExclusion ? `${contextExclusion}.` : ""}`;
+Structure your explanation as follows:
+${sectionHeadings}
+
+Format the response in Markdown. Use code blocks with \`\`\`${programmingLanguage} for code examples.
+Keep the total length to about 500-700 words.
+${contextExclusion ? `${contextExclusion}.` : ""}`;
 
   const response = await requestOpenAI({
     model: process.env.OPENAI_MODEL || "gpt-5.4-mini",
