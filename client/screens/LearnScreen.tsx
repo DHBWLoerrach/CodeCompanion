@@ -141,7 +141,34 @@ function getTopicPositionLabel(
 }
 
 function shouldUseWideTopicTile(topicName: string) {
-  return topicName.length > 22;
+  return (
+    topicName.length > 22 ||
+    ((topicName.includes(",") || topicName.includes("(")) &&
+      topicName.length > 18)
+  );
+}
+
+function getCategoryVisualProgress(
+  category: Category,
+  topicProgress: Record<string, TopicProgress>,
+) {
+  const totalTopics = category.topics.length;
+  const weightedProgress = category.topics.reduce((sum, topic) => {
+    const state = getTopicVisualState(topicProgress[topic.id]);
+
+    switch (state) {
+      case "mastered":
+        return sum + 1;
+      case "started":
+      case "due":
+        return sum + 0.55;
+      case "new":
+      default:
+        return sum;
+    }
+  }, 0);
+
+  return totalTopics === 0 ? 0 : (weightedProgress / totalTopics) * 100;
 }
 
 function getCategoryStatus(
@@ -243,7 +270,12 @@ function TopicTile({
         animatedStyle,
       ]}
     >
-      <ThemedText type="label" style={styles.topicTileTitle} numberOfLines={2}>
+      <ThemedText
+        type="label"
+        style={styles.topicTileTitle}
+        numberOfLines={2}
+        ellipsizeMode="tail"
+      >
         {topicName}
       </ThemedText>
       {shouldShowMeta ? (
@@ -326,7 +358,12 @@ function NextStepCard({
         >
           {t("nextStep")}
         </ThemedText>
-        <ThemedText type="h4" style={styles.nextStepTitle} numberOfLines={2}>
+        <ThemedText
+          type="h4"
+          style={styles.nextStepTitle}
+          numberOfLines={2}
+          ellipsizeMode="tail"
+        >
           {topicName}
         </ThemedText>
         <View style={styles.nextStepMeta}>
@@ -395,6 +432,11 @@ function CategoryCard({
     topicProgress,
     t,
   );
+  const visualProgressPercent = getCategoryVisualProgress(
+    category,
+    topicProgress,
+  );
+  const useCompactProgressBar = category.topics.length >= 6;
   const recommendedTopic = recommendedTopicId
     ? category.topics.find((topic) => topic.id === recommendedTopicId)
     : undefined;
@@ -435,27 +477,49 @@ function CategoryCard({
       </View>
 
       <View style={styles.categoryProgressGroup}>
-        <View style={styles.categorySegments}>
-          {category.topics.map((topic) => {
-            const state = getTopicVisualState(topicProgress[topic.id]);
-            const accentColor = getStateAccentColor(state, theme);
+        {useCompactProgressBar ? (
+          <View
+            style={[
+              styles.categoryProgressBar,
+              {
+                backgroundColor: theme.backgroundRoot,
+                borderColor: theme.cardBorder,
+              },
+            ]}
+          >
+            <View
+              style={[
+                styles.categoryProgressFill,
+                {
+                  width: `${visualProgressPercent}%`,
+                  backgroundColor: theme.secondary,
+                },
+              ]}
+            />
+          </View>
+        ) : (
+          <View style={styles.categorySegments}>
+            {category.topics.map((topic) => {
+              const state = getTopicVisualState(topicProgress[topic.id]);
+              const accentColor = getStateAccentColor(state, theme);
 
-            return (
-              <View
-                key={topic.id}
-                style={[
-                  styles.categorySegment,
-                  {
-                    backgroundColor:
-                      state === "new" ? theme.backgroundRoot : accentColor,
-                    borderColor:
-                      state === "new" ? theme.cardBorder : `${accentColor}33`,
-                  },
-                ]}
-              />
-            );
-          })}
-        </View>
+              return (
+                <View
+                  key={topic.id}
+                  style={[
+                    styles.categorySegment,
+                    {
+                      backgroundColor:
+                        state === "new" ? theme.backgroundRoot : accentColor,
+                      borderColor:
+                        state === "new" ? theme.cardBorder : `${accentColor}33`,
+                    },
+                  ]}
+                />
+              );
+            })}
+          </View>
+        )}
         <ThemedText
           type="small"
           style={[styles.categoryStatus, { color: theme.tabIconDefault }]}
@@ -497,7 +561,7 @@ function CategoryCard({
 
       {visibleTopics.length > 0 ? (
         <View style={styles.topicsGrid}>
-          {visibleTopics.map((topic, index) => {
+          {visibleTopics.map((topic) => {
             const topicDisplayName = getTopicDisplayName(topic);
             return (
               <TopicTile
@@ -649,8 +713,18 @@ const styles = StyleSheet.create({
     fontWeight: "600",
   },
   categoryProgressGroup: {
-    gap: Spacing.sm,
-    marginBottom: Spacing.md,
+    gap: 6,
+    marginBottom: Spacing.sm,
+  },
+  categoryProgressBar: {
+    height: 8,
+    borderRadius: BorderRadius.full,
+    borderWidth: 1,
+    overflow: "hidden",
+  },
+  categoryProgressFill: {
+    height: "100%",
+    borderRadius: BorderRadius.full,
   },
   categorySegments: {
     flexDirection: "row",
@@ -742,6 +816,11 @@ const styles = StyleSheet.create({
     flexShrink: 1,
     justifyContent: "flex-start",
     gap: 4,
+    shadowColor: "#000000",
+    shadowOpacity: 0.03,
+    shadowRadius: 4,
+    shadowOffset: { width: 0, height: 1 },
+    elevation: 1,
   },
   topicTileWide: {
     width: "100%",
