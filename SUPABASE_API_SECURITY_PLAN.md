@@ -22,7 +22,7 @@ Aktuell gibt es keine verpflichtende Authentifizierung und keine serverseitige Q
 
 ## Scope (Minimalistische Zielarchitektur)
 - Authentifizierung: Supabase Anonymous Auth.
-- Autorisierung/Schutz: zentraler API-Guard in den Expo API-Routes.
+- Autorisierung/Schutz: zentrale Auth- und Quota-Helfer in den Expo API-Routes.
 - Speicherung: minimale Quota-Tabellen in Supabase Postgres.
 - Keine zusaetzliche eigene Infrastruktur (kein Redis, kein zweites Backend).
 
@@ -59,7 +59,8 @@ flowchart LR
   A["Mobile App (Expo iOS/Android)"] -->|"Bearer JWT"| B["EAS API Routes"]
   A --> C["Supabase Auth (Anonymous)"]
   B -->|"getUser(jwt)"| C
-  B -->|"rpc consume_api_quota"| D["Supabase Postgres"]
+  B -->|"Request validieren"| V["Route Validation"]
+  V -->|"rpc consume_api_quota"| D["Supabase Postgres"]
   B -->|"nur wenn erlaubt"| E["OpenAI Responses API"]
 ```
 
@@ -118,13 +119,16 @@ returns table (
   blocked boolean
 )
 language plpgsql
-security definer
-set search_path = private, public
+security invoker
+set search_path = ''
 as $$
 declare
   v_limit integer;
   v_used integer;
   v_today date := (now() at time zone 'utc')::date;
+  v_reset_at timestamptz := (
+    date_trunc('day', now() at time zone 'utc') + interval '1 day'
+  ) at time zone 'utc';
   v_blocked_until timestamptz;
 begin
   if p_default_limit < 1 then
@@ -132,57 +136,91 @@ begin
   end if;
 
   select
-    blocked_until,
+    l.blocked_until,
     case p_endpoint
-      when 'quiz_generate' then quiz_generate_limit
-      when 'quiz_generate_mixed' then quiz_generate_mixed_limit
-      when 'topic_explain' then topic_explain_limit
+      when 'quiz_generate'::public.api_endpoint then l.quiz_generate_limit
+      when 'quiz_generate_mixed'::public.api_endpoint then l.quiz_generate_mixed_limit
+      when 'topic_explain'::public.api_endpoint then l.topic_explain_limit
     end
   into v_blocked_until, v_limit
-  from private.api_user_limits
-  where user_id = p_user_id;
+  from private.api_user_limits l
+  where l.user_id = p_user_id;
 
   v_limit := coalesce(v_limit, p_default_limit);
 
+  select d.request_count
+  into v_used
+  from private.api_usage_daily d
+  where d.user_id = p_user_id
+    and d.usage_date = v_today
+    and d.endpoint = p_endpoint;
+
   if v_blocked_until is not null and v_blocked_until > now() then
     return query
-      select false, 0, v_limit, 0,
-             date_trunc('day', now() at time zone 'utc') + interval '1 day',
-             true;
+      select false, coalesce(v_used, 0), v_limit, 0, v_reset_at, true;
     return;
   end if;
 
-  insert into private.api_usage_daily (user_id, usage_date, endpoint, request_count, last_request_at)
+  insert into private.api_usage_daily as d (
+    user_id,
+    usage_date,
+    endpoint,
+    request_count,
+    last_request_at
+  )
   values (p_user_id, v_today, p_endpoint, 1, now())
   on conflict (user_id, usage_date, endpoint)
   do update
-    set request_count = private.api_usage_daily.request_count + 1,
+    set request_count = d.request_count + 1,
         last_request_at = now()
+    where d.request_count < v_limit
   returning request_count into v_used;
 
+  if found then
+    return query
+      select true, v_used, v_limit, greatest(v_limit - v_used, 0), v_reset_at, false;
+    return;
+  end if;
+
+  select d.request_count
+  into v_used
+  from private.api_usage_daily d
+  where d.user_id = p_user_id
+    and d.usage_date = v_today
+    and d.endpoint = p_endpoint;
+
   return query
-    select
-      (v_used <= v_limit),
-      v_used,
-      v_limit,
-      greatest(v_limit - v_used, 0),
-      date_trunc('day', now() at time zone 'utc') + interval '1 day',
-      false;
+    select false, coalesce(v_used, 0), v_limit, 0, v_reset_at, false;
 end;
 $$;
 
-revoke all on function public.consume_api_quota(uuid, public.api_endpoint, integer) from public;
+grant usage on schema private to service_role;
+grant select, insert, update on private.api_usage_daily to service_role;
+grant select on private.api_user_limits to service_role;
+revoke execute on function public.consume_api_quota(uuid, public.api_endpoint, integer) from public, anon, authenticated;
 grant execute on function public.consume_api_quota(uuid, public.api_endpoint, integer) to service_role;
 ```
 
-## Guard API Contract (Referenz)
+Entscheidungen fuer die MVP-Referenzfunktion:
+- `400`-Requests verbrauchen keine Quota, weil die Quota-Pruefung erst nach erfolgreicher Payload-Validierung erfolgt.
+- `429`-Requests erhoehen den Tageszaehler nicht weiter; `used` bleibt auf dem letzten erlaubten Stand.
+- Die Funktion ist bewusst `security invoker`, nicht `security definer`.
+- Grund: Die Expo API-Route ruft sie nur serverseitig mit Supabase Secret Key bzw. `service_role` auf. Dadurch bleibt die Semantik einfacher und es wird kein `security definer` in einem exponierten RPC-Schema benoetigt.
 
-Datei: `app/api/_lib/guard.ts`
+## Auth- und Quota-API-Contract (Referenz)
+
+Dateien:
+- `app/api/_lib/auth.ts`
+- `app/api/_lib/quota.ts`
 
 ```ts
 export type ApiEndpoint = "quiz_generate" | "quiz_generate_mixed" | "topic_explain";
 
-export interface GuardContext {
+export interface AuthContext {
+  userId: string;
+}
+
+export interface QuotaContext {
   userId: string;
   endpoint: ApiEndpoint;
   used: number;
@@ -191,17 +229,22 @@ export interface GuardContext {
   resetAt: string;
 }
 
-export async function requireApiAccess(
+export async function requireApiIdentity(
   request: Request,
+): Promise<AuthContext | Response>;
+
+export async function requireApiQuota(
+  userId: string,
   endpoint: ApiEndpoint,
-): Promise<GuardContext | Response>;
+): Promise<QuotaContext | Response>;
 ```
 
 Erwartetes Verhalten:
 - `401 Unauthorized`: fehlender/ungueltiger Bearer-Token.
 - `403 Forbidden`: Nutzer temporaer gesperrt (`blocked_until`).
 - `429 Too Many Requests`: Quota erreicht.
-- `200`: GuardContext zur Weiterverarbeitung.
+- `200`: `AuthContext` bzw. `QuotaContext` zur Weiterverarbeitung.
+- `400`: ungueltige Payload wird vor Quota-Verbrauch abgewiesen.
 
 Empfohlene Header bei `429`:
 - `Retry-After`
@@ -234,13 +277,17 @@ Schritte:
    - `quiz_generate = 40`
    - `quiz_generate_mixed = 20`
    - `topic_explain = 30`
-2. Human bestaetigt Datenschutz-Minimum:
+2. Human bestaetigt das Quota-Modell fuer das MVP:
+   - Start mit request-basierter Tagesquote pro Endpoint
+   - denied Over-Limit-Requests (`429`) erhoehen `used` nicht weiter
+   - bei zu grober Kostensteuerung spaeter Erweiterung auf gewichtete Quota-Einheiten
+3. Human bestaetigt Datenschutz-Minimum:
    - nur pseudonyme `user_id`
    - keine Prompt-Historie
    - Aufbewahrung Quota-Daten max. 30 Tage
 
 Abnahme:
-- Schriftliche Freigabe der Limits und Datenminimierung.
+- Schriftliche Freigabe der Limits, des Quota-Modells und der Datenminimierung.
 
 ## Phase 1 - Supabase Projekt und Auth aktivieren
 Owner: Human
@@ -281,22 +328,28 @@ Dateien:
 - Optional: Root Init in `app/_layout.tsx` oder geeigneter Stelle
 
 Schritte:
-1. Supabase Client im RN-Client initialisieren.
-2. Beim App-Start `signInAnonymously`, falls keine Session vorhanden.
-3. Access Token holen.
-4. `apiRequest(...)` erweitert `Authorization: Bearer <token>`.
-5. Fehlerfall im Client klar behandeln (`401`, `429`).
+1. Fehlende Abhaengigkeiten einplanen:
+   - `@supabase/supabase-js`
+   - `react-native-url-polyfill`
+   - optional `expo-secure-store` fuer native Token-Speicherung
+2. Supabase Client fuer Expo initialisieren (native + web beachten).
+3. Beim App-Start `signInAnonymously`, falls keine Session vorhanden.
+4. Access Token holen.
+5. `apiRequest(...)` erweitert `Authorization: Bearer <token>`.
+6. Fehlerfall im Client klar behandeln (`401`, `429`).
+7. Keine Auth auf Cookies stuetzen; Bearer-Token ist die relevante Identitaet.
 
 Abnahme:
 - Ohne Token keine API-Nutzung moeglich.
 - Mit Token laufen bestehende Quiz-/Explain-Flows weiter.
 
-## Phase 4 - Server: zentraler Guard + Supabase Server Client
+## Phase 4 - Server: zentrale Auth-/Quota-Helfer + Supabase Server Client
 Owner: Coding-Agent
 
 Dateien:
 - Neu: `app/api/_lib/supabase-server.ts`
-- Neu: `app/api/_lib/guard.ts`
+- Neu: `app/api/_lib/auth.ts`
+- Neu: `app/api/_lib/quota.ts`
 
 Schritte:
 1. Serverseitigen Supabase Client mit Secret Key bauen.
@@ -304,11 +357,12 @@ Schritte:
 3. `supabase.auth.getUser(jwt)` zur Token-Validierung nutzen.
 4. `consume_api_quota` per RPC aufrufen.
 5. Einheitliche Response fuer `401/403/429` implementieren.
+6. Quota-Verbrauch nur nach erfolgreicher Payload-Validierung ausloesen.
 
 Abnahme:
-- Unit-Tests fuer Guard decken alle Pfade ab.
+- Unit-Tests fuer Auth- und Quota-Helfer decken alle Pfade ab.
 
-## Phase 5 - Guard in alle OpenAI-Routes integrieren
+## Phase 5 - Auth/Quota in alle OpenAI-Routes integrieren
 Owner: Coding-Agent
 
 Dateien:
@@ -317,13 +371,17 @@ Dateien:
 - `app/api/topic/explain+api.ts`
 
 Schritte:
-1. Zu Beginn jeder Route `requireApiAccess(...)` aufrufen.
+1. Zu Beginn jeder Route `requireApiIdentity(...)` aufrufen.
 2. Bei `Response` sofort return.
-3. Erst danach Eingabe validieren und OpenAI aufrufen.
-4. Logausgaben auf minimale sichere Informationen reduzieren.
+3. Danach Request-Body parsen und Eingaben validieren.
+4. Erst unmittelbar vor dem OpenAI-Aufruf `requireApiQuota(...)` aufrufen.
+5. Bei `Response` sofort return.
+6. Logausgaben auf minimale sichere Informationen reduzieren.
 
 Abnahme:
-- OpenAI wird ohne erfolgreichen Guard nie aufgerufen.
+- OpenAI wird ohne erfolgreiche Authentifizierung und Quota-Freigabe nie aufgerufen.
+- Ungueltige Requests (`400`) verbrauchen keine Quota.
+- Wiederholte `429`-Requests treiben `used` nicht ueber das Tageslimit.
 
 ## Phase 6 - Input-Hardening parallel umsetzen
 Owner: Coding-Agent
@@ -348,7 +406,7 @@ Schritte:
 1. Human setzt EAS Variablen fuer die Zielumgebung:
    - Client-Variablen (`EXPO_PUBLIC_*`)
    - Server-Variablen (`SUPABASE_*`, `OPENAI_API_KEY`)
-2. Human startet Deployment (`eas deploy --environment production`).
+2. Human startet das Produktions-Deployment ueber den bestehenden manuellen GitHub-Workflow in `.github/workflows/deploy.yml`.
 3. Coding-Agent validiert Runtime-Verhalten mit Smoke-Requests.
 
 Abnahme:
@@ -374,9 +432,11 @@ Abnahme:
 ## Umsetzungshinweise fuer den Coding-Agent
 
 1. Keine Secrets in Clientcode oder Git.
-2. Fuer Token-Speicherung in React Native `expo-secure-store` verwenden.
+2. Token-Speicherung plattformspezifisch planen:
+   - nativ bevorzugt `expo-secure-store`
+   - web mit kompatiblem Web-Storage-Adapter
 3. Netzwerkcode in `client/lib/query-client.ts` zentral halten.
-4. Guard-Logik nicht in jede Route duplizieren.
+4. Auth- und Quota-Logik nicht in jede Route duplizieren.
 5. Fehlertexte fuer Endnutzer knapp halten; Details nur serverseitig loggen.
 6. Bei Abhaengigkeit auf externe Einrichtung immer stoppen und Human um Freigabe bitten.
 
@@ -390,14 +450,19 @@ Abnahme:
 6. Invalid `count` -> `400`
 7. Invalid `language` -> `400`
 8. Invalid `topicIds` -> `400`
+9. Invalid Request mit gueltigem Token -> `400` ohne Quota-Verbrauch
+10. `429` liefert `Retry-After` und Rate-Limit-Header
+11. Wiederholte `429`-Requests lassen `used` unveraendert
 
 ## Rollback-Strategie
 
-1. Feature-Flag `API_GUARD_ENABLED=true|false` fuer schnelle Deaktivierung.
+1. Getrennte Feature-Flags vorsehen:
+   - `API_AUTH_ENABLED=true|false`
+   - `API_QUOTA_ENABLED=true|false`
 2. Bei Incident:
-   - Guard notfalls temporaer deaktivieren
+   - nach Moeglichkeit nur Quota temporaer deaktivieren, Auth aktiv lassen
    - danach SQL/Config korrigieren
-   - Guard wieder aktivieren
+   - Flags wieder aktivieren
 3. OpenAI-Budgetgrenze parallel im OpenAI-Account setzen.
 
 ## Datenschutz-Notiz fuer Dokumentation
