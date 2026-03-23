@@ -12,10 +12,7 @@ import { LoadingScreen } from "@/components/LoadingScreen";
 import { useTheme } from "@/contexts/ThemeContext";
 import { useTranslation } from "@/hooks/useTranslation";
 import { usePressAnimation } from "@/hooks/usePressAnimation";
-import {
-  useTopicProgress,
-  getCategoryProgress,
-} from "@/hooks/useTopicProgress";
+import { useTopicProgress } from "@/hooks/useTopicProgress";
 import { Spacing, BorderRadius, Shadows } from "@/constants/theme";
 import {
   type Topic,
@@ -28,12 +25,15 @@ import { useProgrammingLanguage } from "@/contexts/ProgrammingLanguageContext";
 
 const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
 
+type TranslateFn = ReturnType<typeof useTranslation>["t"];
+
 interface TopicChipProps {
   progress?: TopicProgress;
   onPress: () => void;
   topicName: string;
   isRecommended?: boolean;
   testID?: string;
+  fullWidth?: boolean;
 }
 
 function getLastPracticedTime(progress: TopicProgress | undefined) {
@@ -78,12 +78,55 @@ function getRecommendedTopicId(
   return selected.id;
 }
 
+function getTopicCountLabel(topicCount: number, t: TranslateFn) {
+  return `${topicCount} ${topicCount === 1 ? t("topic") : t("topics")}`;
+}
+
+function getCategoryStatus(
+  category: Category,
+  topicProgress: Record<string, TopicProgress>,
+  t: TranslateFn,
+) {
+  const totalTopics = category.topics.length;
+  const startedTopics = category.topics.filter((topic) => {
+    const progress = topicProgress[topic.id];
+    return progress && progress.questionsAnswered > 0;
+  });
+  const startedCount = startedTopics.length;
+  const masteredCount = startedTopics.filter(
+    (topic) => topicProgress[topic.id]?.skillLevel === 5,
+  ).length;
+  const dueCount = startedTopics.filter((topic) =>
+    isTopicDue(topicProgress[topic.id]),
+  ).length;
+
+  if (startedCount === 0) {
+    return {
+      primaryLabel: t("notStartedYet"),
+      secondaryLabel: undefined,
+      topicCountLabel: getTopicCountLabel(totalTopics, t),
+    };
+  }
+
+  const primaryLabel =
+    masteredCount === totalTopics
+      ? `${masteredCount}/${totalTopics} ${t("mastered").toLowerCase()}`
+      : `${startedCount}/${totalTopics} ${t("started")}`;
+
+  return {
+    primaryLabel,
+    secondaryLabel: dueCount > 0 ? `${dueCount} ${t("dueLabel")}` : undefined,
+    topicCountLabel: getTopicCountLabel(totalTopics, t),
+  };
+}
+
 function TopicChip({
   progress,
   onPress,
   topicName,
   isRecommended,
   testID,
+  fullWidth,
 }: TopicChipProps) {
   const { theme } = useTheme();
   const { animatedStyle, handlePressIn, handlePressOut } =
@@ -125,7 +168,12 @@ function TopicChip({
       onPress={onPress}
       onPressIn={handlePressIn}
       onPressOut={handlePressOut}
-      style={[styles.topicChip, chipStyle, animatedStyle]}
+      style={[
+        styles.topicChip,
+        fullWidth && styles.topicChipFullWidth,
+        chipStyle,
+        animatedStyle,
+      ]}
     >
       {isMastered ? (
         <AppIcon
@@ -171,6 +219,7 @@ interface CategoryCardProps {
   getTopicDisplayName: (topic: Topic) => string;
   getTopicTestId: (topic: Topic) => string;
   recommendedTopicId?: string;
+  t: TranslateFn;
 }
 
 function CategoryCard({
@@ -181,9 +230,20 @@ function CategoryCard({
   getTopicDisplayName,
   getTopicTestId,
   recommendedTopicId,
+  t,
 }: CategoryCardProps) {
   const { theme } = useTheme();
-  const { progressPercent } = getCategoryProgress(category, topicProgress);
+  const { primaryLabel, secondaryLabel, topicCountLabel } = getCategoryStatus(
+    category,
+    topicProgress,
+    t,
+  );
+  const recommendedTopic = recommendedTopicId
+    ? category.topics.find((topic) => topic.id === recommendedTopicId)
+    : undefined;
+  const visibleTopics = recommendedTopic
+    ? category.topics.filter((topic) => topic.id !== recommendedTopic.id)
+    : category.topics;
 
   return (
     <View
@@ -192,38 +252,95 @@ function CategoryCard({
         { backgroundColor: theme.backgroundDefault },
       ]}
     >
-      <ThemedText type="h4" style={styles.categoryName}>
-        {categoryName}
-      </ThemedText>
-
-      <View style={[styles.progressBar, { backgroundColor: theme.cardBorder }]}>
+      <View style={styles.categoryHeader}>
+        <ThemedText type="h4" style={styles.categoryName}>
+          {categoryName}
+        </ThemedText>
         <View
           style={[
-            styles.progressFill,
-            { width: `${progressPercent}%`, backgroundColor: theme.secondary },
+            styles.categoryBadge,
+            { backgroundColor: theme.backgroundSecondary },
           ]}
-        />
+        >
+          <ThemedText
+            type="caption"
+            style={[styles.categoryBadgeText, { color: theme.tabIconDefault }]}
+          >
+            {topicCountLabel}
+          </ThemedText>
+        </View>
       </View>
 
-      <ScrollView
-        horizontal
-        showsHorizontalScrollIndicator={false}
-        contentContainerStyle={styles.topicsContainer}
-      >
-        {category.topics.map((topic) => {
-          const topicDisplayName = getTopicDisplayName(topic);
-          return (
-            <TopicChip
-              key={topic.id}
-              topicName={topicDisplayName}
-              progress={topicProgress[topic.id]}
-              isRecommended={topic.id === recommendedTopicId}
-              testID={getTopicTestId(topic)}
-              onPress={() => onTopicPress(topic)}
-            />
-          );
-        })}
-      </ScrollView>
+      <View style={styles.categoryMeta}>
+        <ThemedText
+          type="label"
+          style={[styles.categoryStatus, { color: theme.text }]}
+        >
+          {primaryLabel}
+        </ThemedText>
+        {secondaryLabel ? (
+          <View
+            style={[
+              styles.statusPill,
+              {
+                backgroundColor: theme.accent + "18",
+                borderColor: theme.accent + "2E",
+              },
+            ]}
+          >
+            <ThemedText
+              type="caption"
+              style={[styles.statusPillText, { color: theme.accent }]}
+            >
+              {secondaryLabel}
+            </ThemedText>
+          </View>
+        ) : null}
+      </View>
+
+      {recommendedTopic ? (
+        <View
+          style={[
+            styles.recommendedSection,
+            {
+              backgroundColor: theme.secondary + "10",
+              borderColor: theme.secondary + "24",
+            },
+          ]}
+        >
+          <ThemedText
+            type="caption"
+            style={[styles.recommendedLabel, { color: theme.secondary }]}
+          >
+            {t("nextStep")}
+          </ThemedText>
+          <TopicChip
+            topicName={getTopicDisplayName(recommendedTopic)}
+            progress={topicProgress[recommendedTopic.id]}
+            isRecommended
+            testID={getTopicTestId(recommendedTopic)}
+            onPress={() => onTopicPress(recommendedTopic)}
+            fullWidth
+          />
+        </View>
+      ) : null}
+
+      {visibleTopics.length > 0 ? (
+        <View style={styles.topicsWrap}>
+          {visibleTopics.map((topic) => {
+            const topicDisplayName = getTopicDisplayName(topic);
+            return (
+              <TopicChip
+                key={topic.id}
+                topicName={topicDisplayName}
+                progress={topicProgress[topic.id]}
+                testID={getTopicTestId(topic)}
+                onPress={() => onTopicPress(topic)}
+              />
+            );
+          })}
+        </View>
+      ) : null}
     </View>
   );
 }
@@ -282,15 +399,10 @@ export default function LearnScreen() {
                 </ThemedText>
               </View>
               <ThemedText type="caption" style={{ color: theme.accent }}>
-                {dueTopics.length}{" "}
-                {dueTopics.length === 1 ? t("topic") : t("topics")}
+                {getTopicCountLabel(dueTopics.length, t)}
               </ThemedText>
             </View>
-            <ScrollView
-              horizontal
-              showsHorizontalScrollIndicator={false}
-              contentContainerStyle={styles.topicsContainer}
-            >
+            <View style={styles.topicsWrap}>
               {dueTopics.map((topic) => (
                 <TopicChip
                   key={topic.id}
@@ -300,7 +412,7 @@ export default function LearnScreen() {
                   onPress={() => handleTopicPress(topic)}
                 />
               ))}
-            </ScrollView>
+            </View>
           </View>
         ) : null}
 
@@ -318,6 +430,7 @@ export default function LearnScreen() {
                 ? getRecommendedTopicId(category, topicProgress)
                 : undefined
             }
+            t={t}
           />
         ))}
       </ScrollView>
@@ -341,36 +454,82 @@ const styles = StyleSheet.create({
     padding: Spacing.lg,
     ...Shadows.card,
   },
-  categoryName: {
-    marginBottom: Spacing.md,
-  },
-  progressBar: {
-    height: 8,
-    borderRadius: 4,
-    marginBottom: Spacing.lg,
-    overflow: "hidden",
-  },
-  progressFill: {
-    height: "100%",
-    borderRadius: 4,
-  },
-  topicsContainer: {
+  categoryHeader: {
     flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    gap: Spacing.md,
+    marginBottom: Spacing.sm,
+  },
+  categoryName: {
+    flex: 1,
+  },
+  categoryBadge: {
+    borderRadius: BorderRadius.full,
+    paddingHorizontal: Spacing.sm,
+    paddingVertical: Spacing.xs,
+  },
+  categoryBadgeText: {
+    fontWeight: "600",
+  },
+  categoryMeta: {
+    flexDirection: "row",
+    alignItems: "center",
+    flexWrap: "wrap",
+    gap: Spacing.sm,
+    marginBottom: Spacing.lg,
+  },
+  categoryStatus: {
+    fontWeight: "600",
+  },
+  statusPill: {
+    borderRadius: BorderRadius.full,
+    borderWidth: 1,
+    paddingHorizontal: Spacing.sm,
+    paddingVertical: Spacing.xs,
+  },
+  statusPillText: {
+    fontWeight: "600",
+  },
+  recommendedSection: {
+    borderRadius: BorderRadius.md,
+    borderWidth: 1,
+    padding: Spacing.md,
+    gap: Spacing.sm,
+    marginBottom: Spacing.lg,
+  },
+  recommendedLabel: {
+    fontWeight: "700",
+    letterSpacing: 0.4,
+    textTransform: "uppercase",
+  },
+  topicsWrap: {
+    flexDirection: "row",
+    flexWrap: "wrap",
     gap: Spacing.sm,
   },
   topicChip: {
+    alignSelf: "flex-start",
     flexDirection: "row",
     alignItems: "center",
     paddingHorizontal: Spacing.md,
     paddingVertical: Spacing.sm,
     borderRadius: BorderRadius.sm,
     borderWidth: 2,
+    maxWidth: "100%",
+    minHeight: 44,
+    flexShrink: 1,
+  },
+  topicChipFullWidth: {
+    width: "100%",
   },
   chipIcon: {
     marginRight: Spacing.xs,
   },
   chipText: {
     fontWeight: "500",
+    flexShrink: 1,
+    marginRight: Spacing.xs,
   },
   dueSection: {
     borderRadius: BorderRadius.lg,
@@ -380,6 +539,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
+    gap: Spacing.md,
     marginBottom: Spacing.md,
   },
   dueSectionTitleRow: {

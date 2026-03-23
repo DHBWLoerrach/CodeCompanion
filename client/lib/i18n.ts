@@ -18,6 +18,10 @@ export const translations = {
     level: "Level",
     topic: "topic",
     topics: "topics",
+    notStartedYet: "Not started yet",
+    started: "started",
+    dueLabel: "due",
+    nextStep: "Next step",
 
     generatingQuiz: "Generating quiz questions...",
     unableToLoadQuiz: "Unable to Load Quiz",
@@ -178,6 +182,10 @@ export const translations = {
     level: "Level",
     topic: "Thema",
     topics: "Themen",
+    notStartedYet: "Noch nicht begonnen",
+    started: "begonnen",
+    dueLabel: "fällig",
+    nextStep: "Nächster Schritt",
 
     generatingQuiz: "Quiz-Fragen werden generiert...",
     unableToLoadQuiz: "Quiz konnte nicht geladen werden",
