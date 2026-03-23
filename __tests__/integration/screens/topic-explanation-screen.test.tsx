@@ -29,12 +29,12 @@ jest.mock("@/components/AppIcon", () => ({
   AppIcon: () => null,
 }));
 
-jest.mock("@/components/MarkdownView", () => {
+jest.mock("react-native-enriched-markdown", () => {
   const ReactModule = require("react");
   const { Text } = require("react-native");
   return {
-    MarkdownView: ({ content }: { content: string }) =>
-      ReactModule.createElement(Text, null, content),
+    EnrichedMarkdownText: ({ markdown }: { markdown: string }) =>
+      ReactModule.createElement(Text, null, markdown),
   };
 });
 

@@ -5,24 +5,103 @@ import {
   StyleSheet,
   ActivityIndicator,
   Pressable,
+  Linking,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Stack, useLocalSearchParams } from "expo-router";
+import {
+  EnrichedMarkdownText,
+  type MarkdownStyle,
+} from "react-native-enriched-markdown";
 
 import { AppIcon } from "@/components/AppIcon";
 import { HeaderIconButton } from "@/components/HeaderIconButton";
 import { ThemedView } from "@/components/ThemedView";
 import { ThemedText } from "@/components/ThemedText";
-import { MarkdownView } from "@/components/MarkdownView";
 import { useTheme } from "@/contexts/ThemeContext";
 import { useTranslation } from "@/hooks/useTranslation";
 import { useCloseHandler } from "@/hooks/useCloseHandler";
-import { BorderRadius, Spacing } from "@/constants/theme";
+import {
+  BorderRadius,
+  Fonts,
+  Spacing,
+  Typography,
+} from "@/constants/theme";
 import { getApiUrl } from "@/lib/query-client";
 import { getParam, getParamWithDefault } from "@/lib/router-utils";
 
+function getMarkdownStyle(
+  theme: ReturnType<typeof useTheme>["theme"],
+  isDark: boolean,
+): MarkdownStyle {
+  return {
+    paragraph: {
+      color: theme.text,
+      fontSize: Typography.body.fontSize,
+      lineHeight: 24,
+      marginBottom: Spacing.sm,
+    },
+    h1: {
+      color: theme.text,
+      fontSize: 24,
+      fontWeight: "700",
+      marginTop: Spacing.lg,
+      marginBottom: Spacing.sm,
+    },
+    h2: {
+      color: theme.text,
+      fontSize: 20,
+      fontWeight: "700",
+      marginTop: Spacing.lg,
+      marginBottom: Spacing.sm,
+    },
+    h3: {
+      color: theme.text,
+      fontSize: 18,
+      fontWeight: "600",
+      marginTop: Spacing.md,
+      marginBottom: Spacing.xs,
+    },
+    list: {
+      color: theme.text,
+      fontSize: Typography.body.fontSize,
+      lineHeight: 24,
+      gapWidth: Spacing.sm,
+      marginLeft: Spacing.sm,
+      markerColor: theme.primary,
+      markerFontWeight: "600",
+    },
+    link: {
+      color: theme.link,
+      underline: true,
+    },
+    code: {
+      backgroundColor: isDark
+        ? theme.backgroundSecondary
+        : theme.codeBackground,
+      borderColor: theme.cardBorder,
+      color: isDark ? theme.text : theme.primary,
+      fontFamily: Fonts.mono,
+      fontSize: Typography.code.fontSize,
+    },
+    codeBlock: {
+      backgroundColor: theme.codeBackground,
+      borderColor: theme.cardBorder,
+      borderRadius: BorderRadius.md,
+      borderWidth: StyleSheet.hairlineWidth,
+      color: theme.text,
+      fontFamily: Fonts.mono,
+      fontSize: Typography.code.fontSize,
+      lineHeight: 20,
+      marginTop: Spacing.sm,
+      marginBottom: Spacing.sm,
+      padding: Spacing.md,
+    },
+  };
+}
+
 export default function TopicExplanationScreen() {
-  const { theme } = useTheme();
+  const { theme, isDark } = useTheme();
   const { t, language } = useTranslation();
   const insets = useSafeAreaInsets();
   const { topicId, programmingLanguage } = useLocalSearchParams<{
@@ -40,6 +119,8 @@ export default function TopicExplanationScreen() {
   const [error, setError] = useState<string | null>(null);
   const [retryCount, setRetryCount] = useState(0);
   const handleClose = useCloseHandler();
+  const markdownStyle = getMarkdownStyle(theme, isDark);
+
   const handleRetry = () => {
     setRetryCount((count) => count + 1);
   };
@@ -153,7 +234,13 @@ export default function TopicExplanationScreen() {
               </Pressable>
             </View>
           ) : (
-            <MarkdownView content={explanation} />
+            <EnrichedMarkdownText
+              markdown={explanation}
+              markdownStyle={markdownStyle}
+              onLinkPress={({ url }) => {
+                void Linking.openURL(url);
+              }}
+            />
           )}
         </ScrollView>
       </ThemedView>
