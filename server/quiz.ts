@@ -292,7 +292,7 @@ ${contextExclusion ? `- ${contextExclusion}` : ""}
 - Return ONLY valid JSON, no markdown or extra text`;
 
   const response = await requestOpenAI({
-    model: process.env.OPENAI_MODEL || "gpt-5.2",
+    model: process.env.OPENAI_MODEL || "gpt-5.4-mini",
     instructions: `You are a ${programmingLanguageName} programming tutor creating quiz questions. ${
       language === "de" ? "Respond in German." : "Respond in English."
     } Always respond with valid JSON containing a 'questions' array.`,
@@ -353,7 +353,7 @@ Keep the total length to about 500-700 words.
 ${contextExclusion ? `${contextExclusion}.` : ""}`;
 
   const response = await requestOpenAI({
-    model: process.env.OPENAI_MODEL || "gpt-5.2",
+    model: process.env.OPENAI_MODEL || "gpt-5.4-mini",
     instructions: `You are an experienced ${programmingLanguageName} programming tutor explaining concepts to university students. ${
       language === "de" ? "Respond in German." : "Respond in English."
     } Use clear, concise language and practical examples.`,
