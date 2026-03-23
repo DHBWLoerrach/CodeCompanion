@@ -233,6 +233,73 @@ describe("server/quiz", () => {
       expect(questions[0].code).toContain("for");
     });
 
+    it("extracts markdown code blocks from question text when code is missing", async () => {
+      fetchMock.mockResolvedValueOnce(
+        mockFetchResponse({
+          json: {
+            output_text: JSON.stringify({
+              questions: [
+                {
+                  question:
+                    'Was gibt dieser Code aus?\n\n```javascript\nfunction greet(name, callback) {\n  console.log("Hallo " + name);\n  callback();\n}\n\ngreet("Mia", function() {\n  console.log("Willkommen!");\n});\n```',
+                  code: null,
+                  options: ["A", "B", "C", "D"],
+                  correctIndex: 0,
+                  explanation: "Because",
+                },
+              ],
+            }),
+          },
+        }),
+      );
+
+      const [question] = await generateQuizQuestions(
+        "javascript",
+        "functions",
+        1,
+        "de",
+        1,
+      );
+
+      expect(question.question).toBe("Was gibt dieser Code aus?");
+      expect(question.code).toContain('console.log("Hallo " + name);');
+      expect(question.code).not.toContain("```");
+    });
+
+    it("removes duplicate markdown code blocks from question text", async () => {
+      const code =
+        'function greet(name, callback) {\n  console.log("Hallo " + name);\n  callback();\n}\n\ngreet("Mia", function() {\n  console.log("Willkommen!");\n});';
+
+      fetchMock.mockResolvedValueOnce(
+        mockFetchResponse({
+          json: {
+            output_text: JSON.stringify({
+              questions: [
+                {
+                  question: `Was gibt dieser Code aus?\n\n\`\`\`javascript\n${code}\n\`\`\``,
+                  code,
+                  options: ["A", "B", "C", "D"],
+                  correctIndex: 0,
+                  explanation: "Because",
+                },
+              ],
+            }),
+          },
+        }),
+      );
+
+      const [question] = await generateQuizQuestions(
+        "javascript",
+        "functions",
+        1,
+        "de",
+        1,
+      );
+
+      expect(question.question).toBe("Was gibt dieser Code aus?");
+      expect(question.code).toBe(code);
+    });
+
     it("throws on non-ok OpenAI response", async () => {
       fetchMock.mockResolvedValueOnce(
         mockFetchResponse({
@@ -283,6 +350,9 @@ describe("server/quiz", () => {
       expect(payload.input).toContain("Python variable assignment");
       expect(payload.input).toContain(
         'Use "code": null when a code snippet is not needed',
+      );
+      expect(payload.input).toContain(
+        "Do not include Markdown fences or code snippets in the question text",
       );
     });
 

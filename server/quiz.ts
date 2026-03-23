@@ -69,6 +69,7 @@ export function getAvailableTopicIds(
 
 const OPENAI_RESPONSES_URL = "https://api.openai.com/v1/responses";
 const DEFAULT_OPENAI_TIMEOUT_MS = 30_000;
+const MARKDOWN_CODE_BLOCK_PATTERN = /```(?:[^\n\r`]*)\r?\n([\s\S]*?)```/g;
 
 function getResponseText(response: unknown): string {
   if (
@@ -180,9 +181,16 @@ function assertOpenAIResponseIsUsable(response: unknown): void {
 function normalizeStructuredQuizQuestions(
   questions: StructuredQuizQuestion[],
 ): GeneratedQuizQuestion[] {
-  return questions.map(({ code, ...question }) =>
-    code === null ? question : { ...question, code },
-  );
+  return questions.map(({ code, ...question }) => {
+    const { text, code: extractedCode } = extractMarkdownCodeFromQuestion(
+      question.question,
+    );
+    const normalizedCode = code ?? extractedCode;
+
+    return normalizedCode === null
+      ? { ...question, question: text }
+      : { ...question, question: text, code: normalizedCode };
+  });
 }
 
 function validateQuizQuestions(
@@ -196,6 +204,12 @@ function validateQuizQuestions(
   }
 
   for (const [index, question] of questions.entries()) {
+    if (!question.question.trim()) {
+      throw new Error(
+        `Invalid quiz question at index ${index}: question text is empty`,
+      );
+    }
+
     if (question.options.length !== 4) {
       throw new Error(
         `Invalid quiz question at index ${index}: expected exactly 4 options`,
@@ -212,6 +226,34 @@ function validateQuizQuestions(
       );
     }
   }
+}
+
+function extractMarkdownCodeFromQuestion(questionText: string): {
+  text: string;
+  code: string | null;
+} {
+  const blocks: string[] = [];
+  const textWithoutCode = questionText.replace(
+    MARKDOWN_CODE_BLOCK_PATTERN,
+    (_, codeBlock: string) => {
+      const trimmedCodeBlock = codeBlock.trim();
+      if (trimmedCodeBlock) {
+        blocks.push(trimmedCodeBlock);
+      }
+      return "\n\n";
+    },
+  );
+
+  const normalizedText =
+    textWithoutCode
+      .replace(/\n{3,}/g, "\n\n")
+      .replace(/[ \t]+\n/g, "\n")
+      .trim() || questionText.trim();
+
+  return {
+    text: normalizedText,
+    code: blocks.length > 0 ? blocks.join("\n\n") : null,
+  };
 }
 
 async function requestOpenAI(payload: Record<string, unknown>) {
@@ -400,6 +442,7 @@ Each question should:
 - Test understanding of the concept, not just memorization
 - Include a short code snippet when appropriate (keep code under 10 lines)
 - Use "code": null when a code snippet is not needed
+- Do not include Markdown fences or code snippets in the question text; put code only in the code field
 - Have exactly 4 answer options
 - Have only one correct answer
 - Include a brief explanation of why the correct answer is right
