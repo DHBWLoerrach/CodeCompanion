@@ -69,7 +69,7 @@ export default function TopicDetailScreen() {
         const topicData = getTopicById(resolvedTopicId, categories);
         setTopic(topicData || null);
         navigation.setOptions({
-          headerTitle: topicData ? getTopicName(topicData, activeLanguage) : "",
+          headerTitle: "Quiz",
         });
 
         const progressData = await storage.getProgress();
@@ -201,7 +201,7 @@ export default function TopicDetailScreen() {
             {
               backgroundColor: theme.backgroundDefault,
               borderColor: `${theme.cardBorder}70`,
-              borderTopColor: `${heroAccent}50`,
+              borderTopColor: theme.cardBorder,
             },
           ]}
         >
@@ -532,7 +532,7 @@ export default function TopicDetailScreen() {
           testID="topic-start-quiz-button"
           style={[
             styles.primaryFooterButton,
-            { backgroundColor: theme.primary },
+            { backgroundColor: theme.secondary, marginTop: Spacing.lg },
             animatedStyle,
           ]}
           onPress={handleStartQuiz}
@@ -750,14 +750,14 @@ const styles = StyleSheet.create({
     lineHeight: 16,
   },
   primaryFooterButton: {
-    height: 58,
+    height: 52,
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
     gap: Spacing.sm,
-    paddingHorizontal: Spacing.md,
+    paddingHorizontal: Spacing.xl,
     borderRadius: BorderRadius.full,
-    ...Shadows.floatingButton,
+    alignSelf: "center",
   },
   buttonLabel: {
     fontWeight: "600",
