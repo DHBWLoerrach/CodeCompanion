@@ -14,11 +14,13 @@ import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
 import { AppIcon } from "@/components/AppIcon";
 import { LoadingScreen } from "@/components/LoadingScreen";
+import { DEFAULT_QUIZ_QUESTION_COUNT } from "@/constants/quiz";
 import { useTheme } from "@/contexts/ThemeContext";
 import { useTranslation } from "@/hooks/useTranslation";
 import { usePressAnimation } from "@/hooks/usePressAnimation";
 import { Spacing, BorderRadius, Shadows } from "@/constants/theme";
 import {
+  getCategoryName,
   getTopicById,
   getTopicName,
   getTopicDescription,
@@ -34,7 +36,6 @@ export default function TopicDetailScreen() {
   const { theme } = useTheme();
   const { t, language, refreshLanguage } = useTranslation();
   const insets = useSafeAreaInsets();
-  const isAndroid = process.env.EXPO_OS === "android";
   const navigation = useNavigation();
   const router = useRouter();
   const { selectedLanguage } = useProgrammingLanguage();
@@ -148,10 +149,39 @@ export default function TopicDetailScreen() {
     questionsAnswered > 0
       ? Math.round((correctAnswers / questionsAnswered) * 100)
       : 0;
+  const hasProgress = questionsAnswered > 0;
   const displayName = getTopicName(topic, language);
   const displayDescription = getTopicDescription(topic, language);
   const dateLocale = language === "de" ? "de-DE" : "en-US";
   const canExplainTopic = hasTopicExplanation(languageId, topic.id, language);
+  const currentCategory = categories.find(
+    (category) => category.id === topic.category,
+  );
+  const categoryLabel = currentCategory
+    ? getCategoryName(currentCategory, language)
+    : t("topic");
+  const quizQuestionCount = DEFAULT_QUIZ_QUESTION_COUNT;
+  const currentSkillLevel = progress?.skillLevel ?? 1;
+  const skillProgress = (currentSkillLevel / 5) * 100;
+  const lastActivityLabel = progress?.lastPracticed
+    ? new Intl.DateTimeFormat(dateLocale, {
+        day: "2-digit",
+        month: "2-digit",
+        year: "numeric",
+      }).format(new Date(progress.lastPracticed))
+    : t("notStartedYet");
+  const topicStatus = !hasProgress
+    ? { label: t("newLabel"), icon: "zap", color: theme.secondary }
+    : progress?.skillLevel === 5
+      ? { label: t("mastered"), icon: "award", color: theme.success }
+      : isTopicDue(progress ?? undefined)
+        ? { label: t("reviewLabel"), icon: "clock", color: theme.accent }
+        : {
+            label: t("inProgressLabel"),
+            icon: "trending-up",
+            color: theme.secondary,
+          };
+  const heroAccent = selectedLanguage?.color ?? theme.primary;
 
   return (
     <ThemedView style={styles.container}>
@@ -160,128 +190,336 @@ export default function TopicDetailScreen() {
         contentInsetAdjustmentBehavior="automatic"
         contentContainerStyle={[
           styles.scrollContent,
-          { paddingTop: Spacing.xl, paddingBottom: 100 + insets.bottom },
-          isAndroid ? styles.androidCenteredContent : null,
+          { paddingTop: Spacing.lg, paddingBottom: 148 + insets.bottom },
         ]}
         showsVerticalScrollIndicator={false}
       >
         <View
           style={[
-            styles.headerCard,
-            { backgroundColor: theme.backgroundDefault },
+            styles.heroCard,
+            {
+              backgroundColor: theme.backgroundDefault,
+              borderColor: `${theme.cardBorder}70`,
+            },
           ]}
         >
-          <View
-            style={[
-              styles.topicIcon,
-              { backgroundColor: theme.primary + "20" },
-            ]}
-          >
-            <AppIcon name="code" size={32} color={theme.primary} />
-          </View>
-          <ThemedText type="h3" style={styles.topicTitle}>
-            {displayName}
-          </ThemedText>
-          <ThemedText
-            type="body"
-            style={{ color: theme.tabIconDefault, textAlign: "center" }}
-          >
-            {displayDescription}
-          </ThemedText>
-          {progress ? (
+          <View style={styles.heroTopRow}>
             <View
               style={[
-                styles.completedBadge,
-                {
-                  backgroundColor:
-                    progress.skillLevel === 5
-                      ? theme.success
-                      : isTopicDue(progress)
-                        ? theme.accent
-                        : theme.secondary,
-                },
+                styles.heroBadge,
+                { backgroundColor: theme.backgroundSecondary },
+              ]}
+            >
+              <AppIcon name="tag" size={14} color={theme.tabIconDefault} />
+              <ThemedText
+                type="small"
+                numberOfLines={1}
+                style={{ color: theme.tabIconDefault }}
+              >
+                {categoryLabel}
+              </ThemedText>
+            </View>
+            <View
+              style={[
+                styles.statusBadge,
+                { backgroundColor: `${topicStatus.color}20` },
               ]}
             >
               <AppIcon
-                name={
-                  progress.skillLevel === 5
-                    ? "award"
-                    : isTopicDue(progress)
-                      ? "clock"
-                      : "trending-up"
-                }
+                name={topicStatus.icon}
                 size={14}
-                color="#FFFFFF"
+                color={topicStatus.color}
               />
-              <ThemedText type="label" style={{ color: "#FFFFFF" }}>
-                {progress.skillLevel === 5
-                  ? t("mastered")
-                  : isTopicDue(progress)
-                    ? t("dueForReview")
-                    : `${t("level")} ${progress.skillLevel}/5`}
+              <ThemedText
+                type="label"
+                numberOfLines={1}
+                style={{ color: topicStatus.color }}
+              >
+                {topicStatus.label}
               </ThemedText>
             </View>
-          ) : null}
-        </View>
+          </View>
 
-        <View style={styles.statsRow}>
-          <View
-            style={[
-              styles.statCard,
-              { backgroundColor: theme.backgroundDefault },
-            ]}
-          >
-            <ThemedText type="h3" style={{ color: theme.secondary }}>
-              {questionsAnswered}
-            </ThemedText>
-            <ThemedText type="caption" style={{ color: theme.tabIconDefault }}>
-              {t("totalQuestions")}
-            </ThemedText>
-          </View>
-          <View
-            style={[
-              styles.statCard,
-              { backgroundColor: theme.backgroundDefault },
-            ]}
-          >
-            <ThemedText type="h3" style={{ color: theme.success }}>
-              {correctAnswers}
-            </ThemedText>
-            <ThemedText type="caption" style={{ color: theme.tabIconDefault }}>
-              {t("correctAnswers")}
-            </ThemedText>
-          </View>
-          <View
-            style={[
-              styles.statCard,
-              { backgroundColor: theme.backgroundDefault },
-            ]}
-          >
-            <ThemedText type="h3" style={{ color: theme.accent }}>
-              {accuracy}%
-            </ThemedText>
-            <ThemedText type="caption" style={{ color: theme.tabIconDefault }}>
-              {t("accuracy")}
-            </ThemedText>
-          </View>
-        </View>
-
-        {progress?.lastPracticed ? (
-          <View
-            style={[
-              styles.infoCard,
-              { backgroundColor: theme.backgroundDefault },
-            ]}
-          >
-            <View style={styles.infoRow}>
-              <AppIcon name="clock" size={20} color={theme.tabIconDefault} />
-              <ThemedText type="body" style={{ color: theme.tabIconDefault }}>
-                {new Intl.DateTimeFormat(dateLocale, {
-                  day: "2-digit",
-                  month: "2-digit",
-                  year: "numeric",
-                }).format(new Date(progress.lastPracticed))}
+          <View style={styles.heroBody}>
+            <View
+              style={[
+                styles.topicIconCompact,
+                { backgroundColor: `${heroAccent}20` },
+              ]}
+            >
+              <AppIcon name="code" size={28} color={heroAccent} />
+            </View>
+            <View style={styles.heroTextColumn}>
+              <ThemedText type="h2" style={styles.heroTitle}>
+                {displayName}
               </ThemedText>
+              <ThemedText
+                type="body"
+                numberOfLines={2}
+                ellipsizeMode="tail"
+                style={[
+                  styles.heroDescription,
+                  { color: theme.tabIconDefault },
+                ]}
+              >
+                {displayDescription}
+              </ThemedText>
+            </View>
+          </View>
+
+          <View style={styles.metaGrid}>
+            <View
+              style={[
+                styles.metaCard,
+                { backgroundColor: theme.backgroundSecondary },
+              ]}
+            >
+              <ThemedText
+                type="h4"
+                style={[styles.metaValue, { color: theme.text }]}
+              >
+                {quizQuestionCount}
+              </ThemedText>
+              <ThemedText
+                type="small"
+                style={[styles.metaLabel, { color: theme.tabIconDefault }]}
+              >
+                {t("questionsShort")}
+              </ThemedText>
+            </View>
+            <View
+              style={[
+                styles.metaCard,
+                { backgroundColor: theme.backgroundSecondary },
+              ]}
+            >
+              <ThemedText
+                type="h4"
+                style={[styles.metaValue, { color: theme.text }]}
+              >
+                {currentSkillLevel}/5
+              </ThemedText>
+              <ThemedText
+                type="small"
+                style={[styles.metaLabel, { color: theme.tabIconDefault }]}
+              >
+                {t("level")}
+              </ThemedText>
+            </View>
+          </View>
+
+          <View
+            style={[styles.heroDivider, { backgroundColor: theme.cardBorder }]}
+          />
+
+          <AnimatedPressable
+            testID="topic-explain-button"
+            accessibilityState={{ disabled: !canExplainTopic }}
+            disabled={!canExplainTopic}
+            style={[
+              styles.secondaryActionRow,
+              canExplainTopic ? explainAnimatedStyle : null,
+            ]}
+            onPress={canExplainTopic ? handleExplainTopic : undefined}
+            onPressIn={canExplainTopic ? handleExplainPressIn : undefined}
+            onPressOut={canExplainTopic ? handleExplainPressOut : undefined}
+          >
+            <View style={styles.secondaryActionContent}>
+              <View
+                style={[
+                  styles.secondaryActionIconWrap,
+                  {
+                    backgroundColor: canExplainTopic
+                      ? `${theme.secondary}18`
+                      : theme.backgroundSecondary,
+                  },
+                ]}
+              >
+                <AppIcon
+                  name="book-open"
+                  size={18}
+                  color={
+                    canExplainTopic ? theme.secondary : theme.tabIconDefault
+                  }
+                />
+              </View>
+              <View style={styles.secondaryActionText}>
+                <ThemedText
+                  type="label"
+                  style={{
+                    color: canExplainTopic ? theme.text : theme.tabIconDefault,
+                  }}
+                >
+                  {t("topicExplanation")}
+                </ThemedText>
+                <ThemedText
+                  type="small"
+                  numberOfLines={2}
+                  style={{ color: theme.tabIconDefault }}
+                >
+                  {canExplainTopic
+                    ? t("explanationHint")
+                    : t("explanationUnavailable")}
+                </ThemedText>
+              </View>
+            </View>
+            <AppIcon
+              name={canExplainTopic ? "chevron-right" : "lock"}
+              size={16}
+              color={canExplainTopic ? theme.secondary : theme.tabIconDefault}
+            />
+          </AnimatedPressable>
+        </View>
+
+        {hasProgress ? (
+          <View
+            style={[
+              styles.stateCard,
+              {
+                backgroundColor: theme.backgroundDefault,
+                borderColor: theme.cardBorder,
+              },
+            ]}
+          >
+            <View style={styles.stateHeader}>
+              <View style={styles.stateHeaderText}>
+                <ThemedText type="label">{t("yourProgress")}</ThemedText>
+                <ThemedText
+                  type="small"
+                  style={{ color: theme.tabIconDefault }}
+                >
+                  {t("lastActivity")}: {lastActivityLabel}
+                </ThemedText>
+              </View>
+              <View
+                style={[
+                  styles.inlineStatusBadge,
+                  { backgroundColor: `${topicStatus.color}18` },
+                ]}
+              >
+                <AppIcon
+                  name={topicStatus.icon}
+                  size={14}
+                  color={topicStatus.color}
+                />
+                <ThemedText
+                  type="small"
+                  style={{ color: topicStatus.color, fontWeight: "600" }}
+                >
+                  {topicStatus.label}
+                </ThemedText>
+              </View>
+            </View>
+
+            <View style={styles.progressHeroRow}>
+              <View style={styles.progressMetricBlock}>
+                <ThemedText
+                  type="h1"
+                  style={[styles.progressMetricValue, { color: theme.accent }]}
+                >
+                  {accuracy}%
+                </ThemedText>
+                <ThemedText
+                  type="small"
+                  style={{ color: theme.tabIconDefault }}
+                >
+                  {t("accuracy")}
+                </ThemedText>
+              </View>
+              <View style={styles.progressLevelBlock}>
+                <ThemedText
+                  type="h3"
+                  style={{ color: theme.text, fontWeight: "700" }}
+                >
+                  {currentSkillLevel}/5
+                </ThemedText>
+                <ThemedText
+                  type="small"
+                  style={{ color: theme.tabIconDefault }}
+                >
+                  {t("level")}
+                </ThemedText>
+              </View>
+            </View>
+
+            <View
+              style={[
+                styles.skillTrack,
+                { backgroundColor: theme.backgroundSecondary },
+              ]}
+            >
+              <View
+                style={[
+                  styles.skillFill,
+                  {
+                    backgroundColor: topicStatus.color,
+                    width: `${skillProgress}%`,
+                  },
+                ]}
+              />
+            </View>
+
+            <View style={styles.statStrip}>
+              <View
+                style={[
+                  styles.statSegment,
+                  { backgroundColor: theme.backgroundSecondary },
+                ]}
+              >
+                <ThemedText
+                  type="h3"
+                  style={[styles.segmentValue, { color: theme.secondary }]}
+                >
+                  {questionsAnswered}
+                </ThemedText>
+                <ThemedText
+                  type="small"
+                  numberOfLines={1}
+                  style={[styles.segmentLabel, { color: theme.tabIconDefault }]}
+                >
+                  {t("questionsShort")}
+                </ThemedText>
+              </View>
+              <View
+                style={[
+                  styles.statSegment,
+                  { backgroundColor: theme.backgroundSecondary },
+                ]}
+              >
+                <ThemedText
+                  type="h3"
+                  style={[styles.segmentValue, { color: theme.success }]}
+                >
+                  {correctAnswers}
+                </ThemedText>
+                <ThemedText
+                  type="small"
+                  numberOfLines={1}
+                  style={[styles.segmentLabel, { color: theme.tabIconDefault }]}
+                >
+                  {t("correctShort")}
+                </ThemedText>
+              </View>
+              <View
+                style={[
+                  styles.statSegment,
+                  { backgroundColor: theme.backgroundSecondary },
+                ]}
+              >
+                <ThemedText
+                  type="h3"
+                  style={[styles.segmentValue, { color: theme.accent }]}
+                >
+                  {accuracy}%
+                </ThemedText>
+                <ThemedText
+                  type="small"
+                  numberOfLines={1}
+                  style={[styles.segmentLabel, { color: theme.tabIconDefault }]}
+                >
+                  {t("accuracyShort")}
+                </ThemedText>
+              </View>
             </View>
           </View>
         ) : null}
@@ -293,63 +531,30 @@ export default function TopicDetailScreen() {
           {
             paddingBottom: insets.bottom + Spacing.lg,
             backgroundColor: theme.backgroundRoot,
+            borderTopColor: theme.cardBorder,
           },
         ]}
       >
-        <View style={styles.buttonRow}>
-          <AnimatedPressable
-            testID="topic-explain-button"
-            accessibilityState={{ disabled: !canExplainTopic }}
-            disabled={!canExplainTopic}
-            style={[
-              styles.secondaryButton,
-              {
-                backgroundColor: canExplainTopic
-                  ? theme.secondary
-                  : theme.disabled,
-              },
-              canExplainTopic ? explainAnimatedStyle : null,
-            ]}
-            onPress={canExplainTopic ? handleExplainTopic : undefined}
-            onPressIn={canExplainTopic ? handleExplainPressIn : undefined}
-            onPressOut={canExplainTopic ? handleExplainPressOut : undefined}
+        <AnimatedPressable
+          testID="topic-start-quiz-button"
+          style={[
+            styles.primaryFooterButton,
+            { backgroundColor: theme.primary },
+            animatedStyle,
+          ]}
+          onPress={handleStartQuiz}
+          onPressIn={handlePressIn}
+          onPressOut={handlePressOut}
+        >
+          <AppIcon name="play" size={18} color="#FFFFFF" />
+          <ThemedText
+            type="body"
+            numberOfLines={1}
+            style={[styles.buttonLabel, { color: "#FFFFFF" }]}
           >
-            <AppIcon name="book-open" size={18} color="#FFFFFF" />
-            <ThemedText
-              type="body"
-              numberOfLines={1}
-              style={[
-                styles.buttonLabel,
-                {
-                  color: "#FFFFFF",
-                  opacity: canExplainTopic ? 1 : 0.75,
-                },
-              ]}
-            >
-              {t("explainTopic")}
-            </ThemedText>
-          </AnimatedPressable>
-          <AnimatedPressable
-            testID="topic-start-quiz-button"
-            style={[
-              styles.primaryButton,
-              { backgroundColor: theme.primary },
-              animatedStyle,
-            ]}
-            onPress={handleStartQuiz}
-            onPressIn={handlePressIn}
-            onPressOut={handlePressOut}
-          >
-            <AppIcon name="play" size={18} color="#FFFFFF" />
-            <ThemedText
-              type="body"
-              numberOfLines={1}
-              style={[styles.buttonLabel, { color: "#FFFFFF" }]}
-            >
-              {t("startQuiz")}
-            </ThemedText>
-          </AnimatedPressable>
-        </View>
+            {t("startQuiz")}
+          </ThemedText>
+        </AnimatedPressable>
       </View>
     </ThemedView>
   );
@@ -370,58 +575,186 @@ const styles = StyleSheet.create({
   },
   scrollContent: {
     padding: Spacing.lg,
-    gap: Spacing.lg,
+    gap: Spacing.md,
     flexGrow: 1,
   },
-  androidCenteredContent: {
-    justifyContent: "center",
-  },
-  headerCard: {
+  heroCard: {
+    borderWidth: StyleSheet.hairlineWidth,
     borderRadius: BorderRadius.lg,
-    padding: Spacing.xl,
-    alignItems: "center",
+    padding: 14,
     gap: Spacing.md,
     ...Shadows.card,
   },
-  topicIcon: {
-    width: 72,
-    height: 72,
-    borderRadius: 36,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  topicTitle: {
-    marginTop: Spacing.sm,
-  },
-  completedBadge: {
+  heroTopRow: {
     flexDirection: "row",
     alignItems: "center",
-    gap: Spacing.xs,
-    paddingHorizontal: Spacing.md,
-    paddingVertical: Spacing.sm,
+    justifyContent: "space-between",
+    gap: Spacing.sm,
+    flexWrap: "wrap",
+  },
+  heroBadge: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
+    paddingHorizontal: Spacing.sm,
+    paddingVertical: 6,
     borderRadius: BorderRadius.full,
-    marginTop: Spacing.sm,
+    maxWidth: "100%",
   },
-  statsRow: {
+  statusBadge: {
     flexDirection: "row",
-    gap: Spacing.md,
-  },
-  statCard: {
-    flex: 1,
-    borderRadius: BorderRadius.md,
-    padding: Spacing.lg,
     alignItems: "center",
-    ...Shadows.card,
+    gap: 6,
+    paddingHorizontal: Spacing.sm,
+    paddingVertical: 6,
+    borderRadius: BorderRadius.full,
+    maxWidth: "100%",
   },
-  infoCard: {
-    borderRadius: BorderRadius.md,
-    padding: Spacing.lg,
-    ...Shadows.card,
-  },
-  infoRow: {
+  heroBody: {
     flexDirection: "row",
     alignItems: "flex-start",
     gap: Spacing.md,
+  },
+  topicIconCompact: {
+    width: 52,
+    height: 52,
+    borderRadius: BorderRadius.md,
+    alignItems: "center",
+    justifyContent: "center",
+    marginTop: 1,
+  },
+  heroTextColumn: {
+    flex: 1,
+    minWidth: 0,
+    gap: 6,
+  },
+  heroTitle: {
+    fontSize: 26,
+    lineHeight: 31,
+  },
+  heroDescription: {
+    fontSize: 15,
+    lineHeight: 21,
+  },
+  metaGrid: {
+    flexDirection: "row",
+    gap: Spacing.sm,
+  },
+  metaCard: {
+    flex: 1,
+    minWidth: 0,
+    borderRadius: BorderRadius.md,
+    paddingHorizontal: Spacing.md,
+    paddingVertical: 10,
+    gap: 2,
+  },
+  metaValue: {
+    fontWeight: "700",
+    lineHeight: 24,
+  },
+  metaLabel: {
+    lineHeight: 16,
+  },
+  heroDivider: {
+    height: StyleSheet.hairlineWidth,
+    marginTop: -6,
+  },
+  secondaryActionRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    gap: Spacing.sm,
+  },
+  secondaryActionContent: {
+    flex: 1,
+    minWidth: 0,
+    flexDirection: "row",
+    alignItems: "center",
+    gap: Spacing.sm,
+  },
+  secondaryActionIconWrap: {
+    width: 36,
+    height: 36,
+    borderRadius: BorderRadius.md,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  secondaryActionText: {
+    flex: 1,
+    minWidth: 0,
+    gap: 2,
+  },
+  stateCard: {
+    borderWidth: 1,
+    borderRadius: BorderRadius.lg,
+    padding: Spacing.lg,
+    gap: Spacing.lg,
+    ...Shadows.card,
+  },
+  stateHeader: {
+    flexDirection: "row",
+    alignItems: "flex-start",
+    justifyContent: "space-between",
+    gap: Spacing.md,
+  },
+  stateHeaderText: {
+    flex: 1,
+    minWidth: 0,
+    gap: 4,
+  },
+  inlineStatusBadge: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
+    paddingHorizontal: Spacing.sm,
+    paddingVertical: 6,
+    borderRadius: BorderRadius.full,
+  },
+  progressHeroRow: {
+    flexDirection: "row",
+    alignItems: "flex-end",
+    justifyContent: "space-between",
+    gap: Spacing.lg,
+  },
+  progressMetricBlock: {
+    flex: 1,
+    gap: 4,
+  },
+  progressMetricValue: {
+    lineHeight: 46,
+  },
+  progressLevelBlock: {
+    alignItems: "flex-end",
+    gap: 4,
+  },
+  skillTrack: {
+    height: 10,
+    borderRadius: BorderRadius.full,
+    overflow: "hidden",
+  },
+  skillFill: {
+    height: "100%",
+    borderRadius: BorderRadius.full,
+  },
+  statStrip: {
+    flexDirection: "row",
+    gap: Spacing.sm,
+  },
+  statSegment: {
+    flex: 1,
+    minWidth: 0,
+    borderRadius: BorderRadius.md,
+    paddingHorizontal: Spacing.sm,
+    paddingVertical: Spacing.md,
+    alignItems: "center",
+    gap: 4,
+  },
+  segmentValue: {
+    lineHeight: 30,
+  },
+  segmentLabel: {
+    textAlign: "center",
+    lineHeight: 16,
   },
   footer: {
     position: "absolute",
@@ -431,39 +764,19 @@ const styles = StyleSheet.create({
     padding: Spacing.md,
     paddingTop: Spacing.md,
     borderTopWidth: 1,
-    borderTopColor: "rgba(0,0,0,0.05)",
   },
-  buttonRow: {
+  primaryFooterButton: {
+    height: 58,
     flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
     gap: Spacing.sm,
-  },
-  secondaryButton: {
-    flex: 1,
-    height: 56,
-    minWidth: 0,
-    paddingHorizontal: Spacing.sm,
+    paddingHorizontal: Spacing.md,
     borderRadius: BorderRadius.md,
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    gap: 6,
-  },
-  primaryButton: {
-    flex: 1,
-    height: 56,
-    minWidth: 0,
-    paddingHorizontal: Spacing.sm,
-    borderRadius: BorderRadius.md,
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    gap: 6,
+    ...Shadows.floatingButton,
   },
   buttonLabel: {
-    flexShrink: 1,
-    fontSize: 15,
     fontWeight: "600",
     textAlign: "center",
-    lineHeight: 20,
   },
 });
