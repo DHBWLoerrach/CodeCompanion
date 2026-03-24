@@ -1,19 +1,27 @@
-# Rate-Limiting mit Supabase (Light) — Implementierungsplan v3.1
+# Rate-Limiting mit Supabase (Light) - Implementierungsplan v4
 
 ## Zusammenfassung
 
 Einfaches, serverseitiges Rate Limiting für zwei Expo API Routes, **ohne Registrierung** und **ohne Supabase Auth/JWT**. Supabase wird ausschließlich als Datenbank verwendet. Die Geräteidentifikation erfolgt über eine client-seitig generierte UUID, die vor dem Speichern im Backend **gehasht** wird.
 
+Für die lokale Entwicklung gilt in v4 ein zweistufiges Modell:
+
+- Default lokal **ohne** Supabase-Abhängigkeit
+- gezielter Integrationsmodus **mit** dedizierter Supabase-Testinstanz
+
+Damit bleibt der Alltag im DevMode leichtgewichtig, ohne das eigentliche Feature erst kurz vor Produktion real zu testen.
+
 ## Aktueller Scope im Repo
 
-In Scope für v3.1:
+In Scope für v4:
 
 - `POST /api/quiz/generate`
 - `POST /api/quiz/generate-mixed`
 
-Explizit nicht in Scope für v3.1:
+Explizit nicht in Scope für v4:
 
-- `/api/topic/explain` oder andere spätere AI-Endpunkte
+- `/api/topic/explain`
+- andere spätere AI-Endpunkte
 
 Wenn später weitere AI-Routes dazukommen, werden sie bewusst separat in das Quota-Modell aufgenommen statt stillschweigend mitzuschwimmen.
 
@@ -24,13 +32,15 @@ Wenn später weitere AI-Routes dazukommen, werden sie bewusst separat in das Quo
 - Sehr kleiner Implementierungsaufwand
 - Schutz vor versehentlichen Schleifen, einfachem Script-Traffic und Budget-Spikes
 - Keine Abhängigkeit von Supabase Auth
+- Reibungsarme lokale Entwicklung ohne Pflicht zu externer Infrastruktur
 
 ## Nicht-Ziele
 
 - Kein starker Schutz gegen gezielte, technisch versierte Angreifer
 - Keine verlässliche Nutzeridentität
 - Keine faire Multi-Device-Zuordnung über Accounts hinweg
-- Keine App-Attestation in v3.1
+- Keine App-Attestation in v4
+- Keine Pflicht, dass jede lokale Entwicklung gegen echtes Supabase laufen muss
 
 ---
 
@@ -41,7 +51,7 @@ Wenn später weitere AI-Routes dazukommen, werden sie bewusst separat in das Quo
 - Verwendet wird ein **neuer Secret Key** (`sb_secret_...`), nicht der legacy `service_role` JWT-Key.
 - Secret Keys autorisieren über die eingebaute `service_role`-Rolle und **umgehen RLS**.
 - Secret Keys dürfen nur in **sicheren, entwicklerkontrollierten** Server-Komponenten verwendet werden.
-- Falls das bestehende Projekt noch auf dem alten Key-Modell läuft, funktioniert `service_role` technisch weiterhin — Zielzustand für neue Implementierung ist aber der **Secret Key**.
+- Falls das bestehende Projekt noch auf dem alten Key-Modell läuft, funktioniert `service_role` technisch weiterhin - Zielzustand für neue Implementierung ist aber der **Secret Key**.
 
 ### Expo / EAS
 
@@ -84,13 +94,13 @@ Das verhindert, dass ein Endpunkt den anderen komplett blockiert, ohne das Budge
 
 **Beispiele gültiger Nutzung an einem Tag:**
 
-| generate | mixed | gesamt | erlaubt?              |
-| -------- | ----- | ------ | --------------------- |
-| 4        | 1     | 5      | ✓                     |
-| 3        | 2     | 5      | ✓                     |
-| 5        | 0     | 5      | ✗ (`generate` max. 4) |
-| 2        | 3     | 5      | ✗ (`mixed` max. 2)    |
-| 4        | 2     | 6      | ✗ (gesamt max. 5)     |
+| generate | mixed | gesamt | erlaubt?                 |
+| -------- | ----- | ------ | ------------------------ |
+| 4        | 1     | 5      | ja                       |
+| 3        | 2     | 5      | ja                       |
+| 5        | 0     | 5      | nein (`generate` max. 4) |
+| 2        | 3     | 5      | nein (`mixed` max. 2)    |
+| 4        | 2     | 6      | nein (gesamt max. 5)     |
 
 ### Kostenrahmen
 
@@ -109,16 +119,17 @@ Mobile App (Expo)
   ▼
 Expo API Route (EAS Hosting)
   │
-  ├─ 1. X-Device-Id vorhanden und formal gültig (UUID v4)? → sonst 400
-  ├─ 2. Payload valide? → sonst 400 (kein Quota-Verbrauch)
-  ├─ 3. Device-ID hashen (SHA-256)
-  ├─ 4. Globales Tageslimit prüfen → sonst 429
-  ├─ 5. Geräte-Gesamtlimit prüfen → sonst 429
-  ├─ 6. Geräte-Endpunktlimit prüfen → sonst 429
-  ├─ 7. Quota-Zeile schreiben
+  ├─ 1. Payload valide? → sonst 400 (kein Quota-Verbrauch)
+  ├─ 2. API_QUOTA_ENABLED != true? → Quota-Zweig überspringen
+  ├─ 3. X-Device-Id vorhanden und formal gültig (UUID v4)? → sonst 400
+  ├─ 4. Device-ID hashen (SHA-256)
+  ├─ 5. Globales Tageslimit prüfen → sonst 429
+  ├─ 6. Geräte-Gesamtlimit prüfen → sonst 429
+  ├─ 7. Geräte-Endpunktlimit prüfen → sonst 429
+  ├─ 8. Quota-Zeile schreiben
   │
   ▼
-OpenAI API (nur wenn 1–7 bestanden)
+OpenAI API (nur wenn 1-8 bestanden)
 ```
 
 ### Wichtige Entscheidung: Quota vor dem Upstream-Call
@@ -127,13 +138,23 @@ Gültige, zugelassene Requests verbrauchen Quota **auch dann**, wenn der OpenAI-
 
 ### Fail-Closed
 
-Wenn Supabase für den Quota-Check nicht erreichbar ist oder der Insert fehlschlägt, wird **kein** OpenAI-Call gemacht. Stattdessen: `503 Service Unavailable`. Bei Budget-Schutz ist „fail closed" die sicherere Wahl.
+Wenn Supabase für den Quota-Check nicht erreichbar ist oder der Insert fehlschlägt, wird **kein** OpenAI-Call gemacht. Stattdessen: `503 Service Unavailable`. Bei Budget-Schutz ist "fail closed" die sicherere Wahl.
+
+### Dev-Bypass
+
+Wenn `API_QUOTA_ENABLED` lokal oder in einer Testumgebung **nicht** auf `true` steht, wird der komplette Quota-Zweig übersprungen:
+
+- kein Zwang zu `X-Device-Id`
+- kein Supabase-Zugriff
+- kein lokaler Setup-Zwang für Frontend- oder Content-Arbeit
+
+Die Client-Seite darf den Header trotzdem immer auf den beiden Quiz-POSTs mitsenden; entscheidend ist, dass nur der Server über die Aktivierung des Features entscheidet.
 
 ---
 
 ## Environment-Variablen
 
-### Serverseitig (EAS Hosting, Sichtbarkeit: sensitive)
+### Produktion / gehostete Umgebung
 
 ```bash
 SUPABASE_URL=...
@@ -142,12 +163,97 @@ OPENAI_API_KEY=...
 API_QUOTA_ENABLED=true
 ```
 
+### Lokale Entwicklung - Default
+
+```bash
+OPENAI_API_KEY=...
+API_QUOTA_ENABLED=false
+```
+
+In diesem Modus ist **kein** lokales Supabase nötig.
+
+### Lokaler oder CI-Integrationsmodus
+
+```bash
+SUPABASE_URL=...
+SUPABASE_SECRET_KEY=sb_secret_...
+OPENAI_API_KEY=...
+API_QUOTA_ENABLED=true
+```
+
+In diesem Modus wird gegen eine **dedizierte Dev-/Test-Supabase-Instanz** getestet, nie gegen Produktion.
+
 ### Regeln
 
 - Nie `EXPO_PUBLIC_` für Secret Keys verwenden.
 - Nie in Source Control committen.
 - Nie in Fehlermeldungen oder Logs ausgeben.
+- Verhalten nicht implizit nur an `__DEV__` koppeln, sondern explizit an `API_QUOTA_ENABLED`.
+- Wenn `API_QUOTA_ENABLED=true`, aber `SUPABASE_URL` oder `SUPABASE_SECRET_KEY` fehlen, **fail fast**: kein OpenAI-Call.
+- Dev/Test und Produktion nutzen getrennte Supabase-Projekte.
 - Nach Änderungen an Server-Variablen neu deployen.
+
+---
+
+## Entwicklungsstrategie
+
+### Modus A - Normaler lokaler Dev-Alltag
+
+Empfohlener Standard:
+
+```bash
+API_QUOTA_ENABLED=false
+```
+
+Gedacht für:
+
+- UI-Arbeit
+- Content-Änderungen
+- allgemeine App-Entwicklung
+- Debugging außerhalb des Quota-Features
+
+Erwartetes Verhalten:
+
+- keine Supabase-Abhängigkeit
+- keine lokalen Blocker durch fehlende Tabellen oder Keys
+- API-Routes laufen für normale Entwicklung weiter
+
+### Modus B - Lokaler Integrationsmodus
+
+Gezielt einschalten für:
+
+- Entwicklung des Quota-Features selbst
+- Smoke-Tests vor Merge
+- Verifikation von `429`-, `503`- und Header-Verhalten
+- Prüfung von RLS, Tabelle und Secret-Key-Setup
+
+Empfohlener Standard:
+
+```bash
+API_QUOTA_ENABLED=true
+SUPABASE_URL=...
+SUPABASE_SECRET_KEY=...
+```
+
+Anforderungen:
+
+- eigene Dev-/Test-Supabase-Instanz
+- identisches Schema wie in Produktion
+- keine Verbindung zur Produktionsinstanz
+
+### Modus C - Produktion
+
+Produktionsumgebung läuft immer mit:
+
+```bash
+API_QUOTA_ENABLED=true
+```
+
+### Team-Regel
+
+- Lokaler Default ist **ohne** Supabase.
+- Vor Merge oder Produktionsfreigabe wird mindestens ein gezielter Smoke-Test im Integrationsmodus ausgeführt.
+- Produktionsprobleme dürfen nie nur deshalb auftauchen, weil das Feature vorher ausschließlich im Bypass gelaufen ist.
 
 ---
 
@@ -172,13 +278,13 @@ create index idx_api_usage_device_day
 create index idx_api_usage_global_day
   on public.api_usage (usage_date);
 
--- RLS aktivieren, keine Policies → für anon/authenticated gesperrt
+-- RLS aktivieren, keine Policies -> für anon/authenticated gesperrt
 alter table public.api_usage enable row level security;
 ```
 
 Jeder erfolgreiche Request erzeugt eine Zeile. Die Zählung erfolgt per `count(*)`.
 
-**Kein Upsert-Counter, keine RPC-Funktion nötig.** Bei 60 Requests/Tag sind die Datenmengen winzig. Theoretische Race Conditions können dazu führen, dass in seltenen Fällen 1–2 Requests über ein Limit rutschen — bei der aktiven Budgetgrenze beim Anbieter ist das akzeptabel.
+**Kein Upsert-Counter, keine RPC-Funktion nötig.** Bei 60 Requests/Tag sind die Datenmengen winzig. Theoretische Race Conditions können dazu führen, dass in seltenen Fällen 1-2 Requests über ein Limit rutschen - bei der aktiven Budgetgrenze beim Anbieter ist das akzeptabel.
 
 ---
 
@@ -198,19 +304,20 @@ const GLOBAL_LIMIT_PER_DAY = 60;
 
 ## Implementierung
 
-### Phase 1 — Datenbank vorbereiten (Human)
+### Phase 1 - Datenbank vorbereiten (Human)
 
 **Aufwand:** 5 Minuten
 
 1. SQL im Supabase SQL Editor ausführen (Tabelle, Indizes, RLS).
 2. Prüfen: Tabelle `public.api_usage` existiert, RLS ist aktiv.
 3. Secret Key bereithalten (`sb_secret_...`).
+4. Optional, aber empfohlen: separate Dev-/Testinstanz parallel vorbereiten.
 
 **Abnahme:** Tabelle existiert, RLS aktiv, Key liegt nur serverseitig vor.
 
 ---
 
-### Phase 2 — Server: Supabase-Client + Quota-Helfer (Coding-Agent)
+### Phase 2 - Server: Supabase-Client + Quota-Helfer (Coding-Agent)
 
 **Aufwand:** ca. 30 Minuten
 
@@ -224,6 +331,7 @@ const GLOBAL_LIMIT_PER_DAY = 60;
 - `createClient(process.env.SUPABASE_URL, process.env.SUPABASE_SECRET_KEY)`
 - Optionen: `persistSession: false`, `autoRefreshToken: false`
 - Nur in serverseitigem Code importieren
+- Helper soll nur gebaut werden, wenn `API_QUOTA_ENABLED=true`
 
 #### Quota-Helfer
 
@@ -263,7 +371,7 @@ Hilfsfunktion für 429-Responses mit Headern:
 - `X-RateLimit-Reset`
 - JSON-Body: `{ error: 'rate_limited', scope: 'global' | 'device', resetAtUtc: string }`
 
-Mapping fuer die UI:
+Mapping für die UI:
 
 - `global_day` -> `scope: 'global'`
 - `device_total` -> `scope: 'device'`
@@ -275,7 +383,7 @@ Bei Supabase-Fehler: `503 Service Unavailable`, kein OpenAI-Call.
 
 ---
 
-### Phase 3 — Server: Integration in API Routes (Coding-Agent)
+### Phase 3 - Server: Integration in API Routes (Coding-Agent)
 
 **Aufwand:** ca. 20 Minuten
 
@@ -286,21 +394,22 @@ Bei Supabase-Fehler: `503 Service Unavailable`, kein OpenAI-Call.
 
 Reihenfolge in jeder Route:
 
-1. `X-Device-Id`-Header lesen → fehlt oder kein UUID-v4-Format → `400`
-2. Request-Body parsen und validieren → ungültig → `400` (kein Quota-Verbrauch)
-3. Device-ID mit SHA-256 hashen
-4. `checkAndConsumeQuota(deviceIdHash, endpoint)` aufrufen
-5. Bei `allowed: false` → `429` mit Rate-Limit-Headern und stabilem Response-Body fuer den Client
-6. Bei DB-Fehler → `503`
-7. Erst dann OpenAI-Call ausführen
+1. Request-Body parsen und validieren -> ungültig -> `400` (kein Quota-Verbrauch)
+2. Wenn `API_QUOTA_ENABLED !== 'true'` -> Quota komplett überspringen und direkt zum OpenAI-Call
+3. `X-Device-Id`-Header lesen -> fehlt oder kein UUID-v4-Format -> `400`
+4. Device-ID mit SHA-256 hashen
+5. `checkAndConsumeQuota(deviceIdHash, endpoint)` aufrufen
+6. Bei `allowed: false` -> `429` mit Rate-Limit-Headern und stabilem Response-Body für den Client
+7. Bei DB-Fehler -> `503`
+8. Erst dann OpenAI-Call ausführen
 
 Keine Secrets in Fehlermeldungen oder Logs.
 
-**Abnahme:** OpenAI wird nie ohne erfolgreiche Quota-Freigabe aufgerufen.
+**Abnahme:** OpenAI wird nie ohne erfolgreiche Quota-Freigabe aufgerufen, im lokalen Dev-Bypass aber bewusst ohne Supabase-Abhängigkeit.
 
 ---
 
-### Phase 4 — Client: Device-ID erzeugen und mitsenden (Coding-Agent)
+### Phase 4 - Client: Device-ID erzeugen und mitsenden (Coding-Agent)
 
 **Aufwand:** ca. 15 Minuten
 
@@ -312,21 +421,38 @@ Keine Secrets in Fehlermeldungen oder Logs.
 Schritte:
 
 1. Beim ersten App-Start UUID v4 generieren, in AsyncStorage speichern.
-2. Header `X-Device-Id: <uuid>` nur bei `POST /api/quiz/generate` und `POST /api/quiz/generate-mixed` mitsenden.
+2. Header `X-Device-Id: <uuid>` bei `POST /api/quiz/generate` und `POST /api/quiz/generate-mixed` mitsenden.
 3. Andere Requests und bestehende Query-Reads bleiben unverändert.
 4. Bei `429` dem Nutzer eine verständliche Meldung anzeigen, basierend auf `scope` im Response-Body:
-   - Tageslimit: „Tageslimit erreicht. Morgen geht's weiter."
-   - Globales Limit: „Die App ist heute ausgelastet. Morgen geht's weiter."
+   - Geräte-Limit: "Tageslimit erreicht. Morgen geht's weiter."
+   - Globales Limit: "Die App ist heute ausgelastet. Morgen geht's weiter."
 
-**Abnahme:** Bestehende Quiz-Flows funktionieren wie bisher, Header wird mitgesendet, 429 wird sauber aufgefangen.
+**Abnahme:** Bestehende Quiz-Flows funktionieren wie bisher, Header wird auf den beiden Quiz-POSTs mitgesendet, `429` wird sauber aufgefangen.
 
 ---
 
-### Phase 5 — EAS Deployment (Human)
+### Phase 5 - Dev- und Integrationsmodus prüfen (Coding-Agent + Human)
+
+**Aufwand:** ca. 15 Minuten
+
+1. Lokal mit `API_QUOTA_ENABLED=false` prüfen:
+   - kein Supabase notwendig
+   - Quiz-Flows laufen weiter
+2. Lokal oder in CI mit `API_QUOTA_ENABLED=true` gegen Dev-Supabase prüfen:
+   - `400` bei fehlender oder ungültiger Device-ID
+   - `429` bei überschrittenen Limits
+   - `503` bei Supabase-Ausfall
+3. Sicherstellen, dass nie gegen die Produktionsinstanz getestet wird.
+
+**Abnahme:** Beide Betriebsmodi verhalten sich wie geplant.
+
+---
+
+### Phase 6 - Deployment (Human)
 
 **Aufwand:** 10 Minuten
 
-1. Environment-Variablen in EAS setzen (Sichtbarkeit: sensitive):
+1. Environment-Variablen für die Zielumgebung setzen:
    - `SUPABASE_URL`
    - `SUPABASE_SECRET_KEY`
    - `OPENAI_API_KEY`
@@ -334,11 +460,11 @@ Schritte:
 2. Server Output prüfen (`web.output: "server"` in App-Config)
 3. Deployment anstoßen
 4. Smoke-Test:
-   - Request ohne Device-ID → `400`
-   - Normaler Request → `200`
-   - 5. `generate`-Request desselben Geräts → `429`
-   - 3. `generate-mixed`-Request desselben Geräts → `429`
-   - 6. Request gesamt desselben Geräts → `429`
+   - Request ohne Device-ID -> `400`
+   - Normaler Request -> `200`
+   - 5. `generate`-Request desselben Geräts -> `429`
+   - 3. `generate-mixed`-Request desselben Geräts -> `429`
+   - 6. Request gesamt desselben Geräts -> `429`
 
 **Abnahme:** Statuscodes und Limits verhalten sich wie erwartet.
 
@@ -357,7 +483,7 @@ where usage_date < ((now() at time zone 'utc')::date - interval '60 days');
 
 ## Logging
 
-**Loggen:** Statuscode, Endpoint, Grund für 429, Hash der Device-ID, Dauer des Upstream-Calls.
+**Loggen:** Statuscode, Endpoint, Grund für `429`, Hash der Device-ID, Dauer des Upstream-Calls.
 
 **Nicht loggen:** Roher Secret Key, roher API Key, rohe Geräte-UUID, vollständiger Request-Body.
 
@@ -365,28 +491,31 @@ where usage_date < ((now() at time zone 'utc')::date - interval '60 days');
 
 ## Testmatrix
 
-| #   | Szenario                                            | Ergebnis                  |
-| --- | --------------------------------------------------- | ------------------------- |
-| 1   | Kein `X-Device-Id`-Header                           | 400                       |
-| 2   | Ungültiges UUID-Format                              | 400                       |
-| 3   | Gültige ID, gültige Payload, unter Limit            | 200                       |
-| 4   | Ungültige Payload, gültige ID                       | 400, kein Quota-Verbrauch |
-| 5   | 5. `generate`-Request am selben Tag                 | 429                       |
-| 6   | 3. `generate-mixed`-Request am selben Tag           | 429                       |
-| 7   | 6. Request gesamt am selben Tag                     | 429                       |
-| 8   | 61. globaler Request am selben Tag                  | 429                       |
-| 9   | Supabase nicht erreichbar                           | 503, kein OpenAI-Call     |
-| 10  | 429 enthält `Retry-After`-Header                    | ✓                         |
-| 11  | 429-Body bei globalem Limit enthält `scope: global` | ✓                         |
-| 12  | 429-Body bei Geräte-Limit enthält `scope: device`   | ✓                         |
-| 13  | Nächster UTC-Tag → Zähler zurückgesetzt             | 200                       |
-| 14  | RLS aktiv, anonyme Abfrage auf `api_usage`          | kein Zugriff              |
+| #   | Szenario                                                               | Ergebnis                      |
+| --- | ---------------------------------------------------------------------- | ----------------------------- |
+| 1   | Kein `X-Device-Id`-Header bei aktivem Quota-Mode                       | 400                           |
+| 2   | Ungültiges UUID-Format bei aktivem Quota-Mode                          | 400                           |
+| 3   | Gültige ID, gültige Payload, unter Limit                               | 200                           |
+| 4   | Ungültige Payload, gültige ID                                          | 400, kein Quota-Verbrauch     |
+| 5   | 5. `generate`-Request am selben Tag                                    | 429                           |
+| 6   | 3. `generate-mixed`-Request am selben Tag                              | 429                           |
+| 7   | 6. Request gesamt am selben Tag                                        | 429                           |
+| 8   | 61. globaler Request am selben Tag                                     | 429                           |
+| 9   | Supabase nicht erreichbar                                              | 503, kein OpenAI-Call         |
+| 10  | `429` enthält `Retry-After`-Header                                     | ja                            |
+| 11  | `429`-Body bei globalem Limit enthält `scope: global`                  | ja                            |
+| 12  | `429`-Body bei Geräte-Limit enthält `scope: device`                    | ja                            |
+| 13  | Nächster UTC-Tag -> Zähler zurückgesetzt                               | 200                           |
+| 14  | RLS aktiv, anonyme Abfrage auf `api_usage`                             | kein Zugriff                  |
+| 15  | Lokaler Dev mit `API_QUOTA_ENABLED=false` funktioniert ohne Supabase   | ja                            |
+| 16  | Integrationsmodus mit Dev-Supabase zeigt echtes `429`-/`503`-Verhalten | ja                            |
+| 17  | `API_QUOTA_ENABLED=true`, aber Supabase-Env fehlt                      | fail closed, kein OpenAI-Call |
 
 ---
 
 ## Rollback
 
-**Soft Rollback:** `API_QUOTA_ENABLED=false` in EAS setzen → Quota-Check wird übersprungen, App läuft ohne Limits.
+**Soft Rollback:** `API_QUOTA_ENABLED=false` setzen -> Quota-Check wird übersprungen, App läuft ohne Limits.
 
 **Sicherheitsnetz:** Harte Budgetgrenze beim KI-Anbieter bleibt unabhängig aktiv.
 
@@ -396,9 +525,10 @@ where usage_date < ((now() at time zone 'utc')::date - interval '60 days');
 
 - Geräte-ID ist fälschbar und per Reinstall zurücksetzbar
 - Kein Schutz gegen gezieltes Reverse Engineering
-- Count-then-insert ist nicht streng atomar (1–2 Requests können über Limits rutschen)
+- Count-then-insert ist nicht streng atomar (1-2 Requests können über Limits rutschen)
+- Im lokalen Dev-Bypass wird das eigentliche Quota-Feature bewusst nicht mitgeprüft
 
-Für den Start vertretbar, weil: globales Budget eng gedeckelt, Tageslimits bremsen Kostenwellen, Budgetgrenze beim Anbieter fängt den Rest, Implementierung bleibt klein.
+Für den Start vertretbar, weil: globales Budget eng gedeckelt, Tageslimits bremsen Kostenwellen, Budgetgrenze beim Anbieter fängt den Rest, Implementierung bleibt klein, und der Integrationsmodus schließt die größten Realitätslücken.
 
 ---
 
