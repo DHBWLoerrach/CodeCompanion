@@ -48,10 +48,10 @@ Wenn später weitere AI-Routes dazukommen, werden sie bewusst separat in das Quo
 
 ### Supabase
 
-- Verwendet wird ein **neuer Secret Key** (`sb_secret_...`), nicht der legacy `service_role` JWT-Key.
-- Secret Keys autorisieren über die eingebaute `service_role`-Rolle und **umgehen RLS**.
-- Secret Keys dürfen nur in **sicheren, entwicklerkontrollierten** Server-Komponenten verwendet werden.
-- Falls das bestehende Projekt noch auf dem alten Key-Modell läuft, funktioniert `service_role` technisch weiterhin - Zielzustand für neue Implementierung ist aber der **Secret Key**.
+- Zielbild für diese Implementierung ist konsequent `SUPABASE_SECRET_KEY` auf Basis des neuen Secret-Key-Modells (`sb_secret_...`).
+- Der neue Secret Key autorisiert über die eingebaute `service_role`-Rolle und **umgeht RLS**.
+- Der Secret Key darf nur in **sicheren, entwicklerkontrollierten** Server-Komponenten verwendet werden.
+- Legacy-Hinweis: Falls das bestehende Projekt noch auf dem alten `service_role` JWT-Key-Modell läuft, funktioniert das technisch weiterhin. Für diese Spec bleibt der neue `SUPABASE_SECRET_KEY` aber die einzige vorgesehene Zielkonfiguration.
 
 ### Expo / EAS
 
@@ -65,7 +65,7 @@ Wenn später weitere AI-Routes dazukommen, werden sie bewusst separat in das Quo
 
 - Tabellen im `public`-Schema sind über die Supabase Data API exponiert.
 - Wird eine Tabelle per SQL angelegt, ist **RLS nicht automatisch aktiv**.
-- Für `public.api_usage` muss **RLS explizit aktiviert** werden, ohne Policies anzulegen. So ist die Tabelle für reguläre Clients (`anon`, `authenticated`) gesperrt, während der serverseitige Secret Key weiterhin arbeiten kann.
+- Für `public.api_usage` muss **RLS explizit aktiviert** werden, ohne Policies anzulegen. So ist die Tabelle für reguläre Clients (`anon`, `authenticated`) gesperrt, während der serverseitige Zugriff über `SUPABASE_SECRET_KEY` weiterhin arbeiten kann.
 
 ---
 
@@ -80,7 +80,7 @@ Wenn später weitere AI-Routes dazukommen, werden sie bewusst separat in das Quo
 | Globales Limit              | **60 Requests / Tag** (alle Geräte, alle Endpunkte) |
 | Geräte-ID                   | Client-generierte UUID v4                           |
 | Speicherung im Backend      | **SHA-256-Hash** der Geräte-ID                      |
-| Supabase-Zugriff            | Serverseitig per Secret Key                         |
+| Supabase-Zugriff            | Serverseitig per `SUPABASE_SECRET_KEY`              |
 | Zusätzlicher Schutz         | Harte Budgetgrenze beim KI-Anbieter (bereits aktiv) |
 
 ### Quota-Modell erklärt
@@ -141,6 +141,8 @@ Gültige, zugelassene Requests verbrauchen Quota **auch dann**, wenn der OpenAI-
 
 Wenn Supabase für den Quota-Check nicht erreichbar ist oder der Insert fehlschlägt, wird **kein** OpenAI-Call gemacht. Stattdessen: `503 Service Unavailable`. Bei Budget-Schutz ist "fail closed" die sicherere Wahl.
 
+Bewusster Tradeoff: Eine Supabase-Störung blockiert damit sofort alle betroffenen Quiz-Generierungen. Für v4 ist das akzeptiert, weil Budget-Schutz hier höher priorisiert wird als maximale Verfügbarkeit der KI-Funktionen.
+
 ### Dev-Bypass
 
 Wenn `API_QUOTA_ENABLED` lokal oder in einer Testumgebung **nicht** auf `true` steht, wird der komplette Quota-Zweig übersprungen:
@@ -186,7 +188,7 @@ In diesem Modus wird gegen eine **dedizierte Dev-/Test-Supabase-Instanz** getest
 
 ### Regeln
 
-- Nie `EXPO_PUBLIC_` für Secret Keys verwenden.
+- Nie `EXPO_PUBLIC_` für `SUPABASE_SECRET_KEY` oder andere Secrets verwenden.
 - Nie in Source Control committen.
 - Nie in Fehlermeldungen oder Logs ausgeben.
 - Verhalten nicht implizit nur an `__DEV__` koppeln, sondern explizit an `API_QUOTA_ENABLED`.
@@ -276,6 +278,10 @@ create table public.api_usage (
 create index idx_api_usage_device_day
   on public.api_usage (device_id_hash, usage_date);
 
+-- Geräte-Endpunkt-Abfrage: pro Gerät, Tag und Endpunkt
+create index idx_api_usage_device_day_endpoint
+  on public.api_usage (device_id_hash, usage_date, endpoint);
+
 -- Globale Abfrage: alle Requests pro Tag
 create index idx_api_usage_global_day
   on public.api_usage (usage_date);
@@ -312,7 +318,7 @@ const GLOBAL_LIMIT_PER_DAY = 60;
 
 1. SQL im Supabase SQL Editor ausführen (Tabelle, Indizes, RLS).
 2. Prüfen: Tabelle `public.api_usage` existiert, RLS ist aktiv.
-3. Secret Key bereithalten (`sb_secret_...`).
+3. `SUPABASE_SECRET_KEY` bereithalten (`sb_secret_...`).
 4. Optional, aber empfohlen: separate Dev-/Testinstanz parallel vorbereiten.
 
 **Abnahme:** Tabelle existiert, RLS aktiv, Key liegt nur serverseitig vor.
@@ -520,7 +526,7 @@ where usage_date < ((now() at time zone 'utc')::date - interval '60 days');
 
 **Loggen:** Statuscode, Endpoint, Grund für `429`, Hash der Device-ID, Dauer des Upstream-Calls.
 
-**Nicht loggen:** Roher Secret Key, roher API Key, rohe Geräte-UUID, vollständiger Request-Body.
+**Nicht loggen:** Roher `SUPABASE_SECRET_KEY`, roher API Key, rohe Geräte-UUID, vollständiger Request-Body.
 
 ---
 
