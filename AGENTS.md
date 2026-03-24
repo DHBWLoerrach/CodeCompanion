@@ -2,19 +2,20 @@
 
 ## Project Overview
 
-DHBW Code Companion is a mobile learning app for programming topics (Expo SDK 54, React Native 0.81, React 19, Expo Router 6).
+DHBW Code Companion is a mobile learning app for programming topics (Expo SDK 55, React Native 0.83, React 19.2, Expo Router 6).
 
 - Supports multiple programming languages (JavaScript, Python, Java) via JSON curricula in `shared/curriculum/`.
 - Supports app localization (German/English) via `client/lib/i18n.ts` and `client/contexts/LanguageContext.tsx`.
 - AI quiz and explanation generation runs through OpenAI Responses API in server-side API routes.
+- Quiz generation can be protected by optional Supabase-backed server-side rate limiting for the two quiz POST routes.
 - User profile, settings, progress, and streak data are stored locally (AsyncStorage), with no server-side user data storage.
 
 ## Project Structure & Module Organization
 
 - `app/`: Expo Router file-based routes and API endpoints (`app/api/*+api.ts`).
 - `client/`: app UI and client logic (`components/`, `screens/`, `hooks/`, `lib/`, `constants/`, `contexts/`).
-- `server/`: server-only route logic (for example `server/quiz.ts`, `server/validation.ts`, `server/logging.ts`).
-- `shared/`: runtime-neutral shared types/data (`shared/curriculum/`, `shared/topic-prompts/`, `shared/programming-language.ts`, `shared/skill-level.ts`).
+- `server/`: server-only route logic (for example `server/quiz.ts`, `server/validation.ts`, `server/logging.ts`, `server/crypto.ts`, `server/quota.ts`, `server/supabase.ts`).
+- `shared/`: runtime-neutral shared types/data (`shared/curriculum/`, `shared/topic-prompts/`, `shared/programming-language.ts`, `shared/skill-level.ts`, `shared/api-quota.ts`).
 - `__tests__/unit` and `__tests__/integration`: Jest test suites.
 - `e2e/maestro`: Maestro end-to-end flows.
 - `test/setup.ts`: Jest setup/mocks.
@@ -46,6 +47,7 @@ DHBW Code Companion is a mobile learning app for programming topics (Expo SDK 54
 - Frameworks: Jest (`jest-expo`) + Testing Library + Maestro.
 - Test files use `*.test.ts` / `*.test.tsx`.
 - Keep language-aware logic covered (app language and programming language selections).
+- Keep quota-related behavior covered where touched: structured `429` bodies, device-ID persistence, and env-driven server branches (`API_QUOTA_ENABLED` on/off).
 
 ## Commit & Pull Request Guidelines
 
@@ -63,6 +65,9 @@ DHBW Code Companion is a mobile learning app for programming topics (Expo SDK 54
   - `POST /api/quiz/generate`
   - `POST /api/quiz/generate-mixed`
 - API requests may include `programmingLanguage` (`javascript` | `python` | `java`), defaulting to `javascript` when omitted.
+- When `API_QUOTA_ENABLED=true`, the client sends `X-Device-Id` on the two quiz POST routes only; the server hashes it and checks quota in Supabase before any OpenAI call.
+- Quota helpers live in `server/quota.ts` and `server/supabase.ts`; shared quota contracts live in `shared/api-quota.ts`.
+- The persistent device ID is stored client-side in `client/lib/device-id.ts` and must not be removed by `storage.clearAllData()` or "reset progress".
 - Curricula source of truth: `shared/curriculum/<language>.json`, loaded and validated in `shared/curriculum/index.ts`.
 - Static topic explanations live in `shared/explanations/*.json`.
 - `client/lib/topics.ts` adapts shared curricula for client screens and legacy translation fallback.
@@ -79,13 +84,18 @@ DHBW Code Companion is a mobile learning app for programming topics (Expo SDK 54
 ## Environment Variables
 
 - `OPENAI_API_KEY`: required for AI endpoints; server-side only.
-- `OPENAI_MODEL`: optional, default `gpt-5.2`.
+- `OPENAI_MODEL`: optional, default `gpt-5.4-mini`.
 - `EXPO_PUBLIC_API_URL`: client API base URL for deployments.
+- `API_QUOTA_ENABLED`: optional feature flag for quiz rate limiting; local default is `false`.
+- `SUPABASE_URL`: required only when `API_QUOTA_ENABLED=true`.
+- `SUPABASE_SECRET_KEY`: required only when `API_QUOTA_ENABLED=true`; server-side only.
 
 ## Security & Deployment Rules
 
 - Never commit secrets (`.env` and `.env*.local` are gitignored).
 - OpenAI keys must be created as `Restricted` with only `Responses: Write`.
+- Never expose `SUPABASE_SECRET_KEY` or other secrets via `EXPO_PUBLIC_*`.
+- Keep quota testing on a separate Supabase dev/test project; never point local integration tests at production.
 - Production deploys are manual via GitHub Actions only (`.github/workflows/deploy.yml`).
 - Never run local `eas deploy` from developer machines.
 - EAS environment variables are immutable per deployment; rotate/update keys and redeploy to apply changes.

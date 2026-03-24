@@ -1,4 +1,5 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { deviceIdStorageKey } from "@/lib/device-id";
 import {
   getDaysUntilDue,
   isTopicDue,
@@ -272,6 +273,20 @@ describe("storage state updates", () => {
         language: "de",
         themeMode: "light",
       });
+    });
+  });
+
+  describe("clearAllData", () => {
+    it("keeps the device ID while removing other local app data", async () => {
+      await AsyncStorage.setItem(deviceIdStorageKey, "device-uuid");
+      await storage.setSelectedLanguage("python");
+
+      await storage.clearAllData();
+
+      expect(await AsyncStorage.getItem(deviceIdStorageKey)).toBe(
+        "device-uuid",
+      );
+      expect(await storage.getSelectedLanguage()).toBeNull();
     });
   });
 });

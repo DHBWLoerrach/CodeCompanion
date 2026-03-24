@@ -1,7 +1,13 @@
+import { QUIZ_GENERATE_MIXED_QUOTA_ENDPOINT } from "@shared/api-quota";
 import { getTopicIdsByLanguage } from "@shared/curriculum";
 import { mapWithConcurrency } from "@server/concurrency";
+import { enforceQuizQuota, quotaUnavailableResponse } from "@server/quota";
 import { generateQuizQuestions } from "@server/quiz";
-import { logApiError } from "@server/logging";
+import {
+  buildApiRequestTimingFields,
+  logApiError,
+  logApiRequestOutcome,
+} from "@server/logging";
 import {
   invalidJsonBodyResponse,
   InvalidJsonBodyError,
@@ -51,6 +57,12 @@ function buildTopicQuestionPlan(
 }
 
 export async function POST(request: Request) {
+  const requestStartedAt = Date.now();
+  let deviceIdHash: string | null = null;
+  let quotaDurationMs: number | null = null;
+  let quotaStartedAt: number | null = null;
+  let upstreamStartedAt: number | null = null;
+
   try {
     const body = await parseJsonBody<{
       count?: number;
@@ -66,6 +78,15 @@ export async function POST(request: Request) {
       body?.programmingLanguage,
     );
     if (!programmingLanguage) {
+      logApiRequestOutcome({
+        endpoint: QUIZ_GENERATE_MIXED_QUOTA_ENDPOINT,
+        status: 400,
+        ...buildApiRequestTimingFields({
+          requestStartedAt,
+          quotaDurationMs,
+          upstreamStartedAt,
+        }),
+      });
       return Response.json(
         {
           error: "programmingLanguage must be one of: javascript, python, java",
@@ -74,6 +95,15 @@ export async function POST(request: Request) {
       );
     }
     if (hasTooManyTopicIds(body?.topicIds)) {
+      logApiRequestOutcome({
+        endpoint: QUIZ_GENERATE_MIXED_QUOTA_ENDPOINT,
+        status: 400,
+        ...buildApiRequestTimingFields({
+          requestStartedAt,
+          quotaDurationMs,
+          upstreamStartedAt,
+        }),
+      });
       return Response.json(
         { error: "topicIds cannot contain more than 20 entries" },
         { status: 400 },
@@ -81,6 +111,15 @@ export async function POST(request: Request) {
     }
     const language = toLanguage(body?.language);
     if (!language) {
+      logApiRequestOutcome({
+        endpoint: QUIZ_GENERATE_MIXED_QUOTA_ENDPOINT,
+        status: 400,
+        ...buildApiRequestTimingFields({
+          requestStartedAt,
+          quotaDurationMs,
+          upstreamStartedAt,
+        }),
+      });
       return Response.json(
         { error: "language must be 'en' or 'de'" },
         { status: 400 },
@@ -91,6 +130,15 @@ export async function POST(request: Request) {
     let selectedTopics: string[];
     if (Array.isArray(body?.topicIds) && body.topicIds.length > 0) {
       if (!validateTopicIdsForLanguage(body.topicIds, programmingLanguage)) {
+        logApiRequestOutcome({
+          endpoint: QUIZ_GENERATE_MIXED_QUOTA_ENDPOINT,
+          status: 400,
+          ...buildApiRequestTimingFields({
+            requestStartedAt,
+            quotaDurationMs,
+            upstreamStartedAt,
+          }),
+        });
         return Response.json(
           {
             error: "topicIds contains invalid entries for programmingLanguage",
@@ -106,10 +154,61 @@ export async function POST(request: Request) {
     selectedTopics = selectedTopics.slice(0, count);
 
     if (selectedTopics.length === 0) {
+      logApiRequestOutcome({
+        endpoint: QUIZ_GENERATE_MIXED_QUOTA_ENDPOINT,
+        status: 500,
+        ...buildApiRequestTimingFields({
+          requestStartedAt,
+          quotaDurationMs,
+          upstreamStartedAt,
+        }),
+      });
       return Response.json({ error: "No topics available" }, { status: 500 });
     }
 
+    try {
+      quotaStartedAt = Date.now();
+      const quota = await enforceQuizQuota(
+        request,
+        QUIZ_GENERATE_MIXED_QUOTA_ENDPOINT,
+      );
+      quotaDurationMs = Date.now() - quotaStartedAt;
+      deviceIdHash = quota.deviceIdHash;
+      if (quota.response) {
+        logApiRequestOutcome({
+          endpoint: QUIZ_GENERATE_MIXED_QUOTA_ENDPOINT,
+          status: quota.response.status,
+          deviceIdHash,
+          ...(quota.reason ? { reason: quota.reason } : {}),
+          ...buildApiRequestTimingFields({
+            requestStartedAt,
+            quotaDurationMs,
+            upstreamStartedAt,
+          }),
+        });
+
+        return quota.response;
+      }
+    } catch (error) {
+      if (quotaDurationMs === null && quotaStartedAt !== null) {
+        quotaDurationMs = Date.now() - quotaStartedAt;
+      }
+      logApiRequestOutcome({
+        endpoint: QUIZ_GENERATE_MIXED_QUOTA_ENDPOINT,
+        status: 503,
+        deviceIdHash,
+        ...buildApiRequestTimingFields({
+          requestStartedAt,
+          quotaDurationMs,
+          upstreamStartedAt,
+        }),
+      });
+      logApiError("Mixed quiz quota error", error);
+      return quotaUnavailableResponse();
+    }
+
     const topicPlan = buildTopicQuestionPlan(selectedTopics, count);
+    upstreamStartedAt = Date.now();
     const questionGroups = await mapWithConcurrency(
       topicPlan,
       MIXED_QUIZ_GENERATION_CONCURRENCY,
@@ -130,11 +229,40 @@ export async function POST(request: Request) {
       );
     }
 
+    logApiRequestOutcome({
+      endpoint: QUIZ_GENERATE_MIXED_QUOTA_ENDPOINT,
+      status: 200,
+      deviceIdHash,
+      ...buildApiRequestTimingFields({
+        requestStartedAt,
+        quotaDurationMs,
+        upstreamStartedAt,
+      }),
+    });
     return Response.json({ questions: shuffleArray(allQuestions) });
   } catch (error) {
     if (error instanceof InvalidJsonBodyError) {
+      logApiRequestOutcome({
+        endpoint: QUIZ_GENERATE_MIXED_QUOTA_ENDPOINT,
+        status: 400,
+        ...buildApiRequestTimingFields({
+          requestStartedAt,
+          quotaDurationMs,
+          upstreamStartedAt,
+        }),
+      });
       return invalidJsonBodyResponse();
     }
+    logApiRequestOutcome({
+      endpoint: QUIZ_GENERATE_MIXED_QUOTA_ENDPOINT,
+      status: 500,
+      deviceIdHash,
+      ...buildApiRequestTimingFields({
+        requestStartedAt,
+        quotaDurationMs,
+        upstreamStartedAt,
+      }),
+    });
     logApiError("Mixed quiz generation error", error);
     return Response.json(
       { error: "Failed to generate quiz questions" },

@@ -1,5 +1,7 @@
 import { QueryClient, QueryFunction } from "@tanstack/react-query";
 import Constants from "expo-constants";
+import { getOrCreateDeviceId } from "@/lib/device-id";
+import { DEVICE_ID_HEADER } from "@shared/api-quota";
 
 /**
  * Gets the base URL for the Expo API routes (e.g., "http://localhost:8081")
@@ -62,9 +64,45 @@ export function getApiUrl(): string {
   throw new Error("EXPO_PUBLIC_API_URL is not set");
 }
 
+export class ApiRequestError extends Error {
+  status: number;
+  body: unknown;
+
+  constructor(status: number, body: unknown) {
+    super(`Request failed (${status})`);
+    this.name = "ApiRequestError";
+    this.status = status;
+    this.body = body;
+  }
+}
+
+export function isApiRequestError(error: unknown): error is ApiRequestError {
+  return error instanceof ApiRequestError;
+}
+
+function isQuotaProtectedQuizRoute(method: string, route: string): boolean {
+  return (
+    method.toUpperCase() === "POST" &&
+    (route === "/api/quiz/generate" || route === "/api/quiz/generate-mixed")
+  );
+}
+
+async function parseErrorBody(res: Response): Promise<unknown> {
+  try {
+    return await res.json();
+  } catch {
+    try {
+      const text = await res.text();
+      return text.length > 0 ? text : null;
+    } catch {
+      return null;
+    }
+  }
+}
+
 async function throwIfResNotOk(res: Response) {
   if (!res.ok) {
-    throw new Error(`Request failed (${res.status})`);
+    throw new ApiRequestError(res.status, await parseErrorBody(res));
   }
 }
 
@@ -75,10 +113,19 @@ export async function apiRequest(
 ): Promise<Response> {
   const baseUrl = getApiUrl();
   const url = new URL(route, baseUrl);
+  const headers: Record<string, string> = {};
+
+  if (data) {
+    headers["Content-Type"] = "application/json";
+  }
+
+  if (isQuotaProtectedQuizRoute(method, route)) {
+    headers[DEVICE_ID_HEADER] = await getOrCreateDeviceId();
+  }
 
   const res = await fetch(url, {
     method,
-    headers: data ? { "Content-Type": "application/json" } : {},
+    headers,
     body: data ? JSON.stringify(data) : undefined,
     credentials: "include",
   });

@@ -1,5 +1,11 @@
 import Constants from "expo-constants";
-import { apiRequest, getApiUrl, getQueryFn } from "@/lib/query-client";
+import {
+  ApiRequestError,
+  apiRequest,
+  getApiUrl,
+  getQueryFn,
+  isApiRequestError,
+} from "@/lib/query-client";
 
 jest.mock("expo-constants", () => ({
   __esModule: true,
@@ -9,6 +15,9 @@ jest.mock("expo-constants", () => ({
 }));
 jest.mock("expo/virtual/env", () => ({
   env: {},
+}));
+jest.mock("@/lib/device-id", () => ({
+  getOrCreateDeviceId: jest.fn(async () => "device-uuid-v4"),
 }));
 
 const originalEnv = process.env;
@@ -20,6 +29,13 @@ const expoEnv = (
   }
 ).env;
 const fetchMock = jest.fn();
+const getOrCreateDeviceIdMock = jest.mocked(
+  (
+    jest.requireMock("@/lib/device-id") as {
+      getOrCreateDeviceId: () => Promise<string>;
+    }
+  ).getOrCreateDeviceId,
+);
 
 beforeEach(() => {
   globalWithDevFlag.__DEV__ = true;
@@ -169,6 +185,7 @@ describe("apiRequest", () => {
       hostUri: "localhost:8081",
     };
     fetchMock.mockReset();
+    getOrCreateDeviceIdMock.mockClear();
     (global as { fetch: typeof fetch }).fetch =
       fetchMock as unknown as typeof fetch;
   });
@@ -197,10 +214,14 @@ describe("apiRequest", () => {
     );
     expect(fetchMock.mock.calls[0][1]).toMatchObject({
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: {
+        "Content-Type": "application/json",
+        "X-Device-Id": "device-uuid-v4",
+      },
       body: JSON.stringify({ topicId: "variables", count: 5 }),
       credentials: "include",
     });
+    expect(getOrCreateDeviceIdMock).toHaveBeenCalledTimes(1);
   });
 
   it("omits JSON headers when no payload is provided", async () => {
@@ -220,20 +241,100 @@ describe("apiRequest", () => {
       body: undefined,
       credentials: "include",
     });
+    expect(getOrCreateDeviceIdMock).not.toHaveBeenCalled();
   });
 
-  it("throws a sanitized error when response is not ok", async () => {
+  it("does not attach a device header to non-quiz POST requests", async () => {
+    fetchMock.mockResolvedValueOnce({
+      ok: true,
+      status: 200,
+      statusText: "OK",
+      text: async () => "",
+      json: async () => ({ ok: true }),
+    } as Response);
+
+    await apiRequest("POST", "/api/other", { ok: true });
+
+    expect(fetchMock.mock.calls[0][1]).toMatchObject({
+      headers: { "Content-Type": "application/json" },
+    });
+    expect(getOrCreateDeviceIdMock).not.toHaveBeenCalled();
+  });
+
+  it("throws a structured error when response is not ok", async () => {
+    fetchMock.mockResolvedValueOnce({
+      ok: false,
+      status: 429,
+      statusText: "Too Many Requests",
+      text: async () => "",
+      json: async () => ({
+        error: "rate_limited",
+        scope: "device",
+        reason: "device_total",
+        resetAtUtc: "2026-03-25T00:00:00.000Z",
+      }),
+    } as Response);
+
+    await expect(apiRequest("GET", "/api/fail")).rejects.toMatchObject({
+      name: "ApiRequestError",
+      message: "Request failed (429)",
+      status: 429,
+      body: {
+        error: "rate_limited",
+        scope: "device",
+        reason: "device_total",
+        resetAtUtc: "2026-03-25T00:00:00.000Z",
+      },
+    });
+  });
+
+  it("falls back to the text body when error JSON cannot be parsed", async () => {
     fetchMock.mockResolvedValueOnce({
       ok: false,
       status: 500,
       statusText: "Internal Server Error",
+      json: async () => {
+        throw new Error("invalid json");
+      },
       text: async () => "backend failed",
-      json: async () => ({}),
-    } as Response);
+    } as unknown as Response);
 
-    await expect(apiRequest("GET", "/api/fail")).rejects.toThrow(
-      "Request failed (500)",
-    );
+    await expect(apiRequest("GET", "/api/fail")).rejects.toMatchObject({
+      name: "ApiRequestError",
+      status: 500,
+      body: "backend failed",
+    });
+  });
+
+  it("falls back to null when neither JSON nor text can be parsed", async () => {
+    fetchMock.mockResolvedValueOnce({
+      ok: false,
+      status: 502,
+      statusText: "Bad Gateway",
+      json: async () => {
+        throw new Error("invalid json");
+      },
+      text: async () => {
+        throw new Error("stream failed");
+      },
+    } as unknown as Response);
+
+    await expect(apiRequest("GET", "/api/fail")).rejects.toMatchObject({
+      name: "ApiRequestError",
+      status: 502,
+      body: null,
+    });
+  });
+
+  it("detects only ApiRequestError instances", () => {
+    expect(isApiRequestError(new ApiRequestError(400, {}))).toBe(true);
+    expect(
+      isApiRequestError({
+        name: "ApiRequestError",
+        status: 400,
+        body: {},
+      }),
+    ).toBe(false);
   });
 });
 

@@ -20,9 +20,10 @@ import { useTranslation } from "@/hooks/useTranslation";
 import { useCloseHandler } from "@/hooks/useCloseHandler";
 import { usePressAnimation } from "@/hooks/usePressAnimation";
 import { Spacing, BorderRadius, Shadows, Fonts } from "@/constants/theme";
-import { apiRequest } from "@/lib/query-client";
+import { apiRequest, isApiRequestError } from "@/lib/query-client";
 import { getParam, getParamWithDefault } from "@/lib/router-utils";
 import { storage, type ProgressData } from "@/lib/storage";
+import { isRateLimitedErrorBody } from "@shared/api-quota";
 import type { QuizQuestion } from "@shared/quiz-question";
 import {
   averageMasteryToQuizDifficulty,
@@ -239,6 +240,8 @@ export default function QuizSessionScreen() {
   const [isAdvancing, setIsAdvancing] = useState(false);
   const nextInFlightRef = useRef(false);
   const unableToLoadQuizText = t("unableToLoadQuiz");
+  const quizRateLimitDeviceText = t("quizRateLimitDevice");
+  const quizRateLimitGlobalText = t("quizRateLimitGlobal");
 
   const loadQuestions = useCallback(async () => {
     try {
@@ -304,13 +307,27 @@ export default function QuizSessionScreen() {
         setError(unableToLoadQuizText);
       }
     } catch (err) {
-      console.error("Error loading questions:", err);
-      setError(unableToLoadQuizText);
+      if (
+        isApiRequestError(err) &&
+        err.status === 429 &&
+        isRateLimitedErrorBody(err.body)
+      ) {
+        setError(
+          err.body.scope === "global"
+            ? quizRateLimitGlobalText
+            : quizRateLimitDeviceText,
+        );
+      } else {
+        console.error("Error loading questions:", err);
+        setError(unableToLoadQuizText);
+      }
     } finally {
       setLoading(false);
     }
   }, [
     count,
+    quizRateLimitDeviceText,
+    quizRateLimitGlobalText,
     resolvedTopicId,
     topicIds,
     unableToLoadQuizText,

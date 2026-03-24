@@ -108,15 +108,36 @@ Beide Dateien müssen gemeinsam committed werden.
 ### Optional
 
 - `OPENAI_MODEL`
-  - Modellname, Standard: `gpt-5.2`.
+  - Modellname, Standard: `gpt-5.4-mini`.
 - `EXPO_PUBLIC_API_URL`
   - Basis-URL für API-Calls im Client (für Deployments erforderlich).
+- `API_QUOTA_ENABLED`
+  - Aktiviert serverseitiges Rate Limiting für `POST /api/quiz/generate` und `POST /api/quiz/generate-mixed`.
+  - Lokaler Standard: `false`.
+- `SUPABASE_URL`
+  - Nur erforderlich, wenn `API_QUOTA_ENABLED=true`.
+  - URL der dedizierten Supabase-Instanz für Quota-Daten.
+- `SUPABASE_SECRET_KEY`
+  - Nur server-seitig verwenden.
+  - Nur erforderlich, wenn `API_QUOTA_ENABLED=true`.
+  - Verwendet den serverseitigen Zugriff auf `public.api_usage`.
 
 ### Sicherheitshinweise
 
 - Niemals `EXPO_PUBLIC_OPENAI_API_KEY` verwenden.
+- Niemals `EXPO_PUBLIC_SUPABASE_SECRET_KEY` oder andere Secrets mit `EXPO_PUBLIC_` versehen.
 - OpenAI-Key als `Restricted` anlegen und nur `Responses: Write` erlauben.
 - `.env` und `.env*.local` sind per `.gitignore` vom Commit ausgeschlossen.
+
+### Lokale Modi
+
+- Standardmodus:
+  - `API_QUOTA_ENABLED=false`
+  - Keine lokale Supabase-Abhängigkeit
+- Integrationsmodus:
+  - `API_QUOTA_ENABLED=true`
+  - `SUPABASE_URL` und `SUPABASE_SECRET_KEY` müssen gesetzt sein
+  - Nur gegen eine dedizierte Dev-/Test-Supabase-Instanz testen, nie gegen Produktion
 
 ## Entwicklung starten
 
@@ -154,6 +175,8 @@ Danach in Expo:
 
 Erzeugt ein Quiz für ein einzelnes Topic.
 
+Wenn `API_QUOTA_ENABLED=true`, muss der Client zusätzlich den Header `X-Device-Id` mit einer persistierten UUID v4 mitsenden.
+
 Request-Body:
 
 - `topicId` (string, required)
@@ -165,6 +188,8 @@ Request-Body:
 ### `POST /api/quiz/generate-mixed`
 
 Erzeugt ein gemischtes Quiz über mehrere Topics.
+
+Wenn `API_QUOTA_ENABLED=true`, muss der Client zusätzlich den Header `X-Device-Id` mit einer persistierten UUID v4 mitsenden.
 
 Request-Body:
 
@@ -198,6 +223,7 @@ Voraussetzungen:
 
 1. GitHub Secret `EXPO_TOKEN` ist gesetzt.
 2. In EAS-Environment `production` ist mindestens `OPENAI_API_KEY` gesetzt.
+3. Für aktives Quota-Feature zusätzlich `API_QUOTA_ENABLED=true`, `SUPABASE_URL` und `SUPABASE_SECRET_KEY` setzen.
 
 Workflow-Schritte (vereinfacht):
 
@@ -209,6 +235,7 @@ Workflow-Schritte (vereinfacht):
 
 - Variablen sind pro Deployment gebunden (immutable Deployments).
 - Änderungen an Variablen wirken erst nach neuem Export + Deploy.
+- EAS Hosting unterstützt für diese Server-Variablen `plaintext` und `sensitive`, aber keine `secret`-Sichtbarkeit.
 
 ## Typische Änderungen für Entwickler:innen
 

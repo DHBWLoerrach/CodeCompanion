@@ -29,6 +29,10 @@ export const translations = {
 
     generatingQuiz: "Generating quiz questions...",
     unableToLoadQuiz: "Unable to Load Quiz",
+    quizRateLimitDevice:
+      "Daily quiz limit reached on this device. Please try again tomorrow.",
+    quizRateLimitGlobal:
+      "Quiz generation is temporarily unavailable because the daily limit has been reached. Please try again tomorrow.",
     tryAgain: "Try Again",
     cancel: "Cancel",
     submitAnswer: "Submit Answer",
@@ -197,6 +201,10 @@ export const translations = {
 
     generatingQuiz: "Quiz-Fragen werden generiert...",
     unableToLoadQuiz: "Quiz konnte nicht geladen werden",
+    quizRateLimitDevice:
+      "Das tägliche Quiz-Limit auf diesem Gerät ist erreicht. Bitte versuche es morgen erneut.",
+    quizRateLimitGlobal:
+      "Die Quiz-Generierung ist vorübergehend nicht verfügbar, weil das Tageslimit erreicht wurde. Bitte versuche es morgen erneut.",
     tryAgain: "Erneut versuchen",
     cancel: "Abbrechen",
     submitAnswer: "Antwort absenden",

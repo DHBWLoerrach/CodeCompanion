@@ -1,8 +1,18 @@
 import { generateQuizQuestions } from "@server/quiz";
+import { enforceQuizQuota } from "@server/quota";
 import { POST } from "../../../../../app/api/quiz/generate-mixed+api";
 
 jest.mock("@server/quiz", () => ({
   generateQuizQuestions: jest.fn(),
+}));
+jest.mock("@server/quota", () => ({
+  enforceQuizQuota: jest.fn(async () => ({
+    deviceIdHash: null,
+    response: null,
+  })),
+  quotaUnavailableResponse: jest.fn(() =>
+    Response.json({ error: "Quota service unavailable" }, { status: 503 }),
+  ),
 }));
 
 jest.mock("@shared/curriculum", () => ({
@@ -11,6 +21,8 @@ jest.mock("@shared/curriculum", () => ({
 }));
 
 const mockGenerateQuizQuestions = jest.mocked(generateQuizQuestions);
+const mockEnforceQuizQuota = jest.mocked(enforceQuizQuota);
+let infoSpy: jest.SpiedFunction<typeof console.info>;
 
 function createRequest(body: unknown): Request {
   return new Request("http://localhost/api/quiz/generate-mixed", {
@@ -40,7 +52,14 @@ function buildQuestions(topicId: string, count: number) {
 
 describe("POST /api/quiz/generate-mixed", () => {
   beforeEach(() => {
+    process.env = { ...process.env, API_QUOTA_ENABLED: "false" };
+    infoSpy = jest.spyOn(console, "info").mockImplementation(() => {});
     mockGenerateQuizQuestions.mockReset();
+    mockEnforceQuizQuota.mockReset();
+    mockEnforceQuizQuota.mockResolvedValue({
+      deviceIdHash: null,
+      response: null,
+    });
     mockGenerateQuizQuestions.mockImplementation(
       async (_lang, topicId, count = 5) => buildQuestions(topicId, count),
     );
@@ -387,5 +406,76 @@ describe("POST /api/quiz/generate-mixed", () => {
       "Mixed quiz generation error: upstream error",
     );
     process.env = { ...process.env, NODE_ENV: originalEnv };
+  });
+
+  it("returns 429 when quota rejects the request", async () => {
+    process.env = { ...process.env, API_QUOTA_ENABLED: "true" };
+    const nowSpy = jest
+      .spyOn(Date, "now")
+      .mockReturnValueOnce(3000)
+      .mockReturnValueOnce(3010)
+      .mockReturnValueOnce(3050)
+      .mockReturnValueOnce(3080);
+    mockEnforceQuizQuota.mockResolvedValueOnce({
+      deviceIdHash: "hash-456",
+      reason: "device_endpoint",
+      response: Response.json(
+        {
+          error: "rate_limited",
+          scope: "device",
+          reason: "device_endpoint",
+          resetAtUtc: "2026-03-25T00:00:00.000Z",
+        },
+        {
+          status: 429,
+          headers: {
+            "Retry-After": "60",
+            "X-RateLimit-Limit": "2",
+            "X-RateLimit-Remaining": "0",
+            "X-RateLimit-Reset": "1742860800",
+          },
+        },
+      ),
+    });
+
+    const response = await POST(createRequest({ topicIds: ["variables"] }));
+    const data = await response.json();
+
+    expect(response.status).toBe(429);
+    expect(response.headers.get("Retry-After")).toBe("60");
+    expect(data).toEqual({
+      error: "rate_limited",
+      scope: "device",
+      reason: "device_endpoint",
+      resetAtUtc: "2026-03-25T00:00:00.000Z",
+    });
+    expect(mockGenerateQuizQuestions).not.toHaveBeenCalled();
+    expect(infoSpy).toHaveBeenCalledWith(
+      "API request outcome:",
+      expect.objectContaining({
+        endpoint: "quiz/generate-mixed",
+        status: 429,
+        deviceIdHash: "hash-456",
+        reason: "device_endpoint",
+        requestDurationMs: 80,
+        quotaDurationMs: 40,
+      }),
+    );
+
+    nowSpy.mockRestore();
+  });
+
+  it("returns 503 when quota enforcement fails closed", async () => {
+    process.env = { ...process.env, API_QUOTA_ENABLED: "true" };
+    const errorSpy = jest.spyOn(console, "error").mockImplementation(() => {});
+    mockEnforceQuizQuota.mockRejectedValueOnce(new Error("supabase down"));
+
+    const response = await POST(createRequest({ topicIds: ["variables"] }));
+    const data = await response.json();
+
+    expect(response.status).toBe(503);
+    expect(data).toEqual({ error: "Quota service unavailable" });
+    expect(mockGenerateQuizQuestions).not.toHaveBeenCalled();
+    expect(errorSpy).toHaveBeenCalled();
   });
 });

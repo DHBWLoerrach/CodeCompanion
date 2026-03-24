@@ -4,6 +4,17 @@ import QuizSessionScreen from "@/screens/QuizSessionScreen";
 
 const mockReplace = jest.fn();
 const mockApiRequest = jest.fn();
+class MockApiRequestError extends Error {
+  status: number;
+  body: unknown;
+
+  constructor(status: number, body: unknown) {
+    super(`Request failed (${status})`);
+    this.name = "ApiRequestError";
+    this.status = status;
+    this.body = body;
+  }
+}
 const mockStorage = {
   getSettings: jest.fn(),
   getProgress: jest.fn(),
@@ -87,6 +98,8 @@ jest.mock("@/hooks/useTranslation", () => ({
 
 jest.mock("@/lib/query-client", () => ({
   getApiUrl: jest.fn(() => "http://localhost:8081/"),
+  ApiRequestError: MockApiRequestError,
+  isApiRequestError: (error: unknown) => error instanceof MockApiRequestError,
   apiRequest: (...args: unknown[]) => mockApiRequest(...args),
 }));
 
@@ -323,5 +336,39 @@ describe("QuizSessionScreen integration", () => {
         programmingLanguage: "javascript",
       },
     );
+  });
+
+  it("shows the device quota message on structured 429 errors", async () => {
+    mockApiRequest.mockRejectedValueOnce(
+      new MockApiRequestError(429, {
+        error: "rate_limited",
+        scope: "device",
+        reason: "device_total",
+        resetAtUtc: "2026-03-25T00:00:00.000Z",
+      }),
+    );
+
+    const screen = render(<QuizSessionScreen />);
+
+    await waitFor(() => {
+      expect(screen.getByText("quizRateLimitDevice")).toBeTruthy();
+    });
+  });
+
+  it("shows the global quota message on structured 429 errors", async () => {
+    mockApiRequest.mockRejectedValueOnce(
+      new MockApiRequestError(429, {
+        error: "rate_limited",
+        scope: "global",
+        reason: "global_day",
+        resetAtUtc: "2026-03-25T00:00:00.000Z",
+      }),
+    );
+
+    const screen = render(<QuizSessionScreen />);
+
+    await waitFor(() => {
+      expect(screen.getByText("quizRateLimitGlobal")).toBeTruthy();
+    });
   });
 });

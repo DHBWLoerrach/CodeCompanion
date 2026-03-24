@@ -2,6 +2,7 @@ import * as https from "node:https";
 import type { QuizDifficultyLevel } from "@shared/skill-level";
 import type { QuizQuestion } from "@shared/quiz-question";
 import type { ProgrammingLanguageId } from "@shared/programming-language";
+import { sha256Hex } from "@server/crypto";
 import {
   getTopicPrompt,
   LANGUAGE_CONTEXT_EXCLUSIONS,
@@ -442,18 +443,6 @@ async function requestOpenAIViaHttps(
     request.write(requestBody);
     request.end();
   });
-}
-
-async function sha256Hex(input: string): Promise<string> {
-  if (!globalThis.crypto?.subtle) {
-    throw new Error("crypto.subtle is not available");
-  }
-
-  const data = new TextEncoder().encode(input);
-  const digest = await crypto.subtle.digest("SHA-256", data);
-  return Array.from(new Uint8Array(digest))
-    .map((byte) => byte.toString(16).padStart(2, "0"))
-    .join("");
 }
 
 async function addStableIds(

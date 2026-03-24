@@ -362,6 +362,7 @@ export const storage = {
   },
 
   async clearAllData(): Promise<void> {
+    // The device ID stays intact so daily quota cannot be bypassed via local reset.
     await AsyncStorage.multiRemove([
       STORAGE_KEYS.USER_PROFILE,
       STORAGE_KEYS.PROGRESS,
