@@ -222,6 +222,49 @@ describe("QuizSessionScreen integration", () => {
     expect(replaceArgs.params.answers).toContain('"questionId":"q1"');
   });
 
+  it("renders inline code markers as styled text instead of raw backticks", async () => {
+    mockApiRequest.mockResolvedValueOnce({
+      json: async () => ({
+        questions: [
+          {
+            id: "q1",
+            question: "What is `x` after `let x;`?",
+            options: ["`undefined`", "`null`", "`0`", "`NaN`"],
+            correctIndex: 0,
+            explanation: "Because `let x;` leaves `x` as `undefined`.",
+          },
+        ],
+      }),
+    });
+
+    const screen = render(<QuizSessionScreen />);
+
+    await waitFor(() => {
+      expect(screen.getByText("What is x after let x;?")).toBeTruthy();
+    });
+
+    expect(screen.queryByText("What is `x` after `let x;`?")).toBeNull();
+    const undefinedAnswer = screen.getByText("undefined");
+    expect(undefinedAnswer).toBeTruthy();
+    expect(screen.queryByText("`undefined`")).toBeNull();
+
+    fireEvent.press(undefinedAnswer);
+    expect(undefinedAnswer).toHaveStyle({
+      color: "#FFFFFF",
+      backgroundColor: "rgba(255,255,255,0.2)",
+    });
+    fireEvent.press(screen.getByText("submitAnswer"));
+
+    await waitFor(() => {
+      expect(
+        screen.getByText("Because let x; leaves x as undefined."),
+      ).toBeTruthy();
+    });
+    expect(
+      screen.queryByText("Because `let x;` leaves `x` as `undefined`."),
+    ).toBeNull();
+  });
+
   it("preserves the requested count when the API returns fewer questions", async () => {
     mockSearchParams = {
       topicId: "variables",

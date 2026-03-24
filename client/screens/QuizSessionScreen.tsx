@@ -18,6 +18,7 @@ import Animated from "react-native-reanimated";
 import * as Haptics from "expo-haptics";
 
 import { HeaderIconButton } from "@/components/HeaderIconButton";
+import { InlineCodeText } from "@/components/InlineCodeText";
 import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
 import { AppIcon } from "@/components/AppIcon";
@@ -157,6 +158,8 @@ function AnswerButton({
   };
 
   const optionLabel = String.fromCharCode(65 + index);
+  const hasHighlightedAnswerState =
+    selected || (showResult && isCorrectAnswer);
 
   return (
     <AnimatedPressable
@@ -189,12 +192,17 @@ function AnswerButton({
           {optionLabel}
         </ThemedText>
       </View>
-      <ThemedText
+      <InlineCodeText
         type="body"
         style={[styles.answerText, { color: getTextColor() }]}
-      >
-        {text}
-      </ThemedText>
+        text={text}
+        codeStyle={{
+          color: getTextColor(),
+          backgroundColor: hasHighlightedAnswerState
+            ? "rgba(255,255,255,0.2)"
+            : theme.codeBackground,
+        }}
+      />
       {showResult && isCorrectAnswer ? (
         <AppIcon name="check-circle" size={20} color="#FFFFFF" />
       ) : null}
@@ -575,9 +583,11 @@ export default function QuizSessionScreen() {
               { backgroundColor: theme.backgroundDefault },
             ]}
           >
-            <ThemedText type="h4" style={styles.questionText}>
-              {currentQuestion.question}
-            </ThemedText>
+            <InlineCodeText
+              type="h4"
+              style={styles.questionText}
+              text={currentQuestion.question}
+            />
 
             {currentQuestion.code ? (
               <CodeBlock code={currentQuestion.code} />
@@ -614,7 +624,10 @@ export default function QuizSessionScreen() {
               >
                 {t("explanation")}
               </ThemedText>
-              <ThemedText type="body">{currentQuestion.explanation}</ThemedText>
+              <InlineCodeText
+                type="body"
+                text={currentQuestion.explanation}
+              />
             </View>
           ) : null}
         </ScrollView>
