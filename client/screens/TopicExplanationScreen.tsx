@@ -83,11 +83,9 @@ function getMarkdownStyle(
       underline: true,
     },
     code: {
-      backgroundColor: isDark
-        ? theme.backgroundSecondary
-        : theme.codeBackground,
-      borderColor: theme.cardBorder,
-      color: isDark ? theme.text : theme.primary,
+      backgroundColor: isDark ? `${theme.secondary}15` : theme.codeBackground,
+      borderColor: isDark ? `${theme.secondary}30` : theme.cardBorder,
+      color: isDark ? theme.secondary : theme.primary,
       fontFamily: Fonts.mono,
       fontSize: Typography.code.fontSize,
     },
