@@ -167,7 +167,10 @@ export default function TopicDetailScreen() {
     const withoutHeading = full.replace(/^#[^\n]*\n+/, '');
     const firstParagraph = withoutHeading.split(/\n\n/)[0] ?? '';
     const plain = firstParagraph.replace(/[*`#_~\[\]]/g, '').trim();
-    return plain.length > 200 ? plain.slice(0, 200) + '...' : plain;
+    if (plain.length <= 200) return plain;
+    const truncated = plain.slice(0, 200);
+    const lastSpace = truncated.lastIndexOf(' ');
+    return (lastSpace > 0 ? truncated.slice(0, lastSpace) : truncated) + '...';
   })();
   const currentCategory = categories.find(
     (category) => category.id === topic.category,
@@ -205,7 +208,7 @@ export default function TopicDetailScreen() {
         contentInsetAdjustmentBehavior="automatic"
         contentContainerStyle={[
           styles.scrollContent,
-          { paddingTop: Spacing.sm, paddingBottom: insets.bottom + Spacing.lg },
+          { paddingTop: Spacing.sm, paddingBottom: Spacing.lg },
         ]}
         showsVerticalScrollIndicator={false}
       >
@@ -524,7 +527,14 @@ export default function TopicDetailScreen() {
             </View>
           </View>
         ) : null}
+      </ScrollView>
 
+      <View
+        style={[
+          styles.stickyFooter,
+          { paddingBottom: insets.bottom + Spacing.md },
+        ]}
+      >
         <AnimatedPressable
           testID="topic-start-quiz-button"
           style={[
@@ -545,7 +555,7 @@ export default function TopicDetailScreen() {
             {t('startQuiz')}
           </ThemedText>
         </AnimatedPressable>
-      </ScrollView>
+      </View>
     </ThemedView>
   );
 }
@@ -565,7 +575,7 @@ const styles = StyleSheet.create({
   },
   scrollContent: {
     padding: Spacing.lg,
-    gap: Spacing['5xl'],
+    gap: Spacing['xl'],
   },
   heroCard: {
     borderWidth: StyleSheet.hairlineWidth,
@@ -736,6 +746,10 @@ const styles = StyleSheet.create({
   segmentLabel: {
     textAlign: 'center',
     lineHeight: 16,
+  },
+  stickyFooter: {
+    paddingHorizontal: Spacing.lg,
+    paddingTop: Spacing.md,
   },
   primaryFooterButton: {
     height: 58,
