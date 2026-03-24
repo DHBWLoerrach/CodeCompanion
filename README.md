@@ -108,7 +108,7 @@ Beide Dateien müssen gemeinsam committed werden.
 ### Optional
 
 - `OPENAI_MODEL`
-  - Modellname, Standard: `gpt-5.4-mini`.
+  - Modellname, Standard: `gpt-5.4-nano`.
 - `EXPO_PUBLIC_API_URL`
   - Basis-URL für API-Calls im Client (für Deployments erforderlich).
 - `API_QUOTA_ENABLED`

@@ -535,7 +535,7 @@ ${contextExclusion ? `- ${contextExclusion}` : ""}
 - Do not include any keys other than question, code, options, correctIndex, and explanation`;
 
   const response = await requestOpenAI({
-    model: process.env.OPENAI_MODEL || "gpt-5.4-mini",
+    model: process.env.OPENAI_MODEL || "gpt-5.4-nano",
     instructions: `You are a ${programmingLanguageName} programming tutor creating quiz questions. ${
       language === "de" ? "Respond in German." : "Respond in English."
     } Follow the provided response schema exactly.`,

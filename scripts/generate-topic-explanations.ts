@@ -3,7 +3,7 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 
 const OPENAI_RESPONSES_URL = "https://api.openai.com/v1/responses";
-const DEFAULT_MODEL = "gpt-5.4-mini";
+const DEFAULT_MODEL = "gpt-5.4-nano";
 const DEFAULT_TIMEOUT_MS = 300_000;
 const DEFAULT_MAX_ATTEMPTS = 3;
 const SUPPORTED_LANGUAGES = ["en", "de"] as const;

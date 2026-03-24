@@ -188,6 +188,7 @@ describe("server/quiz", () => {
 
       const fetchOptions = fetchMock.mock.calls[0][1] as RequestInit;
       const payload = JSON.parse(String(fetchOptions.body)) as {
+        model: string;
         max_output_tokens: number;
         text: {
           format: {
@@ -199,6 +200,7 @@ describe("server/quiz", () => {
         };
       };
 
+      expect(payload.model).toBe("gpt-5.4-nano");
       expect(payload.text.format.type).toBe("json_schema");
       expect(payload.text.format.name).toBe("quiz_questions");
       expect(payload.text.format.strict).toBe(true);
