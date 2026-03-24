@@ -4,6 +4,17 @@
 
 Einfaches, serverseitiges Rate Limiting für zwei Expo API Routes, **ohne Registrierung** und **ohne Supabase Auth/JWT**. Supabase wird ausschließlich als Datenbank verwendet. Die Geräteidentifikation erfolgt über eine client-seitig generierte UUID, die vor dem Speichern im Backend **gehasht** wird.
 
+## Aktueller Scope im Repo
+
+In Scope für v3.1:
+- `POST /api/quiz/generate`
+- `POST /api/quiz/generate-mixed`
+
+Explizit nicht in Scope für v3.1:
+- `/api/topic/explain` oder andere spätere AI-Endpunkte
+
+Wenn später weitere AI-Routes dazukommen, werden sie bewusst separat in das Quota-Modell aufgenommen statt stillschweigend mitzuschwimmen.
+
 ## Ziele
 
 - OpenAI-Aufrufe serverseitig begrenzen
@@ -235,6 +246,7 @@ type QuotaResult =
   | {
       allowed: false;
       reason: 'global_day' | 'device_total' | 'device_endpoint';
+      scope: 'global' | 'device';
       retryAfterSeconds: number;
       resetAtUtc: string;
     };
@@ -245,6 +257,12 @@ Hilfsfunktion für 429-Responses mit Headern:
 - `X-RateLimit-Limit`
 - `X-RateLimit-Remaining`
 - `X-RateLimit-Reset`
+- JSON-Body: `{ error: 'rate_limited', scope: 'global' | 'device', resetAtUtc: string }`
+
+Mapping fuer die UI:
+- `global_day` -> `scope: 'global'`
+- `device_total` -> `scope: 'device'`
+- `device_endpoint` -> `scope: 'device'`
 
 Bei Supabase-Fehler: `503 Service Unavailable`, kein OpenAI-Call.
 
@@ -266,7 +284,7 @@ Reihenfolge in jeder Route:
 2. Request-Body parsen und validieren → ungültig → `400` (kein Quota-Verbrauch)
 3. Device-ID mit SHA-256 hashen
 4. `checkAndConsumeQuota(deviceIdHash, endpoint)` aufrufen
-5. Bei `allowed: false` → `429` mit Rate-Limit-Headern
+5. Bei `allowed: false` → `429` mit Rate-Limit-Headern und stabilem Response-Body fuer den Client
 6. Bei DB-Fehler → `503`
 7. Erst dann OpenAI-Call ausführen
 
@@ -287,8 +305,9 @@ Keine Secrets in Fehlermeldungen oder Logs.
 Schritte:
 
 1. Beim ersten App-Start UUID v4 generieren, in AsyncStorage speichern.
-2. Bei jedem Quiz-Request Header `X-Device-Id: <uuid>` mitsenden.
-3. Bei `429` dem Nutzer eine verständliche Meldung anzeigen:
+2. Header `X-Device-Id: <uuid>` nur bei `POST /api/quiz/generate` und `POST /api/quiz/generate-mixed` mitsenden.
+3. Andere Requests und bestehende Query-Reads bleiben unverändert.
+4. Bei `429` dem Nutzer eine verständliche Meldung anzeigen, basierend auf `scope` im Response-Body:
    - Tageslimit: „Tageslimit erreicht. Morgen geht's weiter."
    - Globales Limit: „Die App ist heute ausgelastet. Morgen geht's weiter."
 
@@ -351,8 +370,10 @@ where usage_date < ((now() at time zone 'utc')::date - interval '60 days');
 | 8 | 61. globaler Request am selben Tag | 429 |
 | 9 | Supabase nicht erreichbar | 503, kein OpenAI-Call |
 | 10 | 429 enthält `Retry-After`-Header | ✓ |
-| 11 | Nächster UTC-Tag → Zähler zurückgesetzt | 200 |
-| 12 | RLS aktiv, anonyme Abfrage auf `api_usage` | kein Zugriff |
+| 11 | 429-Body bei globalem Limit enthält `scope: global` | ✓ |
+| 12 | 429-Body bei Geräte-Limit enthält `scope: device` | ✓ |
+| 13 | Nächster UTC-Tag → Zähler zurückgesetzt | 200 |
+| 14 | RLS aktiv, anonyme Abfrage auf `api_usage` | kein Zugriff |
 
 ---
 
