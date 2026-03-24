@@ -1,6 +1,6 @@
 {
   "expo": {
-    "name": "Code Companion",
+    "name": "CodeComp",
     "slug": "dhbw-code-companion",
     "version": "1.0.0",
     "orientation": "portrait",
@@ -9,9 +9,6 @@
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "de.dhbwloe.loerrach.CodeCompanion",
-      "infoPlist": {
-        "CFBundleDisplayName": "CodeComp"
-      },
       "config": {
         "usesNonExemptEncryption": false
       },
