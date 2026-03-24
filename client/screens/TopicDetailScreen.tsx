@@ -167,8 +167,8 @@ export default function TopicDetailScreen() {
     const withoutHeading = full.replace(/^#[^\n]*\n+/, '');
     const firstParagraph = withoutHeading.split(/\n\n/)[0] ?? '';
     const plain = firstParagraph.replace(/[*`#_~\[\]]/g, '').trim();
-    if (plain.length <= 200) return plain;
-    const truncated = plain.slice(0, 200);
+    if (plain.length <= 120) return plain;
+    const truncated = plain.slice(0, 120);
     const lastSpace = truncated.lastIndexOf(' ');
     return (lastSpace > 0 ? truncated.slice(0, lastSpace) : truncated) + '...';
   })();
