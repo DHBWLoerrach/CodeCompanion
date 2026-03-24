@@ -1,4 +1,10 @@
-import React, { useState, useEffect, useRef, useCallback } from "react";
+import React, {
+  useState,
+  useEffect,
+  useRef,
+  useCallback,
+  useMemo,
+} from "react";
 import {
   View,
   ScrollView,
@@ -19,6 +25,12 @@ import { useTheme } from "@/contexts/ThemeContext";
 import { useTranslation } from "@/hooks/useTranslation";
 import { useCloseHandler } from "@/hooks/useCloseHandler";
 import { usePressAnimation } from "@/hooks/usePressAnimation";
+import {
+  DEFAULT_QUIZ_QUESTION_COUNT,
+  QUICK_QUIZ_MAX_DIFFICULTY,
+  QUICK_QUIZ_MODE,
+  QUICK_QUIZ_QUESTION_COUNT,
+} from "@/constants/quiz";
 import { Spacing, BorderRadius, Shadows, Fonts } from "@/constants/theme";
 import { apiRequest, isApiRequestError } from "@/lib/query-client";
 import { getParam, getParamWithDefault } from "@/lib/router-utils";
@@ -217,18 +229,41 @@ export default function QuizSessionScreen() {
   const { t } = useTranslation();
   const insets = useSafeAreaInsets();
   const router = useRouter();
-  const { topicId, topicIds, count, programmingLanguage } =
+  const { topicId, topicIds, count, programmingLanguage, quizMode } =
     useLocalSearchParams<{
       topicId?: string;
       topicIds?: string;
       count?: string;
       programmingLanguage?: string;
+      quizMode?: string;
     }>();
   const resolvedTopicId = getParam(topicId);
   const resolvedProgrammingLanguage = getParamWithDefault(
     programmingLanguage,
     "javascript",
   );
+  const isQuickQuiz = getParam(quizMode) === QUICK_QUIZ_MODE;
+  const resolvedTopicIds = useMemo(() => {
+    const rawTopicIds = getParam(topicIds);
+
+    return typeof rawTopicIds === "string"
+      ? rawTopicIds
+          .split(",")
+          .map((id: string) => id.trim())
+          .filter((id: string) => id.length > 0)
+      : [];
+  }, [topicIds]);
+  const requestedQuestionCount = useMemo(() => {
+    const parsedCount = count ? Number.parseInt(count, 10) : Number.NaN;
+
+    if (Number.isFinite(parsedCount) && parsedCount > 0) {
+      return parsedCount;
+    }
+
+    return isQuickQuiz
+      ? QUICK_QUIZ_QUESTION_COUNT
+      : DEFAULT_QUIZ_QUESTION_COUNT;
+  }, [count, isQuickQuiz]);
 
   const [questions, setQuestions] = useState<QuizQuestion[]>([]);
   const [currentIndex, setCurrentIndex] = useState(0);
@@ -249,15 +284,6 @@ export default function QuizSessionScreen() {
       setError(null);
 
       const settings = await storage.getSettings();
-      const questionCount = count ? parseInt(count as string, 10) || 5 : 5;
-      const rawTopicIds = getParam(topicIds);
-      const resolvedTopicIds =
-        typeof rawTopicIds === "string"
-          ? rawTopicIds
-              .split(",")
-              .map((id: string) => id.trim())
-              .filter((id: string) => id.length > 0)
-          : [];
       const skillLevel = resolvedTopicId
         ? await storage.getTopicSkillLevel(
             resolvedProgrammingLanguage,
@@ -272,7 +298,7 @@ export default function QuizSessionScreen() {
         endpoint = "/api/quiz/generate";
         body = {
           topicId: resolvedTopicId,
-          count: questionCount,
+          count: requestedQuestionCount,
           language: settings.language,
           skillLevel,
           programmingLanguage: resolvedProgrammingLanguage,
@@ -284,11 +310,14 @@ export default function QuizSessionScreen() {
           resolvedProgrammingLanguage,
           resolvedTopicIds.length > 0 ? resolvedTopicIds : undefined,
         );
+        const effectiveSkillLevel = isQuickQuiz
+          ? Math.min(mixedQuizDifficulty, QUICK_QUIZ_MAX_DIFFICULTY)
+          : mixedQuizDifficulty;
         endpoint = "/api/quiz/generate-mixed";
         body = {
-          count: questionCount,
+          count: requestedQuestionCount,
           language: settings.language,
-          skillLevel: mixedQuizDifficulty,
+          skillLevel: effectiveSkillLevel,
           programmingLanguage: resolvedProgrammingLanguage,
         };
         if (resolvedTopicIds.length > 0) {
@@ -325,11 +354,12 @@ export default function QuizSessionScreen() {
       setLoading(false);
     }
   }, [
-    count,
+    isQuickQuiz,
     quizRateLimitDeviceText,
     quizRateLimitGlobalText,
+    requestedQuestionCount,
     resolvedTopicId,
-    topicIds,
+    resolvedTopicIds,
     unableToLoadQuizText,
     resolvedProgrammingLanguage,
   ]);
@@ -398,9 +428,16 @@ export default function QuizSessionScreen() {
         total: String(questions.length),
         answers: JSON.stringify(nextAnswers),
         programmingLanguage: resolvedProgrammingLanguage,
+        count: String(requestedQuestionCount),
       };
       if (resolvedTopicId) {
         params.topicId = resolvedTopicId;
+      }
+      if (!resolvedTopicId && resolvedTopicIds.length > 0) {
+        params.topicIds = resolvedTopicIds.join(",");
+      }
+      if (isQuickQuiz) {
+        params.quizMode = QUICK_QUIZ_MODE;
       }
 
       router.replace({

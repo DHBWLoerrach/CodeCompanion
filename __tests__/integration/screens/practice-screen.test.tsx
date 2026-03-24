@@ -177,19 +177,48 @@ describe("PracticeScreen integration", () => {
       pathname: "/quiz-session",
       params: { programmingLanguage: "javascript" },
     });
-    expect(mockPush).toHaveBeenCalledWith({
-      pathname: "/quiz-session",
-      params: { count: "5", programmingLanguage: "javascript" },
+
+    const quickCall = mockPush.mock.calls.find(([call]) => {
+      const route = call as {
+        pathname?: string;
+        params?: { quizMode?: string };
+      };
+      return (
+        route.pathname === "/quiz-session" &&
+        route.params?.quizMode === "quick"
+      );
     });
+    expect(quickCall).toBeDefined();
+
+    const quickRoute = quickCall?.[0] as {
+      pathname: string;
+      params: {
+        count: string;
+        programmingLanguage: string;
+        quizMode: string;
+        topicIds?: string;
+      };
+    };
+    expect(quickRoute).toEqual({
+      pathname: "/quiz-session",
+      params: expect.objectContaining({
+        count: "3",
+        programmingLanguage: "javascript",
+        quizMode: "quick",
+      }),
+    });
+    expect(quickRoute.params.topicIds).toBeDefined();
+    expect(new Set(quickRoute.params.topicIds?.split(",")).size).toBe(2);
 
     const categoryCall = mockPush.mock.calls.find(([call]) => {
       const route = call as {
         pathname?: string;
-        params?: { topicIds?: string };
+        params?: { topicIds?: string; quizMode?: string };
       };
       return (
         route.pathname === "/quiz-session" &&
-        typeof route.params?.topicIds === "string"
+        typeof route.params?.topicIds === "string" &&
+        route.params.quizMode !== "quick"
       );
     });
     expect(categoryCall).toBeDefined();

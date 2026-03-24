@@ -127,14 +127,20 @@ export default function SessionSummaryScreen() {
     score?: string;
     total?: string;
     topicId?: string;
+    topicIds?: string;
     answers?: string;
+    count?: string;
+    quizMode?: string;
     programmingLanguage?: string;
   }>();
 
   const scoreParam = getParam(params.score);
   const totalParam = getParam(params.total);
   const topicIdParam = getParam(params.topicId);
+  const topicIdsParam = getParam(params.topicIds);
   const answersParam = getParam(params.answers);
+  const countParam = getParam(params.count);
+  const quizModeParam = getParam(params.quizMode);
   const programmingLanguageParam = getParamWithDefault(
     params.programmingLanguage,
     "javascript",
@@ -179,8 +185,17 @@ export default function SessionSummaryScreen() {
     const nextParams: Record<string, string> = {
       programmingLanguage: programmingLanguageParam,
     };
+    if (countParam) {
+      nextParams.count = countParam;
+    }
     if (topicIdParam) {
       nextParams.topicId = topicIdParam;
+    }
+    if (topicIdsParam) {
+      nextParams.topicIds = topicIdsParam;
+    }
+    if (quizModeParam) {
+      nextParams.quizMode = quizModeParam;
     }
     router.replace({ pathname: "/quiz-session", params: nextParams });
   };

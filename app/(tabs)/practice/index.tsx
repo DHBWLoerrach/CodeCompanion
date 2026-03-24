@@ -16,6 +16,11 @@ import {
   useTopicProgress,
   getCategoryProgress,
 } from "@/hooks/useTopicProgress";
+import {
+  QUICK_QUIZ_MODE,
+  QUICK_QUIZ_QUESTION_COUNT,
+  QUICK_QUIZ_TOPIC_LIMIT,
+} from "@/constants/quiz";
 import { Spacing, BorderRadius, Shadows } from "@/constants/theme";
 import {
   type Topic,
@@ -27,6 +32,20 @@ import { type TopicProgress } from "@/lib/storage";
 import { useProgrammingLanguage } from "@/contexts/ProgrammingLanguageContext";
 
 const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
+
+function pickRandomTopicIds(categories: Category[], limit: number): string[] {
+  const topicIds = categories.flatMap((category) =>
+    category.topics.map((topic) => topic.id),
+  );
+  const shuffled = [...topicIds];
+
+  for (let i = shuffled.length - 1; i > 0; i -= 1) {
+    const randomIndex = Math.floor(Math.random() * (i + 1));
+    [shuffled[i], shuffled[randomIndex]] = [shuffled[randomIndex], shuffled[i]];
+  }
+
+  return shuffled.slice(0, Math.min(limit, shuffled.length));
+}
 
 interface QuizModeCardProps {
   icon: string;
@@ -210,6 +229,25 @@ export default function PracticeScreen() {
     });
   };
 
+  const handleQuickQuiz = () => {
+    const quickTopicIds = pickRandomTopicIds(
+      categories,
+      QUICK_QUIZ_TOPIC_LIMIT,
+    );
+
+    router.push({
+      pathname: "/quiz-session",
+      params: {
+        count: String(QUICK_QUIZ_QUESTION_COUNT),
+        programmingLanguage: languageId,
+        quizMode: QUICK_QUIZ_MODE,
+        ...(quickTopicIds.length > 0
+          ? { topicIds: quickTopicIds.join(",") }
+          : {}),
+      },
+    });
+  };
+
   if (loading) {
     return <LoadingScreen />;
   }
@@ -340,12 +378,7 @@ export default function PracticeScreen() {
             title={t("quickQuiz")}
             description={t("quickQuizDesc")}
             testID="practice-mode-quick"
-            onPress={() =>
-              router.push({
-                pathname: "/quiz-session",
-                params: { count: "5", programmingLanguage: languageId },
-              })
-            }
+            onPress={handleQuickQuiz}
           />
           <QuizModeCard
             icon="book-open"

@@ -39,6 +39,7 @@ let mockSearchParams: {
   topicIds?: string;
   count?: string;
   programmingLanguage?: string;
+  quizMode?: string;
 } = {};
 
 jest.mock("expo-router", () => ({
@@ -217,7 +218,79 @@ describe("QuizSessionScreen integration", () => {
     expect(replaceArgs.params.topicId).toBe("variables");
     expect(replaceArgs.params.total).toBe("1");
     expect(replaceArgs.params.score).toBe("0");
+    expect(replaceArgs.params.count).toBe("1");
     expect(replaceArgs.params.answers).toContain('"questionId":"q1"');
+  });
+
+  it("preserves the requested count when the API returns fewer questions", async () => {
+    mockSearchParams = {
+      topicId: "variables",
+      count: "3",
+      programmingLanguage: "javascript",
+    };
+    mockApiRequest.mockResolvedValueOnce({
+      json: async () => ({
+        questions: [
+          {
+            id: "q1",
+            question: "Question 1",
+            options: ["Option A", "Option B", "Option C", "Option D"],
+            correctIndex: 1,
+            explanation: "Explanation 1",
+          },
+          {
+            id: "q2",
+            question: "Question 2",
+            options: ["Option A", "Option B", "Option C", "Option D"],
+            correctIndex: 1,
+            explanation: "Explanation 2",
+          },
+        ],
+      }),
+    });
+
+    const screen = render(<QuizSessionScreen />);
+
+    await waitFor(() => {
+      expect(screen.getByText("Question 1")).toBeTruthy();
+    });
+
+    expect(mockApiRequest).toHaveBeenCalledWith("POST", "/api/quiz/generate", {
+      topicId: "variables",
+      count: 3,
+      language: "en",
+      skillLevel: 2,
+      programmingLanguage: "javascript",
+    });
+
+    fireEvent.press(screen.getByText("Option A"));
+    fireEvent.press(screen.getByText("submitAnswer"));
+    await waitFor(() => {
+      expect(screen.getByText("Explanation 1")).toBeTruthy();
+    });
+    fireEvent.press(screen.getByText("nextQuestion"));
+
+    await waitFor(() => {
+      expect(screen.getByText("Question 2")).toBeTruthy();
+    });
+    fireEvent.press(screen.getByText("Option A"));
+    fireEvent.press(screen.getByText("submitAnswer"));
+    await waitFor(() => {
+      expect(screen.getByText("Explanation 2")).toBeTruthy();
+    });
+    fireEvent.press(screen.getByText("viewResults"));
+
+    await waitFor(() => {
+      expect(mockReplace).toHaveBeenCalled();
+    });
+
+    const replaceArgs = mockReplace.mock.calls[0][0] as {
+      pathname: string;
+      params: Record<string, string>;
+    };
+    expect(replaceArgs.pathname).toBe("/session-summary");
+    expect(replaceArgs.params.count).toBe("3");
+    expect(replaceArgs.params.total).toBe("2");
   });
 
   it("sends mapped mixed skillLevel for provided topicIds", async () => {
@@ -263,6 +336,120 @@ describe("QuizSessionScreen integration", () => {
         programmingLanguage: "javascript",
       },
     );
+  });
+
+  it("caps quick quiz difficulty and preserves quick params for replay", async () => {
+    mockSearchParams = {
+      topicIds: "variables,loops",
+      count: "3",
+      programmingLanguage: "javascript",
+      quizMode: "quick",
+    };
+    mockStorage.getProgress.mockResolvedValue({
+      totalQuestions: 0,
+      correctAnswers: 0,
+      topicProgress: {
+        "javascript:variables": {
+          topicId: "variables",
+          questionsAnswered: 12,
+          correctAnswers: 10,
+          skillLevel: 5,
+        },
+        "javascript:loops": {
+          topicId: "loops",
+          questionsAnswered: 9,
+          correctAnswers: 8,
+          skillLevel: 4,
+        },
+      },
+      achievements: [],
+    });
+    mockApiRequest.mockResolvedValueOnce({
+      json: async () => ({
+        questions: [
+          {
+            id: "q1",
+            question: "Question 1",
+            options: ["Option A", "Option B", "Option C", "Option D"],
+            correctIndex: 1,
+            explanation: "Explanation 1",
+          },
+          {
+            id: "q2",
+            question: "Question 2",
+            options: ["Option A", "Option B", "Option C", "Option D"],
+            correctIndex: 1,
+            explanation: "Explanation 2",
+          },
+          {
+            id: "q3",
+            question: "Question 3",
+            options: ["Option A", "Option B", "Option C", "Option D"],
+            correctIndex: 1,
+            explanation: "Explanation 3",
+          },
+        ],
+      }),
+    });
+
+    const screen = render(<QuizSessionScreen />);
+
+    await waitFor(() => {
+      expect(screen.getByText("Question 1")).toBeTruthy();
+    });
+
+    expect(mockApiRequest).toHaveBeenCalledWith(
+      "POST",
+      "/api/quiz/generate-mixed",
+      {
+        topicIds: ["variables", "loops"],
+        count: 3,
+        language: "en",
+        skillLevel: 2,
+        programmingLanguage: "javascript",
+      },
+    );
+
+    fireEvent.press(screen.getByText("Option A"));
+    fireEvent.press(screen.getByText("submitAnswer"));
+    await waitFor(() => {
+      expect(screen.getByText("Explanation 1")).toBeTruthy();
+    });
+    fireEvent.press(screen.getByText("nextQuestion"));
+
+    await waitFor(() => {
+      expect(screen.getByText("Question 2")).toBeTruthy();
+    });
+    fireEvent.press(screen.getByText("Option A"));
+    fireEvent.press(screen.getByText("submitAnswer"));
+    await waitFor(() => {
+      expect(screen.getByText("Explanation 2")).toBeTruthy();
+    });
+    fireEvent.press(screen.getByText("nextQuestion"));
+
+    await waitFor(() => {
+      expect(screen.getByText("Question 3")).toBeTruthy();
+    });
+    fireEvent.press(screen.getByText("Option A"));
+    fireEvent.press(screen.getByText("submitAnswer"));
+    await waitFor(() => {
+      expect(screen.getByText("Explanation 3")).toBeTruthy();
+    });
+    fireEvent.press(screen.getByText("viewResults"));
+
+    await waitFor(() => {
+      expect(mockReplace).toHaveBeenCalled();
+    });
+
+    const replaceArgs = mockReplace.mock.calls[0][0] as {
+      pathname: string;
+      params: Record<string, string>;
+    };
+    expect(replaceArgs.pathname).toBe("/session-summary");
+    expect(replaceArgs.params.topicIds).toBe("variables,loops");
+    expect(replaceArgs.params.quizMode).toBe("quick");
+    expect(replaceArgs.params.count).toBe("3");
+    expect(replaceArgs.params.total).toBe("3");
   });
 
   it("sends mapped mixed skillLevel from global progress for random mix", async () => {
