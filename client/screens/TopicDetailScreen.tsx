@@ -314,14 +314,17 @@ export default function TopicDetailScreen() {
             onPressIn={canExplainTopic ? handleExplainPressIn : undefined}
             onPressOut={canExplainTopic ? handleExplainPressOut : undefined}
           >
-            <AppIcon name="book-open" size={20} color="#FFFFFF" />
+            <AppIcon name="book-open" size={18} color="#FFFFFF" />
             <ThemedText
               type="body"
-              style={{
-                color: "#FFFFFF",
-                fontWeight: "600",
-                opacity: canExplainTopic ? 1 : 0.75,
-              }}
+              numberOfLines={1}
+              style={[
+                styles.buttonLabel,
+                {
+                  color: "#FFFFFF",
+                  opacity: canExplainTopic ? 1 : 0.75,
+                },
+              ]}
             >
               {t("explainTopic")}
             </ThemedText>
@@ -337,10 +340,11 @@ export default function TopicDetailScreen() {
             onPressIn={handlePressIn}
             onPressOut={handlePressOut}
           >
-            <AppIcon name="play" size={20} color="#FFFFFF" />
+            <AppIcon name="play" size={18} color="#FFFFFF" />
             <ThemedText
               type="body"
-              style={{ color: "#FFFFFF", fontWeight: "600" }}
+              numberOfLines={1}
+              style={[styles.buttonLabel, { color: "#FFFFFF" }]}
             >
               {t("startQuiz")}
             </ThemedText>
@@ -424,31 +428,42 @@ const styles = StyleSheet.create({
     bottom: 0,
     left: 0,
     right: 0,
-    padding: Spacing.lg,
+    padding: Spacing.md,
     paddingTop: Spacing.md,
     borderTopWidth: 1,
     borderTopColor: "rgba(0,0,0,0.05)",
   },
   buttonRow: {
     flexDirection: "row",
-    gap: Spacing.md,
+    gap: Spacing.sm,
   },
   secondaryButton: {
     flex: 1,
     height: 56,
+    minWidth: 0,
+    paddingHorizontal: Spacing.sm,
     borderRadius: BorderRadius.md,
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
-    gap: Spacing.sm,
+    gap: 6,
   },
   primaryButton: {
     flex: 1,
     height: 56,
+    minWidth: 0,
+    paddingHorizontal: Spacing.sm,
     borderRadius: BorderRadius.md,
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
-    gap: Spacing.sm,
+    gap: 6,
+  },
+  buttonLabel: {
+    flexShrink: 1,
+    fontSize: 15,
+    fontWeight: "600",
+    textAlign: "center",
+    lineHeight: 20,
   },
 });
