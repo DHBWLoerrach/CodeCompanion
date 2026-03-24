@@ -249,7 +249,7 @@ export default function QuizSessionScreen() {
       setError(null);
 
       const settings = await storage.getSettings();
-      const questionCount = count ? parseInt(count as string, 10) || 10 : 10;
+      const questionCount = count ? parseInt(count as string, 10) || 5 : 5;
       const rawTopicIds = getParam(topicIds);
       const resolvedTopicIds =
         typeof rawTopicIds === "string"

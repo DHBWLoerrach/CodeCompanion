@@ -72,7 +72,7 @@ export async function POST(request: Request) {
       programmingLanguage?: string;
     }>(request);
 
-    const count = toQuestionCount(body?.count, 10);
+    const count = toQuestionCount(body?.count, 5);
     const skillLevel = toQuizDifficultyLevel(body?.skillLevel, 1);
     const programmingLanguage = toProgrammingLanguage(
       body?.programmingLanguage,

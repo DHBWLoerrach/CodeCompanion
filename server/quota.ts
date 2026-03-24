@@ -10,10 +10,10 @@ import {
 import { sha256Hex } from '@server/crypto';
 import { getSupabaseAdminClient } from '@server/supabase';
 
-const DEVICE_TOTAL_LIMIT_PER_DAY = 35;
-const DEVICE_GENERATE_LIMIT_PER_DAY = 34;
-const DEVICE_MIXED_LIMIT_PER_DAY = 2;
-const GLOBAL_LIMIT_PER_DAY = 60;
+const DEVICE_TOTAL_LIMIT_PER_DAY = 15;
+const DEVICE_GENERATE_LIMIT_PER_DAY = 12;
+const DEVICE_MIXED_LIMIT_PER_DAY = 6;
+const GLOBAL_LIMIT_PER_DAY = 400;
 
 const UUID_V4_PATTERN =
   /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;

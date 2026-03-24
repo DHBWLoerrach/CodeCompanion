@@ -225,7 +225,7 @@ describe("POST /api/quiz/generate-mixed", () => {
       1,
       "javascript",
       "loops",
-      4,
+      2,
       "en",
       1,
     );
@@ -233,7 +233,7 @@ describe("POST /api/quiz/generate-mixed", () => {
       2,
       "javascript",
       "promises",
-      3,
+      2,
       "en",
       1,
     );
@@ -241,11 +241,11 @@ describe("POST /api/quiz/generate-mixed", () => {
       3,
       "javascript",
       "variables",
-      3,
+      1,
       "en",
       1,
     );
-    expect(data.questions).toHaveLength(10);
+    expect(data.questions).toHaveLength(5);
 
     randomSpy.mockRestore();
   });
@@ -310,11 +310,11 @@ describe("POST /api/quiz/generate-mixed", () => {
     expect(mockGenerateQuizQuestions).toHaveBeenCalledWith(
       "javascript",
       "variables",
-      10,
+      5,
       "en",
       2,
     );
-    expect(data.questions).toHaveLength(10);
+    expect(data.questions).toHaveLength(5);
   });
 
   it("truncates decimal count and skillLevel", async () => {
@@ -349,7 +349,7 @@ describe("POST /api/quiz/generate-mixed", () => {
     expect(mockGenerateQuizQuestions).toHaveBeenCalledWith(
       "javascript",
       "variables",
-      10,
+      5,
       "en",
       3,
     );
@@ -366,7 +366,7 @@ describe("POST /api/quiz/generate-mixed", () => {
     expect(mockGenerateQuizQuestions).toHaveBeenCalledWith(
       "javascript",
       "variables",
-      10,
+      5,
       "en",
       1,
     );
@@ -383,7 +383,7 @@ describe("POST /api/quiz/generate-mixed", () => {
     expect(mockGenerateQuizQuestions).toHaveBeenCalledWith(
       "javascript",
       "variables",
-      10,
+      5,
       "en",
       1,
     );
@@ -430,7 +430,7 @@ describe("POST /api/quiz/generate-mixed", () => {
           status: 429,
           headers: {
             "Retry-After": "60",
-            "X-RateLimit-Limit": "2",
+            "X-RateLimit-Limit": "6",
             "X-RateLimit-Remaining": "0",
             "X-RateLimit-Reset": "1742860800",
           },

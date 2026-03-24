@@ -285,7 +285,7 @@ describe("POST /api/quiz/generate", () => {
           status: 429,
           headers: {
             "Retry-After": "60",
-            "X-RateLimit-Limit": "5",
+            "X-RateLimit-Limit": "15",
             "X-RateLimit-Remaining": "0",
             "X-RateLimit-Reset": "1742860800",
           },

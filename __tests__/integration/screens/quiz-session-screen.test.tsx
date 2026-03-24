@@ -303,7 +303,7 @@ describe("QuizSessionScreen integration", () => {
       "POST",
       "/api/quiz/generate-mixed",
       {
-        count: 10,
+        count: 5,
         language: "en",
         skillLevel: 1,
         programmingLanguage: "javascript",
@@ -330,7 +330,7 @@ describe("QuizSessionScreen integration", () => {
       "POST",
       "/api/quiz/generate-mixed",
       {
-        count: 10,
+        count: 5,
         language: "en",
         skillLevel: 1,
         programmingLanguage: "javascript",

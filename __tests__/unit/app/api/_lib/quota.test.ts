@@ -123,8 +123,8 @@ describe("quota helpers", () => {
 
     expect(result).toEqual({
       allowed: true,
-      remainingDevice: 3,
-      remainingGlobal: 57,
+      remainingDevice: 13,
+      remainingGlobal: 397,
       resetAtUtc: "2026-03-25T00:00:00.000Z",
     });
     expect(rows).toContainEqual({
@@ -136,7 +136,7 @@ describe("quota helpers", () => {
 
   it("rejects when the endpoint daily limit is reached", async () => {
     const { client } = createFakeSupabase(
-      Array.from({ length: 4 }, () => ({
+      Array.from({ length: 12 }, () => ({
         device_id_hash: "device-a",
         endpoint: QUIZ_GENERATE_QUOTA_ENDPOINT,
         usage_date: "2026-03-24",
@@ -160,16 +160,16 @@ describe("quota helpers", () => {
 
   it("rejects when the device total daily limit is reached", async () => {
     const { client } = createFakeSupabase([
-      ...Array.from({ length: 4 }, () => ({
+      ...Array.from({ length: 12 }, () => ({
         device_id_hash: "device-a",
         endpoint: QUIZ_GENERATE_QUOTA_ENDPOINT,
         usage_date: "2026-03-24",
       })),
-      {
+      ...Array.from({ length: 3 }, () => ({
         device_id_hash: "device-a",
         endpoint: QUIZ_GENERATE_MIXED_QUOTA_ENDPOINT,
         usage_date: "2026-03-24",
-      },
+      })),
     ]);
 
     const result = await checkAndConsumeQuota(
@@ -189,7 +189,7 @@ describe("quota helpers", () => {
 
   it("rejects when the global daily limit is reached", async () => {
     const { client } = createFakeSupabase(
-      Array.from({ length: 60 }, (_, index) => ({
+      Array.from({ length: 400 }, (_, index) => ({
         device_id_hash: `device-${index}`,
         endpoint:
           index % 2 === 0
@@ -254,7 +254,7 @@ describe("quota helpers", () => {
 
     expect(response.status).toBe(429);
     expect(response.headers.get("Retry-After")).toBe("43200");
-    expect(response.headers.get("X-RateLimit-Limit")).toBe("2");
+    expect(response.headers.get("X-RateLimit-Limit")).toBe("6");
     expect(response.headers.get("X-RateLimit-Remaining")).toBe("0");
     expect(response.headers.get("X-RateLimit-Reset")).toBe("1774396800");
     await expect(response.json()).resolves.toEqual({
