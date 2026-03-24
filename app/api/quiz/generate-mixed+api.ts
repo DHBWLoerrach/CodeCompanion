@@ -1,8 +1,7 @@
 import { QUIZ_GENERATE_MIXED_QUOTA_ENDPOINT } from "@shared/api-quota";
 import { getTopicIdsByLanguage } from "@shared/curriculum";
-import { mapWithConcurrency } from "@server/concurrency";
 import { enforceQuizQuota, quotaUnavailableResponse } from "@server/quota";
-import { generateQuizQuestions } from "@server/quiz";
+import { generateMixedQuizQuestions } from "@server/quiz";
 import {
   buildApiRequestTimingFields,
   logApiError,
@@ -38,8 +37,6 @@ type TopicQuestionPlan = {
   topicId: string;
   questionCount: number;
 };
-
-const MIXED_QUIZ_GENERATION_CONCURRENCY = 3;
 
 function buildTopicQuestionPlan(
   topicIds: string[],
@@ -151,7 +148,7 @@ export async function POST(request: Request) {
       selectedTopics = shuffleArray(allTopicKeys).slice(0, 3);
     }
 
-    selectedTopics = selectedTopics.slice(0, count);
+    selectedTopics = [...new Set(selectedTopics)].slice(0, count);
 
     if (selectedTopics.length === 0) {
       logApiRequestOutcome({
@@ -209,25 +206,12 @@ export async function POST(request: Request) {
 
     const topicPlan = buildTopicQuestionPlan(selectedTopics, count);
     upstreamStartedAt = Date.now();
-    const questionGroups = await mapWithConcurrency(
+    const questions = await generateMixedQuizQuestions(
+      programmingLanguage,
       topicPlan,
-      MIXED_QUIZ_GENERATION_CONCURRENCY,
-      ({ topicId, questionCount }) =>
-        generateQuizQuestions(
-          programmingLanguage,
-          topicId,
-          questionCount,
-          language,
-          skillLevel,
-        ),
+      language,
+      skillLevel,
     );
-
-    const allQuestions = questionGroups.flat();
-    if (allQuestions.length !== count) {
-      throw new Error(
-        `Mixed quiz generation produced ${allQuestions.length} questions, expected ${count}`,
-      );
-    }
 
     logApiRequestOutcome({
       endpoint: QUIZ_GENERATE_MIXED_QUOTA_ENDPOINT,
@@ -239,7 +223,7 @@ export async function POST(request: Request) {
         upstreamStartedAt,
       }),
     });
-    return Response.json({ questions: shuffleArray(allQuestions) });
+    return Response.json({ questions: shuffleArray(questions) });
   } catch (error) {
     if (error instanceof InvalidJsonBodyError) {
       logApiRequestOutcome({

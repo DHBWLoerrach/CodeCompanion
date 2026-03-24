@@ -13,8 +13,21 @@ type GeneratedQuizQuestion = Omit<QuizQuestion, "id" | "code"> & {
   code?: string;
 };
 
+type GeneratedMixedQuizQuestion = GeneratedQuizQuestion & {
+  topicId: string;
+};
+
 type StructuredQuizQuestion = Omit<GeneratedQuizQuestion, "code"> & {
   code: string | null;
+};
+
+type StructuredMixedQuizQuestion = Omit<GeneratedMixedQuizQuestion, "code"> & {
+  code: string | null;
+};
+
+type MixedQuizTopicPlanItem = {
+  topicId: string;
+  questionCount: number;
 };
 
 const QUIZ_RESPONSE_FORMAT = {
@@ -55,6 +68,52 @@ const QUIZ_RESPONSE_FORMAT = {
     },
   },
 } as const;
+
+function buildMixedQuizResponseFormat(topicIds: string[]) {
+  return {
+    format: {
+      type: "json_schema",
+      name: "mixed_quiz_questions",
+      strict: true,
+      schema: {
+        type: "object",
+        properties: {
+          questions: {
+            type: "array",
+            items: {
+              type: "object",
+              properties: {
+                topicId: {
+                  type: "string",
+                  enum: topicIds,
+                },
+                question: { type: "string" },
+                code: { type: ["string", "null"] },
+                options: {
+                  type: "array",
+                  items: { type: "string" },
+                },
+                correctIndex: { type: "integer" },
+                explanation: { type: "string" },
+              },
+              required: [
+                "topicId",
+                "question",
+                "code",
+                "options",
+                "correctIndex",
+                "explanation",
+              ],
+              additionalProperties: false,
+            },
+          },
+        },
+        required: ["questions"],
+        additionalProperties: false,
+      },
+    },
+  };
+}
 
 const OPENAI_RESPONSES_URL = "https://api.openai.com/v1/responses";
 const DEFAULT_OPENAI_TIMEOUT_MS = 30_000;
@@ -171,9 +230,9 @@ function assertOpenAIResponseIsUsable(response: unknown): void {
   throw new Error("OpenAI response incomplete");
 }
 
-function normalizeStructuredQuizQuestions(
-  questions: StructuredQuizQuestion[],
-): GeneratedQuizQuestion[] {
+function normalizeStructuredQuizQuestions<
+  T extends StructuredQuizQuestion | StructuredMixedQuizQuestion,
+>(questions: T[]): Array<Omit<T, "code"> & { code?: string }> {
   return questions.map(({ code, ...question }) => {
     const { text, code: extractedCode } = extractMarkdownCodeFromQuestion(
       question.question,
@@ -187,12 +246,106 @@ function normalizeStructuredQuizQuestions(
 }
 
 type StructuredQuizQuestionCandidate = {
+  topicId?: unknown;
   question?: unknown;
   code?: unknown;
   options?: unknown;
   correctIndex?: unknown;
   explanation?: unknown;
 };
+
+type StructuredQuizQuestionFields = {
+  question: string;
+  code: string | null;
+  options: string[];
+  correctIndex: number;
+  explanation: string;
+};
+
+function validateStructuredQuizQuestionFields(
+  rawQuestion: unknown,
+  index: number,
+): StructuredQuizQuestionFields {
+  const question = rawQuestion as StructuredQuizQuestionCandidate | null;
+
+  if (!question || typeof question !== "object") {
+    throw new Error(
+      `Invalid quiz question at index ${index}: question must be an object`,
+    );
+  }
+
+  if (typeof question.question !== "string") {
+    throw new Error(
+      `Invalid quiz question at index ${index}: question text must be a string`,
+    );
+  }
+
+  if (!question.question.trim()) {
+    throw new Error(
+      `Invalid quiz question at index ${index}: question text is empty`,
+    );
+  }
+
+  if (!(typeof question.code === "string" || question.code === null)) {
+    throw new Error(
+      `Invalid quiz question at index ${index}: code must be a string or null`,
+    );
+  }
+
+  if (!Array.isArray(question.options)) {
+    throw new Error(
+      `Invalid quiz question at index ${index}: options must be an array`,
+    );
+  }
+
+  if (question.options.length !== 4) {
+    throw new Error(
+      `Invalid quiz question at index ${index}: expected exactly 4 options`,
+    );
+  }
+
+  if (
+    question.options.some(
+      (option) => typeof option !== "string" || option.trim().length === 0,
+    )
+  ) {
+    throw new Error(
+      `Invalid quiz question at index ${index}: answer options must be non-empty strings`,
+    );
+  }
+
+  if (typeof question.explanation !== "string") {
+    throw new Error(
+      `Invalid quiz question at index ${index}: explanation must be a string`,
+    );
+  }
+
+  if (!question.explanation.trim()) {
+    throw new Error(
+      `Invalid quiz question at index ${index}: explanation is empty`,
+    );
+  }
+
+  const correctIndex = question.correctIndex;
+  if (
+    typeof correctIndex !== "number" ||
+    !Number.isInteger(correctIndex) ||
+    correctIndex < 0 ||
+    correctIndex >= question.options.length
+  ) {
+    throw new Error(
+      `Invalid quiz question at index ${index}: correctIndex is out of bounds`,
+    );
+  }
+
+  return {
+    question: question.question,
+    code: question.code,
+    options: question.options,
+    correctIndex,
+    explanation: question.explanation,
+  };
+}
 
 function validateStructuredQuizQuestions(
   questions: unknown[],
@@ -204,95 +357,62 @@ function validateStructuredQuizQuestions(
     );
   }
 
-  const validatedQuestions: StructuredQuizQuestion[] = [];
+  return questions.map((question, index) =>
+    validateStructuredQuizQuestionFields(question, index),
+  );
+}
 
-  for (const [index, rawQuestion] of questions.entries()) {
+function validateStructuredMixedQuizQuestions(
+  questions: unknown[],
+  topicPlan: MixedQuizTopicPlanItem[],
+): StructuredMixedQuizQuestion[] {
+  const expectedCount = topicPlan.reduce(
+    (sum, item) => sum + item.questionCount,
+    0,
+  );
+
+  if (questions.length !== expectedCount) {
+    throw new Error(
+      `OpenAI returned ${questions.length} quiz questions, expected ${expectedCount}`,
+    );
+  }
+
+  const allowedTopicIds = topicPlan.map((item) => item.topicId);
+  const allowedTopicIdSet = new Set(allowedTopicIds);
+  const actualCounts = new Map(topicPlan.map((item) => [item.topicId, 0]));
+
+  const validatedQuestions = questions.map((rawQuestion, index) => {
     const question = rawQuestion as StructuredQuizQuestionCandidate | null;
+    const topicId = question?.topicId;
 
-    if (!question || typeof question !== "object") {
+    if (typeof topicId !== "string" || !allowedTopicIdSet.has(topicId)) {
       throw new Error(
-        `Invalid quiz question at index ${index}: question must be an object`,
+        `Invalid mixed quiz question at index ${index}: topicId must be one of ${allowedTopicIds.join(", ")}`,
       );
     }
 
-    if (typeof question.question !== "string") {
+    actualCounts.set(topicId, (actualCounts.get(topicId) ?? 0) + 1);
+
+    return {
+      topicId,
+      ...validateStructuredQuizQuestionFields(rawQuestion, index),
+    };
+  });
+
+  for (const { topicId, questionCount } of topicPlan) {
+    const actualCount = actualCounts.get(topicId) ?? 0;
+    if (actualCount !== questionCount) {
       throw new Error(
-        `Invalid quiz question at index ${index}: question text must be a string`,
+        `OpenAI returned ${actualCount} questions for topic '${topicId}', expected ${questionCount}`,
       );
     }
-
-    if (!question.question.trim()) {
-      throw new Error(
-        `Invalid quiz question at index ${index}: question text is empty`,
-      );
-    }
-
-    if (!(typeof question.code === "string" || question.code === null)) {
-      throw new Error(
-        `Invalid quiz question at index ${index}: code must be a string or null`,
-      );
-    }
-
-    if (!Array.isArray(question.options)) {
-      throw new Error(
-        `Invalid quiz question at index ${index}: options must be an array`,
-      );
-    }
-
-    if (question.options.length !== 4) {
-      throw new Error(
-        `Invalid quiz question at index ${index}: expected exactly 4 options`,
-      );
-    }
-
-    if (
-      question.options.some(
-        (option) => typeof option !== "string" || option.trim().length === 0,
-      )
-    ) {
-      throw new Error(
-        `Invalid quiz question at index ${index}: answer options must be non-empty strings`,
-      );
-    }
-
-    if (typeof question.explanation !== "string") {
-      throw new Error(
-        `Invalid quiz question at index ${index}: explanation must be a string`,
-      );
-    }
-
-    if (!question.explanation.trim()) {
-      throw new Error(
-        `Invalid quiz question at index ${index}: explanation is empty`,
-      );
-    }
-
-    const correctIndex = question.correctIndex;
-    if (
-      typeof correctIndex !== "number" ||
-      !Number.isInteger(correctIndex) ||
-      correctIndex < 0 ||
-      correctIndex >= question.options.length
-    ) {
-      throw new Error(
-        `Invalid quiz question at index ${index}: correctIndex is out of bounds`,
-      );
-    }
-
-    validatedQuestions.push({
-      question: question.question,
-      code: question.code,
-      options: question.options,
-      correctIndex,
-      explanation: question.explanation,
-    });
   }
 
   return validatedQuestions;
 }
 
-function validateNormalizedQuizQuestions(
-  questions: GeneratedQuizQuestion[],
+function validateNormalizedQuizQuestions<T extends GeneratedQuizQuestion>(
+  questions: T[],
 ): void {
   for (const [index, question] of questions.entries()) {
     if (question.code !== undefined && !question.code.trim()) {
@@ -327,6 +447,31 @@ function extractMarkdownCodeFromQuestion(questionText: string): {
     text: normalizedText,
     code: blocks.length > 0 ? blocks.join("\n\n") : null,
   };
+}
+
+function getDifficultyLabel(skillLevel: QuizDifficultyLevel): string {
+  return skillLevel === 1
+    ? "Beginner"
+    : skillLevel === 2
+      ? "Intermediate"
+      : "Advanced";
+}
+
+function getDifficultyInstruction(skillLevel: QuizDifficultyLevel): string {
+  return skillLevel === 1
+    ? "Create BEGINNER level questions: Focus on basic syntax, simple examples, and fundamental concepts. Use straightforward code snippets under 5 lines."
+    : skillLevel === 2
+      ? "Create INTERMEDIATE level questions: Include more complex scenarios, edge cases, and require deeper understanding. Use code snippets of 5-8 lines with subtle behavior."
+      : "Create ADVANCED level questions: Focus on tricky edge cases, performance considerations, and expert-level understanding. Use complex code with multiple concepts combined.";
+}
+
+function getLanguageInstruction(
+  language: string,
+  programmingLanguageName: string,
+): string {
+  return language === "de"
+    ? `Write all questions, answer options, and explanations in German (Deutsch). Keep code examples and ${programmingLanguageName} syntax in English as they are programming terms.`
+    : "Write all questions, answer options, and explanations in English.";
 }
 
 async function requestOpenAI(payload: Record<string, unknown>) {
@@ -445,13 +590,16 @@ async function requestOpenAIViaHttps(
   });
 }
 
-async function addStableIds(
+async function addStableIds<T extends GeneratedQuizQuestion>(
   programmingLanguage: ProgrammingLanguageId,
-  topicId: string,
-  questions: GeneratedQuizQuestion[],
-): Promise<QuizQuestion[]> {
+  questions: T[],
+  getTopicId: (question: T, index: number) => string,
+): Promise<Array<T & { id: string }>> {
   const withIds = await Promise.all(
     questions.map(async (question, index) => {
+      const topicId = getTopicId(question, index);
+      // Keep the index in the hash so duplicates within one generated quiz still
+      // receive distinct IDs even if the model repeats the same payload.
       const contentHash = await sha256Hex(
         JSON.stringify({
           programmingLanguage,
@@ -499,23 +647,18 @@ export async function generateQuizQuestions(
   const { topicDescription, programmingLanguageName, contextExclusion } =
     resolveLanguageContext(programmingLanguage, topicId);
 
-  const languageInstruction =
-    language === "de"
-      ? `Write all questions, answer options, and explanations in German (Deutsch). Keep code examples and ${programmingLanguageName} syntax in English as they are programming terms.`
-      : "Write all questions, answer options, and explanations in English.";
-
-  const difficultyInstruction =
-    skillLevel === 1
-      ? "Create BEGINNER level questions: Focus on basic syntax, simple examples, and fundamental concepts. Use straightforward code snippets under 5 lines."
-      : skillLevel === 2
-        ? "Create INTERMEDIATE level questions: Include more complex scenarios, edge cases, and require deeper understanding. Use code snippets of 5-8 lines with subtle behavior."
-        : "Create ADVANCED level questions: Focus on tricky edge cases, performance considerations, and expert-level understanding. Use complex code with multiple concepts combined.";
+  const languageInstruction = getLanguageInstruction(
+    language,
+    programmingLanguageName,
+  );
+  const difficultyInstruction = getDifficultyInstruction(skillLevel);
+  const difficultyLabel = getDifficultyLabel(skillLevel);
 
   const prompt = `Generate ${count} multiple-choice quiz questions about ${topicDescription} for computer science students learning ${programmingLanguageName} programming.
 
 ${languageInstruction}
 
-DIFFICULTY LEVEL: ${skillLevel === 1 ? "Beginner" : skillLevel === 2 ? "Intermediate" : "Advanced"}
+DIFFICULTY LEVEL: ${difficultyLabel}
 ${difficultyInstruction}
 
 Each question should:
@@ -559,5 +702,111 @@ ${contextExclusion ? `- ${contextExclusion}` : ""}
   const questions = normalizeStructuredQuizQuestions(structuredQuestions);
   validateNormalizedQuizQuestions(questions);
 
-  return addStableIds(programmingLanguage, topicId, questions);
+  return addStableIds(programmingLanguage, questions, () => topicId);
+}
+
+export async function generateMixedQuizQuestions(
+  programmingLanguage: ProgrammingLanguageId,
+  topicPlan: MixedQuizTopicPlanItem[],
+  language: string = "en",
+  skillLevel: QuizDifficultyLevel = 1,
+): Promise<QuizQuestion[]> {
+  if (topicPlan.length === 0) {
+    return [];
+  }
+
+  const uniqueTopicIds = new Set(topicPlan.map((item) => item.topicId));
+  if (uniqueTopicIds.size !== topicPlan.length) {
+    throw new Error("Mixed topic plan contains duplicate topicIds");
+  }
+
+  const programmingLanguageName =
+    LANGUAGE_NAMES[programmingLanguage] ?? programmingLanguage;
+  const contextExclusion =
+    LANGUAGE_CONTEXT_EXCLUSIONS[programmingLanguage] ?? "";
+  const languageInstruction = getLanguageInstruction(
+    language,
+    programmingLanguageName,
+  );
+  const difficultyInstruction = getDifficultyInstruction(skillLevel);
+  const difficultyLabel = getDifficultyLabel(skillLevel);
+  const totalCount = topicPlan.reduce(
+    (sum, item) => sum + item.questionCount,
+    0,
+  );
+  const resolvedTopicPlan = topicPlan.map(({ topicId, questionCount }) => ({
+    topicId,
+    questionCount,
+    topicDescription:
+      getTopicPrompt(programmingLanguage, topicId) ||
+      `general ${programmingLanguageName} programming concepts`,
+  }));
+
+  const prompt = `Generate ${totalCount} multiple-choice quiz questions for computer science students learning ${programmingLanguageName} programming.
+
+${languageInstruction}
+
+DIFFICULTY LEVEL: ${difficultyLabel}
+${difficultyInstruction}
+
+TOPIC PLAN:
+${resolvedTopicPlan
+  .map(
+    ({ topicId, questionCount, topicDescription }) =>
+      `- ${topicId}: exactly ${questionCount} question(s) about ${topicDescription}`,
+  )
+  .join("\n")}
+
+Each question should:
+- Stay primarily focused on its assigned topicId
+- Test understanding of the concept, not just memorization
+- Include a short code snippet when appropriate (keep code under 10 lines)
+- Use "code": null when a code snippet is not needed
+- Do not include Markdown fences or code snippets in the question text; put code only in the code field
+- Have exactly 4 answer options
+- Have only one correct answer
+- Include a brief explanation of why the correct answer is right
+
+Important:
+- Return exactly ${totalCount} questions total
+- Produce exactly the requested number of questions for each topicId
+- Include a topicId field on every question using only the topic IDs from the topic plan
+- Avoid near-duplicate questions across the entire quiz
+- Use realistic code examples students would encounter
+- The response schema already defines the JSON shape, so focus on the question content
+${contextExclusion ? `- ${contextExclusion}` : ""}
+- Do not include any keys other than topicId, question, code, options, correctIndex, and explanation`;
+
+  const response = await requestOpenAI({
+    model: process.env.OPENAI_MODEL || "gpt-5.4-nano",
+    instructions: `You are a ${programmingLanguageName} programming tutor creating mixed-topic quiz questions. ${
+      language === "de" ? "Respond in German." : "Respond in English."
+    } Follow the provided response schema exactly.`,
+    input: prompt,
+    text: buildMixedQuizResponseFormat(topicPlan.map((item) => item.topicId)),
+    max_output_tokens: quizMaxOutputTokens(totalCount),
+  });
+
+  assertOpenAIResponseIsUsable(response);
+
+  const content = getResponseText(response);
+  if (!content) {
+    throw new Error("Empty response from OpenAI");
+  }
+
+  const structuredQuestions = validateStructuredMixedQuizQuestions(
+    parseQuestions(content),
+    topicPlan,
+  );
+
+  const questions = normalizeStructuredQuizQuestions(structuredQuestions);
+  validateNormalizedQuizQuestions(questions);
+
+  const withIds = await addStableIds(
+    programmingLanguage,
+    questions,
+    (question) => question.topicId,
+  );
+
+  return withIds.map(({ topicId: _topicId, ...question }) => question);
 }

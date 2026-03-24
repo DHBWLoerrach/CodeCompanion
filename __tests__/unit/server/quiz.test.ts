@@ -1,7 +1,7 @@
 import * as https from "node:https";
 import type { IncomingMessage } from "node:http";
 import { EventEmitter } from "node:events";
-import { generateQuizQuestions } from "@server/quiz";
+import { generateMixedQuizQuestions, generateQuizQuestions } from "@server/quiz";
 
 type MockResponseInit = {
   ok?: boolean;
@@ -52,6 +52,21 @@ function buildStructuredQuizQuestions(count: number) {
     correctIndex: 0,
     explanation: `Because ${index + 1}`,
   }));
+}
+
+function buildStructuredMixedQuizQuestions(
+  topicPlan: { topicId: string; questionCount: number }[],
+) {
+  return topicPlan.flatMap(({ topicId, questionCount }) =>
+    Array.from({ length: questionCount }, (_, index) => ({
+      topicId,
+      question: `${topicId} Q${index + 1}?`,
+      code: null,
+      options: ["A", "B", "C", "D"],
+      correctIndex: 0,
+      explanation: `Because ${topicId} ${index + 1}`,
+    })),
+  );
 }
 
 type StructuredQuizQuestionOverrides = {
@@ -622,6 +637,129 @@ describe("server/quiz", () => {
       await expect(
         generateQuizQuestions("javascript", "variables"),
       ).rejects.toThrow("OpenAI response incomplete: max_output_tokens");
+    });
+  });
+
+  describe("generateMixedQuizQuestions", () => {
+    it("returns an empty array when the mixed topic plan is empty", async () => {
+      await expect(
+        generateMixedQuizQuestions("javascript", [], "en", 1),
+      ).resolves.toEqual([]);
+      expect(fetchMock).not.toHaveBeenCalled();
+    });
+
+    it("throws when the mixed topic plan contains duplicate topicIds", async () => {
+      await expect(
+        generateMixedQuizQuestions(
+          "javascript",
+          [
+            { topicId: "loops", questionCount: 1 },
+            { topicId: "loops", questionCount: 1 },
+          ],
+          "en",
+          1,
+        ),
+      ).rejects.toThrow("Mixed topic plan contains duplicate topicIds");
+      expect(fetchMock).not.toHaveBeenCalled();
+    });
+
+    it("generates a mixed quiz in a single request with topic-aware IDs", async () => {
+      fetchMock.mockResolvedValueOnce(
+        mockFetchResponse({
+          json: {
+            output_text: JSON.stringify({
+              questions: buildStructuredMixedQuizQuestions([
+                { topicId: "loops", questionCount: 2 },
+                { topicId: "variables", questionCount: 1 },
+              ]),
+            }),
+          },
+        }),
+      );
+
+      const questions = await generateMixedQuizQuestions(
+        "javascript",
+        [
+          { topicId: "loops", questionCount: 2 },
+          { topicId: "variables", questionCount: 1 },
+        ],
+        "de",
+        2,
+      );
+
+      expect(questions).toHaveLength(3);
+      expect(fetchMock).toHaveBeenCalledTimes(1);
+      expect(questions[0].id).toMatch(/^loops-[a-f0-9]{12}$/);
+      expect(questions[1].id).toMatch(/^loops-[a-f0-9]{12}$/);
+      expect(questions[2].id).toMatch(/^variables-[a-f0-9]{12}$/);
+      expect("topicId" in questions[0]).toBe(false);
+
+      const fetchOptions = fetchMock.mock.calls[0][1] as RequestInit;
+      const payload = JSON.parse(String(fetchOptions.body)) as {
+        input: string;
+        text: {
+          format: {
+            name: string;
+            schema: {
+              properties: {
+                questions: {
+                  items: {
+                    properties: {
+                      topicId: {
+                        enum: string[];
+                      };
+                    };
+                  };
+                };
+              };
+            };
+          };
+        };
+      };
+
+      expect(payload.text.format.name).toBe("mixed_quiz_questions");
+      expect(
+        payload.text.format.schema.properties.questions.items.properties.topicId
+          .enum,
+      ).toEqual(["loops", "variables"]);
+      expect(payload.input).toContain("TOPIC PLAN:");
+      expect(payload.input).toContain(
+        "- loops: exactly 2 question(s) about JavaScript for, while, do-while, and for...of loops",
+      );
+      expect(payload.input).toContain(
+        "- variables: exactly 1 question(s) about JavaScript variable declarations using let and const only (do not include var), including block scope and when to use each",
+      );
+      expect(payload.input).toContain(
+        "Include a topicId field on every question using only the topic IDs from the topic plan",
+      );
+    });
+
+    it("throws when mixed quiz output violates the requested topic plan", async () => {
+      fetchMock.mockResolvedValueOnce(
+        mockFetchResponse({
+          json: {
+            output_text: JSON.stringify({
+              questions: buildStructuredMixedQuizQuestions([
+                { topicId: "loops", questionCount: 2 },
+              ]),
+            }),
+          },
+        }),
+      );
+
+      await expect(
+        generateMixedQuizQuestions(
+          "javascript",
+          [
+            { topicId: "loops", questionCount: 1 },
+            { topicId: "variables", questionCount: 1 },
+          ],
+          "en",
+          1,
+        ),
+      ).rejects.toThrow(
+        "OpenAI returned 2 questions for topic 'loops', expected 1",
+      );
     });
   });
 });

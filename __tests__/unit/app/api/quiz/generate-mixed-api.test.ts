@@ -1,9 +1,9 @@
-import { generateQuizQuestions } from "@server/quiz";
+import { generateMixedQuizQuestions } from "@server/quiz";
 import { enforceQuizQuota } from "@server/quota";
 import { POST } from "../../../../../app/api/quiz/generate-mixed+api";
 
 jest.mock("@server/quiz", () => ({
-  generateQuizQuestions: jest.fn(),
+  generateMixedQuizQuestions: jest.fn(),
 }));
 jest.mock("@server/quota", () => ({
   enforceQuizQuota: jest.fn(async () => ({
@@ -20,7 +20,7 @@ jest.mock("@shared/curriculum", () => ({
   getTopicIdsByLanguage: jest.fn(() => ["variables", "loops", "promises"]),
 }));
 
-const mockGenerateQuizQuestions = jest.mocked(generateQuizQuestions);
+const mockGenerateMixedQuizQuestions = jest.mocked(generateMixedQuizQuestions);
 const mockEnforceQuizQuota = jest.mocked(enforceQuizQuota);
 let infoSpy: jest.SpiedFunction<typeof console.info>;
 
@@ -54,14 +54,17 @@ describe("POST /api/quiz/generate-mixed", () => {
   beforeEach(() => {
     process.env = { ...process.env, API_QUOTA_ENABLED: "false" };
     infoSpy = jest.spyOn(console, "info").mockImplementation(() => {});
-    mockGenerateQuizQuestions.mockReset();
+    mockGenerateMixedQuizQuestions.mockReset();
     mockEnforceQuizQuota.mockReset();
     mockEnforceQuizQuota.mockResolvedValue({
       deviceIdHash: null,
       response: null,
     });
-    mockGenerateQuizQuestions.mockImplementation(
-      async (_lang, topicId, count = 5) => buildQuestions(topicId, count),
+    mockGenerateMixedQuizQuestions.mockImplementation(
+      async (_lang, topicPlan) =>
+        topicPlan.flatMap(({ topicId, questionCount }) =>
+          buildQuestions(topicId, questionCount),
+        ),
     );
   });
 
@@ -77,7 +80,7 @@ describe("POST /api/quiz/generate-mixed", () => {
 
     expect(response.status).toBe(400);
     expect(data).toEqual({ error: "Request body must be valid JSON" });
-    expect(mockGenerateQuizQuestions).not.toHaveBeenCalled();
+    expect(mockGenerateMixedQuizQuestions).not.toHaveBeenCalled();
     expect(errorSpy).not.toHaveBeenCalled();
   });
 
@@ -91,7 +94,7 @@ describe("POST /api/quiz/generate-mixed", () => {
     expect(data).toEqual({
       error: "topicIds contains invalid entries for programmingLanguage",
     });
-    expect(mockGenerateQuizQuestions).not.toHaveBeenCalled();
+    expect(mockGenerateMixedQuizQuestions).not.toHaveBeenCalled();
   });
 
   it("returns 400 when topicIds exceeds maximum size", async () => {
@@ -103,7 +106,7 @@ describe("POST /api/quiz/generate-mixed", () => {
     expect(data).toEqual({
       error: "topicIds cannot contain more than 20 entries",
     });
-    expect(mockGenerateQuizQuestions).not.toHaveBeenCalled();
+    expect(mockGenerateMixedQuizQuestions).not.toHaveBeenCalled();
   });
 
   it("returns 400 when language is invalid", async () => {
@@ -117,7 +120,7 @@ describe("POST /api/quiz/generate-mixed", () => {
 
     expect(response.status).toBe(400);
     expect(data).toEqual({ error: "language must be 'en' or 'de'" });
-    expect(mockGenerateQuizQuestions).not.toHaveBeenCalled();
+    expect(mockGenerateMixedQuizQuestions).not.toHaveBeenCalled();
   });
 
   it("returns 400 when programmingLanguage is invalid", async () => {
@@ -133,7 +136,7 @@ describe("POST /api/quiz/generate-mixed", () => {
     expect(data).toEqual({
       error: "programmingLanguage must be one of: javascript, python, java",
     });
-    expect(mockGenerateQuizQuestions).not.toHaveBeenCalled();
+    expect(mockGenerateMixedQuizQuestions).not.toHaveBeenCalled();
   });
 
   it("uses provided topicIds when all are valid and generates requested count", async () => {
@@ -147,20 +150,13 @@ describe("POST /api/quiz/generate-mixed", () => {
     const data = await response.json();
 
     expect(response.status).toBe(200);
-    expect(mockGenerateQuizQuestions).toHaveBeenCalledTimes(2);
-    expect(mockGenerateQuizQuestions).toHaveBeenNthCalledWith(
-      1,
+    expect(mockGenerateMixedQuizQuestions).toHaveBeenCalledTimes(1);
+    expect(mockGenerateMixedQuizQuestions).toHaveBeenCalledWith(
       "javascript",
-      "loops",
-      3,
-      "de",
-      1,
-    );
-    expect(mockGenerateQuizQuestions).toHaveBeenNthCalledWith(
-      2,
-      "javascript",
-      "variables",
-      2,
+      [
+        { topicId: "loops", questionCount: 3 },
+        { topicId: "variables", questionCount: 2 },
+      ],
       "de",
       1,
     );
@@ -177,20 +173,13 @@ describe("POST /api/quiz/generate-mixed", () => {
     const data = await response.json();
 
     expect(response.status).toBe(200);
-    expect(mockGenerateQuizQuestions).toHaveBeenCalledTimes(2);
-    expect(mockGenerateQuizQuestions).toHaveBeenNthCalledWith(
-      1,
+    expect(mockGenerateMixedQuizQuestions).toHaveBeenCalledTimes(1);
+    expect(mockGenerateMixedQuizQuestions).toHaveBeenCalledWith(
       "javascript",
-      "loops",
-      1,
-      "en",
-      1,
-    );
-    expect(mockGenerateQuizQuestions).toHaveBeenNthCalledWith(
-      2,
-      "javascript",
-      "variables",
-      1,
+      [
+        { topicId: "loops", questionCount: 1 },
+        { topicId: "variables", questionCount: 1 },
+      ],
       "en",
       1,
     );
@@ -210,7 +199,7 @@ describe("POST /api/quiz/generate-mixed", () => {
     expect(data).toEqual({
       error: "topicIds contains invalid entries for programmingLanguage",
     });
-    expect(mockGenerateQuizQuestions).not.toHaveBeenCalled();
+    expect(mockGenerateMixedQuizQuestions).not.toHaveBeenCalled();
   });
 
   it("uses default topics/count/language when omitted", async () => {
@@ -220,28 +209,14 @@ describe("POST /api/quiz/generate-mixed", () => {
     const data = await response.json();
 
     expect(response.status).toBe(200);
-    expect(mockGenerateQuizQuestions).toHaveBeenCalledTimes(3);
-    expect(mockGenerateQuizQuestions).toHaveBeenNthCalledWith(
-      1,
+    expect(mockGenerateMixedQuizQuestions).toHaveBeenCalledTimes(1);
+    expect(mockGenerateMixedQuizQuestions).toHaveBeenCalledWith(
       "javascript",
-      "loops",
-      2,
-      "en",
-      1,
-    );
-    expect(mockGenerateQuizQuestions).toHaveBeenNthCalledWith(
-      2,
-      "javascript",
-      "promises",
-      2,
-      "en",
-      1,
-    );
-    expect(mockGenerateQuizQuestions).toHaveBeenNthCalledWith(
-      3,
-      "javascript",
-      "variables",
-      1,
+      [
+        { topicId: "loops", questionCount: 2 },
+        { topicId: "promises", questionCount: 2 },
+        { topicId: "variables", questionCount: 1 },
+      ],
       "en",
       1,
     );
@@ -261,7 +236,16 @@ describe("POST /api/quiz/generate-mixed", () => {
     const data = await response.json();
 
     expect(response.status).toBe(200);
-    expect(mockGenerateQuizQuestions).toHaveBeenCalledTimes(2);
+    expect(mockGenerateMixedQuizQuestions).toHaveBeenCalledTimes(1);
+    expect(mockGenerateMixedQuizQuestions).toHaveBeenCalledWith(
+      "javascript",
+      [
+        { topicId: "loops", questionCount: 1 },
+        { topicId: "promises", questionCount: 1 },
+      ],
+      "en",
+      1,
+    );
     expect(data.questions).toHaveLength(2);
 
     randomSpy.mockRestore();
@@ -277,20 +261,13 @@ describe("POST /api/quiz/generate-mixed", () => {
     const data = await response.json();
 
     expect(response.status).toBe(200);
-    expect(mockGenerateQuizQuestions).toHaveBeenCalledTimes(2);
-    expect(mockGenerateQuizQuestions).toHaveBeenNthCalledWith(
-      1,
+    expect(mockGenerateMixedQuizQuestions).toHaveBeenCalledTimes(1);
+    expect(mockGenerateMixedQuizQuestions).toHaveBeenCalledWith(
       "javascript",
-      "loops",
-      10,
-      "en",
-      1,
-    );
-    expect(mockGenerateQuizQuestions).toHaveBeenNthCalledWith(
-      2,
-      "javascript",
-      "variables",
-      10,
+      [
+        { topicId: "loops", questionCount: 10 },
+        { topicId: "variables", questionCount: 10 },
+      ],
       "en",
       1,
     );
@@ -307,10 +284,9 @@ describe("POST /api/quiz/generate-mixed", () => {
     const data = await response.json();
 
     expect(response.status).toBe(200);
-    expect(mockGenerateQuizQuestions).toHaveBeenCalledWith(
+    expect(mockGenerateMixedQuizQuestions).toHaveBeenCalledWith(
       "javascript",
-      "variables",
-      5,
+      [{ topicId: "variables", questionCount: 5 }],
       "en",
       2,
     );
@@ -328,10 +304,9 @@ describe("POST /api/quiz/generate-mixed", () => {
     const data = await response.json();
 
     expect(response.status).toBe(200);
-    expect(mockGenerateQuizQuestions).toHaveBeenCalledWith(
+    expect(mockGenerateMixedQuizQuestions).toHaveBeenCalledWith(
       "javascript",
-      "variables",
-      3,
+      [{ topicId: "variables", questionCount: 3 }],
       "en",
       2,
     );
@@ -346,10 +321,9 @@ describe("POST /api/quiz/generate-mixed", () => {
       }),
     );
 
-    expect(mockGenerateQuizQuestions).toHaveBeenCalledWith(
+    expect(mockGenerateMixedQuizQuestions).toHaveBeenCalledWith(
       "javascript",
-      "variables",
-      5,
+      [{ topicId: "variables", questionCount: 5 }],
       "en",
       3,
     );
@@ -363,10 +337,9 @@ describe("POST /api/quiz/generate-mixed", () => {
       }),
     );
 
-    expect(mockGenerateQuizQuestions).toHaveBeenCalledWith(
+    expect(mockGenerateMixedQuizQuestions).toHaveBeenCalledWith(
       "javascript",
-      "variables",
-      5,
+      [{ topicId: "variables", questionCount: 5 }],
       "en",
       1,
     );
@@ -380,10 +353,9 @@ describe("POST /api/quiz/generate-mixed", () => {
       }),
     );
 
-    expect(mockGenerateQuizQuestions).toHaveBeenCalledWith(
+    expect(mockGenerateMixedQuizQuestions).toHaveBeenCalledWith(
       "javascript",
-      "variables",
-      5,
+      [{ topicId: "variables", questionCount: 5 }],
       "en",
       1,
     );
@@ -393,7 +365,7 @@ describe("POST /api/quiz/generate-mixed", () => {
     const originalEnv = process.env.NODE_ENV;
     process.env = { ...process.env, NODE_ENV: "production" };
     const errorSpy = jest.spyOn(console, "error").mockImplementation(() => {});
-    mockGenerateQuizQuestions.mockRejectedValueOnce(
+    mockGenerateMixedQuizQuestions.mockRejectedValueOnce(
       new Error("upstream error"),
     );
 
@@ -449,7 +421,7 @@ describe("POST /api/quiz/generate-mixed", () => {
       reason: "device_endpoint",
       resetAtUtc: "2026-03-25T00:00:00.000Z",
     });
-    expect(mockGenerateQuizQuestions).not.toHaveBeenCalled();
+    expect(mockGenerateMixedQuizQuestions).not.toHaveBeenCalled();
     expect(infoSpy).toHaveBeenCalledWith(
       "API request outcome:",
       expect.objectContaining({
@@ -475,7 +447,7 @@ describe("POST /api/quiz/generate-mixed", () => {
 
     expect(response.status).toBe(503);
     expect(data).toEqual({ error: "Quota service unavailable" });
-    expect(mockGenerateQuizQuestions).not.toHaveBeenCalled();
+    expect(mockGenerateMixedQuizQuestions).not.toHaveBeenCalled();
     expect(errorSpy).toHaveBeenCalled();
   });
 });
