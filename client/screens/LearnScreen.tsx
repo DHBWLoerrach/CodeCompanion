@@ -844,7 +844,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     flexShrink: 1,
     justifyContent: "flex-start",
-    gap: 4,
+    gap: Spacing.xs,
     shadowColor: "#000000",
     shadowOpacity: 0.05,
     shadowRadius: 5,
