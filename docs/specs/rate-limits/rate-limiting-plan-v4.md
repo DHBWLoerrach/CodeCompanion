@@ -216,7 +216,8 @@ Erwartetes Verhalten:
 
 - keine Supabase-Abhängigkeit
 - keine lokalen Blocker durch fehlende Tabellen oder Keys
-- API-Routes laufen für normale Entwicklung weiter
+- der Quota-Teil blockiert die Entwicklung nicht
+- für echte Quiz-Generierung bleibt `OPENAI_API_KEY` weiterhin erforderlich
 
 ### Modus B - Lokaler Integrationsmodus
 
@@ -328,6 +329,7 @@ const GLOBAL_LIMIT_PER_DAY = 60;
 
 #### Supabase-Client
 
+- Vor der Server-Implementierung `@supabase/supabase-js` als Runtime-Dependency ergänzen; die Bibliothek ist aktuell noch nicht im Projekt vorhanden.
 - `createClient(process.env.SUPABASE_URL, process.env.SUPABASE_SECRET_KEY)`
 - Optionen: `persistSession: false`, `autoRefreshToken: false`
 - Nur in serverseitigem Code importieren
@@ -377,6 +379,12 @@ Mapping für die UI:
 - `device_total` -> `scope: 'device'`
 - `device_endpoint` -> `scope: 'device'`
 
+Zusätzlicher Client-Vertrag für Fehler:
+
+- `client/lib/query-client.ts` darf für die betroffenen Quiz-POSTs Nicht-`2xx`-Responses nicht nur als generisches `Error("Request failed (...)")` weiterreichen.
+- Stattdessen muss der Client einen strukturierten Fehler propagieren, der mindestens `status` und den geparsten JSON-Body enthält.
+- Die UI darf `429` gezielt über `status === 429` und `body.scope` unterscheiden; andere Fehler können weiterhin generisch behandelt werden.
+
 Bei Supabase-Fehler: `503 Service Unavailable`, kein OpenAI-Call.
 
 **Abnahme:** Helfer lässt sich isoliert testen (unter Limit, Endpunkt-Limit, Gesamtlimit, globales Limit, DB-Fehler).
@@ -420,14 +428,26 @@ Keine Secrets in Fehlermeldungen oder Logs.
 
 Schritte:
 
-1. Beim ersten App-Start UUID v4 generieren, in AsyncStorage speichern.
-2. Header `X-Device-Id: <uuid>` bei `POST /api/quiz/generate` und `POST /api/quiz/generate-mixed` mitsenden.
-3. Andere Requests und bestehende Query-Reads bleiben unverändert.
-4. Bei `429` dem Nutzer eine verständliche Meldung anzeigen, basierend auf `scope` im Response-Body:
-   - Geräte-Limit: "Tageslimit erreicht. Morgen geht's weiter."
-   - Globales Limit: "Die App ist heute ausgelastet. Morgen geht's weiter."
+1. Für die Geräte-ID eine klare Implementierungsbasis festlegen:
+   - bevorzugt eine kleine dedizierte UUID-v4-Lösung
+   - alternativ eine gleichwertige UUID-v4-Hilfsfunktion
+   - wichtig: **kein** clientseitiges SHA-256; das Hashing bleibt ausschließlich im Server-/Quota-Pfad
+2. Fehlende Dependency bewusst ergänzen; aktuell ist dafür noch keine passende UUID-Lösung im Projekt vorhanden.
+3. Beim ersten App-Start UUID v4 generieren und unter einem eigenen AsyncStorage-Key speichern.
+4. Die Geräte-ID ist **nicht** Teil von `storage.clearAllData()` oder "Fortschritt zurücksetzen":
+   - Lernfortschritt, Streaks und Profileinstellungen dürfen gelöscht werden
+   - die Quota-Identität des Geräts bleibt bestehen
+   - Ziel: Das Tageslimit darf nicht durch lokales Zurücksetzen umgangen werden
+5. Header `X-Device-Id: <uuid>` bei `POST /api/quiz/generate` und `POST /api/quiz/generate-mixed` mitsenden.
+6. Andere Requests und bestehende Query-Reads bleiben unverändert.
+7. `apiRequest()` für die betroffenen Quiz-POSTs so erweitern, dass bei Nicht-`2xx` ein strukturierter Fehler mit `status` und geparstem Body geworfen wird.
+8. Bestehende Unit-Tests für `client/lib/query-client.ts` und die Quiz-Flows an das neue Header- und Fehlerverhalten anpassen.
+9. Bei `429` dem Nutzer eine verständliche Meldung anzeigen, basierend auf `scope` im Response-Body:
+   - keine Hardcoded-Texte im Screen
+   - stattdessen neue i18n-Keys in `client/lib/i18n.ts`, z. B. `quizRateLimitDevice` und `quizRateLimitGlobal`
+   - Geräte-Limit nutzt den Geräte-Key, globales Limit den globalen Key
 
-**Abnahme:** Bestehende Quiz-Flows funktionieren wie bisher, Header wird auf den beiden Quiz-POSTs mitgesendet, `429` wird sauber aufgefangen.
+**Abnahme:** Bestehende Quiz-Flows funktionieren wie bisher, Header wird auf den beiden Quiz-POSTs mitgesendet, `429` wird über einen strukturierten Fehler sauber aufgefangen und die UI nutzt i18n-Keys statt Hardcoded-Strings.
 
 ---
 
@@ -443,6 +463,9 @@ Schritte:
    - `429` bei überschrittenen Limits
    - `503` bei Supabase-Ausfall
 3. Sicherstellen, dass nie gegen die Produktionsinstanz getestet wird.
+4. Unit- und Integrationstests nicht vom Umgebungszustand abhängig machen:
+   - bestehende Route-Unit-Tests setzen `API_QUOTA_ENABLED` explizit auf `false`, wenn sie nicht gezielt den Quota-Pfad prüfen
+   - neue Quota-Tests setzen `API_QUOTA_ENABLED` explizit auf `true`
 
 **Abnahme:** Beide Betriebsmodi verhalten sich wie geplant.
 
@@ -458,7 +481,7 @@ Schritte:
    - `OPENAI_API_KEY`
    - `API_QUOTA_ENABLED=true`
 2. Server Output prüfen (`web.output: "server"` in App-Config)
-3. Deployment anstoßen
+3. Produktions-Deployment über den bestehenden manuellen GitHub-Workflow `.github/workflows/deploy.yml` anstoßen
 4. Smoke-Test:
    - Request ohne Device-ID -> `400`
    - Normaler Request -> `200`
@@ -510,6 +533,11 @@ where usage_date < ((now() at time zone 'utc')::date - interval '60 days');
 | 15  | Lokaler Dev mit `API_QUOTA_ENABLED=false` funktioniert ohne Supabase   | ja                            |
 | 16  | Integrationsmodus mit Dev-Supabase zeigt echtes `429`-/`503`-Verhalten | ja                            |
 | 17  | `API_QUOTA_ENABLED=true`, aber Supabase-Env fehlt                      | fail closed, kein OpenAI-Call |
+| 18  | `apiRequest()` propagiert bei `429` einen strukturierten Fehler        | Status + Body verfügbar       |
+| 19  | Quiz-UI mappt `scope: device` auf einen i18n-Key                       | ja                            |
+| 20  | Quiz-UI mappt `scope: global` auf einen i18n-Key                       | ja                            |
+| 21  | Route-Tests setzen `API_QUOTA_ENABLED` explizit je Testmodus           | ja                            |
+| 22  | "Fortschritt zurücksetzen" löscht Lernstand, aber nicht die Geräte-ID  | ja                            |
 
 ---
 
