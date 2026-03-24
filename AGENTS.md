@@ -9,6 +9,7 @@ DHBW Code Companion is a mobile learning app for programming topics (Expo SDK 55
 - AI quiz and explanation generation runs through OpenAI Responses API in server-side API routes.
 - Quiz generation can be protected by optional Supabase-backed server-side rate limiting for the two quiz POST routes.
 - User profile, settings, progress, and streak data are stored locally (AsyncStorage), with no server-side user data storage.
+- Product scope is Android/iOS only; `web.output="server"` exists to host Expo API routes, not a planned web app.
 
 ## Project Structure & Module Organization
 
@@ -23,7 +24,7 @@ DHBW Code Companion is a mobile learning app for programming topics (Expo SDK 55
 
 ## Build, Test, and Development Commands
 
-- `npm run start`: Expo dev server (iOS/Android/Web).
+- `npm run start`: Expo dev server for mobile development; web tooling exists mainly because Expo API routes are served through `web.output="server"`.
 - `npm run ios` / `npm run android`: native builds.
 - `npm run lint` / `npm run lint:fix`: run/fix ESLint issues.
 - `npm run check:types`: TypeScript check (`tsc --noEmit`).
@@ -61,6 +62,7 @@ DHBW Code Companion is a mobile learning app for programming topics (Expo SDK 55
 - Path aliases: `@/* -> ./client/*`, `@shared/* -> ./shared/*`, `@server/* -> ./server/*` (configured in `tsconfig.json` and `babel.config.js`).
 - Route files in `app/` should stay thin and delegate to `client/screens/`.
 - State management pattern: React Query + Context + AsyncStorage (no Redux/Zustand).
+- `expo.web.output = "server"` is enabled so Expo API routes can run on EAS Hosting; do not assume this implies a supported browser app surface.
 - API routes:
   - `POST /api/quiz/generate`
   - `POST /api/quiz/generate-mixed`

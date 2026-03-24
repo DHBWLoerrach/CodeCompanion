@@ -11,6 +11,7 @@ Code Companion unterstützt Studierende beim selbstgesteuerten Lernen:
 - KI-Erklärungen zu Themen als Markdown-Modal
 - Fortschritt, Skill-Level und Lernstreaks pro Programmiersprache
 - App-Lokalisierung (Deutsch/Englisch) und Theme-Modi (System/Hell/Dunkel)
+- Produktfokus ausschließlich auf Android und iOS; keine geplante Webapp
 
 Die App wurde am Studienzentrum IT-Management & Informatik (SZI) der DHBW Lörrach unter Leitung von Prof. Dr. Erik Behrends entwickelt.
 
@@ -25,10 +26,10 @@ Die App wurde am Studienzentrum IT-Management & Informatik (SZI) der DHBW Lörra
 
 ## Tech Stack
 
-- Expo SDK 54 + React Native 0.81 + React 19
+- Expo SDK 55 + React Native 0.83 + React 19.2
 - Expo Router 6 (file-based routing)
 - React Query
-- Expo API Routes (`app/api/*`)
+- Expo API Routes (`app/api/*`) über `web.output="server"` für serverseitige Endpunkte
 - OpenAI Responses API (Server-seitig in `server/quiz.ts`)
 - AsyncStorage (lokale Persistenz)
 
@@ -149,7 +150,12 @@ Danach in Expo:
 
 - iOS Simulator (`i`)
 - Android Emulator (`a`)
-- Web (`w`)
+
+Hinweis:
+
+- `web.output="server"` wird in diesem Projekt nur genutzt, um Expo API Routes auf EAS Hosting bereitzustellen.
+- Eine produktive Webapp ist aktuell nicht geplant.
+- `w` ist daher kein regulärer Produktpfad, höchstens ein lokaler Debug-/Testpfad für API-Route-nahe Entwicklung.
 
 ## Verfügbare Skripte
 
@@ -210,6 +216,8 @@ Request-Body:
 Beim Start wird die Konsistenz zwischen Topic-IDs und Prompt-Mapping geprüft.
 
 ## Deployment (EAS Hosting)
+
+EAS Hosting wird in diesem Projekt für die serverseitigen Expo API Routes genutzt, nicht für eine eigenständige Webapp.
 
 ### Verbindliche Deployment-Policy
 
