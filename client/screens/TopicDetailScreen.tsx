@@ -14,6 +14,7 @@ import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
 import { AppIcon } from "@/components/AppIcon";
 import { LoadingScreen } from "@/components/LoadingScreen";
+import { SkillLevelDots } from "@/components/SkillLevelDots";
 import { DEFAULT_QUIZ_QUESTION_COUNT } from "@/constants/quiz";
 import { useTheme } from "@/contexts/ThemeContext";
 import { useTranslation } from "@/hooks/useTranslation";
@@ -190,7 +191,7 @@ export default function TopicDetailScreen() {
         contentInsetAdjustmentBehavior="automatic"
         contentContainerStyle={[
           styles.scrollContent,
-          { paddingTop: Spacing.lg, paddingBottom: 148 + insets.bottom },
+          { paddingTop: Spacing.sm, paddingBottom: 148 + insets.bottom },
         ]}
         showsVerticalScrollIndicator={false}
       >
@@ -200,6 +201,7 @@ export default function TopicDetailScreen() {
             {
               backgroundColor: theme.backgroundDefault,
               borderColor: `${theme.cardBorder}70`,
+              borderTopColor: `${heroAccent}50`,
             },
           ]}
         >
@@ -255,7 +257,7 @@ export default function TopicDetailScreen() {
               </ThemedText>
               <ThemedText
                 type="body"
-                numberOfLines={2}
+                numberOfLines={3}
                 ellipsizeMode="tail"
                 style={[
                   styles.heroDescription,
@@ -299,6 +301,10 @@ export default function TopicDetailScreen() {
               >
                 {currentSkillLevel}/5
               </ThemedText>
+              <SkillLevelDots
+                level={currentSkillLevel as 1 | 2 | 3 | 4 | 5}
+                color={topicStatus.color}
+              />
               <ThemedText
                 type="small"
                 style={[styles.metaLabel, { color: theme.tabIconDefault }]}
@@ -307,69 +313,67 @@ export default function TopicDetailScreen() {
               </ThemedText>
             </View>
           </View>
-
-          <View
-            style={[styles.heroDivider, { backgroundColor: theme.cardBorder }]}
-          />
-
-          <AnimatedPressable
-            testID="topic-explain-button"
-            accessibilityState={{ disabled: !canExplainTopic }}
-            disabled={!canExplainTopic}
-            style={[
-              styles.secondaryActionRow,
-              canExplainTopic ? explainAnimatedStyle : null,
-            ]}
-            onPress={canExplainTopic ? handleExplainTopic : undefined}
-            onPressIn={canExplainTopic ? handleExplainPressIn : undefined}
-            onPressOut={canExplainTopic ? handleExplainPressOut : undefined}
-          >
-            <View style={styles.secondaryActionContent}>
-              <View
-                style={[
-                  styles.secondaryActionIconWrap,
-                  {
-                    backgroundColor: canExplainTopic
-                      ? `${theme.secondary}18`
-                      : theme.backgroundSecondary,
-                  },
-                ]}
-              >
-                <AppIcon
-                  name="book-open"
-                  size={18}
-                  color={
-                    canExplainTopic ? theme.secondary : theme.tabIconDefault
-                  }
-                />
-              </View>
-              <View style={styles.secondaryActionText}>
-                <ThemedText
-                  type="label"
-                  style={{
-                    color: canExplainTopic ? theme.text : theme.tabIconDefault,
-                  }}
-                >
-                  {t("topicExplanation")}
-                </ThemedText>
-                <ThemedText
-                  type="small"
-                  numberOfLines={2}
-                  style={{ color: theme.tabIconDefault }}
-                >
-                  {canExplainTopic
-                    ? t("explanationHint")
-                    : t("explanationUnavailable")}
-                </ThemedText>
-              </View>
-            </View>
-            <AppIcon
-              name={canExplainTopic ? "chevron-right" : "lock"}
-              size={16}
-              color={canExplainTopic ? theme.secondary : theme.tabIconDefault}
-            />
-          </AnimatedPressable>
         </View>
+
+        <AnimatedPressable
+          testID="topic-explain-button"
+          accessibilityState={{ disabled: !canExplainTopic }}
+          disabled={!canExplainTopic}
+          style={[
+            styles.explanationCard,
+            {
+              backgroundColor: theme.backgroundDefault,
+              borderColor: `${theme.cardBorder}70`,
+            },
+            canExplainTopic ? explainAnimatedStyle : null,
+          ]}
+          onPress={canExplainTopic ? handleExplainTopic : undefined}
+          onPressIn={canExplainTopic ? handleExplainPressIn : undefined}
+          onPressOut={canExplainTopic ? handleExplainPressOut : undefined}
+        >
+          <View style={styles.secondaryActionContent}>
+            <View
+              style={[
+                styles.secondaryActionIconWrap,
+                {
+                  backgroundColor: canExplainTopic
+                    ? `${theme.secondary}18`
+                    : theme.backgroundSecondary,
+                },
+              ]}
+            >
+              <AppIcon
+                name="book-open"
+                size={18}
+                color={canExplainTopic ? theme.secondary : theme.tabIconDefault}
+              />
+            </View>
+            <View style={styles.secondaryActionText}>
+              <ThemedText
+                type="label"
+                style={{
+                  color: canExplainTopic ? theme.text : theme.tabIconDefault,
+                }}
+              >
+                {t("topicExplanation")}
+              </ThemedText>
+              <ThemedText
+                type="small"
+                numberOfLines={2}
+                style={{ color: theme.tabIconDefault }}
+              >
+                {canExplainTopic
+                  ? t("explanationHint")
+                  : t("explanationUnavailable")}
+              </ThemedText>
+            </View>
+          </View>
+          <AppIcon
+            name={canExplainTopic ? "chevron-right" : "lock"}
+            size={16}
+            color={canExplainTopic ? theme.secondary : theme.tabIconDefault}
+          />
+        </AnimatedPressable>
 
         {hasProgress ? (
           <View
@@ -576,10 +580,10 @@ const styles = StyleSheet.create({
   scrollContent: {
     padding: Spacing.lg,
     gap: Spacing.md,
-    flexGrow: 1,
   },
   heroCard: {
     borderWidth: StyleSheet.hairlineWidth,
+    borderTopWidth: 2,
     borderRadius: BorderRadius.lg,
     padding: 14,
     gap: Spacing.md,
@@ -616,8 +620,8 @@ const styles = StyleSheet.create({
     gap: Spacing.md,
   },
   topicIconCompact: {
-    width: 52,
-    height: 52,
+    width: 56,
+    height: 56,
     borderRadius: BorderRadius.md,
     alignItems: "center",
     justifyContent: "center",
@@ -655,15 +659,15 @@ const styles = StyleSheet.create({
   metaLabel: {
     lineHeight: 16,
   },
-  heroDivider: {
-    height: StyleSheet.hairlineWidth,
-    marginTop: -6,
-  },
-  secondaryActionRow: {
+  explanationCard: {
+    borderWidth: StyleSheet.hairlineWidth,
+    borderRadius: BorderRadius.lg,
+    padding: 14,
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
     gap: Spacing.sm,
+    ...Shadows.card,
   },
   secondaryActionContent: {
     flex: 1,
@@ -772,7 +776,7 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     gap: Spacing.sm,
     paddingHorizontal: Spacing.md,
-    borderRadius: BorderRadius.md,
+    borderRadius: BorderRadius.full,
     ...Shadows.floatingButton,
   },
   buttonLabel: {
