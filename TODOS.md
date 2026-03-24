@@ -6,7 +6,7 @@ Hier sammeln wir Todos für später.
 
 - brauchen DHBW-Nutzer überhaupt mehr Quota? siehe [DHBW-Quota-Extension-Path](./docs/specs/rate-limits/dhbw-quota-extension-path.md)
 
-1. **`@expo/app-integrity`:** Attestation-Token als zusätzlichen Guard vor dem Quota-Check. Auf iOS kann App Attest einen persistenten `keyId` pro Installation liefern; auf Android ist es eher ein Vertrauensnachweis pro Request als ein direkter Ersatz für eine dauerhafte Geräte-ID.
+1. **`@expo/app-integrity`:** Attestation-Token als zusätzlichen Guard vor dem Quota-Check. Auf iOS kann App Attest einen persistenten `keyId` pro Installation liefern; auf Android ist es eher ein Vertrauensnachweis pro Request als ein direkter Ersatz für eine dauerhafte Geräte-ID. Siehe dazu den abgestuften Rollout-Plan: [App Integrity Rollout Plan](./docs/specs/rate-limits/app-integrity-rollout-plan.md).
 2. **Caching:** Vorab generierte Fragen für häufige Quiz-Kombinationen, um API-Kosten zu senken.
 3. **Burst-Schutz:** Kleines Zeitfenster-Limit ergänzen, z. B. `2 Requests / 10 Minuten` pro Gerät, falls ihr frühe Tages-Spikes oder Script-Traffic in den Logs seht.
 4. **Atomare DB-Funktion (RPC):** Falls das Volumen deutlich steigt und Race Conditions relevant werden.
