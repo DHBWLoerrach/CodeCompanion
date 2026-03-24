@@ -68,8 +68,13 @@ export default function TopicDetailScreen() {
 
         const topicData = getTopicById(resolvedTopicId, categories);
         setTopic(topicData || null);
+        const parentCategory = categories.find(
+          (c) => c.id === topicData?.category,
+        );
         navigation.setOptions({
-          headerTitle: "Quiz",
+          headerTitle: parentCategory
+            ? getCategoryName(parentCategory, activeLanguage)
+            : "",
         });
 
         const progressData = await storage.getProgress();
@@ -206,21 +211,6 @@ export default function TopicDetailScreen() {
           ]}
         >
           <View style={styles.heroTopRow}>
-            <View
-              style={[
-                styles.heroBadge,
-                { backgroundColor: theme.backgroundSecondary },
-              ]}
-            >
-              <AppIcon name="tag" size={14} color={theme.tabIconDefault} />
-              <ThemedText
-                type="small"
-                numberOfLines={1}
-                style={{ color: theme.tabIconDefault }}
-              >
-                {categoryLabel}
-              </ThemedText>
-            </View>
             <View
               style={[
                 styles.statusBadge,
@@ -529,24 +519,24 @@ export default function TopicDetailScreen() {
         ) : null}
 
         <AnimatedPressable
-          testID="topic-start-quiz-button"
-          style={[
-            styles.primaryFooterButton,
-            { backgroundColor: theme.secondary, marginTop: Spacing.lg },
-            animatedStyle,
-          ]}
-          onPress={handleStartQuiz}
-          onPressIn={handlePressIn}
-          onPressOut={handlePressOut}
-        >
-          <AppIcon name="play" size={18} color="#FFFFFF" />
-          <ThemedText
-            type="body"
-            numberOfLines={1}
-            style={[styles.buttonLabel, { color: "#FFFFFF" }]}
+            testID="topic-start-quiz-button"
+            style={[
+              styles.primaryFooterButton,
+              { backgroundColor: theme.secondary },
+              animatedStyle,
+            ]}
+            onPress={handleStartQuiz}
+            onPressIn={handlePressIn}
+            onPressOut={handlePressOut}
           >
-            {t("startQuiz")}
-          </ThemedText>
+            <AppIcon name="play" size={18} color="#FFFFFF" />
+            <ThemedText
+              type="body"
+              numberOfLines={1}
+              style={[styles.buttonLabel, { color: "#FFFFFF" }]}
+            >
+              {t("startQuiz")}
+            </ThemedText>
         </AnimatedPressable>
       </ScrollView>
     </ThemedView>
@@ -584,15 +574,6 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     gap: Spacing.sm,
     flexWrap: "wrap",
-  },
-  heroBadge: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 6,
-    paddingHorizontal: Spacing.sm,
-    paddingVertical: 6,
-    borderRadius: BorderRadius.full,
-    maxWidth: "100%",
   },
   statusBadge: {
     flexDirection: "row",
@@ -750,14 +731,14 @@ const styles = StyleSheet.create({
     lineHeight: 16,
   },
   primaryFooterButton: {
-    height: 52,
+    height: 58,
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
     gap: Spacing.sm,
-    paddingHorizontal: Spacing.xl,
-    borderRadius: BorderRadius.full,
-    alignSelf: "center",
+    paddingHorizontal: Spacing.md,
+    borderRadius: BorderRadius.md,
+    ...Shadows.floatingButton,
   },
   buttonLabel: {
     fontWeight: "600",
