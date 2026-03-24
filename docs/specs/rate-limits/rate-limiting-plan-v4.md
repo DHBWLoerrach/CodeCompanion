@@ -59,6 +59,7 @@ Wenn später weitere AI-Routes dazukommen, werden sie bewusst separat in das Quo
 - Dafür muss in Expo Router `web.output: "server"` gesetzt sein.
 - EAS Hosting basiert auf Cloudflare Workers (V8 Isolates, kein Dateisystem, stateless).
 - Für EAS Hosting können **plaintext**- und **sensitive**-Environment-Variablen deployed werden, **nicht** Variablen mit Sichtbarkeit **secret**.
+- Für v4 wird im Web **same-origin** zwischen App und API angenommen. Ein separater API-Origin ist für v4 nicht Zielbild.
 
 ### Supabase Data API / RLS
 
@@ -333,7 +334,9 @@ const GLOBAL_LIMIT_PER_DAY = 60;
 - `createClient(process.env.SUPABASE_URL, process.env.SUPABASE_SECRET_KEY)`
 - Optionen: `persistSession: false`, `autoRefreshToken: false`
 - Nur in serverseitigem Code importieren
-- Helper soll nur gebaut werden, wenn `API_QUOTA_ENABLED=true`
+- Client und Env-Validierung **nicht** beim Modulimport ausführen
+- Stattdessen einen lazy Helper wie `getSupabaseAdminClient()` bereitstellen, der nur innerhalb des aktiven Quota-Pfads aufgerufen wird
+- Ziel: lokaler Dev-Bypass und bestehende Route-Tests dürfen ohne Supabase-Env weiter importierbar bleiben
 
 #### Quota-Helfer
 
@@ -371,7 +374,7 @@ Hilfsfunktion für 429-Responses mit Headern:
 - `X-RateLimit-Limit`
 - `X-RateLimit-Remaining`
 - `X-RateLimit-Reset`
-- JSON-Body: `{ error: 'rate_limited', scope: 'global' | 'device', resetAtUtc: string }`
+- JSON-Body: `{ error: 'rate_limited', reason: 'global_day' | 'device_total' | 'device_endpoint', scope: 'global' | 'device', resetAtUtc: string }`
 
 Mapping für die UI:
 
@@ -384,6 +387,7 @@ Zusätzlicher Client-Vertrag für Fehler:
 - `client/lib/query-client.ts` darf für die betroffenen Quiz-POSTs Nicht-`2xx`-Responses nicht nur als generisches `Error("Request failed (...)")` weiterreichen.
 - Stattdessen muss der Client einen strukturierten Fehler propagieren, der mindestens `status` und den geparsten JSON-Body enthält.
 - Die UI darf `429` gezielt über `status === 429` und `body.scope` unterscheiden; andere Fehler können weiterhin generisch behandelt werden.
+- `body.reason` wird zusätzlich mitgegeben, damit die UI später zwischen Geräte-Gesamtlimit und Endpunktlimit unterscheiden kann, ohne den Serververtrag erneut zu ändern.
 
 Bei Supabase-Fehler: `503 Service Unavailable`, kein OpenAI-Call.
 
@@ -446,6 +450,10 @@ Schritte:
    - keine Hardcoded-Texte im Screen
    - stattdessen neue i18n-Keys in `client/lib/i18n.ts`, z. B. `quizRateLimitDevice` und `quizRateLimitGlobal`
    - Geräte-Limit nutzt den Geräte-Key, globales Limit den globalen Key
+   - `reason` wird im MVP noch nicht zwingend für unterschiedliche Texte genutzt, steht aber für spätere feinere UX bereit
+10. Web-Annahme für v4 festhalten:
+   - `EXPO_PUBLIC_API_URL` zeigt in Deployments auf denselben Origin wie die App oder wird so aufgelöst, dass kein Cross-Origin-Browser-Request entsteht
+   - falls später bewusst ein separater API-Origin genutzt werden soll, ist das **nicht** mehr v4-Light und erfordert zusätzliche `OPTIONS`-/CORS-Behandlung für `X-Device-Id`
 
 **Abnahme:** Bestehende Quiz-Flows funktionieren wie bisher, Header wird auf den beiden Quiz-POSTs mitgesendet, `429` wird über einen strukturierten Fehler sauber aufgefangen und die UI nutzt i18n-Keys statt Hardcoded-Strings.
 
@@ -466,6 +474,10 @@ Schritte:
 4. Unit- und Integrationstests nicht vom Umgebungszustand abhängig machen:
    - bestehende Route-Unit-Tests setzen `API_QUOTA_ENABLED` explizit auf `false`, wenn sie nicht gezielt den Quota-Pfad prüfen
    - neue Quota-Tests setzen `API_QUOTA_ENABLED` explizit auf `true`
+5. Entwickler-Onboarding für die neuen Variablen ergänzen:
+   - `README.md` um `SUPABASE_URL`, `SUPABASE_SECRET_KEY` und `API_QUOTA_ENABLED` erweitern
+   - lokale Modi klar dokumentieren: Default ohne Supabase, Integrationsmodus mit Dev-/Test-Supabase
+   - eine `.env.example` mit Platzhaltern für die neuen Variablen anlegen, ohne echte Secrets
 
 **Abnahme:** Beide Betriebsmodi verhalten sich wie geplant.
 
@@ -528,6 +540,7 @@ where usage_date < ((now() at time zone 'utc')::date - interval '60 days');
 | 10  | `429` enthält `Retry-After`-Header                                     | ja                            |
 | 11  | `429`-Body bei globalem Limit enthält `scope: global`                  | ja                            |
 | 12  | `429`-Body bei Geräte-Limit enthält `scope: device`                    | ja                            |
+| 12a | `429`-Body enthält den konkreten `reason`                              | ja                            |
 | 13  | Nächster UTC-Tag -> Zähler zurückgesetzt                               | 200                           |
 | 14  | RLS aktiv, anonyme Abfrage auf `api_usage`                             | kein Zugriff                  |
 | 15  | Lokaler Dev mit `API_QUOTA_ENABLED=false` funktioniert ohne Supabase   | ja                            |
@@ -538,6 +551,9 @@ where usage_date < ((now() at time zone 'utc')::date - interval '60 days');
 | 20  | Quiz-UI mappt `scope: global` auf einen i18n-Key                       | ja                            |
 | 21  | Route-Tests setzen `API_QUOTA_ENABLED` explizit je Testmodus           | ja                            |
 | 22  | "Fortschritt zurücksetzen" löscht Lernstand, aber nicht die Geräte-ID  | ja                            |
+| 23  | Route-Module bleiben ohne Supabase-Env importierbar, wenn Quota aus ist | ja                           |
+| 24  | Web-Deployment nutzt keinen Cross-Origin-Request für Quiz-POSTs        | ja                            |
+| 25  | README und `.env.example` dokumentieren die neuen Variablen            | ja                            |
 
 ---
 
