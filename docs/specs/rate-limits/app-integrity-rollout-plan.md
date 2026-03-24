@@ -63,26 +63,40 @@ Sicherheitsbewertung:
 
 ### Expo / EAS Hosting
 
-- Expo App Integrity ist laut Expo-Dokumentation weiterhin **Alpha**
-- EAS Hosting basiert auf Cloudflare Workers
-- `node:crypto` und `node:https` sind auf EAS Hosting als Kompatibilitaetsmodule verfuegbar
+- Expo App Integrity ist laut Expo-Dokumentation weiterhin **Alpha** (aktuell v55.0.8)
+- EAS Hosting basiert auf Cloudflare Workers (V8 Isolates, nicht Node.js)
+- `node:crypto` ist als Kompatibilitaetsmodul verfuegbar; einige veraltete Algorithmen fehlen, aber SHA-256, HMAC, X.509 sollten funktionieren
+- `Buffer` ist als Global vollstaendig verfuegbar
+- Native Node-Addons funktionieren **nicht** auf Workers (V8 Isolates)
+- Kein eingebautes Rate Limiting in EAS Hosting
+- IP des Clients ist ueber `X-Real-IP` Header zuverlaessig verfuegbar (empfohlener Header laut Expo-Docs)
+- Weitere verfuegbare Header: `X-Forwarded-For`, `eas-ip-country`, `eas-ip-city`, `eas-ip-timezone`
 
 Einordnung:
 
 - Die Runtime ist **nicht** der Hauptgrund gegen App Integrity
 - Der groessere Risikofaktor liegt bei iOS in der konkreten Verifikationslogik, den verwendeten Libraries und realen Geraetetests
+- Expo bietet **keine** serverseitige Verifikations-SDK und hat keine angekuendigt; Verifikation wird vollstaendig an Apple-/Google-Docs delegiert
 
 ### Android
 
 - Expo stuetzt Play Integrity Standard Requests
 - Android bindet die Integritaetspruefung ueber `requestHash` an den eigentlichen Request
+- `requestHash` ist auf maximal 500 Bytes begrenzt (SHA-256 Hex = 64 Zeichen, passt problemlos)
 - Daraus folgt fuer dieses Projekt: Ein generischer Challenge-Endpoint ist fuer Android **nicht** das bevorzugte Zielbild
+- Server-seitige Token-Dekodierung ist ein einfacher `fetch`-Call an Google (voll Workers-kompatibel)
+- Google bietet automatische Replay Protection fuer Standard Requests: bei erneutem Decoding werden Verdicts geleert
+- Free Tier: 10.000 Requests/Tag (bei globalem Limit von 400 kein Kostenfaktor)
+- Token Provider kann bei laengerer Inaktivitaet ablaufen (`ERR_APP_INTEGRITY_PROVIDER_INVALID`); Client muss `prepareIntegrityTokenProviderAsync()` erneut aufrufen
 
 ### iOS
 
 - iOS nutzt App Attest mit Attestation- und spaeter Assertion-Flow
 - Dafuer ist serverseitige Challenge-/Assertion-Verifikation erforderlich
 - Dieser Teil ist deutlich komplexer als Android und bekommt deshalb einen eigenen PoC-Pfad
+- App Attest funktioniert **nicht** auf dem iOS Simulator (erfordert Secure Enclave)
+- CBOR-Decoding ist fuer die Attestation-Verifikation erforderlich; `cbor-x` laeuft als reines JavaScript (natives Addon optional) und ist wahrscheinlich Workers-kompatibel, aber nicht explizit getestet
+- Community-Libraries fuer Server-Verifikation existieren: `node-app-attest` (38 Stars, aktiv) und `appattest-checker-node` (19 Stars, TypeScript); beide nutzen `node:crypto`. `app-attest-server` (1 Star, nutzt SQLite) ist wegen fehlendem FS auf Workers ausgeschlossen
 
 ## Entscheidungslogik
 
@@ -142,10 +156,11 @@ Sofortigen Zusatzschutz mit geringem Risiko einbauen, ohne App Integrity schon v
 
 ### Umsetzung
 
-- IP-Adresse aus EAS-Forwarding-Headern auslesen
+- IP-Adresse aus `X-Real-IP` Header auslesen (empfohlener Header auf EAS Hosting, enthaelt nur die Client-IP)
+- Sofort mit `sha256Hex()` aus `server/crypto.ts` hashen (bestehende Funktion wiederverwendbar)
 - Rohe IP nicht persistent speichern
-- Falls gespeichert oder geloggt, nur als Hash oder stark reduzierte Ableitung
-- Grobes Tages- oder Burst-Limit je IP vor OpenAI und vor spaeteren Integrity-Checks anwenden
+- IP-Hash in Supabase pruefen: eigene kurzlebige Tabelle `ip_usage` mit `ip_hash`, `usage_date`, `request_count`
+- Grobes Tageslimit je IP-Hash (z.B. 50/Tag) vor OpenAI und vor spaeteren Integrity-Checks anwenden; bewusst grosszuegiger als Device-Limit wegen Shared WiFi (Uni-Netzwerke)
 - Zusaezliche Signale loggen:
   - fehlende Integrity-Header
   - ungueltige Integrity-Tokens
@@ -174,10 +189,12 @@ Fuer Android wird **kein generischer Challenge-Endpoint** eingeplant.
 
 Stattdessen:
 
-1. Client berechnet einen stabilen `requestHash`
-2. Client fordert einen Play-Integrity-Token fuer genau diesen Request an
-3. Server verifiziert den Verdict
-4. Server vergleicht den erwarteten Hash mit dem im Verdict referenzierten Request
+1. Client berechnet SHA-256 ueber die relevanten Request-Parameter (z.B. `topicId + count + language + programmingLanguage + skillLevel`)
+2. Client ruft `requestIntegrityCheckAsync(requestHash)` auf und erhaelt ein opakes Token
+3. Client sendet Token als `X-Integrity-Token` Header und Plattform als `X-Integrity-Platform: android`
+4. Server sendet Token an `playintegrity.googleapis.com/v1/{PACKAGE_NAME}:decodeIntegrityToken`
+5. Google gibt entschluesseltes Verdict zurueck, inkl. `requestHash` im Klartext
+6. Server rekonstruiert den erwarteten Hash unabhaengig und vergleicht
 
 ### Vorteile
 
@@ -185,6 +202,30 @@ Stattdessen:
 - weniger serverseitiger State
 - geringere Latenz
 - weniger Angriffsoberflaeche
+
+### Server-seitige Verdict-Verifikation
+
+Der Server dekodiert das Token ueber Googles REST API:
+
+```
+POST https://playintegrity.googleapis.com/v1/{PACKAGE_NAME}:decodeIntegrityToken
+Authorization: Bearer {access_token}
+Body: { "integrity_token": "..." }
+```
+
+Erfordert einen Google Cloud Service Account mit `playintegrity` Scope. Die Authentifizierung erfolgt ueber OAuth2 Token-Exchange.
+
+### Empfohlene Verdict-Policy
+
+| Feld | Akzeptierter Wert | Rationale |
+|---|---|---|
+| `deviceRecognitionVerdict` | mindestens `MEETS_DEVICE_INTEGRITY` | Echtes, zertifiziertes Geraet |
+| `appRecognitionVerdict` | `PLAY_RECOGNIZED` | App aus dem Play Store |
+| `requestHash` | muss mit Server-Berechnung uebereinstimmen | Verhindert Token-Wiederverwendung |
+| `requestPackageName` | muss Package Name matchen | Grundlegende Validierung |
+| `timestampMillis` | max. 5-10 Min alt | Verhindert lange Token-Aufbewahrung |
+
+Dev-Builds auf echten Geraeten liefern `appRecognitionVerdict: "UNRECOGNIZED_VERSION"`. Das ist kein Problem, weil lokal `APP_INTEGRITY_MODE=off` gilt und im `observe`-Modus nur geloggt wird.
 
 ### Grobe Dateiauswirkungen
 
@@ -200,7 +241,8 @@ Anpassungen:
 - `client/lib/query-client.ts`
 - `app/api/quiz/generate+api.ts`
 - `app/api/quiz/generate-mixed+api.ts`
-- `shared/api-quota.ts` oder neues gemeinsames Security-Contract-Modul
+- `shared/api-quota.ts` oder neues `shared/api-integrity.ts` fuer Header-Konstanten (`X-Integrity-Token`, `X-Integrity-Platform`) analog zum bestehenden `DEVICE_ID_HEADER`
+- `server/logging.ts` erweitern um `integrityMode` (`off`/`observe`/`enforce`), `integrityResult` (`valid`/`invalid`/`missing`/`error`/`skipped`), `integrityPlatform` (`android`/`ios`/`null`)
 
 ### Android-Rollout-Modus
 
@@ -247,10 +289,14 @@ Nur die technische Machbarkeit auf EAS Hosting validieren, nicht direkt produkti
 
 ### Scope des PoC
 
-- Community-Library fuer App Attest evaluieren
+- Community-Library fuer App Attest evaluieren; empfohlene Kandidaten:
+  - `node-app-attest` (38 Stars, 77 Commits, aktiv) - erste Wahl
+  - `appattest-checker-node` (19 Stars, TypeScript, v1.0.3) - Alternative
+  - `app-attest-server` (1 Star, nutzt SQLite) - ausgeschlossen (kein FS auf Workers)
 - Attestation- und Assertion-Verifikation auf EAS Hosting testen
-- CBOR-/X.509-/Counter-Verhalten pruefen
+- CBOR-/X.509-/Counter-Verhalten pruefen; `cbor-x` als CBOR-Library (reines JS, optionales natives Addon)
 - Real-Geraete statt Simulator als Pflicht
+- Minimalen PoC: hardcoded Attestation-Fixture auf einer EAS-Route dekodieren, um Workers-Kompatibilitaet zu verifizieren
 
 ### iOS-spezifische Architektur
 
@@ -362,10 +408,12 @@ Der Ausbau gilt als erfolgreich, wenn:
 ## Offene Fragen
 
 1. Gibt es bereits belastbare Hinweise auf Missbrauch in den Logs?
-2. Existiert ein Google-Cloud-Projekt fuer Play Integrity bereits?
-3. Ist App Attest auf Apple-Seite organisatorisch und technisch vorbereitet?
-4. Welche Community-Library kommt fuer den iOS-PoC in Frage?
+2. Existiert ein Google-Cloud-Projekt fuer Play Integrity bereits? Falls nein: ein Projekt anlegen, Play Integrity API aktivieren, Service Account mit `playintegrity` Scope erstellen
+3. Ist App Attest auf Apple-Seite organisatorisch und technisch vorbereitet? (App-ID-Registrierung, App Attest Capability in Xcode)
+4. ~~Welche Community-Library kommt fuer den iOS-PoC in Frage?~~ Beantwortet: `node-app-attest` als erste Wahl, `appattest-checker-node` als Alternative
 5. Soll iOS bei ausbleibendem PoC bewusst vorerst ohne App Integrity bleiben?
+6. Soll `MEETS_BASIC_INTEGRITY` (unzertifizierte Geraete) im `observe`-Modus toleriert werden, oder nur `MEETS_DEVICE_INTEGRITY`?
+7. Welcher Package Name wird fuer die Play Integrity Konfiguration verwendet?
 
 ## Empfohlene Entscheidung fuer dieses Repo
 
@@ -382,8 +430,12 @@ Damit bleibt der Plan technisch ernsthaft, aber wirtschaftlich und operativ ange
 ## Quellen
 
 - Expo App Integrity Docs: https://docs.expo.dev/versions/latest/sdk/app-integrity/
+- Expo App Integrity Blog: https://expo.dev/blog/expo-app-integrity
 - EAS Hosting Worker Runtime: https://docs.expo.dev/eas/hosting/reference/worker-runtime/
 - EAS Hosting Responses and Headers: https://docs.expo.dev/eas/hosting/reference/responses-and-headers/
 - Google Play Integrity Standard Requests: https://developer.android.com/google/play/integrity/standard
 - Google Play Integrity Verdicts: https://developer.android.com/google/play/integrity/verdicts
 - Apple App Attest / Validating Apps That Connect to Your Server: https://developer.apple.com/documentation/devicecheck/validating-apps-that-connect-to-your-server
+- cbor-x (reines JS, optionales Addon): https://github.com/kriszyp/cbor-x
+- node-app-attest (iOS-PoC erste Wahl): https://github.com/uebelack/node-app-attest
+- appattest-checker-node (iOS-PoC Alternative): https://github.com/srinivas1729/appattest-checker-node
