@@ -1,0 +1,65 @@
+# Mirror .gitignore first. EAS uses .easignore instead of .gitignore when present.
+
+# dependencies
+
+node_modules/
+
+# Expo
+
+.expo/
+dist/
+web-build/
+expo-env.d.ts
+
+# Native
+
+.kotlin/
+_.orig._
+_.jks
+_.p8
+_.p12
+_.key
+\*.mobileprovision
+
+# Metro
+
+.metro-health-check\*
+
+# debug
+
+npm-debug._
+yarn-debug._
+yarn-error.\*
+
+# macOS
+
+.DS_Store
+\*.pem
+
+# local env files
+
+.env
+.env\*.local
+
+# typescript
+
+\*.tsbuildinfo
+
+app-example
+
+# generated native folders
+
+/ios
+/android
+
+# EAS-specific exclusions
+
+.github/
+**tests**/
+docs/
+e2e/
+test/
+AGENTS.md
+CLAUDE.md
+README.md
+TODOS.md
