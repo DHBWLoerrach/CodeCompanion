@@ -191,7 +191,7 @@ export default function TopicDetailScreen() {
         contentInsetAdjustmentBehavior="automatic"
         contentContainerStyle={[
           styles.scrollContent,
-          { paddingTop: Spacing.sm, paddingBottom: 148 + insets.bottom },
+          { paddingTop: Spacing.sm, paddingBottom: insets.bottom + Spacing.lg },
         ]}
         showsVerticalScrollIndicator={false}
       >
@@ -527,18 +527,7 @@ export default function TopicDetailScreen() {
             </View>
           </View>
         ) : null}
-      </ScrollView>
 
-      <View
-        style={[
-          styles.footer,
-          {
-            paddingBottom: insets.bottom + Spacing.lg,
-            backgroundColor: theme.backgroundRoot,
-            borderTopColor: theme.cardBorder,
-          },
-        ]}
-      >
         <AnimatedPressable
           testID="topic-start-quiz-button"
           style={[
@@ -559,7 +548,7 @@ export default function TopicDetailScreen() {
             {t("startQuiz")}
           </ThemedText>
         </AnimatedPressable>
-      </View>
+      </ScrollView>
     </ThemedView>
   );
 }
@@ -759,15 +748,6 @@ const styles = StyleSheet.create({
   segmentLabel: {
     textAlign: "center",
     lineHeight: 16,
-  },
-  footer: {
-    position: "absolute",
-    bottom: 0,
-    left: 0,
-    right: 0,
-    padding: Spacing.md,
-    paddingTop: Spacing.md,
-    borderTopWidth: 1,
   },
   primaryFooterButton: {
     height: 58,
