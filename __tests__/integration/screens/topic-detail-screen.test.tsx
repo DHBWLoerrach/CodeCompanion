@@ -123,6 +123,7 @@ jest.mock("@/contexts/ProgrammingLanguageContext", () => ({
 
 jest.mock("@shared/explanations", () => ({
   hasTopicExplanation: jest.fn(),
+  getTopicExplanation: jest.fn().mockReturnValue("# 1. Introduction\n\nSample explanation text for testing."),
 }));
 
 describe("TopicDetailScreen integration", () => {
