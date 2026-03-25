@@ -186,6 +186,7 @@ export default function TopicDetailScreen() {
   const quizQuestionCount = DEFAULT_QUIZ_QUESTION_COUNT;
   const currentSkillLevel = progress?.skillLevel ?? 1;
   const skillProgress = (currentSkillLevel / 5) * 100;
+  const usesFloatingActionBar = hasProgress;
   const lastActivityLabel = progress?.lastPracticed
     ? new Intl.DateTimeFormat(dateLocale, {
         day: "2-digit",
@@ -215,9 +216,11 @@ export default function TopicDetailScreen() {
           styles.scrollContent,
           {
             paddingTop: Spacing.sm,
-            paddingBottom: getBottomActionBarScrollPadding({
-              safeAreaBottom: insets.bottom,
-            }),
+            paddingBottom: usesFloatingActionBar
+              ? getBottomActionBarScrollPadding({
+                  safeAreaBottom: insets.bottom,
+                })
+              : Spacing["2xl"],
           },
         ]}
         showsVerticalScrollIndicator={false}
@@ -510,17 +513,31 @@ export default function TopicDetailScreen() {
             </View>
           </SurfaceCard>
         ) : null}
+
+        {!usesFloatingActionBar ? (
+          <View style={styles.inlineActionWrap}>
+            <PrimaryButton
+              testID="topic-start-quiz-button"
+              color={theme.secondary}
+              icon="play"
+              label={t("startQuiz")}
+              onPress={handleStartQuiz}
+            />
+          </View>
+        ) : null}
       </ScrollView>
 
-      <BottomActionBar>
-        <PrimaryButton
-          testID="topic-start-quiz-button"
-          color={theme.secondary}
-          icon="play"
-          label={t("startQuiz")}
-          onPress={handleStartQuiz}
-        />
-      </BottomActionBar>
+      {usesFloatingActionBar ? (
+        <BottomActionBar>
+          <PrimaryButton
+            testID="topic-start-quiz-button"
+            color={theme.secondary}
+            icon="play"
+            label={t("startQuiz")}
+            onPress={handleStartQuiz}
+          />
+        </BottomActionBar>
+      ) : null}
     </ThemedView>
   );
 }
@@ -628,6 +645,9 @@ const styles = StyleSheet.create({
   },
   stateCard: {
     gap: Spacing.lg,
+  },
+  inlineActionWrap: {
+    marginTop: Spacing.xs,
   },
   stateHeader: {
     flexDirection: "row",

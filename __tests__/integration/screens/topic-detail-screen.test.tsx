@@ -178,4 +178,21 @@ describe("TopicDetailScreen integration", () => {
 
     expect(mockPush).not.toHaveBeenCalled();
   });
+
+  it("starts a quiz from the inline action when no progress exists", async () => {
+    mockHasTopicExplanation.mockReturnValue(true);
+
+    const screen = render(<TopicDetailScreen />);
+
+    await waitFor(() => {
+      expect(screen.getByTestId("topic-start-quiz-button")).toBeTruthy();
+    });
+
+    fireEvent.press(screen.getByTestId("topic-start-quiz-button"));
+
+    expect(mockPush).toHaveBeenCalledWith({
+      pathname: "/quiz-session",
+      params: { topicId: "variables", programmingLanguage: "javascript" },
+    });
+  });
 });
