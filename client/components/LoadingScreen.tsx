@@ -8,7 +8,7 @@ export function LoadingScreen() {
 
   return (
     <ThemedView style={styles.container}>
-      <ActivityIndicator size="large" color={theme.primary} />
+      <ActivityIndicator size="large" color={theme.secondary} />
     </ThemedView>
   );
 }

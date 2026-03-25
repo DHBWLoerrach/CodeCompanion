@@ -36,6 +36,7 @@ jest.mock("react-native-safe-area-context", () => ({
 jest.mock("react-native-reanimated", () => ({
   __esModule: true,
   default: {
+    View: require("react-native").View,
     createAnimatedComponent: <T,>(component: T) => component,
   },
 }));
@@ -64,9 +65,12 @@ jest.mock("@/contexts/ThemeContext", () => ({
       codeBackground: "#F7F7F7",
       disabled: "#CCCCCC",
       buttonText: "#FFFFFF",
+      onColor: "#FFFFFF",
       link: "#4A90E2",
       backgroundSecondary: "#F0F0F0",
       backgroundTertiary: "#EBEBEB",
+      cardBorderSubtle: "#DDDDDD",
+      separator: "rgba(0, 0, 0, 0.08)",
     },
   }),
 }));
@@ -123,7 +127,11 @@ jest.mock("@/contexts/ProgrammingLanguageContext", () => ({
 
 jest.mock("@shared/explanations", () => ({
   hasTopicExplanation: jest.fn(),
-  getTopicExplanation: jest.fn().mockReturnValue("# 1. Introduction\n\nSample explanation text for testing."),
+  getTopicExplanation: jest
+    .fn()
+    .mockReturnValue(
+      "# 1. Introduction\n\nSample explanation text for testing.",
+    ),
 }));
 
 describe("TopicDetailScreen integration", () => {

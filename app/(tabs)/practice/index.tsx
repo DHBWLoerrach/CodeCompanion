@@ -7,6 +7,7 @@ import Animated from "react-native-reanimated";
 import { ThemedView } from "@/components/ThemedView";
 import { ThemedText } from "@/components/ThemedText";
 import { AppIcon } from "@/components/AppIcon";
+import { PrimaryButton } from "@/components/ActionButton";
 import { SkillLevelDots } from "@/components/SkillLevelDots";
 import { LoadingScreen } from "@/components/LoadingScreen";
 import { useTheme } from "@/contexts/ThemeContext";
@@ -21,7 +22,7 @@ import {
   QUICK_QUIZ_QUESTION_COUNT,
   QUICK_QUIZ_TOPIC_LIMIT,
 } from "@/constants/quiz";
-import { Spacing, BorderRadius, Shadows } from "@/constants/theme";
+import { Spacing, BorderRadius, Shadows, withOpacity } from "@/constants/theme";
 import {
   type Topic,
   type Category,
@@ -93,7 +94,12 @@ function QuizModeCard({
         animatedStyle,
       ]}
     >
-      <View style={[styles.modeIconBubble, { backgroundColor: color + "15" }]}>
+      <View
+        style={[
+          styles.modeIconBubble,
+          { backgroundColor: withOpacity(color, 0.12) },
+        ]}
+      >
         <AppIcon name={icon} size={24} color={color} />
       </View>
       <ThemedText type="h4" numberOfLines={1} style={styles.modeTitle}>
@@ -269,7 +275,7 @@ export default function PracticeScreen() {
           <View
             style={[
               styles.dueSection,
-              { backgroundColor: theme.accent + "15" },
+              { backgroundColor: withOpacity(theme.accent, 0.12) },
             ]}
           >
             <View style={styles.dueSectionHeader}>
@@ -312,18 +318,13 @@ export default function PracticeScreen() {
               })}
             </View>
 
-            <Pressable
+            <PrimaryButton
               testID="practice-start-review-button"
-              style={[styles.reviewButton, { backgroundColor: theme.accent }]}
+              color={theme.accent}
+              label={t("startReview")}
               onPress={handleStartReview}
-            >
-              <ThemedText
-                type="body"
-                style={{ color: "#FFFFFF", fontWeight: "600" }}
-              >
-                {t("startReview")}
-              </ThemedText>
-            </Pressable>
+              size="compact"
+            />
           </View>
         ) : (
           <View
@@ -374,7 +375,7 @@ export default function PracticeScreen() {
           />
           <QuizModeCard
             icon="zap"
-            color={theme.success}
+            color={theme.secondary}
             title={t("quickQuiz")}
             description={t("quickQuizDesc")}
             testID="practice-mode-quick"
@@ -382,7 +383,7 @@ export default function PracticeScreen() {
           />
           <QuizModeCard
             icon="book-open"
-            color={theme.primary}
+            color={theme.secondary}
             title={t("byCategoryQuiz")}
             description={t("byCategoryQuizDesc")}
             testID="practice-mode-category"
@@ -455,12 +456,6 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     paddingVertical: Spacing.sm,
-  },
-  reviewButton: {
-    height: 48,
-    borderRadius: BorderRadius.md,
-    alignItems: "center",
-    justifyContent: "center",
   },
   emptyState: {
     borderRadius: BorderRadius.lg,

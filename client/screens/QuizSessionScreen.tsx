@@ -17,8 +17,12 @@ import { Stack, useLocalSearchParams, useRouter } from "expo-router";
 import Animated from "react-native-reanimated";
 import * as Haptics from "expo-haptics";
 
+import { BottomActionBar } from "@/components/BottomActionBar";
 import { HeaderIconButton } from "@/components/HeaderIconButton";
 import { InlineCodeText } from "@/components/InlineCodeText";
+import { PrimaryButton, SecondaryButton } from "@/components/ActionButton";
+import { StatusBadge } from "@/components/StatusBadge";
+import { SurfaceCard } from "@/components/SurfaceCard";
 import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
 import { AppIcon } from "@/components/AppIcon";
@@ -32,10 +36,18 @@ import {
   QUICK_QUIZ_MODE,
   QUICK_QUIZ_QUESTION_COUNT,
 } from "@/constants/quiz";
-import { Spacing, BorderRadius, Shadows, Fonts } from "@/constants/theme";
+import {
+  Spacing,
+  BorderRadius,
+  Fonts,
+  getBottomActionBarScrollPadding,
+  withOpacity,
+} from "@/constants/theme";
+import { getLanguageById, getLanguageDisplayName } from "@/lib/languages";
 import { apiRequest, isApiRequestError } from "@/lib/query-client";
 import { getParam, getParamWithDefault } from "@/lib/router-utils";
 import { storage, type ProgressData } from "@/lib/storage";
+import { getCategoryName, getTopicById, getTopicName } from "@/lib/topics";
 import { isRateLimitedErrorBody } from "@shared/api-quota";
 import type { QuizQuestion } from "@shared/quiz-question";
 import {
@@ -142,9 +154,9 @@ function AnswerButton({
 
   const getTextColor = () => {
     if (showResult && (isCorrectAnswer || (selected && !isCorrect))) {
-      return "#FFFFFF";
+      return theme.onColor;
     }
-    if (selected) return "#FFFFFF";
+    if (selected) return theme.onColor;
     return theme.text;
   };
 
@@ -158,8 +170,7 @@ function AnswerButton({
   };
 
   const optionLabel = String.fromCharCode(65 + index);
-  const hasHighlightedAnswerState =
-    selected || (showResult && isCorrectAnswer);
+  const hasHighlightedAnswerState = selected || (showResult && isCorrectAnswer);
 
   return (
     <AnimatedPressable
@@ -183,7 +194,7 @@ function AnswerButton({
           {
             backgroundColor:
               selected || showResult
-                ? "rgba(255,255,255,0.2)"
+                ? withOpacity(theme.onColor, 0.18)
                 : theme.backgroundSecondary,
           },
         ]}
@@ -199,15 +210,15 @@ function AnswerButton({
         codeStyle={{
           color: getTextColor(),
           backgroundColor: hasHighlightedAnswerState
-            ? "rgba(255,255,255,0.2)"
+            ? withOpacity(theme.onColor, 0.18)
             : theme.codeBackground,
         }}
       />
       {showResult && isCorrectAnswer ? (
-        <AppIcon name="check-circle" size={20} color="#FFFFFF" />
+        <AppIcon name="check-circle" size={20} color={theme.onColor} />
       ) : null}
       {showResult && selected && !isCorrect ? (
-        <AppIcon name="x-circle" size={20} color="#FFFFFF" />
+        <AppIcon name="x-circle" size={20} color={theme.onColor} />
       ) : null}
     </AnimatedPressable>
   );
@@ -226,7 +237,7 @@ function CodeBlock({ code }: { code: string }) {
         type="code"
         style={[styles.codeText, { fontFamily: Fonts?.mono || "monospace" }]}
       >
-        {code}
+        {code.replace(/\\n/g, "\n")}
       </ThemedText>
     </ScrollView>
   );
@@ -234,7 +245,7 @@ function CodeBlock({ code }: { code: string }) {
 
 export default function QuizSessionScreen() {
   const { theme } = useTheme();
-  const { t } = useTranslation();
+  const { t, language } = useTranslation();
   const insets = useSafeAreaInsets();
   const router = useRouter();
   const { topicId, topicIds, count, programmingLanguage, quizMode } =
@@ -272,6 +283,39 @@ export default function QuizSessionScreen() {
       ? QUICK_QUIZ_QUESTION_COUNT
       : DEFAULT_QUIZ_QUESTION_COUNT;
   }, [count, isQuickQuiz]);
+  const currentLanguage = getLanguageById(resolvedProgrammingLanguage);
+  const currentTopic = resolvedTopicId
+    ? getTopicById(resolvedTopicId, currentLanguage?.categories)
+    : null;
+  const currentCategory = currentTopic
+    ? currentLanguage?.categories.find(
+        (category) => category.id === currentTopic.category,
+      )
+    : undefined;
+  const contextBadgeLabel = isQuickQuiz
+    ? t("quickQuiz")
+    : currentTopic
+      ? getTopicName(currentTopic, language)
+      : t("mixedQuiz");
+  const contextBadgeIcon = isQuickQuiz
+    ? "zap"
+    : currentTopic
+      ? "book-open"
+      : "edit-3";
+  const contextColor = theme.secondary;
+  const contextDescription = currentTopic
+    ? currentCategory
+      ? getCategoryName(currentCategory, language)
+      : currentLanguage
+        ? getLanguageDisplayName(currentLanguage, language)
+        : resolvedProgrammingLanguage
+    : resolvedTopicIds.length > 0
+      ? `${resolvedTopicIds.length} ${
+          resolvedTopicIds.length === 1 ? t("topic") : t("topics")
+        }`
+      : currentLanguage
+        ? getLanguageDisplayName(currentLanguage, language)
+        : resolvedProgrammingLanguage;
 
   const [questions, setQuestions] = useState<QuizQuestion[]>([]);
   const [currentIndex, setCurrentIndex] = useState(0);
@@ -478,18 +522,15 @@ export default function QuizSessionScreen() {
           }}
         />
         <ThemedView style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color={theme.primary} />
+          <ActivityIndicator size="large" color={theme.secondary} />
           <ThemedText type="body" style={styles.loadingText}>
             {t("generatingQuiz")}
           </ThemedText>
-          <Pressable
-            style={[styles.cancelButton, { borderColor: theme.tabIconDefault }]}
+          <SecondaryButton
+            color={theme.tabIconDefault}
+            label={t("cancel")}
             onPress={handleClose}
-          >
-            <ThemedText type="body" style={{ color: theme.tabIconDefault }}>
-              {t("cancel")}
-            </ThemedText>
-          </Pressable>
+          />
         </ThemedView>
       </>
     );
@@ -513,33 +554,19 @@ export default function QuizSessionScreen() {
           <ThemedText type="body" style={styles.errorText}>
             {error || t("unableToLoadQuiz")}
           </ThemedText>
-          <Pressable
+          <PrimaryButton
             testID="quiz-retry-button"
-            style={[styles.retryButton, { backgroundColor: theme.primary }]}
+            color={theme.secondary}
+            icon="refresh-cw"
+            label={t("tryAgain")}
             onPress={loadQuestions}
-          >
-            <AppIcon
-              name="refresh-cw"
-              size={18}
-              color="#FFFFFF"
-              style={{ marginRight: Spacing.sm }}
-            />
-            <ThemedText
-              type="body"
-              style={{ color: "#FFFFFF", fontWeight: "600" }}
-            >
-              {t("tryAgain")}
-            </ThemedText>
-          </Pressable>
-          <Pressable
+          />
+          <SecondaryButton
             testID="quiz-cancel-button"
-            style={[styles.cancelButton, { borderColor: theme.tabIconDefault }]}
+            color={theme.tabIconDefault}
+            label={t("cancel")}
             onPress={handleClose}
-          >
-            <ThemedText type="body" style={{ color: theme.tabIconDefault }}>
-              {t("cancel")}
-            </ThemedText>
-          </Pressable>
+          />
         </ThemedView>
       </>
     );
@@ -573,16 +600,50 @@ export default function QuizSessionScreen() {
           contentInsetAdjustmentBehavior="automatic"
           contentContainerStyle={[
             styles.scrollContent,
-            { paddingBottom: insets.bottom + Spacing.xl + 80 },
+            {
+              paddingBottom: getBottomActionBarScrollPadding({
+                safeAreaBottom: insets.bottom,
+              }),
+            },
           ]}
           showsVerticalScrollIndicator={false}
         >
-          <View
-            style={[
-              styles.questionCard,
-              { backgroundColor: theme.backgroundDefault },
-            ]}
+          <SurfaceCard
+            style={styles.contextCard}
+            borderColor={theme.cardBorderSubtle}
+            topAccentColor={contextColor}
           >
+            <StatusBadge
+              color={contextColor}
+              icon={contextBadgeIcon}
+              label={contextBadgeLabel}
+            />
+            <View style={styles.contextMetaRow}>
+              <ThemedText type="small" style={{ color: theme.tabIconDefault }}>
+                {contextDescription}
+              </ThemedText>
+              <View
+                style={[
+                  styles.contextMetaDot,
+                  { backgroundColor: theme.tabIconDefault },
+                ]}
+              />
+              <ThemedText type="small" style={{ color: theme.tabIconDefault }}>
+                {requestedQuestionCount} {t("questionsShort")}
+              </ThemedText>
+              <View
+                style={[
+                  styles.contextMetaDot,
+                  { backgroundColor: theme.tabIconDefault },
+                ]}
+              />
+              <ThemedText type="small" style={{ color: theme.tabIconDefault }}>
+                {headerTitle}
+              </ThemedText>
+            </View>
+          </SurfaceCard>
+
+          <SurfaceCard style={styles.questionCard}>
             <InlineCodeText
               type="h4"
               style={styles.questionText}
@@ -592,7 +653,7 @@ export default function QuizSessionScreen() {
             {currentQuestion.code ? (
               <CodeBlock code={currentQuestion.code} />
             ) : null}
-          </View>
+          </SurfaceCard>
 
           <View style={styles.answersContainer}>
             {currentQuestion.options.map((option, index) => (
@@ -612,78 +673,42 @@ export default function QuizSessionScreen() {
           </View>
 
           {showResult ? (
-            <View
-              style={[
-                styles.explanationCard,
-                { backgroundColor: theme.backgroundDefault },
-              ]}
-            >
+            <SurfaceCard style={styles.explanationCard}>
               <ThemedText
                 type="label"
                 style={{ color: theme.secondary, marginBottom: Spacing.sm }}
               >
                 {t("explanation")}
               </ThemedText>
-              <InlineCodeText
-                type="body"
-                text={currentQuestion.explanation}
-              />
-            </View>
+              <InlineCodeText type="body" text={currentQuestion.explanation} />
+            </SurfaceCard>
           ) : null}
         </ScrollView>
 
-        <View
-          style={[
-            styles.footer,
-            {
-              paddingBottom: insets.bottom + Spacing.lg,
-              backgroundColor: theme.backgroundRoot,
-            },
-          ]}
-        >
+        <BottomActionBar>
           {showResult ? (
-            <Pressable
+            <PrimaryButton
               testID="quiz-next-button"
-              style={[
-                styles.submitButton,
-                {
-                  backgroundColor: isAdvancing ? theme.disabled : theme.primary,
-                },
-              ]}
+              color={theme.secondary}
+              label={
+                currentIndex < questions.length - 1
+                  ? t("nextQuestion")
+                  : t("viewResults")
+              }
               onPress={handleNext}
               disabled={isAdvancing}
-            >
-              <ThemedText
-                type="body"
-                style={{ color: "#FFFFFF", fontWeight: "600" }}
-              >
-                {currentIndex < questions.length - 1
-                  ? t("nextQuestion")
-                  : t("viewResults")}
-              </ThemedText>
-            </Pressable>
+              loading={isAdvancing}
+            />
           ) : (
-            <Pressable
+            <PrimaryButton
               testID="quiz-submit-button"
-              style={[
-                styles.submitButton,
-                {
-                  backgroundColor:
-                    selectedAnswer !== null ? theme.primary : theme.disabled,
-                },
-              ]}
+              color={theme.secondary}
+              label={t("submitAnswer")}
               onPress={handleSubmit}
               disabled={selectedAnswer === null}
-            >
-              <ThemedText
-                type="body"
-                style={{ color: "#FFFFFF", fontWeight: "600" }}
-              >
-                {t("submitAnswer")}
-              </ThemedText>
-            </Pressable>
+            />
           )}
-        </View>
+        </BottomActionBar>
       </ThemedView>
     </>
   );
@@ -719,19 +744,6 @@ const styles = StyleSheet.create({
     opacity: 0.7,
     marginBottom: Spacing.md,
   },
-  retryButton: {
-    flexDirection: "row",
-    alignItems: "center",
-    paddingHorizontal: Spacing.xl,
-    paddingVertical: Spacing.md,
-    borderRadius: BorderRadius.md,
-  },
-  cancelButton: {
-    paddingHorizontal: Spacing.xl,
-    paddingVertical: Spacing.md,
-    borderRadius: BorderRadius.md,
-    borderWidth: 1,
-  },
   progressBar: {
     height: 4,
     marginHorizontal: Spacing.lg,
@@ -749,10 +761,22 @@ const styles = StyleSheet.create({
     padding: Spacing.lg,
     gap: Spacing.lg,
   },
+  contextCard: {
+    gap: Spacing.sm,
+  },
+  contextMetaDot: {
+    width: 4,
+    height: 4,
+    borderRadius: BorderRadius.full,
+  },
+  contextMetaRow: {
+    alignItems: "center",
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: Spacing.sm,
+  },
   questionCard: {
-    borderRadius: BorderRadius.lg,
-    padding: Spacing.lg,
-    ...Shadows.card,
+    gap: Spacing.sm,
   },
   questionText: {
     marginBottom: Spacing.md,
@@ -787,24 +811,6 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   explanationCard: {
-    borderRadius: BorderRadius.md,
-    padding: Spacing.lg,
-    ...Shadows.card,
-  },
-  footer: {
-    position: "absolute",
-    bottom: 0,
-    left: 0,
-    right: 0,
-    padding: Spacing.lg,
-    paddingTop: Spacing.md,
-    borderTopWidth: 1,
-    borderTopColor: "rgba(0,0,0,0.05)",
-  },
-  submitButton: {
-    height: 56,
-    borderRadius: BorderRadius.md,
-    alignItems: "center",
-    justifyContent: "center",
+    gap: Spacing.xs,
   },
 });

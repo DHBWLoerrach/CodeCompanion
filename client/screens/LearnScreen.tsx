@@ -12,7 +12,7 @@ import { useTheme } from "@/contexts/ThemeContext";
 import { useTranslation } from "@/hooks/useTranslation";
 import { usePressAnimation } from "@/hooks/usePressAnimation";
 import { useTopicProgress } from "@/hooks/useTopicProgress";
-import { Spacing, BorderRadius, Shadows } from "@/constants/theme";
+import { Spacing, BorderRadius, Shadows, withOpacity } from "@/constants/theme";
 import {
   type Topic,
   type Category,
@@ -270,9 +270,9 @@ function TopicTile({
   const { state, label, iconName } = getTopicStateMeta(progress, t);
   const accentColor = getStateAccentColor(state, theme);
   const borderColor =
-    state === "new" ? theme.backgroundTertiary : `${accentColor}40`;
+    state === "new" ? theme.backgroundTertiary : withOpacity(accentColor, 0.25);
   const backgroundColor =
-    state === "new" ? theme.backgroundRoot : `${accentColor}0A`;
+    state === "new" ? theme.backgroundRoot : withOpacity(accentColor, 0.04);
   const metaTextColor = state === "new" ? theme.tabIconDefault : accentColor;
   const shouldShowMeta = state !== "new";
 
@@ -362,8 +362,8 @@ function NextStepCard({
       style={[
         styles.nextStepCard,
         {
-          backgroundColor: `${accentColor}20`,
-          borderColor: `${accentColor}52`,
+          backgroundColor: withOpacity(accentColor, 0.125),
+          borderColor: withOpacity(accentColor, 0.32),
           shadowColor: accentColor,
           shadowOpacity: 0.11,
           shadowRadius: 12,
@@ -397,7 +397,14 @@ function NextStepCard({
               {topicIndexLabel}
             </ThemedText>
           ) : null}
-          {topicIndexLabel ? <View style={styles.nextStepMetaDot} /> : null}
+          {topicIndexLabel ? (
+            <View
+              style={[
+                styles.nextStepMetaDot,
+                { backgroundColor: theme.tabIconDefault },
+              ]}
+            />
+          ) : null}
           <View style={styles.nextStepMetaStatus}>
             {iconName ? (
               <AppIcon
@@ -537,7 +544,9 @@ function CategoryCard({
                       backgroundColor:
                         state === "new" ? theme.backgroundRoot : accentColor,
                       borderColor:
-                        state === "new" ? theme.cardBorder : `${accentColor}33`,
+                        state === "new"
+                          ? theme.cardBorder
+                          : withOpacity(accentColor, 0.2),
                     },
                   ]}
                 />
@@ -651,8 +660,8 @@ export default function LearnScreen() {
             style={[
               styles.dueSection,
               {
-                backgroundColor: theme.accent + "10",
-                borderColor: theme.accent + "2A",
+                backgroundColor: withOpacity(theme.accent, 0.06),
+                borderColor: withOpacity(theme.accent, 0.16),
               },
             ]}
           >
@@ -810,7 +819,6 @@ const styles = StyleSheet.create({
     width: 4,
     height: 4,
     borderRadius: BorderRadius.full,
-    backgroundColor: "#9BA1A6",
   },
   nextStepMetaStatus: {
     flexDirection: "row",

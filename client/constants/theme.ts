@@ -4,6 +4,7 @@ export const Colors = {
   light: {
     text: "#2C3E50",
     buttonText: "#FFFFFF",
+    onColor: "#FFFFFF",
     tabIconDefault: "#687076",
     tabIconSelected: "#E2001A",
     link: "#4A90E2",
@@ -19,10 +20,13 @@ export const Colors = {
     error: "#E2001A",
     codeBackground: "#F8F9FA",
     cardBorder: "#E8EBED",
+    cardBorderSubtle: "rgba(232, 235, 237, 0.72)",
+    separator: "rgba(44, 62, 80, 0.08)",
   },
   dark: {
     text: "#ECEDEE",
     buttonText: "#FFFFFF",
+    onColor: "#FFFFFF",
     tabIconDefault: "#9BA1A6",
     tabIconSelected: "#E2001A",
     link: "#4A90E2",
@@ -38,8 +42,12 @@ export const Colors = {
     error: "#E2001A",
     codeBackground: "#2A2C2E",
     cardBorder: "#404244",
+    cardBorderSubtle: "rgba(255, 255, 255, 0.12)",
+    separator: "rgba(255, 255, 255, 0.08)",
   },
 };
+
+export type ThemeColors = typeof Colors.light;
 
 export const Spacing = {
   xs: 4,
@@ -150,3 +158,71 @@ export const Shadows = {
 export const AvatarColors = ["#E2001A", "#4A90E2", "#34C759", "#FFB800"];
 
 export const AVATARS = ["monitor", "award", "code", "zap"] as const;
+
+export type ButtonSize = "default" | "compact";
+
+export function getButtonHeight(size: ButtonSize = "default") {
+  return size === "compact" ? 48 : Spacing.buttonHeight;
+}
+
+export const BottomActionBarLayout = {
+  paddingTop: Spacing.md,
+  paddingBottom: Spacing.lg,
+  gap: Spacing.md,
+  extraScrollPadding: Spacing.lg,
+} as const;
+
+export function getBottomActionBarScrollPadding({
+  buttonCount = 1,
+  buttonSize = "default",
+  extraScrollPadding = BottomActionBarLayout.extraScrollPadding,
+  safeAreaBottom = 0,
+}: {
+  buttonCount?: number;
+  buttonSize?: ButtonSize;
+  extraScrollPadding?: number;
+  safeAreaBottom?: number;
+} = {}) {
+  return (
+    BottomActionBarLayout.paddingTop +
+    BottomActionBarLayout.paddingBottom +
+    buttonCount * getButtonHeight(buttonSize) +
+    Math.max(buttonCount - 1, 0) * BottomActionBarLayout.gap +
+    safeAreaBottom +
+    extraScrollPadding
+  );
+}
+
+export function withOpacity(color: string | null | undefined, opacity: number) {
+  const clampedOpacity = Math.min(Math.max(opacity, 0), 1);
+
+  if (!color) {
+    return "transparent";
+  }
+
+  const hex = color.trim();
+
+  if (/^#([\da-f]{3}|[\da-f]{6})$/i.test(hex)) {
+    const normalized =
+      hex.length === 4
+        ? `#${hex[1]}${hex[1]}${hex[2]}${hex[2]}${hex[3]}${hex[3]}`
+        : hex;
+
+    const red = Number.parseInt(normalized.slice(1, 3), 16);
+    const green = Number.parseInt(normalized.slice(3, 5), 16);
+    const blue = Number.parseInt(normalized.slice(5, 7), 16);
+
+    return `rgba(${red}, ${green}, ${blue}, ${clampedOpacity})`;
+  }
+
+  const rgbMatch = hex.match(
+    /^rgba?\(\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d+)(?:\s*,\s*[\d.]+\s*)?\)$/i,
+  );
+
+  if (rgbMatch) {
+    const [, red, green, blue] = rgbMatch;
+    return `rgba(${red}, ${green}, ${blue}, ${clampedOpacity})`;
+  }
+
+  return hex;
+}

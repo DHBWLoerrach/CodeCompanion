@@ -1,5 +1,5 @@
 import React from "react";
-import { View, ScrollView, StyleSheet, Linking } from "react-native";
+import { ScrollView, StyleSheet, Linking } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Stack, useLocalSearchParams, useRouter } from "expo-router";
 import {
@@ -14,16 +14,26 @@ import {
 } from "@shared/programming-language";
 
 import { HeaderIconButton } from "@/components/HeaderIconButton";
+import { StatusBadge } from "@/components/StatusBadge";
+import { SurfaceCard } from "@/components/SurfaceCard";
 import { ThemedView } from "@/components/ThemedView";
 import { ThemedText } from "@/components/ThemedText";
 import { useTheme } from "@/contexts/ThemeContext";
 import { useTranslation } from "@/hooks/useTranslation";
 import { useCloseHandler } from "@/hooks/useCloseHandler";
-import { BorderRadius, Fonts, Spacing, Typography } from "@/constants/theme";
+import {
+  BorderRadius,
+  Fonts,
+  Spacing,
+  Typography,
+  withOpacity,
+} from "@/constants/theme";
 import { getParam, getParamWithDefault } from "@/lib/router-utils";
 import {
+  getCategoryName,
   getCategoriesByLanguage,
   getTopicById,
+  getTopicDescription,
   getTopicName,
 } from "@/lib/topics";
 
@@ -75,7 +85,7 @@ function getMarkdownStyle(
       lineHeight: 24,
       gapWidth: Spacing.sm,
       marginLeft: Spacing.sm,
-      markerColor: theme.primary,
+      markerColor: theme.secondary,
       markerFontWeight: "600",
     },
     link: {
@@ -83,9 +93,13 @@ function getMarkdownStyle(
       underline: true,
     },
     code: {
-      backgroundColor: isDark ? `${theme.secondary}15` : theme.codeBackground,
-      borderColor: isDark ? `${theme.secondary}30` : theme.cardBorder,
-      color: isDark ? theme.secondary : theme.primary,
+      backgroundColor: isDark
+        ? withOpacity(theme.secondary, 0.12)
+        : theme.codeBackground,
+      borderColor: isDark
+        ? withOpacity(theme.secondary, 0.2)
+        : theme.cardBorder,
+      color: theme.secondary,
       fontFamily: Fonts.mono,
       fontSize: Typography.code.fontSize,
     },
@@ -134,6 +148,14 @@ export default function TopicExplanationScreen() {
   const handleClose = useCloseHandler();
   const markdownStyle = getMarkdownStyle(theme, isDark);
   const title = topic ? getTopicName(topic, language) : t("topicExplanation");
+  const topicDescription = topic
+    ? getTopicDescription(topic, language)
+    : undefined;
+  const currentCategory = topic
+    ? getCategoriesByLanguage(resolvedProgrammingLanguage).find(
+        (category) => category.id === topic.category,
+      )
+    : undefined;
   const errorMessage = !resolvedTopicId
     ? t("topicNotFound")
     : t("explanationUnavailable");
@@ -158,20 +180,50 @@ export default function TopicExplanationScreen() {
           ]}
           showsVerticalScrollIndicator
         >
+          {topic ? (
+            <SurfaceCard
+              style={styles.heroCard}
+              borderColor={theme.cardBorderSubtle}
+              topAccentColor={theme.secondary}
+            >
+              <StatusBadge
+                color={theme.secondary}
+                icon="book-open"
+                label={t("topicExplanation")}
+              />
+              <ThemedText type="h3">{getTopicName(topic, language)}</ThemedText>
+              {currentCategory ? (
+                <ThemedText
+                  type="small"
+                  style={{ color: theme.tabIconDefault, fontWeight: "600" }}
+                >
+                  {getCategoryName(currentCategory, language)}
+                </ThemedText>
+              ) : null}
+              {topicDescription ? (
+                <ThemedText type="body" style={{ color: theme.tabIconDefault }}>
+                  {topicDescription}
+                </ThemedText>
+              ) : null}
+            </SurfaceCard>
+          ) : null}
+
           {staticExplanation ? (
-            <EnrichedMarkdownText
-              markdown={staticExplanation}
-              markdownStyle={markdownStyle}
-              onLinkPress={({ url }) => {
-                void Linking.openURL(url);
-              }}
-            />
+            <SurfaceCard style={styles.markdownCard}>
+              <EnrichedMarkdownText
+                markdown={staticExplanation}
+                markdownStyle={markdownStyle}
+                onLinkPress={({ url }) => {
+                  void Linking.openURL(url);
+                }}
+              />
+            </SurfaceCard>
           ) : (
-            <View style={styles.errorState}>
+            <SurfaceCard style={styles.errorState}>
               <ThemedText type="body" selectable style={{ color: theme.error }}>
                 {errorMessage}
               </ThemedText>
-            </View>
+            </SurfaceCard>
           )}
         </ScrollView>
       </ThemedView>
@@ -188,6 +240,13 @@ const styles = StyleSheet.create({
   },
   content: {
     padding: Spacing.lg,
+    gap: Spacing.lg,
+  },
+  heroCard: {
+    gap: Spacing.sm,
+  },
+  markdownCard: {
+    paddingTop: Spacing.md,
   },
   errorState: {
     gap: Spacing.lg,

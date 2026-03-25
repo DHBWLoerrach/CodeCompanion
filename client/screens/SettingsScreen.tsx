@@ -1,21 +1,18 @@
 import React, { useState, useEffect, useRef } from "react";
-import {
-  View,
-  StyleSheet,
-  Pressable,
-  TextInput,
-  Alert,
-  ActivityIndicator,
-} from "react-native";
+import { View, StyleSheet, Pressable, TextInput, Alert } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Stack, useRouter } from "expo-router";
 import SegmentedControl from "@react-native-segmented-control/segmented-control";
 import Constants from "expo-constants";
 
+import { BottomActionBar } from "@/components/BottomActionBar";
+import { PrimaryButton, SecondaryButton } from "@/components/ActionButton";
 import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
 import { KeyboardAwareScrollViewCompat } from "@/components/KeyboardAwareScrollViewCompat";
 import { AppIcon } from "@/components/AppIcon";
+import { LoadingScreen } from "@/components/LoadingScreen";
+import { SurfaceCard } from "@/components/SurfaceCard";
 import { useTheme } from "@/contexts/ThemeContext";
 import { useTranslation } from "@/hooks/useTranslation";
 import { getLanguageDisplayName } from "@/lib/languages";
@@ -25,6 +22,7 @@ import {
   Shadows,
   AvatarColors,
   AVATARS,
+  getBottomActionBarScrollPadding,
 } from "@/constants/theme";
 import {
   storage,
@@ -57,7 +55,7 @@ function AvatarSelector({ selectedIndex, onSelect }: AvatarSelectorProps) {
           ]}
           onPress={() => onSelect(index)}
         >
-          <AppIcon name={icon} size={28} color="#FFFFFF" />
+          <AppIcon name={icon} size={28} color={theme.onColor} />
         </Pressable>
       ))}
     </View>
@@ -75,7 +73,13 @@ function SettingRow({ icon, label, children }: SettingRowProps) {
 
   return (
     <View
-      style={[styles.settingRow, { backgroundColor: theme.backgroundDefault }]}
+      style={[
+        styles.settingRow,
+        {
+          backgroundColor: theme.backgroundDefault,
+          borderBottomColor: theme.separator,
+        },
+      ]}
     >
       <View style={styles.settingLeft}>
         <AppIcon name={icon} size={20} color={theme.tabIconDefault} />
@@ -225,9 +229,7 @@ export default function SettingsScreen() {
     return (
       <>
         <Stack.Screen options={settingsScreenOptions} />
-        <ThemedView style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color={theme.primary} />
-        </ThemedView>
+        <LoadingScreen />
       </>
     );
   }
@@ -240,7 +242,12 @@ export default function SettingsScreen() {
           style={styles.scrollView}
           contentContainerStyle={[
             styles.scrollContent,
-            { paddingTop: Spacing.xl, paddingBottom: 100 + insets.bottom },
+            {
+              paddingTop: Spacing.xl,
+              paddingBottom: getBottomActionBarScrollPadding({
+                safeAreaBottom: insets.bottom,
+              }),
+            },
           ]}
         >
           <View style={styles.section}>
@@ -250,12 +257,7 @@ export default function SettingsScreen() {
             >
               {t("profile")}
             </ThemedText>
-            <View
-              style={[
-                styles.card,
-                { backgroundColor: theme.backgroundDefault },
-              ]}
-            >
+            <SurfaceCard style={styles.card}>
               <ThemedText type="label" style={styles.fieldLabel}>
                 {t("avatar")}
               </ThemedText>
@@ -289,7 +291,7 @@ export default function SettingsScreen() {
                 placeholder={t("student")}
                 placeholderTextColor={theme.tabIconDefault}
               />
-            </View>
+            </SurfaceCard>
           </View>
 
           <View style={styles.section}>
@@ -313,7 +315,10 @@ export default function SettingsScreen() {
                     <Pressable
                       style={[
                         styles.aboutActionButton,
-                        { backgroundColor: theme.backgroundDefault },
+                        {
+                          backgroundColor: theme.backgroundDefault,
+                          borderBottomColor: theme.separator,
+                        },
                       ]}
                       onPress={() =>
                         router.push({
@@ -404,7 +409,10 @@ export default function SettingsScreen() {
               <Pressable
                 style={[
                   styles.aboutActionButton,
-                  { backgroundColor: theme.backgroundDefault },
+                  {
+                    backgroundColor: theme.backgroundDefault,
+                    borderBottomColor: theme.separator,
+                  },
                 ]}
                 onPress={() =>
                   router.push({
@@ -467,48 +475,26 @@ export default function SettingsScreen() {
             </View>
           </View>
 
-          <Pressable
+          <SecondaryButton
             testID="settings-reset-progress-button"
-            style={[styles.dangerButton, { borderColor: theme.error }]}
+            color={theme.error}
+            icon="trash-2"
+            label={t("resetAllProgress")}
             onPress={handleResetProgress}
-          >
-            <AppIcon name="trash-2" size={18} color={theme.error} />
-            <ThemedText type="body" style={{ color: theme.error }}>
-              {t("resetAllProgress")}
-            </ThemedText>
-          </Pressable>
+            style={styles.dangerButton}
+          />
         </KeyboardAwareScrollViewCompat>
 
-        <View
-          style={[
-            styles.footer,
-            {
-              paddingBottom: insets.bottom + Spacing.lg,
-              backgroundColor: theme.backgroundRoot,
-            },
-          ]}
-        >
-          <Pressable
+        <BottomActionBar>
+          <PrimaryButton
             testID="settings-save-button"
-            style={[
-              styles.saveButton,
-              { backgroundColor: saving ? theme.disabled : theme.primary },
-            ]}
+            color={theme.secondary}
+            label={t("saveChanges")}
             onPress={handleSave}
             disabled={saving}
-          >
-            {saving ? (
-              <ActivityIndicator color="#FFFFFF" />
-            ) : (
-              <ThemedText
-                type="body"
-                style={{ color: "#FFFFFF", fontWeight: "600" }}
-              >
-                {t("saveChanges")}
-              </ThemedText>
-            )}
-          </Pressable>
-        </View>
+            loading={saving}
+          />
+        </BottomActionBar>
       </ThemedView>
     </>
   );
@@ -517,11 +503,6 @@ export default function SettingsScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-  },
-  loadingContainer: {
-    flex: 1,
-    alignItems: "center",
-    justifyContent: "center",
   },
   scrollView: {
     flex: 1,
@@ -538,9 +519,7 @@ const styles = StyleSheet.create({
     letterSpacing: 0.5,
   },
   card: {
-    borderRadius: BorderRadius.md,
-    padding: Spacing.lg,
-    ...Shadows.card,
+    gap: Spacing.sm,
   },
   fieldLabel: {
     marginBottom: Spacing.sm,
@@ -575,7 +554,6 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     padding: Spacing.lg,
     borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: "rgba(0,0,0,0.1)",
   },
   aboutActionButton: {
     flexDirection: "row",
@@ -583,7 +561,6 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     padding: Spacing.lg,
     borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: "rgba(0,0,0,0.1)",
   },
   aboutActionButtonLast: {
     borderBottomWidth: 0,
@@ -606,28 +583,6 @@ const styles = StyleSheet.create({
     flexShrink: 1,
   },
   dangerButton: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    gap: Spacing.sm,
-    padding: Spacing.lg,
-    borderRadius: BorderRadius.md,
-    borderWidth: 2,
-  },
-  footer: {
-    position: "absolute",
-    bottom: 0,
-    left: 0,
-    right: 0,
-    padding: Spacing.lg,
-    paddingTop: Spacing.md,
-    borderTopWidth: 1,
-    borderTopColor: "rgba(0,0,0,0.05)",
-  },
-  saveButton: {
-    height: 56,
-    borderRadius: BorderRadius.md,
-    alignItems: "center",
-    justifyContent: "center",
+    marginTop: Spacing.sm,
   },
 });

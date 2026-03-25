@@ -14,7 +14,7 @@ import {
   getLanguageDisplayName,
   type ProgrammingLanguage,
 } from "@/lib/languages";
-import { Spacing, BorderRadius } from "@/constants/theme";
+import { Spacing, BorderRadius, Shadows } from "@/constants/theme";
 
 const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
 
@@ -49,7 +49,7 @@ function LanguageCard({
         backgroundColor: theme.backgroundDefault,
         borderRadius: BorderRadius.lg,
         borderCurve: "continuous",
-        boxShadow: "0px 2px 8px rgba(0, 0, 0, 0.08)",
+        ...Shadows.card,
       }}
     >
       <View

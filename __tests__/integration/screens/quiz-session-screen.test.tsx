@@ -82,9 +82,12 @@ jest.mock("@/contexts/ThemeContext", () => ({
       codeBackground: "#F7F7F7",
       disabled: "#CCCCCC",
       buttonText: "#FFFFFF",
+      onColor: "#FFFFFF",
       link: "#4A90E2",
       backgroundSecondary: "#F0F0F0",
       backgroundTertiary: "#EBEBEB",
+      cardBorderSubtle: "#DDDDDD",
+      separator: "rgba(0, 0, 0, 0.08)",
     },
   }),
 }));
@@ -251,7 +254,7 @@ describe("QuizSessionScreen integration", () => {
     fireEvent.press(undefinedAnswer);
     expect(undefinedAnswer).toHaveStyle({
       color: "#FFFFFF",
-      backgroundColor: "rgba(255,255,255,0.2)",
+      backgroundColor: "rgba(255, 255, 255, 0.18)",
     });
     fireEvent.press(screen.getByText("submitAnswer"));
 

@@ -1,19 +1,29 @@
 import React, { useEffect, useMemo } from "react";
-import { View, ScrollView, StyleSheet, Pressable } from "react-native";
+import { View, ScrollView, StyleSheet } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Stack, useLocalSearchParams, useRouter } from "expo-router";
 import Svg, { Circle } from "react-native-svg";
 
+import { BottomActionBar } from "@/components/BottomActionBar";
+import { InlineCodeText } from "@/components/InlineCodeText";
+import { PrimaryButton, SecondaryButton } from "@/components/ActionButton";
+import { StatusBadge } from "@/components/StatusBadge";
+import { SurfaceCard } from "@/components/SurfaceCard";
 import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
 import { AppIcon } from "@/components/AppIcon";
 import { useTheme } from "@/contexts/ThemeContext";
 import { useTranslation } from "@/hooks/useTranslation";
-import { Spacing, BorderRadius, Shadows } from "@/constants/theme";
+import { QUICK_QUIZ_MODE } from "@/constants/quiz";
+import {
+  Spacing,
+  getBottomActionBarScrollPadding,
+  withOpacity,
+} from "@/constants/theme";
 import { getTopicById, getTopicName } from "@/lib/topics";
 import { getParam, getParamWithDefault } from "@/lib/router-utils";
 import { storage } from "@/lib/storage";
-import { getLanguageById } from "@/lib/languages";
+import { getLanguageById, getLanguageDisplayName } from "@/lib/languages";
 
 interface ScoreCircleProps {
   score: number;
@@ -85,17 +95,15 @@ function AnswerItem({
   const { theme } = useTheme();
 
   return (
-    <View
-      style={[styles.answerItem, { backgroundColor: theme.backgroundDefault }]}
-    >
+    <SurfaceCard style={styles.answerItem}>
       <View style={styles.answerLeft}>
         <View
           style={[
             styles.answerIcon,
             {
               backgroundColor: correct
-                ? theme.success + "20"
-                : theme.error + "20",
+                ? withOpacity(theme.success, 0.14)
+                : withOpacity(theme.error, 0.14),
             },
           ]}
         >
@@ -110,11 +118,13 @@ function AnswerItem({
         </ThemedText>
       </View>
       {!correct ? (
-        <ThemedText type="small" style={{ color: theme.tabIconDefault }}>
-          {correctAnswer}
-        </ThemedText>
+        <InlineCodeText
+          text={correctAnswer}
+          type="small"
+          style={[styles.correctAnswerText, { color: theme.tabIconDefault }]}
+        />
       ) : null}
-    </View>
+    </SurfaceCard>
   );
 }
 
@@ -159,10 +169,35 @@ export default function SessionSummaryScreen() {
   }, [answersParam]);
 
   const percentage = total > 0 ? (score / total) * 100 : 0;
-  const langCategories = getLanguageById(programmingLanguageParam)?.categories;
+  const selectedLanguage = getLanguageById(programmingLanguageParam);
+  const langCategories = selectedLanguage?.categories;
   const topic = topicIdParam
     ? getTopicById(topicIdParam, langCategories)
     : null;
+  const selectedTopicCount = topicIdsParam
+    ? topicIdsParam.split(",").filter(Boolean).length
+    : 0;
+  const summaryBadgeLabel =
+    quizModeParam === QUICK_QUIZ_MODE
+      ? t("quickQuiz")
+      : topic
+        ? t("topic")
+        : t("mixedQuiz");
+  const summaryBadgeIcon =
+    quizModeParam === QUICK_QUIZ_MODE ? "zap" : topic ? "book-open" : "edit-3";
+  const summaryTitle = topic
+    ? getTopicName(topic, language)
+    : quizModeParam === QUICK_QUIZ_MODE
+      ? t("quickQuiz")
+      : t("mixedQuiz");
+  const summarySubtitle =
+    selectedTopicCount > 0
+      ? `${selectedTopicCount} ${
+          selectedTopicCount === 1 ? t("topic") : t("topics")
+        }`
+      : selectedLanguage
+        ? getLanguageDisplayName(selectedLanguage, language)
+        : programmingLanguageParam;
 
   useEffect(() => {
     if (topicIdParam) {
@@ -213,30 +248,35 @@ export default function SessionSummaryScreen() {
           contentInsetAdjustmentBehavior="automatic"
           contentContainerStyle={[
             styles.scrollContent,
-            { paddingTop: Spacing.xl, paddingBottom: 160 + insets.bottom },
+            {
+              paddingTop: Spacing.xl,
+              paddingBottom: getBottomActionBarScrollPadding({
+                buttonCount: 2,
+                safeAreaBottom: insets.bottom,
+              }),
+            },
           ]}
           showsVerticalScrollIndicator={false}
         >
           <View style={styles.header}>
+            <StatusBadge
+              color={theme.secondary}
+              icon={summaryBadgeIcon}
+              label={summaryBadgeLabel}
+            />
             <AppIcon name="award" size={32} color={theme.accent} />
-            {topic ? (
-              <ThemedText type="body" style={{ color: theme.tabIconDefault }}>
-                {getTopicName(topic, language)}
-              </ThemedText>
-            ) : null}
+            <ThemedText type="body">{summaryTitle}</ThemedText>
+            <ThemedText type="small" style={{ color: theme.tabIconDefault }}>
+              {summarySubtitle}
+            </ThemedText>
           </View>
 
-          <View
-            style={[
-              styles.scoreCard,
-              { backgroundColor: theme.backgroundDefault },
-            ]}
-          >
+          <SurfaceCard style={styles.scoreCard}>
             <ScoreCircle score={score} total={total} />
             <ThemedText type="body" style={styles.feedbackText}>
               {getFeedbackMessage(percentage)}
             </ThemedText>
-          </View>
+          </SurfaceCard>
 
           <View style={styles.breakdownSection}>
             <ThemedText type="h4" style={styles.sectionTitle}>
@@ -256,41 +296,21 @@ export default function SessionSummaryScreen() {
           </View>
         </ScrollView>
 
-        <View
-          style={[
-            styles.footer,
-            {
-              paddingBottom: insets.bottom + Spacing.lg,
-              backgroundColor: theme.backgroundRoot,
-            },
-          ]}
-        >
-          <Pressable
+        <BottomActionBar>
+          <PrimaryButton
             testID="summary-practice-again-button"
-            style={[styles.primaryButton, { backgroundColor: theme.primary }]}
+            color={theme.secondary}
+            icon="refresh-cw"
+            label={t("practiceAgain")}
             onPress={handlePracticeAgain}
-          >
-            <AppIcon name="refresh-cw" size={20} color="#FFFFFF" />
-            <ThemedText
-              type="body"
-              style={{ color: "#FFFFFF", fontWeight: "600" }}
-            >
-              {t("practiceAgain")}
-            </ThemedText>
-          </Pressable>
-          <Pressable
+          />
+          <SecondaryButton
             testID="summary-back-to-topics-button"
-            style={[styles.secondaryButton, { borderColor: theme.secondary }]}
+            color={theme.secondary}
+            label={t("backToTopics")}
             onPress={handleBackToTopics}
-          >
-            <ThemedText
-              type="body"
-              style={{ color: theme.secondary, fontWeight: "600" }}
-            >
-              {t("backToTopics")}
-            </ThemedText>
-          </Pressable>
-        </View>
+          />
+        </BottomActionBar>
       </ThemedView>
     </>
   );
@@ -312,10 +332,7 @@ const styles = StyleSheet.create({
     gap: Spacing.sm,
   },
   scoreCard: {
-    borderRadius: BorderRadius.lg,
-    padding: Spacing.xl,
     alignItems: "center",
-    ...Shadows.card,
   },
   scoreCircleContainer: {
     width: 180,
@@ -345,9 +362,6 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
-    padding: Spacing.md,
-    borderRadius: BorderRadius.sm,
-    ...Shadows.card,
   },
   answerLeft: {
     flexDirection: "row",
@@ -361,30 +375,8 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
   },
-  footer: {
-    position: "absolute",
-    bottom: 0,
-    left: 0,
-    right: 0,
-    padding: Spacing.lg,
-    paddingTop: Spacing.md,
-    gap: Spacing.md,
-    borderTopWidth: 1,
-    borderTopColor: "rgba(0,0,0,0.05)",
-  },
-  primaryButton: {
-    height: 56,
-    borderRadius: BorderRadius.md,
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    gap: Spacing.sm,
-  },
-  secondaryButton: {
-    height: 56,
-    borderRadius: BorderRadius.md,
-    alignItems: "center",
-    justifyContent: "center",
-    borderWidth: 2,
+  correctAnswerText: {
+    flexShrink: 1,
+    textAlign: "right",
   },
 });

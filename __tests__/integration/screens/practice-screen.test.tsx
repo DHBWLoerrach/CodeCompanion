@@ -54,9 +54,12 @@ jest.mock("@/contexts/ThemeContext", () => ({
       codeBackground: "#F7F7F7",
       disabled: "#CCCCCC",
       buttonText: "#FFFFFF",
+      onColor: "#FFFFFF",
       link: "#4A90E2",
       backgroundSecondary: "#F0F0F0",
       backgroundTertiary: "#EBEBEB",
+      cardBorderSubtle: "#DDDDDD",
+      separator: "rgba(0, 0, 0, 0.08)",
     },
   }),
 }));
@@ -184,8 +187,7 @@ describe("PracticeScreen integration", () => {
         params?: { quizMode?: string };
       };
       return (
-        route.pathname === "/quiz-session" &&
-        route.params?.quizMode === "quick"
+        route.pathname === "/quiz-session" && route.params?.quizMode === "quick"
       );
     });
     expect(quickCall).toBeDefined();

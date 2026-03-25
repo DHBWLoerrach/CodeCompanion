@@ -1,17 +1,12 @@
 import React, { useState, useCallback } from "react";
-import {
-  View,
-  ScrollView,
-  StyleSheet,
-  Pressable,
-  ActivityIndicator,
-} from "react-native";
+import { View, ScrollView, StyleSheet, Pressable } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useFocusEffect, useRouter } from "expo-router";
 
 import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
 import { AppIcon } from "@/components/AppIcon";
+import { LoadingScreen } from "@/components/LoadingScreen";
 import { useTheme } from "@/contexts/ThemeContext";
 import { useTranslation } from "@/hooks/useTranslation";
 import {
@@ -20,6 +15,7 @@ import {
   Shadows,
   AvatarColors,
   AVATARS,
+  withOpacity,
 } from "@/constants/theme";
 import {
   storage,
@@ -44,7 +40,10 @@ function StatCard({ title, value, icon, color }: StatCardProps) {
       style={[styles.statCard, { backgroundColor: theme.backgroundDefault }]}
     >
       <View
-        style={[styles.statIconContainer, { backgroundColor: color + "20" }]}
+        style={[
+          styles.statIconContainer,
+          { backgroundColor: withOpacity(color, 0.14) },
+        ]}
       >
         <AppIcon name={icon} size={20} color={color} />
       </View>
@@ -101,7 +100,7 @@ function AchievementBadge({ name, icon, unlocked }: AchievementBadgeProps) {
         ]}
       >
         {unlocked ? (
-          <AppIcon name={icon} size={24} color="#FFFFFF" />
+          <AppIcon name={icon} size={24} color={theme.onColor} />
         ) : (
           <AppIcon name="lock" size={20} color={theme.tabIconDefault} />
         )}
@@ -216,11 +215,7 @@ export default function ProgressScreen() {
   };
 
   if (loading || !profile || !progress || !streak) {
-    return (
-      <ThemedView style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color={theme.primary} />
-      </ThemedView>
-    );
+    return <LoadingScreen />;
   }
 
   const unlockedAchievements = getUnlockedAchievements();
@@ -261,7 +256,7 @@ export default function ProgressScreen() {
             <AppIcon
               name={AVATARS[profile.avatarIndex] as any}
               size={36}
-              color="#FFFFFF"
+              color={theme.onColor}
             />
           </View>
           <ThemedText type="h4" style={styles.displayName}>
@@ -360,11 +355,6 @@ export default function ProgressScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-  },
-  loadingContainer: {
-    flex: 1,
-    alignItems: "center",
-    justifyContent: "center",
   },
   scrollView: {
     flex: 1,

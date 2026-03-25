@@ -1,15 +1,16 @@
 import React from "react";
 import { View, ScrollView, StyleSheet, Pressable, Linking } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { Stack, useLocalSearchParams, useRouter } from "expo-router";
+import { Stack, useLocalSearchParams } from "expo-router";
 
 import { HeaderIconButton } from "@/components/HeaderIconButton";
+import { SurfaceCard } from "@/components/SurfaceCard";
 import { ThemedView } from "@/components/ThemedView";
 import { ThemedText } from "@/components/ThemedText";
 import { useTheme } from "@/contexts/ThemeContext";
 import { useTranslation } from "@/hooks/useTranslation";
 import { useCloseHandler } from "@/hooks/useCloseHandler";
-import { Spacing, BorderRadius, Shadows } from "@/constants/theme";
+import { Spacing } from "@/constants/theme";
 
 type InfoModalType = "about" | "imprint";
 
@@ -17,7 +18,6 @@ export default function InfoModalScreen() {
   const { theme } = useTheme();
   const { t, language } = useTranslation();
   const insets = useSafeAreaInsets();
-  const router = useRouter();
   const { type } = useLocalSearchParams<{ type?: string }>();
 
   const resolvedType: InfoModalType = type === "imprint" ? "imprint" : "about";
@@ -59,13 +59,11 @@ export default function InfoModalScreen() {
           showsVerticalScrollIndicator={false}
         >
           {resolvedType === "about" ? (
-            <View
-              style={[
-                styles.card,
-                { backgroundColor: theme.backgroundDefault },
-              ]}
-            >
-              <ThemedText type="h3" style={styles.imprintMainTitle}>
+            <SurfaceCard style={styles.card}>
+              <ThemedText
+                type="h3"
+                style={[styles.imprintMainTitle, { color: theme.primary }]}
+              >
                 {title}
               </ThemedText>
 
@@ -216,15 +214,13 @@ export default function InfoModalScreen() {
                   </Pressable>
                 </>
               )}
-            </View>
+            </SurfaceCard>
           ) : (
-            <View
-              style={[
-                styles.card,
-                { backgroundColor: theme.backgroundDefault },
-              ]}
-            >
-              <ThemedText type="h3" style={styles.imprintMainTitle}>
+            <SurfaceCard style={styles.card}>
+              <ThemedText
+                type="h3"
+                style={[styles.imprintMainTitle, { color: theme.primary }]}
+              >
                 Impressum
               </ThemedText>
 
@@ -345,7 +341,7 @@ export default function InfoModalScreen() {
                 Nutzung von Dokumenten oder Informationen entstehen, die in
                 dieser App zugänglich sind.
               </ThemedText>
-            </View>
+            </SurfaceCard>
           )}
         </ScrollView>
       </ThemedView>
@@ -364,13 +360,10 @@ const styles = StyleSheet.create({
     padding: Spacing.lg,
   },
   card: {
-    borderRadius: BorderRadius.lg,
-    padding: Spacing.lg,
     gap: Spacing.md,
-    ...Shadows.card,
   },
   imprintMainTitle: {
-    color: "#B00020",
+    lineHeight: 32,
   },
   inlineRow: {
     flexDirection: "row",
