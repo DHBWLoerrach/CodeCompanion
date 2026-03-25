@@ -1,6 +1,7 @@
 import React from "react";
 import { View, StyleSheet } from "react-native";
 import type { MasteryLevel } from "@shared/skill-level";
+import { withOpacity } from "@/constants/theme";
 
 interface SkillLevelDotsProps {
   level: MasteryLevel;
@@ -15,7 +16,7 @@ export function SkillLevelDots({ level, color }: SkillLevelDotsProps) {
           key={i}
           style={[
             styles.dot,
-            { backgroundColor: i <= level ? color : color + "40" },
+            { backgroundColor: i <= level ? color : withOpacity(color, 0.25) },
           ]}
         />
       ))}
