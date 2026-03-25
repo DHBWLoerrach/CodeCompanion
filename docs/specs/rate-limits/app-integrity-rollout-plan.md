@@ -196,6 +196,21 @@ Stattdessen:
 5. Google gibt entschluesseltes Verdict zurueck, inkl. `requestHash` im Klartext
 6. Server rekonstruiert den erwarteten Hash unabhaengig und vergleicht
 
+### Client-seitiges Warm-up
+
+Der Token Provider sollte **nicht erst beim eigentlichen Quiz-Request** vorbereitet werden.
+
+Empfehlung:
+
+- Vorbereitung beim App-Start oder spaetestens beim Betreten des Quiz-Flows
+- nicht-blockierendes Warm-up im Hintergrund
+- beim eigentlichen Request nach Moeglichkeit nur noch `requestIntegrityCheckAsync(...)`
+
+Rationale:
+
+- Das Warm-up dauert laut Google typischerweise einige Sekunden, oft unter 10 Sekunden
+- Ein spaeter Start direkt beim Quiz-Request fuehrt sonst zu sichtbar schlechter UX
+
 ### Kanonische `requestHash`-Definition
 
 Die Hash-Berechnung darf **nicht** ad hoc per String-Konkatenation erfolgen.
@@ -208,6 +223,13 @@ Stattdessen wird eine gemeinsame Helper-Funktion in Shared-Code verwendet, die a
 4. Defaults explizit einsetzen
 5. Das Ergebnis als stabile JSON-Struktur serialisieren
 6. Darueber SHA-256 bilden
+
+Wichtige Trennung:
+
+- Die Schritte 1-5 sind **plattformneutral**
+- Der SHA-256-Schritt wird **pro Runtime** ueber eine kleine Abstraktionsschicht injiziert
+- Auf dem Server kann die bestehende `sha256Hex()`-Logik verwendet werden
+- Auf dem Client sollte `expo-crypto` verwendet werden; `crypto.subtle` darf in React Native nicht vorausgesetzt werden
 
 Beispiel-Zielbild:
 
@@ -229,14 +251,38 @@ Fuer `POST /api/quiz/generate-mixed` gilt dasselbe Prinzip. Wichtig:
 
 - gleiche Defaults auf Client und Server
 - gleiche Feldnamen
-- gleiche Feldreihenfolge in der Serialisierung
+- gleiche und explizit definierte Feldreihenfolge in der Serialisierung
 - Arrays werden bewusst entweder **in Originalreihenfolge** oder bewusst sortiert behandelt; diese Entscheidung muss einmalig festgelegt und in der Shared-Helper-Funktion zentral umgesetzt werden
+
+`JSON.stringify(...)` allein ist dafuer nicht genug spezifiziert, wenn sich die Objektkonstruktion spaeter aendert. Deshalb muss die Shared-Funktion entweder:
+
+- Keys bewusst in fest definierter Reihenfolge aufbauen, oder
+- eine stabile, rekursive Key-Sortierung erzwingen
+
+Die Entscheidung muss durch Unit-Tests abgesichert werden.
 
 Empfehlung fuer dieses Repo:
 
 - Methode und Route immer in den Hash aufnehmen
 - denselben Normalisierungspfad fuer Client und Server in Shared-Code kapseln
 - `topicIds` nur dann sortieren, wenn die Server-Semantik Reihenfolge explizit als irrelevant behandelt
+
+### Hash-Versionierung
+
+Die Hash-Definition ist Teil des API-Vertrags. Wenn sich Normalisierung, Defaults oder relevante Felder aendern, koennen alte Clients sonst im `enforce`-Modus mit `hash_mismatch` scheitern.
+
+Empfehlung:
+
+- Eine explizite Hash-Version mitfuehren, z. B. `X-Integrity-Hash-Version: 1`
+- Der Server sollte mindestens `N` und waehrend eines Rollouts idealerweise auch `N-1` unterstuetzen
+
+Alternative fuer kleine Nutzerbasis:
+
+- erzwungenes App-Update vor Aktivierung einer inkompatiblen Hash-Aenderung
+
+Bevorzugtes Zielbild fuer dieses Repo bleibt trotzdem:
+
+- Header-basierte Versionierung im Request, damit Server und Client kontrolliert weiterentwickelt werden koennen
 
 ### Vorteile
 
@@ -257,6 +303,12 @@ Body: { "integrity_token": "..." }
 
 Erfordert einen Google Cloud Service Account mit `playintegrity` Scope. Die Authentifizierung erfolgt ueber OAuth2 Token-Exchange.
 
+Wichtiger Implementierungspunkt:
+
+- Fuer den Google-API-Call muss auf EAS Hosting ein Service-Account-basierter OAuth2-Zugriff funktionieren
+- Dazu muss ein JWT fuer den Token-Exchange signiert werden
+- Dieser Schritt ist ein eigener Validierungspunkt fuer Android und sollte frueh als technischer Mini-PoC verifiziert werden
+
 ### Initiale Verdict-Policy fuer Observe und spaeteres Enforce
 
 | Feld | Akzeptierter Wert | Rationale |
@@ -274,6 +326,56 @@ Wichtige Einordnung:
 - Die Tabelle beschreibt deshalb eine **initiale Kandidaten-Policy**, keine bereits final entschiedene Produktionspolicy
 
 Dev-Builds auf echten Geraeten liefern `appRecognitionVerdict: "UNRECOGNIZED_VERSION"`. Das ist kein Problem, weil lokal `APP_INTEGRITY_MODE=off` gilt und im `observe`-Modus nur geloggt wird.
+
+### Integrity-Fehler im API-Vertrag
+
+Integrity-Failures sind **keine** Rate-Limit-Fehler und sollten deshalb nicht als `429` modelliert werden.
+
+Empfehlung:
+
+- `400`, wenn Integrity-Header syntaktisch ungueltig oder unvollstaendig sind
+- `403`, wenn Integrity im `enforce`-Modus geprueft wurde, aber das Verdict fehlt oder ungueltig ist
+
+Beispiel fuer einen strukturierten Fehler-Body:
+
+```json
+{
+  "error": "integrity_failed",
+  "reason": "missing_token"
+}
+```
+
+Moegliche `reason`-Werte:
+
+- `missing_token`
+- `invalid_token`
+- `hash_mismatch`
+- `unsupported_platform`
+- `integrity_unavailable`
+
+Folge fuer den Client:
+
+- Der Quiz-Client muss diesen Fehlertyp explizit erkennen und eine eigene Fehlermeldung anzeigen
+- Die bestehende `429`-Behandlung fuer Quota bleibt davon getrennt
+
+### Client-seitige Graceful Degradation
+
+Wenn `@expo/app-integrity` auf einem echten Geraet fehlschlaegt, sollte der Client den Fehler **nicht unkontrolliert eskalieren**.
+
+Empfohlenes Verhalten:
+
+1. Integrity-Aufruf versuchen
+2. Bei transientem Fehler den Provider einmal neu vorbereiten
+3. Den Integrity-Aufruf genau einmal erneut versuchen
+4. Wenn das weiterhin scheitert, den Request **ohne** Integrity-Token senden
+5. Optional einen diagnostischen Header mitschicken, z. B. `X-Integrity-Error: provider_failed`
+
+Wichtige Einordnung:
+
+- Ein solcher Fehler-Header ist **nicht vertrauenswuerdig**
+- Der Server darf ihn nur fuer Logging und Observe-Auswertung verwenden
+- Im `observe`-Modus hilft das, Alpha-Bugs von normalem Missing-Token-Traffic besser zu unterscheiden
+- Im `enforce`-Modus wird der Request trotzdem regulaer mit `403` abgelehnt
 
 ### Grobe Dateiauswirkungen
 
@@ -308,6 +410,13 @@ Beispiel:
 APP_INTEGRITY_ANDROID_ENABLED=true
 APP_INTEGRITY_IOS_ENABLED=false
 ```
+
+Semantik:
+
+- `*_ENABLED=false` bedeutet: Integrity fuer diese Plattform wird komplett uebersprungen (`skipped`)
+- `*_ENABLED=true` + `APP_INTEGRITY_MODE=observe` bedeutet: pruefen und loggen, aber nicht blocken
+- `*_ENABLED=true` + `APP_INTEGRITY_MODE=enforce` bedeutet: pruefen und bei Failure blocken
+- Wenn fuer die aktuelle Plattform `*_ENABLED=false` ist, darf `APP_INTEGRITY_MODE=enforce` **nicht** implizit trotzdem blockieren
 
 ### Phase 2 - Observe vor Enforce
 
@@ -391,6 +500,8 @@ Empfehlung:
 
 - Start mit einem **globalen** Limit ueber beide Quiz-Endpunkte
 - `endpoint` trotzdem mitschreiben, damit spaetere Auswertung und Feintuning moeglich bleiben
+- bewusst **Upsert + `request_count`** verwenden, nicht Row-per-Request wie beim bestehenden Device-Quota
+- Grund: weniger Rows, einfacherer Cleanup, bessere Eignung fuer einen groben Frontdoor-Guard
 
 ### Android
 
@@ -466,7 +577,8 @@ Der Ausbau gilt als erfolgreich, wenn:
 4. ~~Welche Community-Library kommt fuer den iOS-PoC in Frage?~~ Beantwortet: `node-app-attest` als erste Wahl, `appattest-checker-node` als Alternative
 5. Soll iOS bei ausbleibendem PoC bewusst vorerst ohne App Integrity bleiben?
 6. Sollen Geraete mit nur `MEETS_BASIC_INTEGRITY` nach der Observe-Phase im spaeteren `enforce`-Modus ausgeschlossen bleiben, oder wird diese Klasse bewusst toleriert?
-7. Welcher Package Name wird fuer die Play Integrity Konfiguration verwendet?
+7. Soll der Android-Schritt explizit einen Mini-PoC fuer Google Service-Account OAuth2/JWT-Signing auf EAS Hosting enthalten, bevor die eigentliche Verdict-Pruefung umgesetzt wird?
+8. Welcher Package Name wird fuer die Play Integrity Konfiguration verwendet?
 
 ## Empfohlene Entscheidung fuer dieses Repo
 

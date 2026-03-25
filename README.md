@@ -140,6 +140,92 @@ Beide Dateien müssen gemeinsam committed werden.
   - `SUPABASE_URL` und `SUPABASE_SECRET_KEY` müssen gesetzt sein
   - Nur gegen eine dedizierte Dev-/Test-Supabase-Instanz testen, nie gegen Produktion
 
+## Supabase-Setup für Entwicklungsumgebung
+
+Supabase wird in diesem Projekt aktuell nur für das serverseitige Quota-Feature benötigt.
+Für den normalen lokalen Entwicklungsalltag bleibt `API_QUOTA_ENABLED=false`.
+
+Wichtiger Stand heute:
+
+- Es gibt aktuell kein `supabase/`-Verzeichnis mit committed Migrationen.
+- Das benötigte Schema wird derzeit manuell im Supabase SQL Editor angelegt.
+
+### 1. Dev-/Test-Projekt anlegen
+
+Ein dediziertes Supabase-Projekt für Entwicklung oder Integrationstests anlegen.
+Nie gegen das Produktionsprojekt entwickeln oder testen.
+
+### 2. SQL für die Quota-Tabelle ausführen
+
+Im Supabase SQL Editor folgendes ausführen:
+
+```sql
+create table public.api_usage (
+  id bigint generated always as identity primary key,
+  device_id_hash text not null,
+  endpoint text not null check (endpoint in ('quiz/generate', 'quiz/generate-mixed')),
+  usage_date date not null default ((now() at time zone 'utc')::date),
+  created_at timestamptz not null default now()
+);
+
+create index idx_api_usage_device_day
+  on public.api_usage (device_id_hash, usage_date);
+
+create index idx_api_usage_device_day_endpoint
+  on public.api_usage (device_id_hash, usage_date, endpoint);
+
+create index idx_api_usage_global_day
+  on public.api_usage (usage_date);
+
+alter table public.api_usage enable row level security;
+```
+
+Danach prüfen:
+
+- `public.api_usage` existiert
+- RLS ist aktiv
+
+### 3. Projekt-URL und Secret Key übernehmen
+
+Aus dem Supabase-Projekt werden für dieses Repo benötigt:
+
+- `SUPABASE_URL`
+- `SUPABASE_SECRET_KEY`
+
+`SUPABASE_SECRET_KEY` ist rein serverseitig und darf niemals über `EXPO_PUBLIC_*` exponiert werden.
+
+### 4. `.env.local` für den Integrationsmodus setzen
+
+```bash
+OPENAI_API_KEY=...
+OPENAI_MODEL=gpt-5.4-nano
+EXPO_PUBLIC_API_URL=
+API_QUOTA_ENABLED=true
+SUPABASE_URL=...
+SUPABASE_SECRET_KEY=sb_secret_...
+```
+
+Wenn Supabase lokal nicht benötigt wird, reicht weiterhin:
+
+```bash
+OPENAI_API_KEY=...
+API_QUOTA_ENABLED=false
+```
+
+### 5. Lokal starten und testen
+
+```bash
+npm run start
+```
+
+Die Supabase-Anbindung ist nur relevant für:
+
+- `POST /api/quiz/generate`
+- `POST /api/quiz/generate-mixed`
+
+Für Deployments müssen dieselben Variablen zusätzlich in der EAS-Environment gesetzt werden.
+Mehr Kontext zur Architektur und zum Rollout steht in `docs/specs/rate-limits/rate-limiting-plan-v4.md`.
+
 ## Entwicklung starten
 
 ```bash
