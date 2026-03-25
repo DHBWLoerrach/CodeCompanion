@@ -38,6 +38,9 @@ export const translations = {
     submitAnswer: 'Submit Answer',
     nextQuestion: 'Next Question',
     viewResults: 'View Results',
+    quitQuizTitle: 'Quit quiz?',
+    quitQuizMessage: 'Your current quiz progress will be lost.',
+    quitQuizConfirm: 'Quit Quiz',
     explanation: 'Explanation',
     question: 'Question',
 
@@ -217,6 +220,9 @@ export const translations = {
     submitAnswer: 'Antwort absenden',
     nextQuestion: 'Nächste Frage',
     viewResults: 'Ergebnisse anzeigen',
+    quitQuizTitle: 'Quiz wirklich abbrechen?',
+    quitQuizMessage: 'Dein aktueller Quiz-Fortschritt geht verloren.',
+    quitQuizConfirm: 'Quiz abbrechen',
     explanation: 'Erklärung',
     question: 'Frage',
 
