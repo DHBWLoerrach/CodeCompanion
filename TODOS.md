@@ -5,6 +5,7 @@ Hier sammeln wir Todos für später.
 ## Rate Limit: Spätere Erweiterungspfade (aufbauend auf v4, siehe [Spec](./docs/specs/rate-limits/rate-limiting-plan-v4.md))
 
 - brauchen DHBW-Nutzer überhaupt mehr Quota? siehe [DHBW-Quota-Extension-Path](./docs/specs/rate-limits/dhbw-quota-extension-path.md)
+- `public.api_usage` in Supabase im Blick behalten; falls die Tabelle merklich wächst, zunächst manuell bereinigen und später bei Bedarf einen einfachen Aufräum-Job ergänzen (z. B. mit Supabase Cron).
 
 1. **`@expo/app-integrity`:** Attestation-Token als zusätzlichen Guard vor dem Quota-Check. Auf iOS kann App Attest einen persistenten `keyId` pro Installation liefern; auf Android ist es eher ein Vertrauensnachweis pro Request als ein direkter Ersatz für eine dauerhafte Geräte-ID. Siehe dazu den abgestuften Rollout-Plan: [App Integrity Rollout Plan](./docs/specs/rate-limits/app-integrity-rollout-plan.md). Die Spec ist Stand 25.03.2026 nach mehreren Iterationen finalisiert; vor einer späteren Umsetzung müssen Aktualität, Annahmen und Relevanz erneut geprüft werden.
 2. **Caching:** Vorab generierte Fragen für häufige Quiz-Kombinationen, um API-Kosten zu senken.
