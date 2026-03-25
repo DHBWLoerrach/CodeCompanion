@@ -92,26 +92,38 @@ function AchievementBadge({ name, icon, unlocked }: AchievementBadgeProps) {
     <View style={styles.achievementContainer}>
       <View
         style={[
-          styles.achievementBadge,
-          {
-            backgroundColor: unlocked ? theme.accent : theme.cardBorder,
-            opacity: unlocked ? 1 : 0.5,
-          },
+          styles.achievementCard,
+          { backgroundColor: theme.backgroundDefault },
         ]}
       >
-        {unlocked ? (
-          <AppIcon name={icon} size={24} color={theme.onColor} />
-        ) : (
-          <AppIcon name="lock" size={20} color={theme.tabIconDefault} />
-        )}
+        <View
+          style={[
+            styles.achievementBadge,
+            {
+              backgroundColor: unlocked
+                ? withOpacity(theme.accent, 0.18)
+                : theme.cardBorder,
+              opacity: unlocked ? 1 : 0.72,
+            },
+          ]}
+        >
+          {unlocked ? (
+            <AppIcon name={icon} size={24} color={theme.accent} />
+          ) : (
+            <AppIcon name="lock" size={20} color={theme.tabIconDefault} />
+          )}
+        </View>
+        <ThemedText
+          type="small"
+          style={[
+            styles.achievementName,
+            { color: unlocked ? theme.text : theme.tabIconDefault },
+          ]}
+          numberOfLines={2}
+        >
+          {name}
+        </ThemedText>
       </View>
-      <ThemedText
-        type="caption"
-        style={[styles.achievementName, { opacity: unlocked ? 1 : 0.5 }]}
-        numberOfLines={1}
-      >
-        {name}
-      </ThemedText>
     </View>
   );
 }
@@ -329,14 +341,25 @@ export default function ProgressScreen() {
         </View>
 
         <View style={styles.achievementsSection}>
-          <ThemedText type="h4" style={styles.sectionTitle}>
-            {t('achievements')}
-          </ThemedText>
-          <ScrollView
-            horizontal
-            showsHorizontalScrollIndicator={false}
-            contentContainerStyle={styles.achievementsRow}
-          >
+          <View style={styles.achievementsHeader}>
+            <ThemedText type="h4" style={styles.sectionTitle}>
+              {t('achievements')}
+            </ThemedText>
+            <View
+              style={[
+                styles.achievementCount,
+                { backgroundColor: withOpacity(theme.accent, 0.12) },
+              ]}
+            >
+              <ThemedText
+                type="caption"
+                style={{ color: theme.accent, fontWeight: '600' }}
+              >
+                {unlockedAchievements.length}/{ACHIEVEMENTS.length}
+              </ThemedText>
+            </View>
+          </View>
+          <View style={styles.achievementsGrid}>
             {ACHIEVEMENTS.map((achievement) => (
               <AchievementBadge
                 key={achievement.id}
@@ -345,7 +368,7 @@ export default function ProgressScreen() {
                 unlocked={unlockedAchievements.includes(achievement.id)}
               />
             ))}
-          </ScrollView>
+          </View>
         </View>
       </ScrollView>
     </ThemedView>
@@ -436,26 +459,50 @@ const styles = StyleSheet.create({
   achievementsSection: {
     gap: Spacing.md,
   },
-  sectionTitle: {
-    marginBottom: Spacing.sm,
-  },
-  achievementsRow: {
+  achievementsHeader: {
     flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: Spacing.md,
+  },
+  sectionTitle: {
+    marginBottom: 0,
+  },
+  achievementCount: {
+    minWidth: 52,
+    borderRadius: BorderRadius.full,
+    paddingHorizontal: Spacing.sm,
+    paddingVertical: 6,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  achievementsGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
     gap: Spacing.md,
   },
   achievementContainer: {
+    width: '47%',
+  },
+  achievementCard: {
+    borderRadius: BorderRadius.lg,
+    paddingHorizontal: Spacing.md,
+    paddingVertical: Spacing.md,
     alignItems: 'center',
-    width: 72,
+    minHeight: 132,
+    justifyContent: 'center',
+    ...Shadows.card,
   },
   achievementBadge: {
-    width: 64,
-    height: 64,
-    borderRadius: 32,
+    width: 60,
+    height: 60,
+    borderRadius: BorderRadius.full,
     alignItems: 'center',
     justifyContent: 'center',
-    marginBottom: Spacing.xs,
+    marginBottom: Spacing.sm,
   },
   achievementName: {
     textAlign: 'center',
+    lineHeight: 18,
   },
 });
