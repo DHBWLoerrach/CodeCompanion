@@ -4,7 +4,7 @@
     "en": "Java",
     "de": "Java"
   },
-  "shortName": "JV",
+  "shortName": "JA",
   "color": "#F89820",
   "contextExclusion": "Avoid framework-specific context (e.g. Spring/Android) and focus on core Java language concepts",
   "categories": [
