@@ -159,7 +159,7 @@ Sofortigen Zusatzschutz mit geringem Risiko einbauen, ohne App Integrity schon v
 - IP-Adresse aus `X-Real-IP` Header auslesen (empfohlener Header auf EAS Hosting, enthaelt nur die Client-IP)
 - Sofort mit `sha256Hex()` aus `server/crypto.ts` hashen (bestehende Funktion wiederverwendbar)
 - Rohe IP nicht persistent speichern
-- IP-Hash in Supabase pruefen: eigene kurzlebige Tabelle `ip_usage` mit `ip_hash`, `usage_date`, `request_count`
+- IP-Hash in Supabase pruefen: eigene kurzlebige Tabelle `ip_usage` mit `ip_hash`, `usage_date`, `endpoint`, `request_count`
 - Grobes Tageslimit je IP-Hash (z.B. 50/Tag) vor OpenAI und vor spaeteren Integrity-Checks anwenden; bewusst grosszuegiger als Device-Limit wegen Shared WiFi (Uni-Netzwerke)
 - Zusaezliche Signale loggen:
   - fehlende Integrity-Header
@@ -189,12 +189,54 @@ Fuer Android wird **kein generischer Challenge-Endpoint** eingeplant.
 
 Stattdessen:
 
-1. Client berechnet SHA-256 ueber die relevanten Request-Parameter (z.B. `topicId + count + language + programmingLanguage + skillLevel`)
+1. Client berechnet einen `requestHash` ueber eine **kanonische Serialisierung** des geschuetzten Requests
 2. Client ruft `requestIntegrityCheckAsync(requestHash)` auf und erhaelt ein opakes Token
 3. Client sendet Token als `X-Integrity-Token` Header und Plattform als `X-Integrity-Platform: android`
 4. Server sendet Token an `playintegrity.googleapis.com/v1/{PACKAGE_NAME}:decodeIntegrityToken`
 5. Google gibt entschluesseltes Verdict zurueck, inkl. `requestHash` im Klartext
 6. Server rekonstruiert den erwarteten Hash unabhaengig und vergleicht
+
+### Kanonische `requestHash`-Definition
+
+Die Hash-Berechnung darf **nicht** ad hoc per String-Konkatenation erfolgen.
+
+Stattdessen wird eine gemeinsame Helper-Funktion in Shared-Code verwendet, die auf Client und Server identisch arbeitet:
+
+1. HTTP-Methode aufnehmen
+2. Route aufnehmen
+3. Request-Body in eine normalisierte Objektform ueberfuehren
+4. Defaults explizit einsetzen
+5. Das Ergebnis als stabile JSON-Struktur serialisieren
+6. Darueber SHA-256 bilden
+
+Beispiel-Zielbild:
+
+```ts
+{
+  method: "POST",
+  route: "/api/quiz/generate",
+  body: {
+    topicId: "...",
+    count: 5,
+    language: "de",
+    skillLevel: 1,
+    programmingLanguage: "javascript",
+  },
+}
+```
+
+Fuer `POST /api/quiz/generate-mixed` gilt dasselbe Prinzip. Wichtig:
+
+- gleiche Defaults auf Client und Server
+- gleiche Feldnamen
+- gleiche Feldreihenfolge in der Serialisierung
+- Arrays werden bewusst entweder **in Originalreihenfolge** oder bewusst sortiert behandelt; diese Entscheidung muss einmalig festgelegt und in der Shared-Helper-Funktion zentral umgesetzt werden
+
+Empfehlung fuer dieses Repo:
+
+- Methode und Route immer in den Hash aufnehmen
+- denselben Normalisierungspfad fuer Client und Server in Shared-Code kapseln
+- `topicIds` nur dann sortieren, wenn die Server-Semantik Reihenfolge explizit als irrelevant behandelt
 
 ### Vorteile
 
@@ -215,15 +257,21 @@ Body: { "integrity_token": "..." }
 
 Erfordert einen Google Cloud Service Account mit `playintegrity` Scope. Die Authentifizierung erfolgt ueber OAuth2 Token-Exchange.
 
-### Empfohlene Verdict-Policy
+### Initiale Verdict-Policy fuer Observe und spaeteres Enforce
 
 | Feld | Akzeptierter Wert | Rationale |
 |---|---|---|
-| `deviceRecognitionVerdict` | mindestens `MEETS_DEVICE_INTEGRITY` | Echtes, zertifiziertes Geraet |
+| `deviceRecognitionVerdict` | initialer Kandidat fuer `enforce`: mindestens `MEETS_DEVICE_INTEGRITY` | Echtes, zertifiziertes Geraet |
 | `appRecognitionVerdict` | `PLAY_RECOGNIZED` | App aus dem Play Store |
 | `requestHash` | muss mit Server-Berechnung uebereinstimmen | Verhindert Token-Wiederverwendung |
 | `requestPackageName` | muss Package Name matchen | Grundlegende Validierung |
 | `timestampMillis` | max. 5-10 Min alt | Verhindert lange Token-Aufbewahrung |
+
+Wichtige Einordnung:
+
+- Im `observe`-Modus wird **nicht** hart geblockt; dort werden auch schwaechere oder unerwartete Verdicts nur geloggt
+- `MEETS_BASIC_INTEGRITY` bleibt bewusst eine Policy-Entscheidung fuer spaeteres `enforce`
+- Die Tabelle beschreibt deshalb eine **initiale Kandidaten-Policy**, keine bereits final entschiedene Produktionspolicy
 
 Dev-Builds auf echten Geraeten liefern `appRecognitionVerdict: "UNRECOGNIZED_VERSION"`. Das ist kein Problem, weil lokal `APP_INTEGRITY_MODE=off` gilt und im `observe`-Modus nur geloggt wird.
 
@@ -335,9 +383,14 @@ Dann gilt:
 
 Fuer den IP-Guard:
 
-- eigene kurzlebige Tabelle fuer `ip_hash`, `usage_date`, `endpoint`
+- eigene kurzlebige Tabelle `ip_usage` mit `ip_hash`, `usage_date`, `endpoint`, `request_count`
 - keine Speicherung roher IP-Adressen
 - konservative Aufbewahrung
+
+Empfehlung:
+
+- Start mit einem **globalen** Limit ueber beide Quiz-Endpunkte
+- `endpoint` trotzdem mitschreiben, damit spaetere Auswertung und Feintuning moeglich bleiben
 
 ### Android
 
@@ -412,7 +465,7 @@ Der Ausbau gilt als erfolgreich, wenn:
 3. Ist App Attest auf Apple-Seite organisatorisch und technisch vorbereitet? (App-ID-Registrierung, App Attest Capability in Xcode)
 4. ~~Welche Community-Library kommt fuer den iOS-PoC in Frage?~~ Beantwortet: `node-app-attest` als erste Wahl, `appattest-checker-node` als Alternative
 5. Soll iOS bei ausbleibendem PoC bewusst vorerst ohne App Integrity bleiben?
-6. Soll `MEETS_BASIC_INTEGRITY` (unzertifizierte Geraete) im `observe`-Modus toleriert werden, oder nur `MEETS_DEVICE_INTEGRITY`?
+6. Sollen Geraete mit nur `MEETS_BASIC_INTEGRITY` nach der Observe-Phase im spaeteren `enforce`-Modus ausgeschlossen bleiben, oder wird diese Klasse bewusst toleriert?
 7. Welcher Package Name wird fuer die Play Integrity Konfiguration verwendet?
 
 ## Empfohlene Entscheidung fuer dieses Repo
