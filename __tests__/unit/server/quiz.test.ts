@@ -1,7 +1,10 @@
-import * as https from "node:https";
-import type { IncomingMessage } from "node:http";
-import { EventEmitter } from "node:events";
-import { generateMixedQuizQuestions, generateQuizQuestions } from "@server/quiz";
+import * as https from 'node:https';
+import type { IncomingMessage } from 'node:http';
+import { EventEmitter } from 'node:events';
+import {
+  generateMixedQuizQuestions,
+  generateQuizQuestions,
+} from '@server/quiz';
 
 type MockResponseInit = {
   ok?: boolean;
@@ -15,8 +18,8 @@ type MockResponseInit = {
 function mockFetchResponse({
   ok = true,
   status = 200,
-  statusText = "OK",
-  text = "",
+  statusText = 'OK',
+  text = '',
   json = {},
   jsonError,
 }: MockResponseInit): Response {
@@ -48,7 +51,7 @@ function buildStructuredQuizQuestions(count: number) {
   return Array.from({ length: count }, (_, index) => ({
     question: `Q${index + 1}?`,
     code: null,
-    options: ["A", "B", "C", "D"],
+    options: ['A', 'B', 'C', 'D'],
     correctIndex: 0,
     explanation: `Because ${index + 1}`,
   }));
@@ -62,7 +65,7 @@ function buildStructuredMixedQuizQuestions(
       topicId,
       question: `${topicId} Q${index + 1}?`,
       code: null,
-      options: ["A", "B", "C", "D"],
+      options: ['A', 'B', 'C', 'D'],
       correctIndex: 0,
       explanation: `Because ${topicId} ${index + 1}`,
     })),
@@ -81,11 +84,11 @@ function buildStructuredQuizQuestion(
   overrides: StructuredQuizQuestionOverrides = {},
 ) {
   return {
-    question: "Q?",
+    question: 'Q?',
     code: null,
-    options: ["A", "B", "C", "D"],
+    options: ['A', 'B', 'C', 'D'],
     correctIndex: 0,
-    explanation: "Because",
+    explanation: 'Because',
     ...overrides,
   };
 }
@@ -95,7 +98,7 @@ function mockHttpsJsonResponse(json: unknown): {
   getLastTimeoutMs: () => number | undefined;
 } {
   let lastTimeoutMs: number | undefined;
-  const requestSpy = jest.spyOn(https, "request").mockImplementation(((
+  const requestSpy = jest.spyOn(https, 'request').mockImplementation(((
     ...args: unknown[]
   ) => {
     const callback = args[2] as
@@ -121,12 +124,12 @@ function mockHttpsJsonResponse(json: unknown): {
       responseEmitter.statusCode = 200;
       responseEmitter.setEncoding = () => {};
       callback?.(responseEmitter as unknown as IncomingMessage);
-      responseEmitter.emit("data", JSON.stringify(json));
-      responseEmitter.emit("end");
+      responseEmitter.emit('data', JSON.stringify(json));
+      responseEmitter.emit('end');
     };
     requestEmitter.destroy = (error?: Error) => {
       if (error) {
-        requestEmitter.emit("error", error);
+        requestEmitter.emit('error', error);
       }
     };
 
@@ -135,7 +138,7 @@ function mockHttpsJsonResponse(json: unknown): {
   return { requestSpy, getLastTimeoutMs: () => lastTimeoutMs };
 }
 
-describe("server/quiz", () => {
+describe('server/quiz', () => {
   const originalEnv = process.env;
   const originalFetch = global.fetch;
   const originalCrypto = global.crypto;
@@ -147,7 +150,7 @@ describe("server/quiz", () => {
   beforeEach(() => {
     process.env = {
       ...originalEnv,
-      OPENAI_API_KEY: "test-key",
+      OPENAI_API_KEY: 'test-key',
     };
     delete process.env.OPENAI_MODEL;
     delete process.env.OPENAI_REQUEST_TIMEOUT_MS;
@@ -167,17 +170,17 @@ describe("server/quiz", () => {
     global.crypto = originalCrypto;
   });
 
-  describe("generateQuizQuestions", () => {
-    it("throws when API key is missing", async () => {
+  describe('generateQuizQuestions', () => {
+    it('throws when API key is missing', async () => {
       delete process.env.OPENAI_API_KEY;
 
       await expect(
-        generateQuizQuestions("javascript", "variables"),
-      ).rejects.toThrow("OPENAI_API_KEY is not set");
+        generateQuizQuestions('javascript', 'variables'),
+      ).rejects.toThrow('OPENAI_API_KEY is not set');
       expect(fetchMock).not.toHaveBeenCalled();
     });
 
-    it("uses default OpenAI base URL", async () => {
+    it('uses default OpenAI base URL', async () => {
       fetchMock.mockResolvedValueOnce(
         mockFetchResponse({
           json: {
@@ -188,17 +191,17 @@ describe("server/quiz", () => {
       );
 
       const questions = await generateQuizQuestions(
-        "javascript",
-        "variables",
+        'javascript',
+        'variables',
         1,
-        "en",
+        'en',
         1,
       );
 
       expect(questions).toHaveLength(1);
       expect(fetchMock).toHaveBeenCalledTimes(1);
       expect(fetchMock.mock.calls[0][0].toString()).toBe(
-        "https://api.openai.com/v1/responses",
+        'https://api.openai.com/v1/responses',
       );
 
       const fetchOptions = fetchMock.mock.calls[0][1] as RequestInit;
@@ -215,15 +218,15 @@ describe("server/quiz", () => {
         };
       };
 
-      expect(payload.model).toBe("gpt-5.4-nano");
-      expect(payload.text.format.type).toBe("json_schema");
-      expect(payload.text.format.name).toBe("quiz_questions");
+      expect(payload.model).toBe('gpt-5.4-nano');
+      expect(payload.text.format.type).toBe('json_schema');
+      expect(payload.text.format.name).toBe('quiz_questions');
       expect(payload.text.format.strict).toBe(true);
-      expect(payload.text.format.schema.required).toEqual(["questions"]);
+      expect(payload.text.format.schema.required).toEqual(['questions']);
       expect(payload.max_output_tokens).toBe(4096);
     });
 
-    it("scales max_output_tokens for larger quiz counts", async () => {
+    it('scales max_output_tokens for larger quiz counts', async () => {
       fetchMock.mockResolvedValueOnce(
         mockFetchResponse({
           json: {
@@ -235,10 +238,10 @@ describe("server/quiz", () => {
       );
 
       const questions = await generateQuizQuestions(
-        "javascript",
-        "variables",
+        'javascript',
+        'variables',
         20,
-        "en",
+        'en',
         1,
       );
 
@@ -252,7 +255,7 @@ describe("server/quiz", () => {
       expect(payload.max_output_tokens).toBe(6000);
     });
 
-    it("normalizes null code values and assigns stable IDs", async () => {
+    it('normalizes null code values and assigns stable IDs', async () => {
       fetchMock.mockResolvedValueOnce(
         mockFetchResponse({
           json: {
@@ -263,19 +266,19 @@ describe("server/quiz", () => {
       );
 
       const [question] = await generateQuizQuestions(
-        "javascript",
-        "variables",
+        'javascript',
+        'variables',
         1,
-        "en",
+        'en',
         1,
       );
 
       expect(question.id).toMatch(/^variables-[a-f0-9]{12}$/);
-      expect(question.question).toBe("What is const?");
+      expect(question.question).toBe('What is const?');
       expect(question.code).toBeUndefined();
     });
 
-    it("parses wrapped questions from output content blocks", async () => {
+    it('parses wrapped questions from output content blocks', async () => {
       fetchMock.mockResolvedValueOnce(
         mockFetchResponse({
           json: {
@@ -283,7 +286,7 @@ describe("server/quiz", () => {
               {
                 content: [
                   {
-                    type: "output_text",
+                    type: 'output_text',
                     text: '{"questions":[{"question":"Q?","code":"for (let i = 0; i < 1; i += 1) {}","options":["A","B","C","D"],"correctIndex":2,"explanation":"E"}]}',
                   },
                 ],
@@ -294,20 +297,20 @@ describe("server/quiz", () => {
       );
 
       const questions = await generateQuizQuestions(
-        "javascript",
-        "loops",
+        'javascript',
+        'loops',
         1,
-        "en",
+        'en',
         2,
       );
 
       expect(questions).toHaveLength(1);
       expect(questions[0].correctIndex).toBe(2);
       expect(questions[0].id).toMatch(/^loops-[a-f0-9]{12}$/);
-      expect(questions[0].code).toContain("for");
+      expect(questions[0].code).toContain('for');
     });
 
-    it("extracts markdown code blocks from question text when code is missing", async () => {
+    it('extracts markdown code blocks from question text when code is missing', async () => {
       fetchMock.mockResolvedValueOnce(
         mockFetchResponse({
           json: {
@@ -317,9 +320,9 @@ describe("server/quiz", () => {
                   question:
                     'Was gibt dieser Code aus?\n\n```javascript\nfunction greet(name, callback) {\n  console.log("Hallo " + name);\n  callback();\n}\n\ngreet("Mia", function() {\n  console.log("Willkommen!");\n});\n```',
                   code: null,
-                  options: ["A", "B", "C", "D"],
+                  options: ['A', 'B', 'C', 'D'],
                   correctIndex: 0,
-                  explanation: "Because",
+                  explanation: 'Because',
                 },
               ],
             }),
@@ -328,27 +331,27 @@ describe("server/quiz", () => {
       );
 
       const [question] = await generateQuizQuestions(
-        "javascript",
-        "functions",
+        'javascript',
+        'functions',
         1,
-        "de",
+        'de',
         1,
       );
 
-      expect(question.question).toBe("Was gibt dieser Code aus?");
+      expect(question.question).toBe('Was gibt dieser Code aus?');
       expect(question.code).toContain('console.log("Hallo " + name);');
-      expect(question.code).not.toContain("```");
+      expect(question.code).not.toContain('```');
     });
 
-    it("throws when normalized code is an empty string", async () => {
+    it('throws when normalized code is an empty string', async () => {
       fetchMock.mockResolvedValueOnce(
         mockFetchResponse({
           json: {
             output_text: JSON.stringify({
               questions: [
                 buildStructuredQuizQuestion({
-                  question: "What does this do?",
-                  code: "   ",
+                  question: 'What does this do?',
+                  code: '   ',
                 }),
               ],
             }),
@@ -357,11 +360,11 @@ describe("server/quiz", () => {
       );
 
       await expect(
-        generateQuizQuestions("javascript", "functions", 1, "en", 1),
-      ).rejects.toThrow("Invalid quiz question at index 0: code is empty");
+        generateQuizQuestions('javascript', 'functions', 1, 'en', 1),
+      ).rejects.toThrow('Invalid quiz question at index 0: code is empty');
     });
 
-    it("removes duplicate markdown code blocks from question text", async () => {
+    it('removes duplicate markdown code blocks from question text', async () => {
       const code =
         'function greet(name, callback) {\n  console.log("Hallo " + name);\n  callback();\n}\n\ngreet("Mia", function() {\n  console.log("Willkommen!");\n});';
 
@@ -373,9 +376,9 @@ describe("server/quiz", () => {
                 {
                   question: `Was gibt dieser Code aus?\n\n\`\`\`javascript\n${code}\n\`\`\``,
                   code,
-                  options: ["A", "B", "C", "D"],
+                  options: ['A', 'B', 'C', 'D'],
                   correctIndex: 0,
-                  explanation: "Because",
+                  explanation: 'Because',
                 },
               ],
             }),
@@ -384,18 +387,18 @@ describe("server/quiz", () => {
       );
 
       const [question] = await generateQuizQuestions(
-        "javascript",
-        "functions",
+        'javascript',
+        'functions',
         1,
-        "de",
+        'de',
         1,
       );
 
-      expect(question.question).toBe("Was gibt dieser Code aus?");
+      expect(question.question).toBe('Was gibt dieser Code aus?');
       expect(question.code).toBe(code);
     });
 
-    it("includes programming language and full question content in stable ID input", async () => {
+    it('includes programming language and full question content in stable ID input', async () => {
       fetchMock
         .mockResolvedValueOnce(
           mockFetchResponse({
@@ -403,11 +406,11 @@ describe("server/quiz", () => {
               output_text: JSON.stringify({
                 questions: [
                   {
-                    question: "Q?",
+                    question: 'Q?',
                     code: "console.log('js');",
-                    options: ["A", "B", "C", "D"],
+                    options: ['A', 'B', 'C', 'D'],
                     correctIndex: 0,
-                    explanation: "JavaScript explanation",
+                    explanation: 'JavaScript explanation',
                   },
                 ],
               }),
@@ -420,11 +423,11 @@ describe("server/quiz", () => {
               output_text: JSON.stringify({
                 questions: [
                   {
-                    question: "Q?",
+                    question: 'Q?',
                     code: "print('py')",
-                    options: ["A", "B", "C", "D"],
+                    options: ['A', 'B', 'C', 'D'],
                     correctIndex: 0,
-                    explanation: "Python explanation",
+                    explanation: 'Python explanation',
                   },
                 ],
               }),
@@ -433,17 +436,17 @@ describe("server/quiz", () => {
         );
 
       const [javascriptQuestion] = await generateQuizQuestions(
-        "javascript",
-        "data-types",
+        'javascript',
+        'data-types',
         1,
-        "en",
+        'en',
         1,
       );
       const [pythonQuestion] = await generateQuizQuestions(
-        "python",
-        "data-types",
+        'python',
+        'data-types',
         1,
-        "en",
+        'en',
         1,
       );
 
@@ -469,21 +472,21 @@ describe("server/quiz", () => {
       expect(firstDigestInput).not.toBe(secondDigestInput);
     });
 
-    it("throws on non-ok OpenAI response", async () => {
+    it('throws on non-ok OpenAI response', async () => {
       fetchMock.mockResolvedValueOnce(
         mockFetchResponse({
           ok: false,
           status: 500,
-          text: "upstream failed",
+          text: 'upstream failed',
         }),
       );
 
       await expect(
-        generateQuizQuestions("javascript", "variables"),
-      ).rejects.toThrow("OpenAI request failed with status 500");
+        generateQuizQuestions('javascript', 'variables'),
+      ).rejects.toThrow('OpenAI request failed with status 500');
     });
 
-    it("throws when response content is empty", async () => {
+    it('throws when response content is empty', async () => {
       fetchMock.mockResolvedValueOnce(
         mockFetchResponse({
           json: {
@@ -493,11 +496,11 @@ describe("server/quiz", () => {
       );
 
       await expect(
-        generateQuizQuestions("javascript", "variables"),
-      ).rejects.toThrow("Empty response from OpenAI");
+        generateQuizQuestions('javascript', 'variables'),
+      ).rejects.toThrow('Empty response from OpenAI');
     });
 
-    it("throws when question text is not a string", async () => {
+    it('throws when question text is not a string', async () => {
       fetchMock.mockResolvedValueOnce(
         mockFetchResponse({
           json: {
@@ -509,20 +512,20 @@ describe("server/quiz", () => {
       );
 
       await expect(
-        generateQuizQuestions("javascript", "variables", 1),
+        generateQuizQuestions('javascript', 'variables', 1),
       ).rejects.toThrow(
-        "Invalid quiz question at index 0: question text must be a string",
+        'Invalid quiz question at index 0: question text must be a string',
       );
     });
 
-    it("throws when answer options are not non-empty strings", async () => {
+    it('throws when answer options are not non-empty strings', async () => {
       fetchMock.mockResolvedValueOnce(
         mockFetchResponse({
           json: {
             output_text: JSON.stringify({
               questions: [
                 buildStructuredQuizQuestion({
-                  options: ["A", " ", "C", "D"],
+                  options: ['A', ' ', 'C', 'D'],
                 }),
               ],
             }),
@@ -531,20 +534,20 @@ describe("server/quiz", () => {
       );
 
       await expect(
-        generateQuizQuestions("javascript", "variables", 1),
+        generateQuizQuestions('javascript', 'variables', 1),
       ).rejects.toThrow(
-        "Invalid quiz question at index 0: answer options must be non-empty strings",
+        'Invalid quiz question at index 0: answer options must be non-empty strings',
       );
     });
 
-    it("throws when explanation is empty", async () => {
+    it('throws when explanation is empty', async () => {
       fetchMock.mockResolvedValueOnce(
         mockFetchResponse({
           json: {
             output_text: JSON.stringify({
               questions: [
                 buildStructuredQuizQuestion({
-                  explanation: "   ",
+                  explanation: '   ',
                 }),
               ],
             }),
@@ -553,25 +556,25 @@ describe("server/quiz", () => {
       );
 
       await expect(
-        generateQuizQuestions("javascript", "variables", 1),
+        generateQuizQuestions('javascript', 'variables', 1),
       ).rejects.toThrow(
-        "Invalid quiz question at index 0: explanation is empty",
+        'Invalid quiz question at index 0: explanation is empty',
       );
     });
 
-    it("throws when OpenAI returns invalid JSON", async () => {
+    it('throws when OpenAI returns invalid JSON', async () => {
       fetchMock.mockResolvedValueOnce(
         mockFetchResponse({
-          jsonError: new SyntaxError("Unexpected token < in JSON"),
+          jsonError: new SyntaxError('Unexpected token < in JSON'),
         }),
       );
 
       await expect(
-        generateQuizQuestions("javascript", "variables"),
-      ).rejects.toThrow("Invalid JSON response from OpenAI");
+        generateQuizQuestions('javascript', 'variables'),
+      ).rejects.toThrow('Invalid JSON response from OpenAI');
     });
 
-    it("uses python language context when generating python quizzes", async () => {
+    it('uses python language context when generating python quizzes', async () => {
       fetchMock.mockResolvedValueOnce(
         mockFetchResponse({
           json: {
@@ -581,7 +584,7 @@ describe("server/quiz", () => {
         }),
       );
 
-      await generateQuizQuestions("python", "variables-assignment", 1, "en", 1);
+      await generateQuizQuestions('python', 'variables-assignment', 1, 'en', 1);
 
       const fetchOptions = fetchMock.mock.calls[0][1] as RequestInit;
       const payload = JSON.parse(String(fetchOptions.body)) as {
@@ -589,17 +592,44 @@ describe("server/quiz", () => {
         input: string;
       };
 
-      expect(payload.instructions).toContain("Python programming tutor");
-      expect(payload.input).toContain("Python variable assignment");
+      expect(payload.instructions).toContain('Python programming tutor');
+      expect(payload.input).toContain('Python variable assignment');
       expect(payload.input).toContain(
         'Use "code": null when a code snippet is not needed',
       );
       expect(payload.input).toContain(
-        "Do not include Markdown fences or code snippets in the question text",
+        'Do not include Markdown fences or code snippets in the question text',
       );
     });
 
-    it("throws when OpenAI refuses the quiz request", async () => {
+    it('uses javascript language context when generating javascript quizzes', async () => {
+      fetchMock.mockResolvedValueOnce(
+        mockFetchResponse({
+          json: {
+            output_text:
+              '{"questions":[{"question":"Q?","code":null,"options":["A","B","C","D"],"correctIndex":0,"explanation":"Because"}]}',
+          },
+        }),
+      );
+
+      await generateQuizQuestions('javascript', 'data-types', 1, 'en', 1);
+
+      const fetchOptions = fetchMock.mock.calls[0][1] as RequestInit;
+      const payload = JSON.parse(String(fetchOptions.body)) as {
+        instructions: string;
+        input: string;
+      };
+
+      expect(payload.instructions).toContain('JavaScript programming tutor');
+      expect(payload.input).toContain(
+        'JavaScript primitive data types (string, number, boolean, null, undefined, symbol, bigint) and type checking',
+      );
+      expect(payload.input).toContain(
+        'Avoid web/HTML/CSS context - focus purely on JavaScript language concepts. Always use let and const for variable declarations; never include var in questions or code examples.',
+      );
+    });
+
+    it('throws when OpenAI refuses the quiz request', async () => {
       fetchMock.mockResolvedValueOnce(
         mockFetchResponse({
           json: {
@@ -607,8 +637,8 @@ describe("server/quiz", () => {
               {
                 content: [
                   {
-                    type: "refusal",
-                    refusal: "I cannot help with that.",
+                    type: 'refusal',
+                    refusal: 'I cannot help with that.',
                   },
                 ],
               },
@@ -618,59 +648,59 @@ describe("server/quiz", () => {
       );
 
       await expect(
-        generateQuizQuestions("javascript", "variables"),
-      ).rejects.toThrow("OpenAI refused the request: I cannot help with that.");
+        generateQuizQuestions('javascript', 'variables'),
+      ).rejects.toThrow('OpenAI refused the request: I cannot help with that.');
     });
 
-    it("throws when quiz output is incomplete", async () => {
+    it('throws when quiz output is incomplete', async () => {
       fetchMock.mockResolvedValueOnce(
         mockFetchResponse({
           json: {
-            status: "incomplete",
+            status: 'incomplete',
             incomplete_details: {
-              reason: "max_output_tokens",
+              reason: 'max_output_tokens',
             },
           },
         }),
       );
 
       await expect(
-        generateQuizQuestions("javascript", "variables"),
-      ).rejects.toThrow("OpenAI response incomplete: max_output_tokens");
+        generateQuizQuestions('javascript', 'variables'),
+      ).rejects.toThrow('OpenAI response incomplete: max_output_tokens');
     });
   });
 
-  describe("generateMixedQuizQuestions", () => {
-    it("returns an empty array when the mixed topic plan is empty", async () => {
+  describe('generateMixedQuizQuestions', () => {
+    it('returns an empty array when the mixed topic plan is empty', async () => {
       await expect(
-        generateMixedQuizQuestions("javascript", [], "en", 1),
+        generateMixedQuizQuestions('javascript', [], 'en', 1),
       ).resolves.toEqual([]);
       expect(fetchMock).not.toHaveBeenCalled();
     });
 
-    it("throws when the mixed topic plan contains duplicate topicIds", async () => {
+    it('throws when the mixed topic plan contains duplicate topicIds', async () => {
       await expect(
         generateMixedQuizQuestions(
-          "javascript",
+          'javascript',
           [
-            { topicId: "loops", questionCount: 1 },
-            { topicId: "loops", questionCount: 1 },
+            { topicId: 'loops', questionCount: 1 },
+            { topicId: 'loops', questionCount: 1 },
           ],
-          "en",
+          'en',
           1,
         ),
-      ).rejects.toThrow("Mixed topic plan contains duplicate topicIds");
+      ).rejects.toThrow('Mixed topic plan contains duplicate topicIds');
       expect(fetchMock).not.toHaveBeenCalled();
     });
 
-    it("generates a mixed quiz in a single request with topic-aware IDs", async () => {
+    it('generates a mixed quiz in a single request with topic-aware IDs', async () => {
       fetchMock.mockResolvedValueOnce(
         mockFetchResponse({
           json: {
             output_text: JSON.stringify({
               questions: buildStructuredMixedQuizQuestions([
-                { topicId: "loops", questionCount: 2 },
-                { topicId: "variables", questionCount: 1 },
+                { topicId: 'loops', questionCount: 2 },
+                { topicId: 'variables', questionCount: 1 },
               ]),
             }),
           },
@@ -678,12 +708,12 @@ describe("server/quiz", () => {
       );
 
       const questions = await generateMixedQuizQuestions(
-        "javascript",
+        'javascript',
         [
-          { topicId: "loops", questionCount: 2 },
-          { topicId: "variables", questionCount: 1 },
+          { topicId: 'loops', questionCount: 2 },
+          { topicId: 'variables', questionCount: 1 },
         ],
-        "de",
+        'de',
         2,
       );
 
@@ -692,7 +722,7 @@ describe("server/quiz", () => {
       expect(questions[0].id).toMatch(/^loops-[a-f0-9]{12}$/);
       expect(questions[1].id).toMatch(/^loops-[a-f0-9]{12}$/);
       expect(questions[2].id).toMatch(/^variables-[a-f0-9]{12}$/);
-      expect("topicId" in questions[0]).toBe(false);
+      expect('topicId' in questions[0]).toBe(false);
 
       const fetchOptions = fetchMock.mock.calls[0][1] as RequestInit;
       const payload = JSON.parse(String(fetchOptions.body)) as {
@@ -717,30 +747,33 @@ describe("server/quiz", () => {
         };
       };
 
-      expect(payload.text.format.name).toBe("mixed_quiz_questions");
+      expect(payload.text.format.name).toBe('mixed_quiz_questions');
       expect(
         payload.text.format.schema.properties.questions.items.properties.topicId
           .enum,
-      ).toEqual(["loops", "variables"]);
-      expect(payload.input).toContain("TOPIC PLAN:");
+      ).toEqual(['loops', 'variables']);
+      expect(payload.input).toContain('TOPIC PLAN:');
       expect(payload.input).toContain(
-        "- loops: exactly 2 question(s) about JavaScript for, while, do-while, and for...of loops",
+        '- loops: exactly 2 question(s) about JavaScript for, while, do-while, and for...of loops',
       );
       expect(payload.input).toContain(
-        "- variables: exactly 1 question(s) about JavaScript variable declarations using let and const only (do not include var), including block scope and when to use each",
+        '- variables: exactly 1 question(s) about JavaScript variable declarations using let and const only (do not include var), including block scope and when to use each',
       );
       expect(payload.input).toContain(
-        "Include a topicId field on every question using only the topic IDs from the topic plan",
+        'Avoid web/HTML/CSS context - focus purely on JavaScript language concepts. Always use let and const for variable declarations; never include var in questions or code examples.',
+      );
+      expect(payload.input).toContain(
+        'Include a topicId field on every question using only the topic IDs from the topic plan',
       );
     });
 
-    it("throws when mixed quiz output violates the requested topic plan", async () => {
+    it('throws when mixed quiz output violates the requested topic plan', async () => {
       fetchMock.mockResolvedValueOnce(
         mockFetchResponse({
           json: {
             output_text: JSON.stringify({
               questions: buildStructuredMixedQuizQuestions([
-                { topicId: "loops", questionCount: 2 },
+                { topicId: 'loops', questionCount: 2 },
               ]),
             }),
           },
@@ -749,12 +782,12 @@ describe("server/quiz", () => {
 
       await expect(
         generateMixedQuizQuestions(
-          "javascript",
+          'javascript',
           [
-            { topicId: "loops", questionCount: 1 },
-            { topicId: "variables", questionCount: 1 },
+            { topicId: 'loops', questionCount: 1 },
+            { topicId: 'variables', questionCount: 1 },
           ],
-          "en",
+          'en',
           1,
         ),
       ).rejects.toThrow(

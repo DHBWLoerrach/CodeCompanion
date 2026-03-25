@@ -7,7 +7,7 @@
   "languageNameKey": "javascript",
   "shortName": "JS",
   "color": "#F7DF1E",
-  "contextExclusion": "Avoid web/HTML/CSS context - focus purely on JavaScript language concepts",
+  "contextExclusion": "Avoid web/HTML/CSS context - focus purely on JavaScript language concepts. Always use let and const for variable declarations; never include var in questions or code examples.",
   "categories": [
     {
       "order": 1,
