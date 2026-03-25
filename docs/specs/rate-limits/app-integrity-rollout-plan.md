@@ -63,7 +63,7 @@ Sicherheitsbewertung:
 
 ### Expo / EAS Hosting
 
-- Expo App Integrity ist laut Expo-Dokumentation weiterhin **Alpha** (aktuell v55.0.8)
+- Expo App Integrity ist laut Expo-Dokumentation weiterhin **Alpha**
 - EAS Hosting basiert auf Cloudflare Workers (V8 Isolates, nicht Node.js)
 - `node:crypto` ist als Kompatibilitaetsmodul verfuegbar; einige veraltete Algorithmen fehlen, aber SHA-256, HMAC, X.509 sollten funktionieren
 - `Buffer` ist als Global vollstaendig verfuegbar
@@ -150,16 +150,17 @@ Wichtige Reihenfolge:
 
 ### Phase 0 - Observability und IP-Guard
 
-### Ziel
+#### Ziel
 
 Sofortigen Zusatzschutz mit geringem Risiko einbauen, ohne App Integrity schon verpflichtend zu machen.
 
-### Umsetzung
+#### Umsetzung
 
 - IP-Adresse aus `X-Real-IP` Header auslesen (empfohlener Header auf EAS Hosting, enthaelt nur die Client-IP)
 - Sofort mit `sha256Hex()` aus `server/crypto.ts` hashen (bestehende Funktion wiederverwendbar)
 - Rohe IP nicht persistent speichern
-- IP-Hash in Supabase pruefen: eigene kurzlebige Tabelle `ip_usage` mit `ip_hash`, `usage_date`, `endpoint`, `request_count`
+- IP-Hash in Supabase pruefen: eigener globaler Counter `ip_usage_daily` mit `ip_hash`, `usage_date`, `request_count`
+- Optional zusaetzlich ein separates leichtgewichtiges Audit- oder Telemetrie-Log mit `ip_hash`, `usage_date`, `endpoint`
 - Grobes Tageslimit je IP-Hash (z.B. 50/Tag) vor OpenAI und vor spaeteren Integrity-Checks anwenden; bewusst grosszuegiger als Device-Limit wegen Shared WiFi (Uni-Netzwerke)
 - Zusaezliche Signale loggen:
   - fehlende Integrity-Header
@@ -167,23 +168,23 @@ Sofortigen Zusatzschutz mit geringem Risiko einbauen, ohne App Integrity schon v
   - Enforce-vs-Observe-Ergebnisse
   - Anteil abgewiesener Requests
 
-### Warum zuerst?
+#### Warum zuerst?
 
 - Deutlich billiger und risikoaermer als App Integrity
 - Schuetzt auch gegen das spaetere Hammern auf Integrity-Endpunkte
 - Liefert Missbrauchsdaten, bevor ein Alpha-Feature produktiv erzwungen wird
 
-### Datenschutz-Notiz
+#### Datenschutz-Notiz
 
 Da das Produkt serverseitig bewusst kaum personenbezogene Daten speichert, sollten IPs nie im Klartext persistiert werden. Fuer die Abuse-Erkennung reicht eine serverseitig gehashte oder kurzlebig verarbeitete Form.
 
 ### Phase 1 - Android-first
 
-### Ziel
+#### Ziel
 
 Den einfacheren und risikoaermeren Integritaetspfad zuerst ausrollen.
 
-### Wichtige Architekturentscheidung
+#### Wichtige Architekturentscheidung
 
 Fuer Android wird **kein generischer Challenge-Endpoint** eingeplant.
 
@@ -196,7 +197,7 @@ Stattdessen:
 5. Google gibt entschluesseltes Verdict zurueck, inkl. `requestHash` im Klartext
 6. Server rekonstruiert den erwarteten Hash unabhaengig und vergleicht
 
-### Client-seitiges Warm-up
+#### Client-seitiges Warm-up
 
 Der Token Provider sollte **nicht erst beim eigentlichen Quiz-Request** vorbereitet werden.
 
@@ -211,7 +212,7 @@ Rationale:
 - Das Warm-up dauert laut Google typischerweise einige Sekunden, oft unter 10 Sekunden
 - Ein spaeter Start direkt beim Quiz-Request fuehrt sonst zu sichtbar schlechter UX
 
-### Kanonische `requestHash`-Definition
+#### Kanonische `requestHash`-Definition
 
 Die Hash-Berechnung darf **nicht** ad hoc per String-Konkatenation erfolgen.
 
@@ -267,7 +268,7 @@ Empfehlung fuer dieses Repo:
 - denselben Normalisierungspfad fuer Client und Server in Shared-Code kapseln
 - `topicIds` nur dann sortieren, wenn die Server-Semantik Reihenfolge explizit als irrelevant behandelt
 
-### Hash-Versionierung
+#### Hash-Versionierung
 
 Die Hash-Definition ist Teil des API-Vertrags. Wenn sich Normalisierung, Defaults oder relevante Felder aendern, koennen alte Clients sonst im `enforce`-Modus mit `hash_mismatch` scheitern.
 
@@ -284,14 +285,14 @@ Bevorzugtes Zielbild fuer dieses Repo bleibt trotzdem:
 
 - Header-basierte Versionierung im Request, damit Server und Client kontrolliert weiterentwickelt werden koennen
 
-### Vorteile
+#### Vorteile
 
 - kein zusaetzlicher Round-Trip fuer Android
 - weniger serverseitiger State
 - geringere Latenz
 - weniger Angriffsoberflaeche
 
-### Server-seitige Verdict-Verifikation
+#### Server-seitige Verdict-Verifikation
 
 Der Server dekodiert das Token ueber Googles REST API:
 
@@ -309,7 +310,7 @@ Wichtiger Implementierungspunkt:
 - Dazu muss ein JWT fuer den Token-Exchange signiert werden
 - Dieser Schritt ist ein eigener Validierungspunkt fuer Android und sollte frueh als technischer Mini-PoC verifiziert werden
 
-### Initiale Verdict-Policy fuer Observe und spaeteres Enforce
+#### Initiale Verdict-Policy fuer Observe und spaeteres Enforce
 
 | Feld | Akzeptierter Wert | Rationale |
 |---|---|---|
@@ -324,17 +325,18 @@ Wichtige Einordnung:
 - Im `observe`-Modus wird **nicht** hart geblockt; dort werden auch schwaechere oder unerwartete Verdicts nur geloggt
 - `MEETS_BASIC_INTEGRITY` bleibt bewusst eine Policy-Entscheidung fuer spaeteres `enforce`
 - Die Tabelle beschreibt deshalb eine **initiale Kandidaten-Policy**, keine bereits final entschiedene Produktionspolicy
+- `PLAY_RECOGNIZED` darf nur dann als Enforce-Voraussetzung gelten, wenn produktive Android-Releases ausschliesslich ueber Google Play verteilt werden
 
 Dev-Builds auf echten Geraeten liefern `appRecognitionVerdict: "UNRECOGNIZED_VERSION"`. Das ist kein Problem, weil lokal `APP_INTEGRITY_MODE=off` gilt und im `observe`-Modus nur geloggt wird.
 
-### Integrity-Fehler im API-Vertrag
+#### Integrity-Fehler im API-Vertrag
 
 Integrity-Failures sind **keine** Rate-Limit-Fehler und sollten deshalb nicht als `429` modelliert werden.
 
 Empfehlung:
 
-- `400`, wenn Integrity-Header syntaktisch ungueltig oder unvollstaendig sind
-- `403`, wenn Integrity im `enforce`-Modus geprueft wurde, aber das Verdict fehlt oder ungueltig ist
+- `400`, wenn Integrity-Header syntaktisch ungueltig oder in sich widerspruechlich sind
+- `403`, wenn Integrity im `enforce`-Modus erforderlich war, aber das Token fehlt oder das Verdict ungueltig ist
 
 Beispiel fuer einen strukturierten Fehler-Body:
 
@@ -358,7 +360,12 @@ Folge fuer den Client:
 - Der Quiz-Client muss diesen Fehlertyp explizit erkennen und eine eigene Fehlermeldung anzeigen
 - Die bestehende `429`-Behandlung fuer Quota bleibt davon getrennt
 
-### Client-seitige Graceful Degradation
+Klarstellung:
+
+- `missing_token` ist ein fachlicher Integrity-Failure und faellt deshalb unter `403`
+- `400` ist fuer Formfehler reserviert, nicht fuer das blosse Fehlen eines im Enforce-Modus erwarteten Tokens
+
+#### Client-seitige Graceful Degradation
 
 Wenn `@expo/app-integrity` auf einem echten Geraet fehlschlaegt, sollte der Client den Fehler **nicht unkontrolliert eskalieren**.
 
@@ -377,7 +384,7 @@ Wichtige Einordnung:
 - Im `observe`-Modus hilft das, Alpha-Bugs von normalem Missing-Token-Traffic besser zu unterscheiden
 - Im `enforce`-Modus wird der Request trotzdem regulaer mit `403` abgelehnt
 
-### Grobe Dateiauswirkungen
+#### Grobe Dateiauswirkungen
 
 Neue Dateien:
 
@@ -394,7 +401,7 @@ Anpassungen:
 - `shared/api-quota.ts` oder neues `shared/api-integrity.ts` fuer Header-Konstanten (`X-Integrity-Token`, `X-Integrity-Platform`) analog zum bestehenden `DEVICE_ID_HEADER`
 - `server/logging.ts` erweitern um `integrityMode` (`off`/`observe`/`enforce`), `integrityResult` (`valid`/`invalid`/`missing`/`error`/`skipped`), `integrityPlatform` (`android`/`ios`/`null`)
 
-### Android-Rollout-Modus
+#### Android-Rollout-Modus
 
 Empfohlenes Feature-Flag:
 
@@ -418,20 +425,37 @@ Semantik:
 - `*_ENABLED=true` + `APP_INTEGRITY_MODE=enforce` bedeutet: pruefen und bei Failure blocken
 - Wenn fuer die aktuelle Plattform `*_ENABLED=false` ist, darf `APP_INTEGRITY_MODE=enforce` **nicht** implizit trotzdem blockieren
 
+Empfohlenes zusaetzliches Flag fuer den Frontdoor-Guard:
+
+```bash
+API_IP_GUARD_ENABLED=true|false
+```
+
+Semantik:
+
+- `API_IP_GUARD_ENABLED=true`: IP-Guard ist aktiv
+- `API_IP_GUARD_ENABLED=false`: IP-Guard wird komplett uebersprungen
+
+Empfehlung fuer dieses Repo:
+
+- lokal standardmaessig `false`
+- in Staging/Produktion nach Rollout standardmaessig `true`
+- als Kill-Switch beibehalten, falls Shared-IP-Szenarien in Produktion unerwartet viele False Positives erzeugen
+
 ### Phase 2 - Observe vor Enforce
 
-### Ziel
+#### Ziel
 
 Vor echtem Blocking reale Fehlerraten und Geraeteprobleme sehen.
 
-### Verhalten im Observe-Modus
+#### Verhalten im Observe-Modus
 
 - Integrity wird bereits geprueft
 - Fehlende oder ungueltige Tokens werden geloggt
 - Requests werden noch **nicht** hart abgelehnt
 - Quota und OpenAI-Pfad bleiben aktiv
 
-### Exit-Kriterien fuer Enforce
+#### Exit-Kriterien fuer Enforce
 
 - stabile Token-Erzeugung auf echten Android-Geraeten
 - keine unerwarteten Ablehnungen auf gaengigen Testgeraeten
@@ -440,11 +464,11 @@ Vor echtem Blocking reale Fehlerraten und Geraeteprobleme sehen.
 
 ### Phase 3 - iOS-PoC
 
-### Ziel
+#### Ziel
 
 Nur die technische Machbarkeit auf EAS Hosting validieren, nicht direkt produktiv ausrollen.
 
-### Scope des PoC
+#### Scope des PoC
 
 - Community-Library fuer App Attest evaluieren; empfohlene Kandidaten:
   - `node-app-attest` (38 Stars, 77 Commits, aktiv) - erste Wahl
@@ -455,7 +479,7 @@ Nur die technische Machbarkeit auf EAS Hosting validieren, nicht direkt produkti
 - Real-Geraete statt Simulator als Pflicht
 - Minimalen PoC: hardcoded Attestation-Fixture auf einer EAS-Route dekodieren, um Workers-Kompatibilitaet zu verifizieren
 
-### iOS-spezifische Architektur
+#### iOS-spezifische Architektur
 
 Im Unterschied zu Android ist hier ein serverseitiger Challenge-/Attestation-Pfad sinnvoll.
 
@@ -466,7 +490,7 @@ Voraussichtliche Bausteine:
 - kurzlebiger Challenge-Speicher
 - Persistenz fuer attestierte Schluessel und Counter
 
-### No-Go-Kriterien
+#### No-Go-Kriterien
 
 Der iOS-Pfad wird **nicht** weiter ausgebaut, wenn:
 
@@ -477,7 +501,7 @@ Der iOS-Pfad wird **nicht** weiter ausgebaut, wenn:
 
 ### Phase 4 - Optionales iOS-Enforcement
 
-### Nur wenn Phase 3 erfolgreich war
+#### Nur wenn Phase 3 erfolgreich war
 
 Dann gilt:
 
@@ -492,14 +516,15 @@ Dann gilt:
 
 Fuer den IP-Guard:
 
-- eigene kurzlebige Tabelle `ip_usage` mit `ip_hash`, `usage_date`, `endpoint`, `request_count`
+- eigener globaler Counter `ip_usage_daily` mit `ip_hash`, `usage_date`, `request_count`
 - keine Speicherung roher IP-Adressen
 - konservative Aufbewahrung
+- optional separates Audit- oder Telemetrie-Log mit `endpoint`, wenn die Aufteilung spaeter ausgewertet werden soll
 
 Empfehlung:
 
 - Start mit einem **globalen** Limit ueber beide Quiz-Endpunkte
-- `endpoint` trotzdem mitschreiben, damit spaetere Auswertung und Feintuning moeglich bleiben
+- `endpoint` nur im optionalen Audit-/Telemetrie-Log mitschreiben, nicht im globalen Counter-Schluessel
 - bewusst **Upsert + `request_count`** verwenden, nicht Row-per-Request wie beim bestehenden Device-Quota
 - Grund: weniger Rows, einfacherer Cleanup, bessere Eignung fuer einen groben Frontdoor-Guard
 
