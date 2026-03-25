@@ -163,10 +163,11 @@ Planned changes:
 - Extend [`client/constants/theme.ts`](/Users/erik/projects/dhbw/CodeCompanion/client/constants/theme.ts) with:
   - `separator` (light: `rgba(0,0,0,0.08)`, dark: `rgba(255,255,255,0.08)` or similar)
   - `cardBorderSubtle` for the lighter card border variant currently hacked as `${theme.cardBorder}70`
-  - a semantic foreground token for content on colored surfaces
+  - `onColor` as the general semantic foreground token for content on colored surfaces
   - optionally muted-opacity or equivalent helper constants
 - Decide whether to add a shared `withOpacity(color, opacity)` helper now or in a later cleanup pass
 - Replace hardcoded footer and row separators with the new token
+- Replace hardcoded white foregrounds on shared colored surfaces with `theme.onColor`
 - Replace direct `#B00020` usage in the info modal with a semantic token
 - Replace hardcoded `#9BA1A6` in `LearnScreen` with `theme.tabIconDefault`
 
@@ -174,7 +175,7 @@ Acceptance criteria:
 
 - No screen uses black-alpha separators directly.
 - Footer dividers render correctly in both light and dark mode.
-- At least the obvious CTA foregrounds and branded heading use semantic tokens.
+- At least the obvious CTA foregrounds and branded heading use semantic tokens, including `theme.onColor` for shared colored surfaces.
 - No remaining hardcoded color literals that either duplicate an existing theme token or drift from the established palette semantics (`#9BA1A6`, `#B00020`).
 
 ### WP2: Introduce shared UI primitives
@@ -219,7 +220,10 @@ Planned changes:
 
 - Unify bottom action area treatment
 - Unify card surface treatment
-- Unify primary action semantics
+- Unify primary action semantics:
+  - normal learning and quiz CTAs use `theme.secondary` (blue)
+  - review and due-specific actions use `theme.accent` (yellow)
+  - red remains reserved for `theme.error` and destructive states, while `theme.primary` stays a red brand/navigation token
 - Add `usePressAnimation` to primary action buttons in `QuizSessionScreen` (submit, next) and `SessionSummaryScreen` (practice again, back to topics) to match the tactile feedback in `TopicDetailScreen`
 - Standardize loading states: screens that show a full-screen loader before content should use `<LoadingScreen />`; `QuizSessionScreen` keeps its custom loading with cancel support
 - Add visible context markers where needed:
@@ -231,6 +235,8 @@ Planned changes:
 Acceptance criteria:
 
 - Moving from topic detail to quiz to summary feels like one product flow.
+- `TopicDetailScreen`, `QuizSessionScreen`, and `SessionSummaryScreen` use the blue CTA semantics for normal learning and quiz actions.
+- Review and due-specific actions continue to use yellow CTA semantics.
 - Quick quiz and mixed quiz context is visible where relevant.
 - Topic explanation no longer feels visually detached from topic detail.
 - Primary action buttons across the flow have consistent press animation feedback.
@@ -271,7 +277,7 @@ Potential changes:
 - Normalize repeated inline `fontWeight` patterns where shared typography or button components already cover them
 - Consider introducing an icon size scale if repetition remains high after component extraction
 - Normalize muted opacity usage where it still appears repeatedly
-- Evaluate whether the global header strategy and tab-stack header overrides should be unified further
+- Document the existing header split more clearly where needed, but do not pursue header unification as part of this initiative unless a concrete inconsistency blocks another change
 
 Acceptance criteria:
 
@@ -283,10 +289,11 @@ Acceptance criteria:
 ### PR1: Theme tokens and separators
 
 - Add missing theme tokens (`separator`, `cardBorderSubtle`)
+- Add `onColor` as the shared foreground token for colored surfaces
 - Replace hardcoded separator colors
 - Replace the info modal raw heading color
 - Replace hardcoded `#9BA1A6` with theme token
-- Replace the most obvious CTA foreground literals
+- Replace the most obvious CTA foreground literals with `theme.onColor`
 
 ### PR2: Shared action and surface primitives
 
@@ -298,6 +305,8 @@ Acceptance criteria:
 ### PR3: Main flow alignment
 
 - Align `Topic Detail`, `Quiz`, `Summary`, and `Topic Explanation`
+- Move normal learning and quiz CTAs in `Topic Detail`, `Quiz`, and `Summary` to the blue CTA semantics
+- Keep review and due-specific actions on the yellow CTA semantics
 - Add press animation to primary buttons in `Quiz` and `Summary`
 - Add missing context markers
 - Standardize loading states
@@ -345,27 +354,27 @@ Acceptance criteria:
 - No dark-mode regressions from separator or border changes
 - Code fragments remain readable in quiz and summary contexts
 
-## Decisions Needed Before or During Implementation
+## Locked Decisions
 
 ### 1. Primary action color semantics
 
-Decide one of the following:
-
-- One shared primary action color across the learning and quiz flow
-- Different colors with explicit semantics, for example:
-  - red for destructive or high-priority app actions
-  - blue for learning progression
-  - yellow for review urgency
-
-If semantic differentiation is kept, it must be documented and enforced consistently.
+- Normal learning and quiz CTAs use `theme.secondary` (blue).
+- Review and due-specific actions use `theme.accent` (yellow).
+- Red remains reserved for `theme.error`, destructive states, and the existing red brand/navigation role of `theme.primary`.
+- `theme.primary` stays red and is not redefined as the default CTA color in the learning and quiz flow.
 
 ### 2. Foreground token strategy
 
-Decide whether `theme.buttonText` is sufficient or whether the app should use a more general semantic token such as `theme.onColor` or `theme.onPrimary`.
+- `theme.onColor` is the shared semantic foreground token for text, icons, and loaders on colored surfaces.
+- `theme.buttonText` does not become the main cross-surface foreground abstraction in this initiative.
+- Per-surface foreground tokens such as `onPrimary` or `onAccent` are out of scope for this initiative.
 
 ### 3. Header strategy
 
-Decide whether current differences between global stack headers and tab stack headers are intentional product design or accumulated implementation drift.
+- The current header split is intentional for this initiative.
+- Tab root headers remain left-aligned and opaque.
+- Root, global, and modal headers keep their existing centered or transparent behavior where already established.
+- Header unification is not a goal of this initiative unless a concrete inconsistency blocks another planned change.
 
 ## File Targets
 
@@ -395,10 +404,14 @@ Secondary alignment:
 - The main topic-to-quiz-to-summary flow uses one coherent visual vocabulary.
 - Shared buttons, cards, badges, and bottom action bars replace the major repeated local implementations.
 - Primary action buttons use documented size variants and consistent press animation feedback across the flow.
+- Blue CTA semantics are used consistently for normal learning and quiz actions.
+- Yellow CTA semantics are used consistently for review and due-specific actions.
 - Loading states use a shared pattern (full-screen `LoadingScreen` for data loads, custom treatment only where cancel/text is needed).
 - Hardcoded separator colors are removed.
 - Dark mode no longer depends on black-alpha separators.
+- `theme.onColor` covers the shared foreground treatment for colored surfaces.
 - Remaining raw color literals are either removed or intentionally justified.
 - One-off shadow implementations are replaced by shared shadow tokens where the same surface pattern is intended.
+- The split between tab-root headers and root/modal headers is explicitly documented and preserved.
 - Shared primitives reduce duplication without introducing unnecessary abstraction.
 - The resulting UI feels like one app, not multiple design generations.
