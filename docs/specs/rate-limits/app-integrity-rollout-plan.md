@@ -552,6 +552,7 @@ Die iOS-Attestation sollte nicht zu stark an die bisherige client-generierte Dev
 ### Default lokal
 
 ```bash
+API_IP_GUARD_ENABLED=false
 APP_INTEGRITY_MODE=off
 APP_INTEGRITY_ANDROID_ENABLED=false
 APP_INTEGRITY_IOS_ENABLED=false
@@ -562,6 +563,7 @@ APP_INTEGRITY_IOS_ENABLED=false
 Empfohlen:
 
 ```bash
+API_IP_GUARD_ENABLED=true
 APP_INTEGRITY_MODE=observe
 APP_INTEGRITY_ANDROID_ENABLED=true
 APP_INTEGRITY_IOS_ENABLED=false
