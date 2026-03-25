@@ -287,19 +287,39 @@ export default function QuizSessionScreen() {
   const currentTopic = resolvedTopicId
     ? getTopicById(resolvedTopicId, currentLanguage?.categories)
     : null;
-  const currentCategory = currentTopic
-    ? currentLanguage?.categories.find(
+  const currentCategory = useMemo(() => {
+    if (currentTopic) {
+      return currentLanguage?.categories.find(
         (category) => category.id === currentTopic.category,
-      )
-    : undefined;
+      );
+    }
+    if (resolvedTopicIds.length > 0 && currentLanguage?.categories) {
+      const topics = resolvedTopicIds
+        .map((id) => getTopicById(id, currentLanguage.categories))
+        .filter(Boolean);
+      if (topics.length > 0) {
+        const firstCategory = topics[0]!.category;
+        const allSame = topics.every((tp) => tp!.category === firstCategory);
+        if (allSame) {
+          return currentLanguage.categories.find(
+            (category) => category.id === firstCategory,
+          );
+        }
+      }
+    }
+    return undefined;
+  }, [currentTopic, currentLanguage, resolvedTopicIds]);
+  const isCategoryQuiz = !currentTopic && !isQuickQuiz && !!currentCategory;
   const contextBadgeLabel = isQuickQuiz
     ? t("quickQuiz")
     : currentTopic
       ? getTopicName(currentTopic, language)
-      : t("mixedQuiz");
+      : isCategoryQuiz
+        ? getCategoryName(currentCategory!, language)
+        : t("mixedQuiz");
   const contextBadgeIcon = isQuickQuiz
     ? "zap"
-    : currentTopic
+    : currentTopic || isCategoryQuiz
       ? "book-open"
       : "edit-3";
   const contextColor = theme.secondary;
@@ -309,13 +329,17 @@ export default function QuizSessionScreen() {
       : currentLanguage
         ? getLanguageDisplayName(currentLanguage, language)
         : resolvedProgrammingLanguage
-    : resolvedTopicIds.length > 0
+    : isCategoryQuiz
       ? `${resolvedTopicIds.length} ${
           resolvedTopicIds.length === 1 ? t("topic") : t("topics")
         }`
-      : currentLanguage
-        ? getLanguageDisplayName(currentLanguage, language)
-        : resolvedProgrammingLanguage;
+      : resolvedTopicIds.length > 0
+        ? `${resolvedTopicIds.length} ${
+            resolvedTopicIds.length === 1 ? t("topic") : t("topics")
+          }`
+        : currentLanguage
+          ? getLanguageDisplayName(currentLanguage, language)
+          : resolvedProgrammingLanguage;
 
   const [questions, setQuestions] = useState<QuizQuestion[]>([]);
   const [currentIndex, setCurrentIndex] = useState(0);
