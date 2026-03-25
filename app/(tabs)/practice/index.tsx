@@ -1,36 +1,36 @@
-import React, { useRef } from "react";
-import { View, ScrollView, StyleSheet, Pressable } from "react-native";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { useRouter } from "expo-router";
-import Animated from "react-native-reanimated";
+import React, { useRef } from 'react';
+import { View, ScrollView, StyleSheet, Pressable } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useRouter } from 'expo-router';
+import Animated from 'react-native-reanimated';
 
-import { ThemedView } from "@/components/ThemedView";
-import { ThemedText } from "@/components/ThemedText";
-import { AppIcon } from "@/components/AppIcon";
-import { PrimaryButton } from "@/components/ActionButton";
-import { SkillLevelDots } from "@/components/SkillLevelDots";
-import { LoadingScreen } from "@/components/LoadingScreen";
-import { useTheme } from "@/contexts/ThemeContext";
-import { useTranslation } from "@/hooks/useTranslation";
-import { usePressAnimation } from "@/hooks/usePressAnimation";
+import { ThemedView } from '@/components/ThemedView';
+import { ThemedText } from '@/components/ThemedText';
+import { AppIcon } from '@/components/AppIcon';
+import { PrimaryButton } from '@/components/ActionButton';
+import { SkillLevelDots } from '@/components/SkillLevelDots';
+import { LoadingScreen } from '@/components/LoadingScreen';
+import { useTheme } from '@/contexts/ThemeContext';
+import { useTranslation } from '@/hooks/useTranslation';
+import { usePressAnimation } from '@/hooks/usePressAnimation';
 import {
   useTopicProgress,
   getCategoryProgress,
-} from "@/hooks/useTopicProgress";
+} from '@/hooks/useTopicProgress';
 import {
   QUICK_QUIZ_MODE,
   QUICK_QUIZ_QUESTION_COUNT,
   QUICK_QUIZ_TOPIC_LIMIT,
-} from "@/constants/quiz";
-import { Spacing, BorderRadius, Shadows, withOpacity } from "@/constants/theme";
+} from '@/constants/quiz';
+import { Spacing, BorderRadius, Shadows, withOpacity } from '@/constants/theme';
 import {
   type Topic,
   type Category,
   getTopicName,
   getCategoryName,
-} from "@/lib/topics";
-import { type TopicProgress } from "@/lib/storage";
-import { useProgrammingLanguage } from "@/contexts/ProgrammingLanguageContext";
+} from '@/lib/topics';
+import { type TopicProgress } from '@/lib/storage';
+import { useProgrammingLanguage } from '@/contexts/ProgrammingLanguageContext';
 
 const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
 
@@ -155,7 +155,7 @@ function CategoryRow({
         <View style={styles.categoryRowLeft}>
           <ThemedText type="h4">{categoryName}</ThemedText>
           <ThemedText type="caption" style={{ color: theme.tabIconDefault }}>
-            {topicCount} {topicCount === 1 ? t("topic") : t("topics")}
+            {topicCount} {topicCount === 1 ? t('topic') : t('topics')}
           </ThemedText>
         </View>
         <View style={styles.categoryRowRight}>
@@ -191,31 +191,32 @@ export default function PracticeScreen() {
   const { t, language, refreshLanguage } = useTranslation();
   const { selectedLanguage } = useProgrammingLanguage();
   const categories = selectedLanguage?.categories ?? [];
-  const languageId = selectedLanguage?.id ?? "javascript";
+  const languageId = selectedLanguage?.id ?? 'javascript';
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const categorySectionRef = useRef<View>(null);
   const scrollViewRef = useRef<ScrollView>(null);
   const categorySectionY = useRef(0);
 
-  const { topicProgress, loading, dueTopics } = useTopicProgress({
-    languageId,
-    categories,
-    refreshLanguage,
-  });
+  const { topicProgress, loading, dueTopics, hasQuizHistory } =
+    useTopicProgress({
+      languageId,
+      categories,
+      refreshLanguage,
+    });
 
-  const dueTopicIds = dueTopics.map((t) => t.id).join(",");
+  const dueTopicIds = dueTopics.map((t) => t.id).join(',');
 
   const handleStartReview = () => {
     router.push({
-      pathname: "/quiz-session",
+      pathname: '/quiz-session',
       params: { topicIds: dueTopicIds, programmingLanguage: languageId },
     });
   };
 
   const handleTopicQuiz = (topic: Topic) => {
     router.push({
-      pathname: "/quiz-session",
+      pathname: '/quiz-session',
       params: { topicId: topic.id, programmingLanguage: languageId },
     });
   };
@@ -228,9 +229,9 @@ export default function PracticeScreen() {
   };
 
   const handleCategoryPress = (category: Category) => {
-    const ids = category.topics.map((t) => t.id).join(",");
+    const ids = category.topics.map((t) => t.id).join(',');
     router.push({
-      pathname: "/quiz-session",
+      pathname: '/quiz-session',
       params: { topicIds: ids, programmingLanguage: languageId },
     });
   };
@@ -242,13 +243,13 @@ export default function PracticeScreen() {
     );
 
     router.push({
-      pathname: "/quiz-session",
+      pathname: '/quiz-session',
       params: {
         count: String(QUICK_QUIZ_QUESTION_COUNT),
         programmingLanguage: languageId,
         quizMode: QUICK_QUIZ_MODE,
         ...(quickTopicIds.length > 0
-          ? { topicIds: quickTopicIds.join(",") }
+          ? { topicIds: quickTopicIds.join(',') }
           : {}),
       },
     });
@@ -282,12 +283,12 @@ export default function PracticeScreen() {
               <View style={styles.dueSectionTitleRow}>
                 <AppIcon name="clock" size={20} color={theme.accent} />
                 <ThemedText type="h4" style={{ color: theme.accent }}>
-                  {t("dueForReview")}
+                  {t('dueForReview')}
                 </ThemedText>
               </View>
               <ThemedText type="caption" style={{ color: theme.accent }}>
-                {dueTopics.length}{" "}
-                {dueTopics.length === 1 ? t("topic") : t("topics")}
+                {dueTopics.length}{' '}
+                {dueTopics.length === 1 ? t('topic') : t('topics')}
               </ThemedText>
             </View>
 
@@ -321,7 +322,7 @@ export default function PracticeScreen() {
             <PrimaryButton
               testID="practice-start-review-button"
               color={theme.accent}
-              label={t("startReview")}
+              label={t('startReview')}
               onPress={handleStartReview}
               size="compact"
             />
@@ -333,33 +334,37 @@ export default function PracticeScreen() {
               { backgroundColor: theme.backgroundDefault },
             ]}
           >
-            <AppIcon name="check-circle" size={40} color={theme.success} />
+            <AppIcon
+              name={hasQuizHistory ? 'check-circle' : 'info'}
+              size={40}
+              color={hasQuizHistory ? theme.success : theme.secondary}
+            />
             <ThemedText type="h4" style={{ marginTop: Spacing.md }}>
-              {t("noDueTopics")}
+              {t(hasQuizHistory ? 'noDueTopics' : 'noPracticeYet')}
             </ThemedText>
             <ThemedText
               type="caption"
-              style={{ color: theme.tabIconDefault, textAlign: "center" }}
+              style={{ color: theme.tabIconDefault, textAlign: 'center' }}
             >
-              {t("noDueTopicsDesc")}
+              {t(hasQuizHistory ? 'noDueTopicsDesc' : 'noPracticeYetDesc')}
             </ThemedText>
           </View>
         )}
 
         {/* Section 2: Quiz Modes */}
         <ThemedText type="h4" style={styles.sectionHeader}>
-          {t("quizModes")}
+          {t('quizModes')}
         </ThemedText>
         <View style={styles.modesGrid}>
           <QuizModeCard
             icon="edit-3"
             color={theme.secondary}
-            title={t("mixedQuiz")}
-            description={t("mixedQuizDesc")}
+            title={t('mixedQuiz')}
+            description={t('mixedQuizDesc')}
             testID="practice-mode-mixed"
             onPress={() =>
               router.push({
-                pathname: "/quiz-session",
+                pathname: '/quiz-session',
                 params: { programmingLanguage: languageId },
               })
             }
@@ -367,8 +372,8 @@ export default function PracticeScreen() {
           <QuizModeCard
             icon="clock"
             color={theme.accent}
-            title={t("dueTopicsQuiz")}
-            description={t("dueTopicsQuizDesc")}
+            title={t('dueTopicsQuiz')}
+            description={t('dueTopicsQuizDesc')}
             testID="practice-mode-due"
             onPress={handleStartReview}
             disabled={dueTopics.length === 0}
@@ -376,16 +381,16 @@ export default function PracticeScreen() {
           <QuizModeCard
             icon="zap"
             color={theme.secondary}
-            title={t("quickQuiz")}
-            description={t("quickQuizDesc")}
+            title={t('quickQuiz')}
+            description={t('quickQuizDesc')}
             testID="practice-mode-quick"
             onPress={handleQuickQuiz}
           />
           <QuizModeCard
             icon="book-open"
             color={theme.secondary}
-            title={t("byCategoryQuiz")}
-            description={t("byCategoryQuizDesc")}
+            title={t('byCategoryQuiz')}
+            description={t('byCategoryQuizDesc')}
             testID="practice-mode-category"
             onPress={handleScrollToCategories}
           />
@@ -399,7 +404,7 @@ export default function PracticeScreen() {
           }}
         >
           <ThemedText type="h4" style={styles.sectionHeader}>
-            {t("selectCategory")}
+            {t('selectCategory')}
           </ThemedText>
         </View>
         <View style={styles.categoriesList}>
@@ -438,14 +443,14 @@ const styles = StyleSheet.create({
     padding: Spacing.lg,
   },
   dueSectionHeader: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
     marginBottom: Spacing.md,
   },
   dueSectionTitleRow: {
-    flexDirection: "row",
-    alignItems: "center",
+    flexDirection: 'row',
+    alignItems: 'center',
     gap: Spacing.sm,
   },
   dueTopicsList: {
@@ -453,24 +458,24 @@ const styles = StyleSheet.create({
     marginBottom: Spacing.lg,
   },
   dueTopicRow: {
-    flexDirection: "row",
-    alignItems: "center",
+    flexDirection: 'row',
+    alignItems: 'center',
     paddingVertical: Spacing.sm,
   },
   emptyState: {
     borderRadius: BorderRadius.lg,
     padding: Spacing.xl,
-    alignItems: "center",
+    alignItems: 'center',
     gap: Spacing.sm,
     ...Shadows.card,
   },
   modesGrid: {
-    flexDirection: "row",
-    flexWrap: "wrap",
+    flexDirection: 'row',
+    flexWrap: 'wrap',
     gap: Spacing.md,
   },
   modeCard: {
-    width: "47.5%",
+    width: '47.5%',
     borderRadius: BorderRadius.lg,
     padding: Spacing.lg,
     gap: Spacing.sm,
@@ -480,8 +485,8 @@ const styles = StyleSheet.create({
     width: 56,
     height: 56,
     borderRadius: 28,
-    alignItems: "center",
-    justifyContent: "center",
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   modeTitle: {
     marginTop: Spacing.xs,
@@ -495,27 +500,27 @@ const styles = StyleSheet.create({
     ...Shadows.card,
   },
   categoryRowContent: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
   },
   categoryRowLeft: {
     flex: 1,
     gap: Spacing.xs,
   },
   categoryRowRight: {
-    flexDirection: "row",
-    alignItems: "center",
+    flexDirection: 'row',
+    alignItems: 'center',
     gap: Spacing.md,
   },
   categoryProgressBar: {
     width: 80,
     height: 6,
     borderRadius: 3,
-    overflow: "hidden",
+    overflow: 'hidden',
   },
   categoryProgressFill: {
-    height: "100%",
+    height: '100%',
     borderRadius: 3,
   },
 });

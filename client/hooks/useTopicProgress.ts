@@ -1,7 +1,7 @@
-import { useState, useCallback } from "react";
-import { useFocusEffect } from "expo-router";
-import { storage, type TopicProgress, isTopicDue } from "@/lib/storage";
-import type { Category } from "@/lib/topics";
+import { useState, useCallback } from 'react';
+import { useFocusEffect } from 'expo-router';
+import { storage, type TopicProgress, isTopicDue } from '@/lib/storage';
+import type { Category } from '@/lib/topics';
 
 interface UseTopicProgressOptions {
   languageId: string;
@@ -26,7 +26,7 @@ export function useTopicProgress({
         storage.getTopicProgressForLanguage(progress.topicProgress, languageId),
       );
     } catch (error) {
-      console.error("Error loading progress:", error);
+      console.error('Error loading progress:', error);
     } finally {
       setLoading(false);
     }
@@ -40,12 +40,15 @@ export function useTopicProgress({
   );
 
   const allTopics = categories.flatMap((cat) => cat.topics);
+  const hasQuizHistory = Object.values(topicProgress).some(
+    (progress) => progress.questionsAnswered > 0,
+  );
   const dueTopics = allTopics.filter((topic) => {
     const progress = topicProgress[topic.id];
     return progress && progress.questionsAnswered > 0 && isTopicDue(progress);
   });
 
-  return { topicProgress, loading, dueTopics };
+  return { topicProgress, loading, dueTopics, hasQuizHistory };
 }
 
 export function getCategoryProgress(
