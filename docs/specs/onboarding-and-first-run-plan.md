@@ -20,7 +20,7 @@ Getestet wurde aus drei Perspektiven:
 - Die Zielgruppe klar benennen (begleitendes Üben, nicht eigenständiger Programmierkurs).
 - Den bestehenden Navigation-Flow (Language Select → Learn) nicht brechen.
 - Keine Registrierung, kein Account, kein mehrstufiges Onboarding.
-- Lokalisierung (Deutsch/Englisch) von Anfang an mitdenken.
+- Welcome-Screen und Language Select beim ersten Start in Deutsch oder Englisch anzeigen; Standardsprache aus der Gerätesprache ableiten (`de`/`en`, sonst `de`).
 
 ## Nicht-Ziele
 
@@ -47,12 +47,15 @@ Getestet wurde aus drei Perspektiven:
   - EN: "Practice and deepen your programming knowledge with AI-generated quizzes"
 - Optionaler visueller Bereich (App-Icon oder einfache Illustration, kein aufwändiges Artwork)
 - Ein Weiter-Button ("Los geht's" / "Get Started")
+- Die Texte folgen beim ersten Start der initialen App-Sprache, die aus der Gerätesprache abgeleitet wird (`de`/`en`, sonst `de`)
 
 **Verhalten:**
 
 - Wird nur angezeigt, wenn `hasSeenWelcome` nicht in AsyncStorage gesetzt ist.
-- Nach Klick auf den Weiter-Button wird `hasSeenWelcome = true` persistiert und zur bestehenden `language-select`-Route navigiert.
-- Rückkehr zum Welcome-Screen ist nicht möglich (kein Back-Button).
+- Bevor Welcome-Screen oder `language-select` gerendert werden, wird beim ersten Start eine initiale App-Sprache bestimmt: Gerätesprache `de`/`en`, sonst Fallback `de`. Falls noch keine App-Sprache gespeichert ist, wird dieser Wert in den Settings persistiert.
+- `app/index.tsx` wartet, bis `ProgrammingLanguageContext`, `LanguageContext` und der Welcome-Status geladen sind, damit es keinen Sprach-Flash beim ersten Render gibt.
+- Nach Klick auf den Weiter-Button wird `hasSeenWelcome = true` persistiert und per `router.replace("/language-select")` zur bestehenden `language-select`-Route navigiert.
+- Rückkehr zum Welcome-Screen ist nicht möglich; weder Header-Back noch Hardware-/Gesture-Back sollen nach dem Welcome wieder auf diesen Screen führen.
 - Der Welcome-Screen wird **nicht** durch `storage.clearAllData()` zurückgesetzt (analog zu `deviceId`).
 
 **Betroffene Dateien:**
@@ -61,8 +64,10 @@ Getestet wurde aus drei Perspektiven:
 - Neu: `app/welcome.tsx` – Route (re-exportiert Screen)
 - Ändern: `app/index.tsx` – Routing-Logik erweitern (Welcome → Language Select → Learn)
 - Ändern: `app/_layout.tsx` – neue Route registrieren
+- Ändern: `client/contexts/LanguageContext.tsx` – initiale App-Sprache beim ersten Start aus Geräte-Locale ableiten und laden
 - Ändern: `client/lib/storage.ts` – neuer Schlüssel `hasSeenWelcome`, explizit von `clearAllData()` ausgenommen
 - Ändern: `client/lib/i18n.ts` – neue Übersetzungsschlüssel
+- Ggf. Ändern: `package.json` – Locale-API ergänzen, falls noch keine Geräte-Locale verfügbar ist (z.B. `expo-localization`)
 
 **Design-Vorgaben:**
 
@@ -91,7 +96,7 @@ Getestet wurde aus drei Perspektiven:
 **Design-Vorgaben:**
 
 - `ThemedText` mit `type="body"` und `color: theme.tabIconDefault` (gleicher Stil wie der Untertitel in `LanguageSelectScreen`).
-- Unterhalb der Zeile mit dem JS-Icon und "JavaScript lernen", vor der ersten Kategorie.
+- Platzierung im Screen-Content als erster Textblock des Scroll-Contents, oberhalb des ersten inhaltlichen Blocks (fällige Themen bzw. erste Kategorie), **nicht** im nativen Header.
 
 ### M3: Level-System-Erklärung auf TopicDetailScreen
 
@@ -101,8 +106,8 @@ Getestet wurde aus drei Perspektiven:
 
 **Inhalt:**
 
-- DE: "Dein Level steigt, wenn du ein Quiz zu diesem Thema bestehst. Ab Level 5 gilt das Thema als gemeistert."
-- EN: "Your level increases when you pass a quiz on this topic. At level 5, the topic is considered mastered."
+- DE: "Dein Level steigt, wenn du in einem Quiz zu diesem Thema mindestens 80 % erreichst, und sinkt wieder, wenn du unter 50 % bleibst. Ab Level 5 gilt das Thema als gemeistert."
+- EN: "Your level increases when you score at least 80% in a quiz on this topic, and drops again if you score below 50%. At level 5, the topic is considered mastered."
 
 **Betroffene Dateien:**
 
@@ -112,7 +117,8 @@ Getestet wurde aus drei Perspektiven:
 **Design-Vorgaben:**
 
 - Kleines Info-Icon (`ⓘ`) neben "1/5 Level", tappbar.
-- Bei Tap: Inline-Text unterhalb der Level-Anzeige einblenden (Toggle-Verhalten, kein Modal).
+- Das Info-Element ist in beiden Zuständen der Topic-Detail-Seite sichtbar: in der Meta-Card ohne Fortschritt und im Progress-Block mit Fortschritt. Falls die Level-Anzeige im Zuge der Umsetzung vereinheitlicht wird, bleibt genau ein Info-Toggle sichtbar.
+- Bei Tap: Inline-Text direkt unterhalb der jeweiligen Level-Anzeige einblenden (Toggle-Verhalten, kein Modal).
 - Animation: `FadeIn` / `FadeOut` via `react-native-reanimated`.
 
 ### M4: Unterscheidung "Lernen" vs. "Üben" klarer machen
@@ -135,27 +141,31 @@ Getestet wurde aus drei Perspektiven:
 **Design-Vorgaben:**
 
 - Gleicher Stil wie M2 (`ThemedText`, `type="body"`, `color: theme.tabIconDefault`).
-- Platzierung: zwischen dem "Üben"-Titel und dem bestehenden Info-Banner "Noch keine Themen zur Wiederholung".
+- Platzierung: im Screen-Content oberhalb des ersten inhaltlichen Blocks (Due-Section oder Empty State), **nicht** im nativen Header.
 
 ---
 
 ## Umsetzungsplan (PR-Sequenz)
 
-### PR 1: Storage-Schlüssel und Routing-Vorbereitung
+### PR 1: Storage-Schlüssel, App-Sprach-Bootstrap und Routing-Vorbereitung
 
 **Scope:** Grundlagen legen, ohne sichtbare UI-Änderung.
 
 Änderungen:
 
 - `client/lib/storage.ts`: neuen Schlüssel `WELCOME_SEEN_KEY` anlegen, Lese-/Schreib-Funktionen (`hasSeenWelcome`, `markWelcomeSeen`), explizit von `clearAllData()` ausschließen.
+- `client/contexts/LanguageContext.tsx`: Initialsprache beim ersten Start aus der Geräte-Locale ableiten (`de`/`en`, sonst `de`) und persistierte Settings weiterhin priorisieren.
 - `client/lib/i18n.ts`: alle neuen Übersetzungsschlüssel für M1–M4 hinzufügen (Welcome-Screen, LearnScreen-Untertitel, Level-Erklärung, Practice-Untertitel).
+- Ggf. `package.json`: Locale-API ergänzen, falls erforderlich.
 
 Akzeptanzkriterien:
 
 - `hasSeenWelcome()` gibt `false` zurück, wenn der Schlüssel nicht gesetzt ist.
 - `markWelcomeSeen()` persistiert den Wert korrekt.
 - `clearAllData()` löscht den Welcome-Schlüssel **nicht**.
+- Wenn noch keine App-Sprache gespeichert ist, wird beim ersten Start `de` oder `en` aus der Geräte-Locale übernommen; alle anderen Locales fallen auf `de` zurück.
 - Alle neuen i18n-Schlüssel sind in Deutsch und Englisch vorhanden.
+- Unit-Tests decken `hasSeenWelcome`, `markWelcomeSeen`, `clearAllData()` und die Initialsprachen-Ableitung ab.
 - Bestehende Tests laufen durch (`npm test`).
 
 ### PR 2: Welcome-Screen (M1)
@@ -168,19 +178,21 @@ Akzeptanzkriterien:
 - Neu: `app/welcome.tsx` (re-exportiert den Screen).
 - Ändern: `app/_layout.tsx` – neue `welcome`-Route registrieren (`headerShown: false`).
 - Ändern: `app/index.tsx` – Routing-Logik:
-  1. Laden: `isLoading` aus `ProgrammingLanguageContext` und `hasSeenWelcome` prüfen.
+  1. Laden: `isLoading` aus `ProgrammingLanguageContext`, `isLoading` aus `LanguageContext` und `hasSeenWelcome` prüfen.
   2. Wenn `!hasSeenWelcome` → Redirect zu `/welcome`.
   3. Wenn `!isLanguageSelected` → Redirect zu `/language-select`.
   4. Sonst → Redirect zu `/learn`.
+- `client/screens/WelcomeScreen.tsx`: CTA markiert Welcome als gesehen und navigiert per `router.replace("/language-select")`.
 
 Akzeptanzkriterien:
 
 - Beim allerersten Start wird der Welcome-Screen angezeigt.
 - Nach Tippen auf "Los geht's" erscheint der Language-Select-Screen.
 - Bei jedem weiteren Start wird der Welcome-Screen übersprungen.
-- Zurück-Navigation zum Welcome-Screen ist nicht möglich.
+- Zurück-Navigation zum Welcome-Screen ist nicht möglich, auch nicht per Hardware-Back/Geste nach dem Wechsel zu `language-select`.
 - Light Mode und Dark Mode sind korrekt gestylt.
-- Lokalisierung (DE/EN) funktioniert.
+- Lokalisierung (DE/EN) funktioniert beim ersten Start anhand der Geräte-Locale.
+- Tests decken Root-Redirects (`/welcome` vs. `/language-select` vs. `/learn`) und den Welcome-Weiter-Flow ab.
 - `npm run check:types && npm run lint && npm run check:format && npm test` bestehen.
 
 ### PR 3: Kontext-Untertitel auf LearnScreen und PracticeScreen (M2 + M4)
@@ -195,6 +207,7 @@ Akzeptanzkriterien:
 Akzeptanzkriterien:
 
 - Beide Untertitel sind sichtbar und korrekt lokalisiert.
+- Beide Untertitel sitzen im Screen-Content und nicht im nativen Header.
 - Layout bricht nicht bei langen Übersetzungen.
 - Kein visueller Bruch mit dem bestehenden Design.
 - Light/Dark Mode korrekt.
@@ -209,10 +222,11 @@ Akzeptanzkriterien:
 
 Akzeptanzkriterien:
 
-- Info-Icon ist sichtbar neben der Level-Anzeige.
+- Info-Icon ist sichtbar neben der Level-Anzeige, sowohl ohne Fortschritt als auch mit vorhandenem Fortschritt.
 - Tap blendet den Erklärungstext ein/aus.
 - Animation ist flüssig.
 - Text ist korrekt lokalisiert.
+- Tests decken das Toggle-Verhalten in beiden UI-Zuständen ab.
 - Bestehende Topic-Detail-Tests laufen noch durch.
 
 ---
@@ -225,16 +239,20 @@ Akzeptanzkriterien:
 - `npm run lint`
 - `npm run check:format`
 - `npm test`
+- Neue oder angepasste Tests für Storage-Persistenz, Initialsprachen-Ableitung, Root-Redirects, Welcome-Flow, Untertitel und Level-Info sind enthalten.
 
 ### Manuelle Checks
 
-- **Erster Start (frische Installation):** Welcome-Screen → Language Select → Learn (mit Untertitel).
+- **Erster Start (frische Installation, Gerät auf Deutsch):** Welcome-Screen → Language Select → Learn (mit Untertitel).
+- **Erster Start (frische Installation, Gerät auf Englisch):** Welcome-Screen und `language-select` erscheinen auf Englisch.
 - **Zweiter Start:** Welcome-Screen wird übersprungen, direkt zum Learn-Tab.
 - **Fortschritt zurücksetzen:** Welcome-Screen wird trotzdem nicht erneut angezeigt.
 - **Sprachwechsel:** Alle neuen Texte wechseln korrekt zwischen DE und EN.
 - **Dark Mode:** Alle neuen Screens und Texte sind korrekt gestylt.
-- **TopicDetail:** Level-Info ein-/ausblenden funktioniert.
+- **TopicDetail ohne Fortschritt:** Level-Info ein-/ausblenden funktioniert.
+- **TopicDetail mit Fortschritt:** Level-Info ein-/ausblenden funktioniert.
 - **Practice-Tab:** Untertitel ist sichtbar und korrekt positioniert.
+- **Back-Verhalten nach Welcome:** Von `language-select` führt Back nicht zurück zum Welcome-Screen.
 
 ### Flow-Checks
 
@@ -255,11 +273,13 @@ Geänderte Dateien:
 
 - `app/index.tsx`
 - `app/_layout.tsx`
+- `client/contexts/LanguageContext.tsx`
 - `client/lib/storage.ts`
 - `client/lib/i18n.ts`
 - `client/screens/LearnScreen.tsx`
 - `client/screens/TopicDetailScreen.tsx`
 - `app/(tabs)/practice/index.tsx`
+- Ggf. `package.json`
 
 ## Definition of Done
 
