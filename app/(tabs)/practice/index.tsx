@@ -406,6 +406,13 @@ export default function PracticeScreen() {
         ]}
         showsVerticalScrollIndicator={false}
       >
+        <ThemedText
+          type="body"
+          style={[styles.screenSubtitle, { color: theme.tabIconDefault }]}
+        >
+          {t("practiceScreenSubtitle")}
+        </ThemedText>
+
         {/* Section 1: Due for Review */}
         {hasDueTopics ? (
           <SurfaceCard
@@ -540,6 +547,9 @@ const styles = StyleSheet.create({
   scrollContent: {
     paddingHorizontal: Spacing.lg,
     gap: Spacing.lg,
+  },
+  screenSubtitle: {
+    marginTop: Spacing.sm,
   },
   sectionHeader: {
     marginTop: 0,

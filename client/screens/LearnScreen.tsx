@@ -660,6 +660,13 @@ export default function LearnScreen() {
         ]}
         showsVerticalScrollIndicator={false}
       >
+        <ThemedText
+          type="body"
+          style={[styles.screenSubtitle, { color: theme.tabIconDefault }]}
+        >
+          {t("learnScreenSubtitle")}
+        </ThemedText>
+
         {dueTopics.length > 0 ? (
           <View
             style={[
@@ -728,6 +735,9 @@ const styles = StyleSheet.create({
   scrollContent: {
     paddingHorizontal: Spacing.lg,
     gap: Spacing.lg,
+  },
+  screenSubtitle: {
+    marginTop: Spacing.sm,
   },
   categoryCard: {
     borderRadius: BorderRadius.lg,

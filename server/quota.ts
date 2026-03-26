@@ -1,4 +1,4 @@
-import type { SupabaseClient } from '@supabase/supabase-js';
+import type { SupabaseClient } from "@supabase/supabase-js";
 import {
   DEVICE_ID_HEADER,
   type ApiQuotaEndpoint,
@@ -6,9 +6,9 @@ import {
   type ApiQuotaScope,
   QUIZ_GENERATE_QUOTA_ENDPOINT,
   type RateLimitedErrorBody,
-} from '@shared/api-quota';
-import { sha256Hex } from '@server/crypto';
-import { getSupabaseAdminClient } from '@server/supabase';
+} from "@shared/api-quota";
+import { sha256Hex } from "@server/crypto";
+import { getSupabaseAdminClient } from "@server/supabase";
 
 const DEVICE_TOTAL_LIMIT_PER_DAY = 15;
 const DEVICE_GENERATE_LIMIT_PER_DAY = 12;
@@ -42,7 +42,7 @@ export type QuotaEnforcementResult = {
 export class QuotaServiceError extends Error {
   constructor(message: string, options?: { cause?: unknown }) {
     super(message, options);
-    this.name = 'QuotaServiceError';
+    this.name = "QuotaServiceError";
   }
 }
 
@@ -85,11 +85,11 @@ function getRateLimitWindow(
   reason: ApiQuotaReason,
   endpoint: ApiQuotaEndpoint,
 ) {
-  if (reason === 'global_day') {
+  if (reason === "global_day") {
     return GLOBAL_LIMIT_PER_DAY;
   }
 
-  if (reason === 'device_total') {
+  if (reason === "device_total") {
     return DEVICE_TOTAL_LIMIT_PER_DAY;
   }
 
@@ -107,7 +107,7 @@ async function countApiUsage(
 
   if (error) {
     throw new QuotaServiceError(
-      `${context} failed: ${error.message ?? 'Unknown Supabase error'}`,
+      `${context} failed: ${error.message ?? "Unknown Supabase error"}`,
     );
   }
 
@@ -126,7 +126,7 @@ async function insertApiUsage(
     usageDate: string;
   },
 ): Promise<void> {
-  const { error } = await supabase.from('api_usage').insert({
+  const { error } = await supabase.from("api_usage").insert({
     device_id_hash: deviceIdHash,
     endpoint,
     usage_date: usageDate,
@@ -134,17 +134,17 @@ async function insertApiUsage(
 
   if (error) {
     throw new QuotaServiceError(
-      `api_usage insert failed: ${error.message ?? 'Unknown Supabase error'}`,
+      `api_usage insert failed: ${error.message ?? "Unknown Supabase error"}`,
     );
   }
 }
 
 export function isQuotaEnabled(): boolean {
-  return process.env.API_QUOTA_ENABLED === 'true';
+  return process.env.API_QUOTA_ENABLED === "true";
 }
 
 export function isValidDeviceId(deviceId: string | null): deviceId is string {
-  return typeof deviceId === 'string' && UUID_V4_PATTERN.test(deviceId);
+  return typeof deviceId === "string" && UUID_V4_PATTERN.test(deviceId);
 }
 
 export async function hashDeviceId(deviceId: string): Promise<string> {
@@ -152,7 +152,7 @@ export async function hashDeviceId(deviceId: string): Promise<string> {
     return await sha256Hex(deviceId);
   } catch (error) {
     throw new QuotaServiceError(
-      error instanceof Error ? error.message : 'Device ID hashing failed',
+      error instanceof Error ? error.message : "Device ID hashing failed",
       { cause: error },
     );
   }
@@ -171,35 +171,35 @@ export async function checkAndConsumeQuota(
   const [globalCount, deviceTotalCount, endpointCount] = await Promise.all([
     countApiUsage(
       supabase
-        .from('api_usage')
-        .select('*', { count: 'exact', head: true })
-        .eq('usage_date', usageDate),
-      'Global quota count',
+        .from("api_usage")
+        .select("*", { count: "exact", head: true })
+        .eq("usage_date", usageDate),
+      "Global quota count",
     ),
     countApiUsage(
       supabase
-        .from('api_usage')
-        .select('*', { count: 'exact', head: true })
-        .eq('device_id_hash', deviceIdHash)
-        .eq('usage_date', usageDate),
-      'Device daily quota count',
+        .from("api_usage")
+        .select("*", { count: "exact", head: true })
+        .eq("device_id_hash", deviceIdHash)
+        .eq("usage_date", usageDate),
+      "Device daily quota count",
     ),
     countApiUsage(
       supabase
-        .from('api_usage')
-        .select('*', { count: 'exact', head: true })
-        .eq('device_id_hash', deviceIdHash)
-        .eq('usage_date', usageDate)
-        .eq('endpoint', endpoint),
-      'Device endpoint quota count',
+        .from("api_usage")
+        .select("*", { count: "exact", head: true })
+        .eq("device_id_hash", deviceIdHash)
+        .eq("usage_date", usageDate)
+        .eq("endpoint", endpoint),
+      "Device endpoint quota count",
     ),
   ]);
 
   if (globalCount >= GLOBAL_LIMIT_PER_DAY) {
     return {
       allowed: false,
-      reason: 'global_day',
-      scope: 'global',
+      reason: "global_day",
+      scope: "global",
       retryAfterSeconds,
       resetAtUtc,
     };
@@ -208,8 +208,8 @@ export async function checkAndConsumeQuota(
   if (deviceTotalCount >= DEVICE_TOTAL_LIMIT_PER_DAY) {
     return {
       allowed: false,
-      reason: 'device_total',
-      scope: 'device',
+      reason: "device_total",
+      scope: "device",
       retryAfterSeconds,
       resetAtUtc,
     };
@@ -218,8 +218,8 @@ export async function checkAndConsumeQuota(
   if (endpointCount >= getEndpointLimit(endpoint)) {
     return {
       allowed: false,
-      reason: 'device_endpoint',
-      scope: 'device',
+      reason: "device_endpoint",
+      scope: "device",
       retryAfterSeconds,
       resetAtUtc,
     };
@@ -243,7 +243,7 @@ export async function checkAndConsumeQuota(
 }
 
 export function quotaUnavailableResponse(): Response {
-  return Response.json({ error: 'Quota service unavailable' }, { status: 503 });
+  return Response.json({ error: "Quota service unavailable" }, { status: 503 });
 }
 
 export function createRateLimitResponse(
@@ -251,7 +251,7 @@ export function createRateLimitResponse(
   endpoint: ApiQuotaEndpoint,
 ): Response {
   const responseBody: RateLimitedErrorBody = {
-    error: 'rate_limited',
+    error: "rate_limited",
     reason: result.reason,
     scope: result.scope,
     resetAtUtc: result.resetAtUtc,
@@ -260,10 +260,10 @@ export function createRateLimitResponse(
   return Response.json(responseBody, {
     status: 429,
     headers: {
-      'Retry-After': String(result.retryAfterSeconds),
-      'X-RateLimit-Limit': String(getRateLimitWindow(result.reason, endpoint)),
-      'X-RateLimit-Remaining': '0',
-      'X-RateLimit-Reset': String(
+      "Retry-After": String(result.retryAfterSeconds),
+      "X-RateLimit-Limit": String(getRateLimitWindow(result.reason, endpoint)),
+      "X-RateLimit-Remaining": "0",
+      "X-RateLimit-Reset": String(
         Math.floor(new Date(result.resetAtUtc).getTime() / 1000),
       ),
     },

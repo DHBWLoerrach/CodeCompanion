@@ -280,13 +280,27 @@ describe("storage state updates", () => {
     it("keeps the device ID while removing other local app data", async () => {
       await AsyncStorage.setItem(deviceIdStorageKey, "device-uuid");
       await storage.setSelectedLanguage("python");
+      await storage.markWelcomeSeen();
 
       await storage.clearAllData();
 
       expect(await AsyncStorage.getItem(deviceIdStorageKey)).toBe(
         "device-uuid",
       );
+      expect(await storage.hasSeenWelcome()).toBe(true);
       expect(await storage.getSelectedLanguage()).toBeNull();
+    });
+  });
+
+  describe("welcome state", () => {
+    it("returns false when welcome has not been seen", async () => {
+      expect(await storage.hasSeenWelcome()).toBe(false);
+    });
+
+    it("persists when welcome has been seen", async () => {
+      await storage.markWelcomeSeen();
+
+      expect(await storage.hasSeenWelcome()).toBe(true);
     });
   });
 });

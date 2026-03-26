@@ -492,7 +492,6 @@ export default function SettingsScreen() {
             style={styles.dangerButton}
           />
         </KeyboardAwareScrollViewCompat>
-
       </ThemedView>
     </>
   );

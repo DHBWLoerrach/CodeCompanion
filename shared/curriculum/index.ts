@@ -1,24 +1,24 @@
-import javaCurriculumJson from './java.json';
-import javascriptCurriculumJson from './javascript.json';
-import pythonCurriculumJson from './python.json';
+import javaCurriculumJson from "./java.json";
+import javascriptCurriculumJson from "./javascript.json";
+import pythonCurriculumJson from "./python.json";
 import type {
   CurriculumCategory,
   CurriculumLanguage,
   CurriculumTopic,
   LocalizedText,
-} from './types';
+} from "./types";
 import {
   SUPPORTED_PROGRAMMING_LANGUAGE_IDS,
   type ProgrammingLanguageId,
-} from '@shared/programming-language';
+} from "@shared/programming-language";
 
 const DEFAULT_LANGUAGE_METADATA: Record<
   ProgrammingLanguageId,
   { shortName: string; color: string }
 > = {
-  javascript: { shortName: 'JS', color: '#F7DF1E' },
-  python: { shortName: 'PY', color: '#3776AB' },
-  java: { shortName: 'JA', color: '#F89820' },
+  javascript: { shortName: "JS", color: "#F7DF1E" },
+  python: { shortName: "PY", color: "#3776AB" },
+  java: { shortName: "JA", color: "#F89820" },
 };
 
 const COLOR_PATTERN = /^#[0-9A-Fa-f]{6}$/;
@@ -39,11 +39,11 @@ function isProgrammingLanguageId(
 }
 
 function isNonEmptyString(value: unknown): value is string {
-  return typeof value === 'string' && value.trim().length > 0;
+  return typeof value === "string" && value.trim().length > 0;
 }
 
 function isLocalizedText(value: unknown): value is LocalizedText {
-  if (!value || typeof value !== 'object') return false;
+  if (!value || typeof value !== "object") return false;
   const localized = value as Record<string, unknown>;
   return isNonEmptyString(localized.en) && isNonEmptyString(localized.de);
 }
@@ -75,7 +75,7 @@ function normalizeTopic(topic: CurriculumTopic, path: string): CurriculumTopic {
     `${path}.id must be a non-empty string`,
   );
   assertValid(
-    typeof topic.order === 'number' && Number.isFinite(topic.order),
+    typeof topic.order === "number" && Number.isFinite(topic.order),
     `${path}.order must be a finite number`,
   );
   assertValid(
@@ -114,7 +114,7 @@ function normalizeCategory(
     `${path}.id must be a non-empty string`,
   );
   assertValid(
-    typeof category.order === 'number' && Number.isFinite(category.order),
+    typeof category.order === "number" && Number.isFinite(category.order),
     `${path}.order must be a finite number`,
   );
   assertValid(
@@ -208,12 +208,12 @@ function normalizeLanguage(language: CurriculumLanguage): CurriculumLanguage {
   const defaults = DEFAULT_LANGUAGE_METADATA[language.languageId];
   const shortNameCandidate = isNonEmptyString(language.shortName)
     ? language.shortName.trim()
-    : '';
+    : "";
   const shortName = SHORT_NAME_PATTERN.test(shortNameCandidate)
     ? shortNameCandidate
     : defaults.shortName;
   const color =
-    typeof language.color === 'string' && COLOR_PATTERN.test(language.color)
+    typeof language.color === "string" && COLOR_PATTERN.test(language.color)
       ? language.color
       : defaults.color;
 
@@ -227,7 +227,7 @@ function normalizeLanguage(language: CurriculumLanguage): CurriculumLanguage {
     languageNameKey: language.languageNameKey?.trim() || undefined,
     shortName,
     color,
-    contextExclusion: language.contextExclusion?.trim() || '',
+    contextExclusion: language.contextExclusion?.trim() || "",
     categories: normalizedCategories,
   };
 
@@ -310,7 +310,7 @@ export function isValidTopicId(
 
 export function getLocalizedText(
   text: LocalizedText,
-  language: 'en' | 'de',
+  language: "en" | "de",
 ): string {
   return text[language] || text.en;
 }

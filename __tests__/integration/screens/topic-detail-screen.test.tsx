@@ -1,18 +1,19 @@
-import React from 'react';
-import { fireEvent, render, waitFor } from '@testing-library/react-native';
-import TopicDetailScreen from '@/screens/TopicDetailScreen';
-import { hasTopicExplanation } from '@shared/explanations';
+import React from "react";
+import { fireEvent, render, waitFor } from "@testing-library/react-native";
+import TopicDetailScreen from "@/screens/TopicDetailScreen";
+import { hasTopicExplanation } from "@shared/explanations";
 
+let consoleErrorSpy: jest.SpyInstance;
 const mockPush = jest.fn();
 const mockSetOptions = jest.fn();
 const mockHasTopicExplanation = jest.mocked(hasTopicExplanation);
 const mockRefreshLanguage = jest.fn().mockResolvedValue(undefined);
-const mockGetSettings = jest.fn().mockResolvedValue({ language: 'en' });
+const mockGetSettings = jest.fn().mockResolvedValue({ language: "en" });
 const mockGetProgress = jest.fn().mockResolvedValue({ topicProgress: {} });
 
-jest.mock('expo-router', () => ({
+jest.mock("expo-router", () => ({
   useFocusEffect: (callback: () => void) => {
-    const ReactModule = require('react');
+    const ReactModule = require("react");
     ReactModule.useEffect(() => {
       const cleanup = callback();
       return cleanup;
@@ -22,68 +23,74 @@ jest.mock('expo-router', () => ({
     setOptions: mockSetOptions,
   }),
   useLocalSearchParams: () => ({
-    topicId: 'variables',
+    topicId: "variables",
   }),
   useRouter: () => ({
     push: mockPush,
   }),
 }));
 
-jest.mock('react-native-safe-area-context', () => ({
+jest.mock("react-native-safe-area-context", () => ({
   useSafeAreaInsets: () => ({ top: 0, right: 0, bottom: 0, left: 0 }),
 }));
 
-jest.mock('react-native-reanimated', () => ({
+jest.mock("react-native-reanimated", () => ({
   __esModule: true,
+  FadeIn: {
+    duration: () => ({}),
+  },
+  FadeOut: {
+    duration: () => ({}),
+  },
   default: {
-    View: require('react-native').View,
+    View: require("react-native").View,
     createAnimatedComponent: <T,>(component: T) => component,
   },
 }));
 
-jest.mock('@/components/AppIcon', () => ({
+jest.mock("@/components/AppIcon", () => ({
   AppIcon: () => null,
 }));
 
-jest.mock('@/components/LoadingScreen', () => ({
+jest.mock("@/components/LoadingScreen", () => ({
   LoadingScreen: () => null,
 }));
 
-jest.mock('@/contexts/ThemeContext', () => ({
+jest.mock("@/contexts/ThemeContext", () => ({
   useTheme: () => ({
     theme: {
-      primary: '#E2001A',
-      secondary: '#4A90E2',
-      success: '#34C759',
-      accent: '#FFB800',
-      error: '#E2001A',
-      text: '#111111',
-      tabIconDefault: '#666666',
-      backgroundDefault: '#FFFFFF',
-      backgroundRoot: '#FFFFFF',
-      cardBorder: '#DDDDDD',
-      codeBackground: '#F7F7F7',
-      disabled: '#CCCCCC',
-      buttonText: '#FFFFFF',
-      onColor: '#FFFFFF',
-      link: '#4A90E2',
-      backgroundSecondary: '#F0F0F0',
-      backgroundTertiary: '#EBEBEB',
-      cardBorderSubtle: '#DDDDDD',
-      separator: 'rgba(0, 0, 0, 0.08)',
+      primary: "#E2001A",
+      secondary: "#4A90E2",
+      success: "#34C759",
+      accent: "#FFB800",
+      error: "#E2001A",
+      text: "#111111",
+      tabIconDefault: "#666666",
+      backgroundDefault: "#FFFFFF",
+      backgroundRoot: "#FFFFFF",
+      cardBorder: "#DDDDDD",
+      codeBackground: "#F7F7F7",
+      disabled: "#CCCCCC",
+      buttonText: "#FFFFFF",
+      onColor: "#FFFFFF",
+      link: "#4A90E2",
+      backgroundSecondary: "#F0F0F0",
+      backgroundTertiary: "#EBEBEB",
+      cardBorderSubtle: "#DDDDDD",
+      separator: "rgba(0, 0, 0, 0.08)",
     },
   }),
 }));
 
-jest.mock('@/hooks/useTranslation', () => ({
+jest.mock("@/hooks/useTranslation", () => ({
   useTranslation: () => ({
     t: (key: string) => key,
-    language: 'en',
+    language: "en",
     refreshLanguage: mockRefreshLanguage,
   }),
 }));
 
-jest.mock('@/hooks/usePressAnimation', () => ({
+jest.mock("@/hooks/usePressAnimation", () => ({
   usePressAnimation: () => ({
     animatedStyle: {},
     handlePressIn: jest.fn(),
@@ -91,24 +98,24 @@ jest.mock('@/hooks/usePressAnimation', () => ({
   }),
 }));
 
-jest.mock('@/lib/topics', () => ({
+jest.mock("@/lib/topics", () => ({
   getTopicById: () => ({
-    id: 'variables',
-    category: 'fundamentals',
+    id: "variables",
+    category: "fundamentals",
     order: 1,
     prerequisites: [],
     optional: false,
-    name: { en: 'Variables', de: 'Variablen' },
+    name: { en: "Variables", de: "Variablen" },
     shortDescription: {
-      en: 'let, const declarations',
-      de: 'let, const Deklarationen',
+      en: "let, const declarations",
+      de: "let, const Deklarationen",
     },
   }),
-  getTopicName: () => 'Variables',
-  getTopicDescription: () => 'let, const declarations',
+  getTopicName: () => "Variables",
+  getTopicDescription: () => "let, const declarations",
 }));
 
-jest.mock('@/lib/storage', () => ({
+jest.mock("@/lib/storage", () => ({
   storage: {
     getSettings: (...args: unknown[]) => mockGetSettings(...args),
     getProgress: (...args: unknown[]) => mockGetProgress(...args),
@@ -116,83 +123,134 @@ jest.mock('@/lib/storage', () => ({
   isTopicDue: () => false,
 }));
 
-jest.mock('@/contexts/ProgrammingLanguageContext', () => ({
+jest.mock("@/contexts/ProgrammingLanguageContext", () => ({
   useProgrammingLanguage: () => ({
     selectedLanguage: {
-      id: 'javascript',
+      id: "javascript",
       categories: [],
     },
   }),
 }));
 
-jest.mock('@shared/explanations', () => ({
+jest.mock("@shared/explanations", () => ({
   hasTopicExplanation: jest.fn(),
   getTopicExplanation: jest
     .fn()
     .mockReturnValue(
-      '# 1. Introduction\n\nSample explanation text for testing.',
+      "# 1. Introduction\n\nSample explanation text for testing.",
     ),
 }));
 
-describe('TopicDetailScreen integration', () => {
+describe("TopicDetailScreen integration", () => {
   beforeEach(() => {
+    consoleErrorSpy = jest.spyOn(console, "error").mockImplementation(() => {});
     mockPush.mockReset();
     mockSetOptions.mockReset();
     mockHasTopicExplanation.mockReset();
     mockRefreshLanguage.mockClear();
     mockGetSettings.mockClear();
     mockGetProgress.mockClear();
+    mockGetProgress.mockResolvedValue({ topicProgress: {} });
   });
 
-  it('navigates to the explanation screen when a static explanation exists', async () => {
+  afterEach(() => {
+    consoleErrorSpy.mockRestore();
+  });
+
+  it("navigates to the explanation screen when a static explanation exists", async () => {
     mockHasTopicExplanation.mockReturnValue(true);
 
     const screen = render(<TopicDetailScreen />);
 
     await waitFor(() => {
-      expect(screen.getByText('Variables')).toBeTruthy();
+      expect(screen.getByText("Variables")).toBeTruthy();
     });
 
-    const explainButton = screen.getByTestId('topic-explain-button');
+    const explainButton = screen.getByTestId("topic-explain-button");
 
     fireEvent.press(explainButton);
 
     expect(mockPush).toHaveBeenCalledWith({
-      pathname: '/topic-explanation',
-      params: { topicId: 'variables', programmingLanguage: 'javascript' },
+      pathname: "/topic-explanation",
+      params: { topicId: "variables", programmingLanguage: "javascript" },
     });
   });
 
-  it('disables the explanation button when no static explanation exists', async () => {
+  it("disables the explanation button when no static explanation exists", async () => {
     mockHasTopicExplanation.mockReturnValue(false);
 
     const screen = render(<TopicDetailScreen />);
 
     await waitFor(() => {
-      expect(screen.getByText('Variables')).toBeTruthy();
+      expect(screen.getByText("Variables")).toBeTruthy();
     });
 
-    const explainButton = screen.getByTestId('topic-explain-button');
+    const explainButton = screen.getByTestId("topic-explain-button");
 
     fireEvent.press(explainButton);
 
     expect(mockPush).not.toHaveBeenCalled();
   });
 
-  it('starts a quiz from the inline action when no progress exists', async () => {
+  it("starts a quiz from the inline action when no progress exists", async () => {
     mockHasTopicExplanation.mockReturnValue(true);
 
     const screen = render(<TopicDetailScreen />);
 
     await waitFor(() => {
-      expect(screen.getByTestId('topic-start-quiz-button')).toBeTruthy();
+      expect(screen.getByTestId("topic-start-quiz-button")).toBeTruthy();
     });
 
-    fireEvent.press(screen.getByTestId('topic-start-quiz-button'));
+    fireEvent.press(screen.getByTestId("topic-start-quiz-button"));
 
     expect(mockPush).toHaveBeenCalledWith({
-      pathname: '/quiz-session',
-      params: { topicId: 'variables', programmingLanguage: 'javascript' },
+      pathname: "/quiz-session",
+      params: { topicId: "variables", programmingLanguage: "javascript" },
     });
+  });
+
+  it("toggles the level explanation when no progress exists", async () => {
+    mockHasTopicExplanation.mockReturnValue(true);
+
+    const screen = render(<TopicDetailScreen />);
+
+    await waitFor(() => {
+      expect(screen.getByTestId("topic-level-info-button")).toBeTruthy();
+    });
+
+    expect(screen.queryByText("levelInfoText")).toBeNull();
+
+    fireEvent.press(screen.getByTestId("topic-level-info-button"));
+
+    expect(screen.getByText("levelInfoText")).toBeTruthy();
+
+    fireEvent.press(screen.getByTestId("topic-level-info-button"));
+
+    expect(screen.queryByText("levelInfoText")).toBeNull();
+  });
+
+  it("toggles the level explanation when progress exists", async () => {
+    mockHasTopicExplanation.mockReturnValue(true);
+    mockGetProgress.mockResolvedValue({
+      topicProgress: {
+        "javascript:variables": {
+          topicId: "variables",
+          questionsAnswered: 5,
+          correctAnswers: 4,
+          skillLevel: 2,
+          lastPracticed: "2026-02-08T00:00:00.000Z",
+        },
+      },
+    });
+
+    const screen = render(<TopicDetailScreen />);
+
+    await waitFor(() => {
+      expect(screen.getByTestId("topic-level-info-button")).toBeTruthy();
+    });
+
+    fireEvent.press(screen.getByTestId("topic-level-info-button"));
+
+    expect(screen.getByText("levelInfoText")).toBeTruthy();
   });
 });

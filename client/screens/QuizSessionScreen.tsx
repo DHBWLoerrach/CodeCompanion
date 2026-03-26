@@ -4,7 +4,7 @@ import React, {
   useRef,
   useCallback,
   useMemo,
-} from 'react';
+} from "react";
 import {
   View,
   ScrollView,
@@ -12,49 +12,49 @@ import {
   Pressable,
   ActivityIndicator,
   Alert,
-} from 'react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
-import Animated from 'react-native-reanimated';
-import * as Haptics from 'expo-haptics';
+} from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { Stack, useLocalSearchParams, useRouter } from "expo-router";
+import Animated from "react-native-reanimated";
+import * as Haptics from "expo-haptics";
 
-import { BottomActionBar } from '@/components/BottomActionBar';
-import { HeaderIconButton } from '@/components/HeaderIconButton';
-import { InlineCodeText } from '@/components/InlineCodeText';
-import { PrimaryButton, SecondaryButton } from '@/components/ActionButton';
-import { StatusBadge } from '@/components/StatusBadge';
-import { SurfaceCard } from '@/components/SurfaceCard';
-import { ThemedText } from '@/components/ThemedText';
-import { ThemedView } from '@/components/ThemedView';
-import { AppIcon } from '@/components/AppIcon';
-import { useTheme } from '@/contexts/ThemeContext';
-import { useTranslation } from '@/hooks/useTranslation';
-import { useCloseHandler } from '@/hooks/useCloseHandler';
-import { usePressAnimation } from '@/hooks/usePressAnimation';
+import { BottomActionBar } from "@/components/BottomActionBar";
+import { HeaderIconButton } from "@/components/HeaderIconButton";
+import { InlineCodeText } from "@/components/InlineCodeText";
+import { PrimaryButton, SecondaryButton } from "@/components/ActionButton";
+import { StatusBadge } from "@/components/StatusBadge";
+import { SurfaceCard } from "@/components/SurfaceCard";
+import { ThemedText } from "@/components/ThemedText";
+import { ThemedView } from "@/components/ThemedView";
+import { AppIcon } from "@/components/AppIcon";
+import { useTheme } from "@/contexts/ThemeContext";
+import { useTranslation } from "@/hooks/useTranslation";
+import { useCloseHandler } from "@/hooks/useCloseHandler";
+import { usePressAnimation } from "@/hooks/usePressAnimation";
 import {
   DEFAULT_QUIZ_QUESTION_COUNT,
   QUICK_QUIZ_MAX_DIFFICULTY,
   QUICK_QUIZ_MODE,
   QUICK_QUIZ_QUESTION_COUNT,
-} from '@/constants/quiz';
+} from "@/constants/quiz";
 import {
   Spacing,
   BorderRadius,
   Fonts,
   getBottomActionBarScrollPadding,
   withOpacity,
-} from '@/constants/theme';
-import { getLanguageById, getLanguageDisplayName } from '@/lib/languages';
-import { apiRequest, isApiRequestError } from '@/lib/query-client';
-import { getParam, getParamWithDefault } from '@/lib/router-utils';
-import { storage, type ProgressData } from '@/lib/storage';
-import { getCategoryName, getTopicById, getTopicName } from '@/lib/topics';
-import { isRateLimitedErrorBody } from '@shared/api-quota';
-import type { QuizQuestion } from '@shared/quiz-question';
+} from "@/constants/theme";
+import { getLanguageById, getLanguageDisplayName } from "@/lib/languages";
+import { apiRequest, isApiRequestError } from "@/lib/query-client";
+import { getParam, getParamWithDefault } from "@/lib/router-utils";
+import { storage, type ProgressData } from "@/lib/storage";
+import { getCategoryName, getTopicById, getTopicName } from "@/lib/topics";
+import { isRateLimitedErrorBody } from "@shared/api-quota";
+import type { QuizQuestion } from "@shared/quiz-question";
 import {
   averageMasteryToQuizDifficulty,
   type QuizDifficultyLevel,
-} from '@shared/skill-level';
+} from "@shared/skill-level";
 
 interface QuizAnswerResult {
   questionId: string;
@@ -125,7 +125,8 @@ function buildTopicQuizResults(
   const resultsByTopic = new Map<string, TopicQuizResult>();
 
   for (const answer of answers) {
-    const topicId = questionsById.get(answer.questionId)?.topicId ?? fallbackTopicId;
+    const topicId =
+      questionsById.get(answer.questionId)?.topicId ?? fallbackTopicId;
     if (!topicId) {
       continue;
     }
@@ -275,9 +276,9 @@ function CodeBlock({ code }: { code: string }) {
     >
       <ThemedText
         type="code"
-        style={[styles.codeText, { fontFamily: Fonts?.mono || 'monospace' }]}
+        style={[styles.codeText, { fontFamily: Fonts?.mono || "monospace" }]}
       >
-        {code.replace(/\\n/g, '\n')}
+        {code.replace(/\\n/g, "\n")}
       </ThemedText>
     </ScrollView>
   );
@@ -299,15 +300,15 @@ export default function QuizSessionScreen() {
   const resolvedTopicId = getParam(topicId);
   const resolvedProgrammingLanguage = getParamWithDefault(
     programmingLanguage,
-    'javascript',
+    "javascript",
   );
   const isQuickQuiz = getParam(quizMode) === QUICK_QUIZ_MODE;
   const resolvedTopicIds = useMemo(() => {
     const rawTopicIds = getParam(topicIds);
 
-    return typeof rawTopicIds === 'string'
+    return typeof rawTopicIds === "string"
       ? rawTopicIds
-          .split(',')
+          .split(",")
           .map((id: string) => id.trim())
           .filter((id: string) => id.length > 0)
       : [];
@@ -351,17 +352,17 @@ export default function QuizSessionScreen() {
   }, [currentTopic, currentLanguage, resolvedTopicIds]);
   const isCategoryQuiz = !currentTopic && !isQuickQuiz && !!currentCategory;
   const contextBadgeLabel = isQuickQuiz
-    ? t('quickQuiz')
+    ? t("quickQuiz")
     : currentTopic
       ? getTopicName(currentTopic, language)
       : isCategoryQuiz
         ? getCategoryName(currentCategory!, language)
-        : t('mixedQuiz');
+        : t("mixedQuiz");
   const contextBadgeIcon = isQuickQuiz
-    ? 'zap'
+    ? "zap"
     : currentTopic || isCategoryQuiz
-      ? 'book-open'
-      : 'edit-3';
+      ? "book-open"
+      : "edit-3";
   const contextColor = theme.secondary;
   const contextDescription = currentTopic
     ? currentCategory
@@ -371,11 +372,11 @@ export default function QuizSessionScreen() {
         : resolvedProgrammingLanguage
     : isCategoryQuiz
       ? `${resolvedTopicIds.length} ${
-          resolvedTopicIds.length === 1 ? t('topic') : t('topics')
+          resolvedTopicIds.length === 1 ? t("topic") : t("topics")
         }`
       : resolvedTopicIds.length > 0
         ? `${resolvedTopicIds.length} ${
-            resolvedTopicIds.length === 1 ? t('topic') : t('topics')
+            resolvedTopicIds.length === 1 ? t("topic") : t("topics")
           }`
         : currentLanguage
           ? getLanguageDisplayName(currentLanguage, language)
@@ -390,9 +391,9 @@ export default function QuizSessionScreen() {
   const [error, setError] = useState<string | null>(null);
   const [isAdvancing, setIsAdvancing] = useState(false);
   const nextInFlightRef = useRef(false);
-  const unableToLoadQuizText = t('unableToLoadQuiz');
-  const quizRateLimitDeviceText = t('quizRateLimitDevice');
-  const quizRateLimitGlobalText = t('quizRateLimitGlobal');
+  const unableToLoadQuizText = t("unableToLoadQuiz");
+  const quizRateLimitDeviceText = t("quizRateLimitDevice");
+  const quizRateLimitGlobalText = t("quizRateLimitGlobal");
 
   const loadQuestions = useCallback(async () => {
     try {
@@ -411,7 +412,7 @@ export default function QuizSessionScreen() {
       let body: Record<string, unknown>;
 
       if (resolvedTopicId) {
-        endpoint = '/api/quiz/generate';
+        endpoint = "/api/quiz/generate";
         body = {
           topicId: resolvedTopicId,
           count: requestedQuestionCount,
@@ -429,7 +430,7 @@ export default function QuizSessionScreen() {
         const effectiveSkillLevel = isQuickQuiz
           ? Math.min(mixedQuizDifficulty, QUICK_QUIZ_MAX_DIFFICULTY)
           : mixedQuizDifficulty;
-        endpoint = '/api/quiz/generate-mixed';
+        endpoint = "/api/quiz/generate-mixed";
         body = {
           count: requestedQuestionCount,
           language: settings.language,
@@ -441,7 +442,7 @@ export default function QuizSessionScreen() {
         }
       }
 
-      const response = await apiRequest('POST', endpoint, body);
+      const response = await apiRequest("POST", endpoint, body);
       const data = await response.json();
 
       if (data.questions && data.questions.length > 0) {
@@ -458,12 +459,12 @@ export default function QuizSessionScreen() {
         isRateLimitedErrorBody(err.body)
       ) {
         setError(
-          err.body.scope === 'global'
+          err.body.scope === "global"
             ? quizRateLimitGlobalText
             : quizRateLimitDeviceText,
         );
       } else {
-        console.error('Error loading questions:', err);
+        console.error("Error loading questions:", err);
         setError(unableToLoadQuizText);
       }
     } finally {
@@ -539,7 +540,8 @@ export default function QuizSessionScreen() {
         for (const topicResult of topicQuizResults) {
           const scorePercent =
             topicResult.questionsAnswered > 0
-              ? (topicResult.correctAnswers / topicResult.questionsAnswered) * 100
+              ? (topicResult.correctAnswers / topicResult.questionsAnswered) *
+                100
               : 0;
 
           await storage.updateTopicProgress(
@@ -579,14 +581,14 @@ export default function QuizSessionScreen() {
         params.topicId = resolvedTopicId;
       }
       if (!resolvedTopicId && resolvedTopicIds.length > 0) {
-        params.topicIds = resolvedTopicIds.join(',');
+        params.topicIds = resolvedTopicIds.join(",");
       }
       if (isQuickQuiz) {
         params.quizMode = QUICK_QUIZ_MODE;
       }
 
       router.replace({
-        pathname: '/session-summary',
+        pathname: "/session-summary",
         params,
       });
     } finally {
@@ -607,21 +609,21 @@ export default function QuizSessionScreen() {
       return;
     }
 
-    Alert.alert(t('quitQuizTitle'), t('quitQuizMessage'), [
+    Alert.alert(t("quitQuizTitle"), t("quitQuizMessage"), [
       {
-        text: t('cancel'),
-        style: 'cancel',
+        text: t("cancel"),
+        style: "cancel",
       },
       {
-        text: t('quitQuizConfirm'),
-        style: 'destructive',
+        text: t("quitQuizConfirm"),
+        style: "destructive",
         onPress: handleClose,
       },
     ]);
   }, [handleClose, hasUnsavedQuizProgress, t]);
 
   const headerTitle =
-    questions.length > 0 ? `${currentIndex + 1}/${questions.length}` : '';
+    questions.length > 0 ? `${currentIndex + 1}/${questions.length}` : "";
 
   const renderCloseButton = () => (
     <HeaderIconButton
@@ -644,11 +646,11 @@ export default function QuizSessionScreen() {
         <ThemedView style={styles.loadingContainer}>
           <ActivityIndicator size="large" color={theme.secondary} />
           <ThemedText type="body" style={styles.loadingText}>
-            {t('generatingQuiz')}
+            {t("generatingQuiz")}
           </ThemedText>
           <SecondaryButton
             color={theme.tabIconDefault}
-            label={t('cancel')}
+            label={t("cancel")}
             onPress={handleClose}
           />
         </ThemedView>
@@ -669,22 +671,22 @@ export default function QuizSessionScreen() {
         <ThemedView style={styles.errorContainer}>
           <AppIcon name="alert-circle" size={48} color={theme.error} />
           <ThemedText type="h4" style={styles.errorTitle}>
-            {t('unableToLoadQuiz')}
+            {t("unableToLoadQuiz")}
           </ThemedText>
           <ThemedText type="body" style={styles.errorText}>
-            {error || t('unableToLoadQuiz')}
+            {error || t("unableToLoadQuiz")}
           </ThemedText>
           <PrimaryButton
             testID="quiz-retry-button"
             color={theme.secondary}
             icon="refresh-cw"
-            label={t('tryAgain')}
+            label={t("tryAgain")}
             onPress={loadQuestions}
           />
           <SecondaryButton
             testID="quiz-cancel-button"
             color={theme.tabIconDefault}
-            label={t('cancel')}
+            label={t("cancel")}
             onPress={handleClose}
           />
         </ThemedView>
@@ -749,7 +751,7 @@ export default function QuizSessionScreen() {
                 ]}
               />
               <ThemedText type="small" style={{ color: theme.tabIconDefault }}>
-                {requestedQuestionCount} {t('questionsShort')}
+                {requestedQuestionCount} {t("questionsShort")}
               </ThemedText>
               <View
                 style={[
@@ -798,7 +800,7 @@ export default function QuizSessionScreen() {
                 type="label"
                 style={{ color: theme.secondary, marginBottom: Spacing.sm }}
               >
-                {t('explanation')}
+                {t("explanation")}
               </ThemedText>
               <InlineCodeText type="body" text={currentQuestion.explanation} />
             </SurfaceCard>
@@ -812,8 +814,8 @@ export default function QuizSessionScreen() {
               color={theme.secondary}
               label={
                 currentIndex < questions.length - 1
-                  ? t('nextQuestion')
-                  : t('viewResults')
+                  ? t("nextQuestion")
+                  : t("viewResults")
               }
               onPress={handleNext}
               disabled={isAdvancing}
@@ -823,7 +825,7 @@ export default function QuizSessionScreen() {
             <PrimaryButton
               testID="quiz-submit-button"
               color={theme.secondary}
-              label={t('submitAnswer')}
+              label={t("submitAnswer")}
               onPress={handleSubmit}
               disabled={selectedAnswer === null}
             />
@@ -840,8 +842,8 @@ const styles = StyleSheet.create({
   },
   loadingContainer: {
     flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
+    alignItems: "center",
+    justifyContent: "center",
     gap: Spacing.lg,
   },
   loadingText: {
@@ -850,17 +852,17 @@ const styles = StyleSheet.create({
   },
   errorContainer: {
     flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
+    alignItems: "center",
+    justifyContent: "center",
     gap: Spacing.md,
     padding: Spacing.xl,
   },
   errorTitle: {
-    textAlign: 'center',
+    textAlign: "center",
     marginTop: Spacing.md,
   },
   errorText: {
-    textAlign: 'center',
+    textAlign: "center",
     opacity: 0.7,
     marginBottom: Spacing.md,
   },
@@ -868,10 +870,10 @@ const styles = StyleSheet.create({
     height: 4,
     marginHorizontal: Spacing.lg,
     borderRadius: 2,
-    overflow: 'hidden',
+    overflow: "hidden",
   },
   progressFill: {
-    height: '100%',
+    height: "100%",
     borderRadius: 2,
   },
   scrollView: {
@@ -890,9 +892,9 @@ const styles = StyleSheet.create({
     borderRadius: BorderRadius.full,
   },
   contextMetaRow: {
-    alignItems: 'center',
-    flexDirection: 'row',
-    flexWrap: 'wrap',
+    alignItems: "center",
+    flexDirection: "row",
+    flexWrap: "wrap",
     gap: Spacing.sm,
   },
   questionCard: {
@@ -913,8 +915,8 @@ const styles = StyleSheet.create({
     gap: Spacing.md,
   },
   answerButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     padding: Spacing.md,
     borderRadius: BorderRadius.md,
     borderWidth: 2,
@@ -924,8 +926,8 @@ const styles = StyleSheet.create({
     width: 32,
     height: 32,
     borderRadius: 16,
-    alignItems: 'center',
-    justifyContent: 'center',
+    alignItems: "center",
+    justifyContent: "center",
   },
   answerText: {
     flex: 1,

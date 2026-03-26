@@ -5,7 +5,10 @@ import { BorderRadius, Fonts, Spacing } from "@/constants/theme";
 import { useTheme } from "@/contexts/ThemeContext";
 import { ThemedText } from "@/components/ThemedText";
 
-type InlineCodeTextProps = Omit<ComponentProps<typeof ThemedText>, "children"> & {
+type InlineCodeTextProps = Omit<
+  ComponentProps<typeof ThemedText>,
+  "children"
+> & {
   text: string;
   codeStyle?: StyleProp<TextStyle>;
 };

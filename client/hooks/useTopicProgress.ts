@@ -1,7 +1,7 @@
-import { useState, useCallback } from 'react';
-import { useFocusEffect } from 'expo-router';
-import { storage, type TopicProgress, isTopicDue } from '@/lib/storage';
-import type { Category } from '@/lib/topics';
+import { useState, useCallback } from "react";
+import { useFocusEffect } from "expo-router";
+import { storage, type TopicProgress, isTopicDue } from "@/lib/storage";
+import type { Category } from "@/lib/topics";
 
 interface UseTopicProgressOptions {
   languageId: string;
@@ -26,7 +26,7 @@ export function useTopicProgress({
         storage.getTopicProgressForLanguage(progress.topicProgress, languageId),
       );
     } catch (error) {
-      console.error('Error loading progress:', error);
+      console.error("Error loading progress:", error);
     } finally {
       setLoading(false);
     }

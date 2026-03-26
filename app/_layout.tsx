@@ -22,6 +22,7 @@ function RootStack() {
   return (
     <Stack screenOptions={screenOptions}>
       <Stack.Screen name="index" options={{ headerShown: false }} />
+      <Stack.Screen name="welcome" options={{ headerShown: false }} />
       <Stack.Screen
         name="language-select"
         options={({ route }) => {

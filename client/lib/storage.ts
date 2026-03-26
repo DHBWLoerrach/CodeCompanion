@@ -7,6 +7,7 @@ const STORAGE_KEYS = {
   PROGRESS: "dhbw_progress",
   STREAK: "dhbw_streak",
   SETTINGS: "dhbw_settings",
+  WELCOME_SEEN: "dhbw_welcome_seen",
   SELECTED_LANGUAGE: "dhbw_selected_language",
   PROGRESS_MIGRATED: "dhbw_progress_migrated",
 };
@@ -262,8 +263,28 @@ export const storage = {
     }
   },
 
+  async hasStoredSettings(): Promise<boolean> {
+    try {
+      return (await AsyncStorage.getItem(STORAGE_KEYS.SETTINGS)) !== null;
+    } catch {
+      return false;
+    }
+  },
+
   async setSettings(settings: SettingsData): Promise<void> {
     await AsyncStorage.setItem(STORAGE_KEYS.SETTINGS, JSON.stringify(settings));
+  },
+
+  async hasSeenWelcome(): Promise<boolean> {
+    try {
+      return (await AsyncStorage.getItem(STORAGE_KEYS.WELCOME_SEEN)) === "true";
+    } catch {
+      return false;
+    }
+  },
+
+  async markWelcomeSeen(): Promise<void> {
+    await AsyncStorage.setItem(STORAGE_KEYS.WELCOME_SEEN, "true");
   },
 
   async getTopicSkillLevel(
@@ -362,7 +383,8 @@ export const storage = {
   },
 
   async clearAllData(): Promise<void> {
-    // The device ID stays intact so daily quota cannot be bypassed via local reset.
+    // The device ID and welcome state stay intact so quota and first-run behavior
+    // cannot be reset through local progress clearing.
     await AsyncStorage.multiRemove([
       STORAGE_KEYS.USER_PROFILE,
       STORAGE_KEYS.PROGRESS,
