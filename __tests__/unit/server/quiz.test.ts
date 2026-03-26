@@ -722,7 +722,8 @@ describe('server/quiz', () => {
       expect(questions[0].id).toMatch(/^loops-[a-f0-9]{12}$/);
       expect(questions[1].id).toMatch(/^loops-[a-f0-9]{12}$/);
       expect(questions[2].id).toMatch(/^variables-[a-f0-9]{12}$/);
-      expect('topicId' in questions[0]).toBe(false);
+      expect(questions[0].topicId).toBe('loops');
+      expect(questions[2].topicId).toBe('variables');
 
       const fetchOptions = fetchMock.mock.calls[0][1] as RequestInit;
       const payload = JSON.parse(String(fetchOptions.body)) as {

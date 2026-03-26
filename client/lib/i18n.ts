@@ -168,6 +168,7 @@ export const translations = {
 
     mixedQuiz: 'Mixed Quiz',
     mixedQuizDesc: '5 questions from several random topics',
+    recommendedLabel: 'Recommended',
     dueTopicsQuiz: 'Due Topics Quiz',
     dueTopicsQuizDesc: 'Focus on topics that need review',
     quickQuiz: 'Quick Quiz',
@@ -351,6 +352,7 @@ export const translations = {
 
     mixedQuiz: 'Gemischtes Quiz',
     mixedQuizDesc: '5 Fragen aus mehreren zufälligen Themen',
+    recommendedLabel: 'Empfohlen',
     dueTopicsQuiz: 'Fällige Themen',
     dueTopicsQuizDesc: 'Themen zur Wiederholung',
     quickQuiz: 'Schnelles Quiz',

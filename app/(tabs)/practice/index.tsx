@@ -1,38 +1,38 @@
-import React, { useRef } from 'react';
-import { View, ScrollView, StyleSheet, Pressable } from 'react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { useRouter } from 'expo-router';
-import Animated from 'react-native-reanimated';
+import React, { useRef } from "react";
+import { View, ScrollView, StyleSheet, Pressable } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { useRouter } from "expo-router";
+import Animated from "react-native-reanimated";
 
-import { ThemedView } from '@/components/ThemedView';
-import { ThemedText } from '@/components/ThemedText';
-import { AppIcon } from '@/components/AppIcon';
-import { PrimaryButton } from '@/components/ActionButton';
-import { SkillLevelDots } from '@/components/SkillLevelDots';
-import { LoadingScreen } from '@/components/LoadingScreen';
-import { useTheme } from '@/contexts/ThemeContext';
-import { useTranslation } from '@/hooks/useTranslation';
-import { usePressAnimation } from '@/hooks/usePressAnimation';
+import { ThemedView } from "@/components/ThemedView";
+import { ThemedText } from "@/components/ThemedText";
+import { AppIcon } from "@/components/AppIcon";
+import { PrimaryButton } from "@/components/ActionButton";
+import { LoadingScreen } from "@/components/LoadingScreen";
+import { SkillLevelDots } from "@/components/SkillLevelDots";
+import { StatusBadge } from "@/components/StatusBadge";
+import { SurfaceCard } from "@/components/SurfaceCard";
+import { useTheme } from "@/contexts/ThemeContext";
+import { useTranslation } from "@/hooks/useTranslation";
+import { usePressAnimation } from "@/hooks/usePressAnimation";
 import {
   useTopicProgress,
   getCategoryProgress,
-} from '@/hooks/useTopicProgress';
+} from "@/hooks/useTopicProgress";
 import {
   QUICK_QUIZ_MODE,
   QUICK_QUIZ_QUESTION_COUNT,
   QUICK_QUIZ_TOPIC_LIMIT,
-} from '@/constants/quiz';
-import { Spacing, BorderRadius, Shadows, withOpacity } from '@/constants/theme';
+} from "@/constants/quiz";
+import { Spacing, BorderRadius, withOpacity } from "@/constants/theme";
 import {
   type Topic,
   type Category,
   getTopicName,
   getCategoryName,
-} from '@/lib/topics';
-import { type TopicProgress } from '@/lib/storage';
-import { useProgrammingLanguage } from '@/contexts/ProgrammingLanguageContext';
-
-const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
+} from "@/lib/topics";
+import { type TopicProgress } from "@/lib/storage";
+import { useProgrammingLanguage } from "@/contexts/ProgrammingLanguageContext";
 
 function pickRandomTopicIds(categories: Category[], limit: number): string[] {
   const topicIds = categories.flatMap((category) =>
@@ -55,7 +55,12 @@ interface QuizModeCardProps {
   description: string;
   onPress: () => void;
   disabled?: boolean;
+  emphasized?: boolean;
   testID?: string;
+}
+
+interface QuizModeConfig extends QuizModeCardProps {
+  key: string;
 }
 
 function QuizModeCard({
@@ -65,9 +70,11 @@ function QuizModeCard({
   description,
   onPress,
   disabled,
+  emphasized = false,
   testID,
 }: QuizModeCardProps) {
   const { theme } = useTheme();
+  const { t } = useTranslation();
   const {
     animatedStyle,
     handlePressIn: pressIn,
@@ -77,42 +84,73 @@ function QuizModeCard({
   const handlePressIn = () => {
     if (!disabled) pressIn();
   };
+  const toneColor = disabled ? theme.tabIconDefault : color;
+  const bubbleColor = disabled
+    ? theme.backgroundSecondary
+    : withOpacity(color, emphasized ? 0.16 : 0.12);
+  const titleColor = disabled ? theme.tabIconDefault : theme.text;
+  const descriptionColor = disabled
+    ? withOpacity(theme.tabIconDefault, 0.9)
+    : theme.tabIconDefault;
+  const cardBackgroundColor = theme.backgroundDefault;
+  const cardBorderColor = disabled
+    ? theme.cardBorder
+    : emphasized
+      ? withOpacity(color, 0.32)
+      : theme.cardBorderSubtle;
 
   return (
-    <AnimatedPressable
-      testID={testID}
-      onPress={onPress}
-      onPressIn={handlePressIn}
-      onPressOut={handlePressOut}
-      disabled={disabled}
-      style={[
-        styles.modeCard,
-        {
-          backgroundColor: theme.backgroundDefault,
-          opacity: disabled ? 0.5 : 1,
-        },
-        animatedStyle,
-      ]}
-    >
-      <View
-        style={[
-          styles.modeIconBubble,
-          { backgroundColor: withOpacity(color, 0.12) },
-        ]}
+    <Animated.View style={[styles.modeCardWrapper, animatedStyle]}>
+      <SurfaceCard
+        padding={0}
+        style={styles.modeCard}
+        backgroundColor={cardBackgroundColor}
+        borderColor={cardBorderColor}
       >
-        <AppIcon name={icon} size={24} color={color} />
-      </View>
-      <ThemedText type="h4" numberOfLines={1} style={styles.modeTitle}>
-        {title}
-      </ThemedText>
-      <ThemedText
-        type="caption"
-        style={{ color: theme.tabIconDefault }}
-        numberOfLines={2}
-      >
-        {description}
-      </ThemedText>
-    </AnimatedPressable>
+        <Pressable
+          testID={testID}
+          onPress={onPress}
+          onPressIn={handlePressIn}
+          onPressOut={handlePressOut}
+          disabled={disabled}
+          style={styles.modeCardAction}
+        >
+          <View style={styles.modeCardMain}>
+            <View style={styles.modeCardTopRow}>
+              <View
+                style={[
+                  styles.modeIconBubble,
+                  { backgroundColor: bubbleColor },
+                ]}
+              >
+                <AppIcon name={icon} size={22} color={toneColor} />
+              </View>
+              {emphasized && !disabled ? (
+                <StatusBadge
+                  color={color}
+                  label={t("recommendedLabel")}
+                  size="compact"
+                />
+              ) : null}
+            </View>
+            <ThemedText
+              type="h4"
+              numberOfLines={2}
+              style={[styles.modeTitle, { color: titleColor }]}
+            >
+              {title}
+            </ThemedText>
+          </View>
+          <ThemedText
+            type="caption"
+            style={[styles.modeDescription, { color: descriptionColor }]}
+            numberOfLines={2}
+          >
+            {description}
+          </ThemedText>
+        </Pressable>
+      </SurfaceCard>
+    </Animated.View>
   );
 }
 
@@ -140,49 +178,56 @@ function CategoryRow({
   const topicCount = category.topics.length;
 
   return (
-    <AnimatedPressable
-      testID={testID}
-      onPress={onPress}
-      onPressIn={handlePressIn}
-      onPressOut={handlePressOut}
-      style={[
-        styles.categoryRow,
-        { backgroundColor: theme.backgroundDefault },
-        animatedStyle,
-      ]}
-    >
-      <View style={styles.categoryRowContent}>
-        <View style={styles.categoryRowLeft}>
-          <ThemedText type="h4">{categoryName}</ThemedText>
-          <ThemedText type="caption" style={{ color: theme.tabIconDefault }}>
-            {topicCount} {topicCount === 1 ? t('topic') : t('topics')}
-          </ThemedText>
-        </View>
-        <View style={styles.categoryRowRight}>
-          <View
-            style={[
-              styles.categoryProgressBar,
-              { backgroundColor: theme.cardBorder },
-            ]}
-          >
-            <View
-              style={[
-                styles.categoryProgressFill,
-                {
-                  width: `${progressPercent}%`,
-                  backgroundColor: theme.secondary,
-                },
-              ]}
-            />
+    <Animated.View style={[styles.categoryRowWrapper, animatedStyle]}>
+      <SurfaceCard
+        padding={0}
+        style={styles.categoryRow}
+        borderColor={theme.cardBorderSubtle}
+      >
+        <Pressable
+          testID={testID}
+          onPress={onPress}
+          onPressIn={handlePressIn}
+          onPressOut={handlePressOut}
+          style={styles.categoryAction}
+        >
+          <View style={styles.categoryRowContent}>
+            <View style={styles.categoryRowLeft}>
+              <ThemedText type="h4">{categoryName}</ThemedText>
+              <ThemedText
+                type="caption"
+                style={{ color: theme.tabIconDefault }}
+              >
+                {topicCount} {topicCount === 1 ? t("topic") : t("topics")}
+              </ThemedText>
+            </View>
+            <View style={styles.categoryRowRight}>
+              <View
+                style={[
+                  styles.categoryProgressBar,
+                  { backgroundColor: theme.cardBorder },
+                ]}
+              >
+                <View
+                  style={[
+                    styles.categoryProgressFill,
+                    {
+                      width: `${progressPercent}%`,
+                      backgroundColor: theme.secondary,
+                    },
+                  ]}
+                />
+              </View>
+              <AppIcon
+                name="chevron-right"
+                size={18}
+                color={theme.tabIconDefault}
+              />
+            </View>
           </View>
-          <AppIcon
-            name="chevron-right"
-            size={18}
-            color={theme.tabIconDefault}
-          />
-        </View>
-      </View>
-    </AnimatedPressable>
+        </Pressable>
+      </SurfaceCard>
+    </Animated.View>
   );
 }
 
@@ -191,7 +236,7 @@ export default function PracticeScreen() {
   const { t, language, refreshLanguage } = useTranslation();
   const { selectedLanguage } = useProgrammingLanguage();
   const categories = selectedLanguage?.categories ?? [];
-  const languageId = selectedLanguage?.id ?? 'javascript';
+  const languageId = selectedLanguage?.id ?? "javascript";
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const categorySectionRef = useRef<View>(null);
@@ -205,18 +250,19 @@ export default function PracticeScreen() {
       refreshLanguage,
     });
 
-  const dueTopicIds = dueTopics.map((t) => t.id).join(',');
+  const hasDueTopics = dueTopics.length > 0;
+  const dueTopicIds = dueTopics.map((t) => t.id).join(",");
 
   const handleStartReview = () => {
     router.push({
-      pathname: '/quiz-session',
+      pathname: "/quiz-session",
       params: { topicIds: dueTopicIds, programmingLanguage: languageId },
     });
   };
 
   const handleTopicQuiz = (topic: Topic) => {
     router.push({
-      pathname: '/quiz-session',
+      pathname: "/quiz-session",
       params: { topicId: topic.id, programmingLanguage: languageId },
     });
   };
@@ -229,9 +275,9 @@ export default function PracticeScreen() {
   };
 
   const handleCategoryPress = (category: Category) => {
-    const ids = category.topics.map((t) => t.id).join(',');
+    const ids = category.topics.map((t) => t.id).join(",");
     router.push({
-      pathname: '/quiz-session',
+      pathname: "/quiz-session",
       params: { topicIds: ids, programmingLanguage: languageId },
     });
   };
@@ -243,17 +289,106 @@ export default function PracticeScreen() {
     );
 
     router.push({
-      pathname: '/quiz-session',
+      pathname: "/quiz-session",
       params: {
         count: String(QUICK_QUIZ_QUESTION_COUNT),
         programmingLanguage: languageId,
         quizMode: QUICK_QUIZ_MODE,
         ...(quickTopicIds.length > 0
-          ? { topicIds: quickTopicIds.join(',') }
+          ? { topicIds: quickTopicIds.join(",") }
           : {}),
       },
     });
   };
+
+  const quizModes: QuizModeConfig[] = hasDueTopics
+    ? [
+        {
+          key: "due",
+          icon: "clock",
+          color: theme.accent,
+          title: t("dueTopicsQuiz"),
+          description: t("dueTopicsQuizDesc"),
+          emphasized: true,
+          testID: "practice-mode-due",
+          onPress: handleStartReview,
+        },
+        {
+          key: "mixed",
+          icon: "edit-3",
+          color: theme.secondary,
+          title: t("mixedQuiz"),
+          description: t("mixedQuizDesc"),
+          testID: "practice-mode-mixed",
+          onPress: () =>
+            router.push({
+              pathname: "/quiz-session",
+              params: { programmingLanguage: languageId },
+            }),
+        },
+        {
+          key: "quick",
+          icon: "zap",
+          color: theme.secondary,
+          title: t("quickQuiz"),
+          description: t("quickQuizDesc"),
+          testID: "practice-mode-quick",
+          onPress: handleQuickQuiz,
+        },
+        {
+          key: "category",
+          icon: "book-open",
+          color: theme.secondary,
+          title: t("byCategoryQuiz"),
+          description: t("byCategoryQuizDesc"),
+          testID: "practice-mode-category",
+          onPress: handleScrollToCategories,
+        },
+      ]
+    : [
+        {
+          key: "mixed",
+          icon: "edit-3",
+          color: theme.secondary,
+          title: t("mixedQuiz"),
+          description: t("mixedQuizDesc"),
+          emphasized: true,
+          testID: "practice-mode-mixed",
+          onPress: () =>
+            router.push({
+              pathname: "/quiz-session",
+              params: { programmingLanguage: languageId },
+            }),
+        },
+        {
+          key: "due",
+          icon: "clock",
+          color: theme.accent,
+          title: t("dueTopicsQuiz"),
+          description: t("dueTopicsQuizDesc"),
+          testID: "practice-mode-due",
+          onPress: handleStartReview,
+          disabled: true,
+        },
+        {
+          key: "quick",
+          icon: "zap",
+          color: theme.secondary,
+          title: t("quickQuiz"),
+          description: t("quickQuizDesc"),
+          testID: "practice-mode-quick",
+          onPress: handleQuickQuiz,
+        },
+        {
+          key: "category",
+          icon: "book-open",
+          color: theme.secondary,
+          title: t("byCategoryQuiz"),
+          description: t("byCategoryQuizDesc"),
+          testID: "practice-mode-category",
+          onPress: handleScrollToCategories,
+        },
+      ];
 
   if (loading) {
     return <LoadingScreen />;
@@ -267,28 +402,30 @@ export default function PracticeScreen() {
         contentInsetAdjustmentBehavior="automatic"
         contentContainerStyle={[
           styles.scrollContent,
-          { paddingBottom: 100 + insets.bottom },
+          { paddingBottom: Spacing["4xl"] + insets.bottom },
         ]}
         showsVerticalScrollIndicator={false}
       >
         {/* Section 1: Due for Review */}
-        {dueTopics.length > 0 ? (
-          <View
-            style={[
-              styles.dueSection,
-              { backgroundColor: withOpacity(theme.accent, 0.12) },
-            ]}
+        {hasDueTopics ? (
+          <SurfaceCard
+            style={styles.dueSection}
+            backgroundColor={withOpacity(theme.accent, 0.1)}
+            borderColor={withOpacity(theme.accent, 0.22)}
+            topAccentColor={theme.accent}
           >
             <View style={styles.dueSectionHeader}>
-              <View style={styles.dueSectionTitleRow}>
-                <AppIcon name="clock" size={20} color={theme.accent} />
-                <ThemedText type="h4" style={{ color: theme.accent }}>
-                  {t('dueForReview')}
-                </ThemedText>
-              </View>
-              <ThemedText type="caption" style={{ color: theme.accent }}>
-                {dueTopics.length}{' '}
-                {dueTopics.length === 1 ? t('topic') : t('topics')}
+              <StatusBadge
+                color={theme.accent}
+                icon="clock"
+                label={t("dueForReview")}
+              />
+              <ThemedText
+                type="caption"
+                style={[styles.dueCount, { color: theme.accent }]}
+              >
+                {dueTopics.length}{" "}
+                {dueTopics.length === 1 ? t("topic") : t("topics")}
               </ThemedText>
             </View>
 
@@ -301,7 +438,13 @@ export default function PracticeScreen() {
                   <Pressable
                     key={topic.id}
                     testID={`practice-due-topic-${topic.id}`}
-                    style={styles.dueTopicRow}
+                    style={[
+                      styles.dueTopicRow,
+                      {
+                        backgroundColor: theme.backgroundDefault,
+                        borderColor: theme.cardBorderSubtle,
+                      },
+                    ]}
                     onPress={() => handleTopicQuiz(topic)}
                   >
                     <ThemedText type="body" style={{ flex: 1 }}>
@@ -322,78 +465,41 @@ export default function PracticeScreen() {
             <PrimaryButton
               testID="practice-start-review-button"
               color={theme.accent}
-              label={t('startReview')}
+              label={t("startReview")}
               onPress={handleStartReview}
               size="compact"
             />
-          </View>
+          </SurfaceCard>
         ) : (
-          <View
-            style={[
-              styles.emptyState,
-              { backgroundColor: theme.backgroundDefault },
-            ]}
+          <SurfaceCard
+            style={styles.emptyState}
+            borderColor={theme.cardBorderSubtle}
           >
             <AppIcon
-              name={hasQuizHistory ? 'check-circle' : 'info'}
-              size={40}
+              name={hasQuizHistory ? "check-circle" : "info"}
+              size={36}
               color={hasQuizHistory ? theme.success : theme.secondary}
             />
-            <ThemedText type="h4" style={{ marginTop: Spacing.md }}>
-              {t(hasQuizHistory ? 'noDueTopics' : 'noPracticeYet')}
+            <ThemedText type="h4">
+              {t(hasQuizHistory ? "noDueTopics" : "noPracticeYet")}
             </ThemedText>
             <ThemedText
               type="caption"
-              style={{ color: theme.tabIconDefault, textAlign: 'center' }}
+              style={{ color: theme.tabIconDefault, textAlign: "center" }}
             >
-              {t(hasQuizHistory ? 'noDueTopicsDesc' : 'noPracticeYetDesc')}
+              {t(hasQuizHistory ? "noDueTopicsDesc" : "noPracticeYetDesc")}
             </ThemedText>
-          </View>
+          </SurfaceCard>
         )}
 
         {/* Section 2: Quiz Modes */}
         <ThemedText type="h4" style={styles.sectionHeader}>
-          {t('quizModes')}
+          {t("quizModes")}
         </ThemedText>
         <View style={styles.modesGrid}>
-          <QuizModeCard
-            icon="edit-3"
-            color={theme.secondary}
-            title={t('mixedQuiz')}
-            description={t('mixedQuizDesc')}
-            testID="practice-mode-mixed"
-            onPress={() =>
-              router.push({
-                pathname: '/quiz-session',
-                params: { programmingLanguage: languageId },
-              })
-            }
-          />
-          <QuizModeCard
-            icon="clock"
-            color={theme.accent}
-            title={t('dueTopicsQuiz')}
-            description={t('dueTopicsQuizDesc')}
-            testID="practice-mode-due"
-            onPress={handleStartReview}
-            disabled={dueTopics.length === 0}
-          />
-          <QuizModeCard
-            icon="zap"
-            color={theme.secondary}
-            title={t('quickQuiz')}
-            description={t('quickQuizDesc')}
-            testID="practice-mode-quick"
-            onPress={handleQuickQuiz}
-          />
-          <QuizModeCard
-            icon="book-open"
-            color={theme.secondary}
-            title={t('byCategoryQuiz')}
-            description={t('byCategoryQuizDesc')}
-            testID="practice-mode-category"
-            onPress={handleScrollToCategories}
-          />
+          {quizModes.map(({ key, ...quizMode }) => (
+            <QuizModeCard key={key} {...quizMode} />
+          ))}
         </View>
 
         {/* Section 3: Categories */}
@@ -404,7 +510,7 @@ export default function PracticeScreen() {
           }}
         >
           <ThemedText type="h4" style={styles.sectionHeader}>
-            {t('selectCategory')}
+            {t("selectCategory")}
           </ThemedText>
         </View>
         <View style={styles.categoriesList}>
@@ -436,91 +542,115 @@ const styles = StyleSheet.create({
     gap: Spacing.lg,
   },
   sectionHeader: {
-    marginTop: Spacing.sm,
+    marginTop: 0,
   },
   dueSection: {
-    borderRadius: BorderRadius.lg,
-    padding: Spacing.lg,
+    gap: Spacing.md,
   },
   dueSectionHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: Spacing.md,
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    gap: Spacing.md,
   },
-  dueSectionTitleRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: Spacing.sm,
+  dueCount: {
+    fontWeight: "600",
   },
   dueTopicsList: {
     gap: Spacing.sm,
-    marginBottom: Spacing.lg,
   },
   dueTopicRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
+    borderRadius: BorderRadius.md,
+    borderWidth: StyleSheet.hairlineWidth,
+    paddingHorizontal: Spacing.md,
     paddingVertical: Spacing.sm,
   },
   emptyState: {
-    borderRadius: BorderRadius.lg,
-    padding: Spacing.xl,
-    alignItems: 'center',
-    gap: Spacing.sm,
-    ...Shadows.card,
+    alignItems: "center",
+    gap: Spacing.xs,
+    paddingHorizontal: Spacing.lg,
+    paddingVertical: Spacing.lg,
   },
   modesGrid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
+    flexDirection: "row",
+    flexWrap: "wrap",
     gap: Spacing.md,
   },
+  modeCardWrapper: {
+    width: "47.5%",
+  },
   modeCard: {
-    width: '47.5%',
-    borderRadius: BorderRadius.lg,
-    padding: Spacing.lg,
+    width: "100%",
+  },
+  modeCardAction: {
+    justifyContent: "space-between",
+    minHeight: 156,
+    padding: Spacing.md,
+  },
+  modeCardMain: {
+    gap: Spacing.xs,
+  },
+  modeCardTopRow: {
+    flexDirection: "row",
+    alignItems: "flex-start",
+    justifyContent: "space-between",
     gap: Spacing.sm,
-    ...Shadows.card,
   },
   modeIconBubble: {
-    width: 56,
-    height: 56,
-    borderRadius: 28,
-    alignItems: 'center',
-    justifyContent: 'center',
+    width: 46,
+    height: 46,
+    borderRadius: 23,
+    alignItems: "center",
+    justifyContent: "center",
   },
   modeTitle: {
-    marginTop: Spacing.xs,
+    fontSize: 15,
+    lineHeight: 19,
+    minHeight: 36,
+  },
+  modeDescription: {
+    lineHeight: 17,
+    minHeight: 32,
   },
   categoriesList: {
     gap: Spacing.md,
   },
+  categoryRowWrapper: {
+    width: "100%",
+  },
   categoryRow: {
-    borderRadius: BorderRadius.lg,
-    padding: Spacing.lg,
-    ...Shadows.card,
+    width: "100%",
+  },
+  categoryAction: {
+    justifyContent: "center",
+    minHeight: 76,
+    paddingHorizontal: Spacing.lg,
+    paddingVertical: Spacing.sm,
   },
   categoryRowContent: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
   },
   categoryRowLeft: {
     flex: 1,
     gap: Spacing.xs,
   },
   categoryRowRight: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     gap: Spacing.md,
   },
   categoryProgressBar: {
     width: 80,
     height: 6,
     borderRadius: 3,
-    overflow: 'hidden',
+    overflow: "hidden",
   },
   categoryProgressFill: {
-    height: '100%',
+    height: "100%",
     borderRadius: 3,
   },
 });

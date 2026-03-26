@@ -36,6 +36,7 @@ const mockStorage = {
   getTopicSkillLevel: jest.fn(),
   recordPractice: jest.fn(),
   updateTopicProgress: jest.fn(),
+  updateTopicSkillLevel: jest.fn(),
 };
 let mockSearchParams: {
   topicId?: string;
@@ -131,6 +132,8 @@ jest.mock('@/lib/storage', () => ({
     recordPractice: (...args: unknown[]) => mockStorage.recordPractice(...args),
     updateTopicProgress: (...args: unknown[]) =>
       mockStorage.updateTopicProgress(...args),
+    updateTopicSkillLevel: (...args: unknown[]) =>
+      mockStorage.updateTopicSkillLevel(...args),
   },
 }));
 
@@ -149,6 +152,7 @@ describe('QuizSessionScreen integration', () => {
     mockStorage.getTopicSkillLevel.mockReset();
     mockStorage.recordPractice.mockReset();
     mockStorage.updateTopicProgress.mockReset();
+    mockStorage.updateTopicSkillLevel.mockReset();
 
     mockSearchParams = {
       topicId: 'variables',
@@ -168,6 +172,7 @@ describe('QuizSessionScreen integration', () => {
     });
     mockStorage.recordPractice.mockResolvedValue(undefined);
     mockStorage.updateTopicProgress.mockResolvedValue(undefined);
+    mockStorage.updateTopicSkillLevel.mockResolvedValue(undefined);
 
     mockApiRequest.mockResolvedValue({
       json: async () => ({
@@ -232,6 +237,11 @@ describe('QuizSessionScreen integration', () => {
         'javascript',
         'variables',
         1,
+        0,
+      );
+      expect(mockStorage.updateTopicSkillLevel).toHaveBeenCalledWith(
+        'javascript',
+        'variables',
         0,
       );
       expect(mockReplace).toHaveBeenCalledTimes(1);
@@ -439,6 +449,7 @@ describe('QuizSessionScreen integration', () => {
         questions: [
           {
             id: 'q1',
+            topicId: 'variables',
             question: 'Question 1',
             options: ['Option A', 'Option B', 'Option C', 'Option D'],
             correctIndex: 1,
@@ -446,13 +457,15 @@ describe('QuizSessionScreen integration', () => {
           },
           {
             id: 'q2',
+            topicId: 'loops',
             question: 'Question 2',
             options: ['Option A', 'Option B', 'Option C', 'Option D'],
-            correctIndex: 1,
+            correctIndex: 0,
             explanation: 'Explanation 2',
           },
           {
             id: 'q3',
+            topicId: 'variables',
             question: 'Question 3',
             options: ['Option A', 'Option B', 'Option C', 'Option D'],
             correctIndex: 1,
@@ -509,6 +522,28 @@ describe('QuizSessionScreen integration', () => {
 
     await waitFor(() => {
       expect(mockReplace).toHaveBeenCalled();
+      expect(mockStorage.updateTopicProgress).toHaveBeenCalledWith(
+        'javascript',
+        'variables',
+        2,
+        0,
+      );
+      expect(mockStorage.updateTopicProgress).toHaveBeenCalledWith(
+        'javascript',
+        'loops',
+        1,
+        1,
+      );
+      expect(mockStorage.updateTopicSkillLevel).toHaveBeenCalledWith(
+        'javascript',
+        'variables',
+        0,
+      );
+      expect(mockStorage.updateTopicSkillLevel).toHaveBeenCalledWith(
+        'javascript',
+        'loops',
+        100,
+      );
     });
 
     const replaceArgs = mockReplace.mock.calls[0][0] as {

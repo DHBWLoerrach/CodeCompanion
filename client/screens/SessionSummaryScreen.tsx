@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo } from "react";
+import React, { useMemo } from "react";
 import { View, ScrollView, StyleSheet } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Stack, useLocalSearchParams, useRouter } from "expo-router";
@@ -22,7 +22,6 @@ import {
 } from "@/constants/theme";
 import { getTopicById, getTopicName } from "@/lib/topics";
 import { getParam, getParamWithDefault } from "@/lib/router-utils";
-import { storage } from "@/lib/storage";
 import { getLanguageById, getLanguageDisplayName } from "@/lib/languages";
 
 interface ScoreCircleProps {
@@ -198,16 +197,6 @@ export default function SessionSummaryScreen() {
       : selectedLanguage
         ? getLanguageDisplayName(selectedLanguage, language)
         : programmingLanguageParam;
-
-  useEffect(() => {
-    if (topicIdParam) {
-      storage.updateTopicSkillLevel(
-        programmingLanguageParam,
-        topicIdParam,
-        percentage,
-      );
-    }
-  }, [topicIdParam, percentage, programmingLanguageParam]);
 
   const getFeedbackMessage = (pct: number): string => {
     if (pct >= 80) return t("excellentWork");

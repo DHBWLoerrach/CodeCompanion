@@ -351,6 +351,7 @@ function NextStepCard({
       : state === "mastered"
         ? theme.success
         : theme.secondary;
+  const isAndroid = process.env.EXPO_OS === "android";
   const topicIndexLabel = getTopicPositionLabel(position, total, t);
 
   return (
@@ -362,14 +363,18 @@ function NextStepCard({
       style={[
         styles.nextStepCard,
         {
-          backgroundColor: withOpacity(accentColor, 0.125),
-          borderColor: withOpacity(accentColor, 0.32),
-          shadowColor: accentColor,
-          shadowOpacity: 0.11,
-          shadowRadius: 12,
-          shadowOffset: { width: 0, height: 5 },
-          elevation: 3,
+          backgroundColor: withOpacity(accentColor, isAndroid ? 0.1 : 0.125),
+          borderColor: withOpacity(accentColor, isAndroid ? 0.22 : 0.32),
         },
+        isAndroid
+          ? null
+          : {
+              shadowColor: accentColor,
+              shadowOpacity: 0.11,
+              shadowRadius: 12,
+              shadowOffset: { width: 0, height: 5 },
+              elevation: 3,
+            },
         animatedStyle,
       ]}
     >
@@ -853,11 +858,7 @@ const styles = StyleSheet.create({
     flexShrink: 1,
     justifyContent: "flex-start",
     gap: Spacing.xs,
-    shadowColor: "#000000",
-    shadowOpacity: 0.05,
-    shadowRadius: 5,
-    shadowOffset: { width: 0, height: 1 },
-    elevation: 1,
+    ...Shadows.card,
   },
   topicTileWide: {
     width: "100%",

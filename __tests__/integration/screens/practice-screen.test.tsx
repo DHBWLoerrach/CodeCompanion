@@ -149,6 +149,14 @@ describe('PracticeScreen integration', () => {
       expect(screen.getByText('Variables')).toBeTruthy();
     });
 
+    fireEvent.press(screen.getByTestId('practice-mode-due'));
+
+    expect(mockPush).toHaveBeenCalledWith({
+      pathname: '/quiz-session',
+      params: { topicIds: 'variables', programmingLanguage: 'javascript' },
+    });
+
+    mockPush.mockClear();
     fireEvent.press(screen.getByText('startReview'));
 
     expect(mockPush).toHaveBeenCalledWith({

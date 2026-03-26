@@ -7,7 +7,7 @@ import { ThemedText } from "@/components/ThemedText";
 import { useTheme } from "@/contexts/ThemeContext";
 import { useTranslation } from "@/hooks/useTranslation";
 import { useProgrammingLanguage } from "@/contexts/ProgrammingLanguageContext";
-import { BorderRadius } from "@/constants/theme";
+import { BorderRadius, withOpacity } from "@/constants/theme";
 import { getLanguageDisplayName } from "@/lib/languages";
 
 function HeaderBrand() {
@@ -22,8 +22,8 @@ function HeaderBrand() {
         style={[
           styles.headerBadge,
           {
-            backgroundColor: badgeColor + "1A",
-            borderColor: badgeColor + "2E",
+            backgroundColor: withOpacity(badgeColor, 0.1),
+            borderColor: withOpacity(badgeColor, 0.18),
           },
         ]}
       >

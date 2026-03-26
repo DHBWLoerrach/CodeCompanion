@@ -62,6 +62,12 @@ interface QuizAnswerResult {
   correctAnswer: string;
 }
 
+interface TopicQuizResult {
+  topicId: string;
+  questionsAnswered: number;
+  correctAnswers: number;
+}
+
 function resolveMixedQuizDifficulty(
   progress: ProgressData,
   programmingLanguage: string,
@@ -106,6 +112,39 @@ function shuffleOptionsForQuestion(question: QuizQuestion): QuizQuestion {
     options: indexedOptions.map((entry) => entry.option),
     correctIndex: shuffledCorrectIndex,
   };
+}
+
+function buildTopicQuizResults(
+  questions: QuizQuestion[],
+  answers: QuizAnswerResult[],
+  fallbackTopicId?: string,
+): TopicQuizResult[] {
+  const questionsById = new Map(
+    questions.map((question) => [question.id, question] as const),
+  );
+  const resultsByTopic = new Map<string, TopicQuizResult>();
+
+  for (const answer of answers) {
+    const topicId = questionsById.get(answer.questionId)?.topicId ?? fallbackTopicId;
+    if (!topicId) {
+      continue;
+    }
+
+    const existing = resultsByTopic.get(topicId) ?? {
+      topicId,
+      questionsAnswered: 0,
+      correctAnswers: 0,
+    };
+
+    existing.questionsAnswered += 1;
+    if (answer.correct) {
+      existing.correctAnswers += 1;
+    }
+
+    resultsByTopic.set(topicId, existing);
+  }
+
+  return Array.from(resultsByTopic.values());
 }
 
 const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
@@ -490,13 +529,42 @@ export default function QuizSessionScreen() {
       const correctCount = nextAnswers.filter(
         (answer) => answer.correct,
       ).length;
+      const topicQuizResults = buildTopicQuizResults(
+        questions,
+        nextAnswers,
+        resolvedTopicId ?? undefined,
+      );
       await storage.recordPractice();
-      if (resolvedTopicId) {
+      if (topicQuizResults.length > 0) {
+        for (const topicResult of topicQuizResults) {
+          const scorePercent =
+            topicResult.questionsAnswered > 0
+              ? (topicResult.correctAnswers / topicResult.questionsAnswered) * 100
+              : 0;
+
+          await storage.updateTopicProgress(
+            resolvedProgrammingLanguage,
+            topicResult.topicId,
+            topicResult.questionsAnswered,
+            topicResult.correctAnswers,
+          );
+          await storage.updateTopicSkillLevel(
+            resolvedProgrammingLanguage,
+            topicResult.topicId,
+            scorePercent,
+          );
+        }
+      } else if (resolvedTopicId) {
         await storage.updateTopicProgress(
           resolvedProgrammingLanguage,
           resolvedTopicId,
           questions.length,
           correctCount,
+        );
+        await storage.updateTopicSkillLevel(
+          resolvedProgrammingLanguage,
+          resolvedTopicId,
+          questions.length > 0 ? (correctCount / questions.length) * 100 : 0,
         );
       }
 

@@ -808,5 +808,5 @@ ${contextExclusion ? `- ${contextExclusion}` : ""}
     (question) => question.topicId,
   );
 
-  return withIds.map(({ topicId: _topicId, ...question }) => question);
+  return withIds;
 }
