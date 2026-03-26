@@ -4,6 +4,8 @@
 
 Dieses Dokument beschreibt konkrete Verbesserungen am Einstieg in die App ("First-Run Experience"), die auf Basis eines User-Testing-Durchlaufs mit drei Nutzerperspektiven erarbeitet wurden. Das Kernergebnis: Die App erklärt sich beim ersten Start nicht selbst — es fehlt jeder Hinweis darauf, was CodeCompanion ist, was die App bietet und für wen sie gedacht ist. Die vorhandene "Über diese App"-Beschreibung liegt ausschließlich in den Einstellungen und ist für Erstnutzer unsichtbar.
 
+Die Positionierung soll dabei nicht nur Anfänger adressieren. CodeCompanion ist auch für Programmierer jeder Erfahrungsstufe relevant, die ihr Wissen gelegentlich prüfen, auffrischen und langfristig erhalten oder vertiefen möchten. Gerade wenn im Alltag mehr Code durch KI-Systeme vorbereitet oder erzeugt wird, steigt der Bedarf an kurzen Formaten, mit denen Menschen ihr eigenes Verständnis aktiv scharf halten.
+
 Die Verbesserungen sind bewusst minimal gehalten — kein aufwändiger Tutorial-Walkthrough, sondern gezielte Eingriffe, die die Selbsterklärungskraft der App deutlich erhöhen, ohne den bestehenden Flow grundlegend zu verändern.
 
 ### Hintergrund (User-Testing-Befunde)
@@ -14,10 +16,14 @@ Getestet wurde aus drei Perspektiven:
 - **Anfänger** (will Programmieren lernen): Wird durch "JavaScript lernen" angezogen, findet aber Erklärungen, die eher Zusammenfassungen sind, und Quiz-Fragen, die Vorkenntnisse voraussetzen. Die App kommuniziert nicht, dass sie als Begleitübung konzipiert ist.
 - **Andere Nutzer** (zufällig gelandet): Ohne Programmier-Kontext ist der Einstieg komplett unverständlich — "Technologie wählen" ohne jeden Rahmen.
 
+Ergänzende Produkt-Perspektive:
+
+- **Erfahrener Programmierer / gelegentlicher Auffrischer:** Will nicht zwingend "Programmieren lernen", sondern Wissen prüfen, Lücken erkennen und Skills langfristig aktiv halten. Die App sollte deshalb nicht nur wie ein Lernbegleiter für Anfänger wirken, sondern auch wie ein schlankes Tool zum regelmäßigen Skill-Check und zur Vertiefung.
+
 ## Ziele
 
 - Beim ersten App-Start kommunizieren, was CodeCompanion ist und was der Nutzer erwarten kann.
-- Die Zielgruppe klar benennen (begleitendes Üben, nicht eigenständiger Programmierkurs).
+- Die Zielgruppe klar benennen: begleitendes Üben, Skill-Check, Auffrischung und Vertiefung; kein eigenständiger Komplettkurs.
 - Den bestehenden Navigation-Flow (Language Select → Learn) nicht brechen.
 - Keine Registrierung, kein Account, kein mehrstufiges Onboarding.
 - Welcome-Screen und Language Select beim ersten Start in Deutsch oder Englisch anzeigen; Standardsprache aus der Gerätesprache ableiten (`de`/`en`, sonst `de`).
@@ -43,11 +49,16 @@ Getestet wurde aus drei Perspektiven:
 
 - App-Name "CodeCompanion" (prominent)
 - Ein Untertitel / Tagline, z.B.:
-  - DE: "Übe und vertiefe dein Programmierwissen mit KI-generierten Quizfragen"
-  - EN: "Practice and deepen your programming knowledge with AI-generated quizzes"
+  - DE: "Prüfe, übe und vertiefe dein Programmierwissen mit KI-generierten Quizfragen"
+  - EN: "Check, practice, and deepen your programming knowledge with AI-generated quizzes"
 - Optionaler visueller Bereich (App-Icon oder einfache Illustration, kein aufwändiges Artwork)
 - Ein Weiter-Button ("Los geht's" / "Get Started")
 - Die Texte folgen beim ersten Start der initialen App-Sprache, die aus der Gerätesprache abgeleitet wird (`de`/`en`, sonst `de`)
+
+**Positionierungsprinzip für alle neuen Texte:**
+
+- Die App soll sprachlich sowohl für Lernende als auch für bereits erfahrene Entwickler verständlich und relevant wirken.
+- Begriffe wie "lernen" dürfen im bestehenden UI bleiben, neue Kontexttexte sollen aber klar machen, dass es auch um Wiederholung, Skill-Check, Wissenspflege und Vertiefung geht.
 
 **Verhalten:**
 
@@ -79,7 +90,7 @@ Getestet wurde aus drei Perspektiven:
 
 ### M2: Kontext-Untertitel auf dem Hauptscreen
 
-**Problem:** Die Überschrift "JavaScript lernen" auf dem Lernen-Tab suggeriert einen Kurs, erklärt aber nicht, dass es um Quiz-basiertes Üben geht.
+**Problem:** Die Überschrift "JavaScript lernen" auf dem Lernen-Tab suggeriert einen Kurs, erklärt aber nicht, dass es um Quiz-basiertes Üben, Skill-Check und Wissensvertiefung geht.
 
 **Lösung:** Untertitel direkt unter der Hauptüberschrift auf `LearnScreen`, der den Kontext herstellt.
 
@@ -123,15 +134,15 @@ Getestet wurde aus drei Perspektiven:
 
 ### M4: Unterscheidung "Lernen" vs. "Üben" klarer machen
 
-**Problem:** Die Tabs "Lernen" und "Üben" überschneiden sich im wahrgenommenen Zweck. Auf beiden geht es um Quizzes. Der Unterschied (themengebunden vs. Modi-basiert/Wiederholung) ist nicht ersichtlich.
+**Problem:** Die Tabs "Lernen" und "Üben" überschneiden sich im wahrgenommenen Zweck. Auf beiden geht es um Quizzes. Der Unterschied (themengebunden vs. Modi-basiert/Wiederholung) ist nicht ersichtlich. Zusätzlich wird nicht klar genug kommuniziert, dass die App auch für erfahrene Nutzer gedacht ist, die ihr Wissen regelmäßig auffrischen oder schärfen wollen.
 
 **Lösung:** Kurze kontextuelle Beschreibung in beiden Tabs, die den jeweiligen Zweck erklärt.
 
 **Lernen-Tab (bereits durch M2 adressiert):** "Wähle ein Thema und teste dein Wissen."
 
 **Üben-Tab:** Zusätzlicher Hinweistext im oberen Bereich.
-- DE: "Wiederhole und festige dein Wissen mit verschiedenen Quiz-Modi"
-- EN: "Review and consolidate your knowledge with different quiz modes"
+- DE: "Wiederhole, überprüfe und festige dein Wissen mit verschiedenen Quiz-Modi"
+- EN: "Review, check, and consolidate your knowledge with different quiz modes"
 
 **Betroffene Dateien:**
 
@@ -284,7 +295,7 @@ Geänderte Dateien:
 ## Definition of Done
 
 - Beim ersten Start ist sofort erkennbar, was CodeCompanion ist und was die App bietet.
-- Die Zielgruppe (begleitendes Üben) wird klar kommuniziert.
+- Die Zielgruppe wird klar kommuniziert: sowohl Lernende als auch erfahrene Entwickler erkennen die App als Werkzeug zum Üben, Überprüfen, Auffrischen und Vertiefen.
 - Der bestehende Navigationsflow ist intakt und fühlt sich nicht "aufgebläht" an.
 - Der Welcome-Screen ist ein einmaliger, schneller Einstieg — kein Blocker.
 - Alle Texte sind in Deutsch und Englisch vorhanden.
