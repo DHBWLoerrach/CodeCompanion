@@ -7,12 +7,145 @@ import { HeaderIconButton } from "@/components/HeaderIconButton";
 import { SurfaceCard } from "@/components/SurfaceCard";
 import { ThemedView } from "@/components/ThemedView";
 import { ThemedText } from "@/components/ThemedText";
+import { BorderRadius, Spacing } from "@/constants/theme";
 import { useTheme } from "@/contexts/ThemeContext";
-import { useTranslation } from "@/hooks/useTranslation";
 import { useCloseHandler } from "@/hooks/useCloseHandler";
-import { Spacing } from "@/constants/theme";
+import { useTranslation } from "@/hooks/useTranslation";
 
 type InfoModalType = "about" | "imprint";
+type AboutAction = {
+  kind: "email" | "website";
+  label: string;
+  value: string;
+  detail?: string;
+};
+type AboutSection = {
+  heading: string;
+  body?: string;
+  bullets?: string[];
+  actions?: AboutAction[];
+};
+
+const ABOUT_CONTENT = {
+  de: {
+    eyebrow: "Programmieren lernen",
+    intro:
+      "CodeCompanion ist eine mobile Lern- und Übungsapp für Programmierinhalte. Die App verbindet strukturierte Lernpfade, kompakte Erklärungen und Quiz-Training für JavaScript, Python und Java.",
+    sections: [
+      {
+        heading: "Lernkonzept",
+        body: "CodeCompanion unterstützt Studierende dabei, Themen Schritt für Schritt zu erarbeiten, Wissen direkt zu überprüfen und Lernfortschritte im Alltag sichtbar zu machen.",
+      },
+      {
+        heading: "Was die App bietet",
+        bullets: [
+          "Strukturierte Curricula mit aufeinander aufbauenden Themen",
+          "Kompakte Erklärungen zu zentralen Konzepten und Begriffen",
+          "KI-gestützte Quizfragen für gezieltes Üben und Wiederholen",
+          "Lokale Speicherung von Profil, Einstellungen, Fortschritt und Lernserie",
+          "Mehrsprachige Oberfläche in Deutsch und Englisch",
+        ],
+      },
+      {
+        heading: "KI und Datenschutz",
+        body: "Für die KI-gestützte Quizerstellung werden Anfragen serverseitig verarbeitet. Dabei werden nur die für die Generierung notwendigen Inhalte übertragen.",
+        bullets: [
+          "Die App verwendet kein Benutzerkonto.",
+          "Lernhistorie, Fortschritt, Einstellungen und Streaks bleiben lokal auf dem Gerät gespeichert.",
+          "Es wird keine serverseitige Lernhistorie für die App geführt.",
+        ],
+      },
+      {
+        heading: "Entwicklung",
+        body: "Die App wird am Studienzentrum IT-Management & Informatik (SZI) der DHBW Lörrach unter Leitung von Prof. Dr. Erik Behrends entwickelt.",
+        actions: [
+          {
+            kind: "website",
+            label: "SZI der DHBW Lörrach",
+            value: "https://www.dhbw-loerrach.de/szi",
+            detail: "https://www.dhbw-loerrach.de/szi",
+          },
+        ],
+      },
+      {
+        heading: "Open Source und Feedback",
+        body: "Der Quellcode ist öffentlich verfügbar. Fragen, Feedback und Fehlermeldungen können direkt an das App-Team geschickt werden.",
+        actions: [
+          {
+            kind: "website",
+            label: "GitHub-Repository",
+            value: "https://github.com/DHBWLoerrach/CodeCompanion",
+            detail: "https://github.com/DHBWLoerrach/CodeCompanion",
+          },
+          {
+            kind: "email",
+            label: "apps@dhbw-loerrach.de",
+            value: "apps@dhbw-loerrach.de",
+          },
+        ],
+      },
+    ] satisfies AboutSection[],
+  },
+  en: {
+    eyebrow: "Learn programming",
+    intro:
+      "CodeCompanion is a mobile learning and practice app for programming topics. It combines structured learning paths, concise explanations, and quiz-based practice for JavaScript, Python, and Java.",
+    sections: [
+      {
+        heading: "Learning approach",
+        body: "CodeCompanion helps students work through topics step by step, check understanding immediately, and keep learning progress visible in everyday study.",
+      },
+      {
+        heading: "What the app offers",
+        bullets: [
+          "Structured curricula with topics that build on each other",
+          "Concise explanations for core concepts and terminology",
+          "AI-assisted quizzes for targeted practice and revision",
+          "Local storage for profile, settings, progress, and streak data",
+          "A multilingual interface in German and English",
+        ],
+      },
+      {
+        heading: "AI and privacy",
+        body: "Requests for AI-assisted quiz generation are processed server-side. Only the content required to generate quiz questions is transmitted.",
+        bullets: [
+          "The app does not require a user account.",
+          "Learning history, progress, settings, and streaks remain stored locally on the device.",
+          "No server-side learning history is maintained for the app.",
+        ],
+      },
+      {
+        heading: "Development",
+        body: "The app is developed at the Studienzentrum IT-Management & Informatik (SZI) at DHBW Lörrach under the supervision of Prof. Dr. Erik Behrends.",
+        actions: [
+          {
+            kind: "website",
+            label: "SZI at DHBW Lörrach",
+            value: "https://www.dhbw-loerrach.de/szi",
+            detail: "https://www.dhbw-loerrach.de/szi",
+          },
+        ],
+      },
+      {
+        heading: "Open source and feedback",
+        body: "The source code is publicly available. Questions, feedback, and bug reports can be sent directly to the app team.",
+        actions: [
+          {
+            kind: "website",
+            label: "GitHub repository",
+            value: "https://github.com/DHBWLoerrach/CodeCompanion",
+            detail: "https://github.com/DHBWLoerrach/CodeCompanion",
+          },
+          {
+            kind: "email",
+            label: "apps@dhbw-loerrach.de",
+            value: "apps@dhbw-loerrach.de",
+          },
+        ],
+      },
+    ] satisfies AboutSection[],
+  },
+} as const;
 
 export default function InfoModalScreen() {
   const { theme } = useTheme();
@@ -22,6 +155,7 @@ export default function InfoModalScreen() {
 
   const resolvedType: InfoModalType = type === "imprint" ? "imprint" : "about";
   const title = resolvedType === "imprint" ? "Impressum" : t("aboutThisApp");
+  const aboutContent = language === "de" ? ABOUT_CONTENT.de : ABOUT_CONTENT.en;
 
   const openEmail = async (email: string) => {
     const url = `mailto:${email}`;
@@ -67,153 +201,86 @@ export default function InfoModalScreen() {
                 {title}
               </ThemedText>
 
-              {language === "de" ? (
-                <>
-                  <ThemedText type="body" selectable>
-                    CodeCompanion ist eine mobile Lern- und Übungsapp für
-                    Studierende. Sie unterstützt dabei, Inhalte strukturiert zu
-                    lernen, Wissen mit Quizfragen zu überprüfen und den eigenen
-                    Fortschritt sichtbar zu machen.
-                  </ThemedText>
+              <View
+                style={[
+                  styles.summaryCard,
+                  {
+                    backgroundColor: theme.backgroundSecondary,
+                    borderColor: theme.separator,
+                  },
+                ]}
+              >
+                <ThemedText
+                  type="label"
+                  style={[styles.summaryEyebrow, { color: theme.primary }]}
+                >
+                  {aboutContent.eyebrow}
+                </ThemedText>
+                <ThemedText type="body" selectable style={styles.bodyText}>
+                  {aboutContent.intro}
+                </ThemedText>
+              </View>
 
-                  <ThemedText type="h4">Funktionen</ThemedText>
-                  <ThemedText type="body" selectable>
-                    - Themenbasiertes Lernen mit kompakten Erklärungen{"\n"}-
-                    KI-gestützte Quizfragen für gezieltes Üben{"\n"}-
-                    Fortschrittsanzeige mit Kennzahlen und Lernverlauf{"\n"}-
-                    Mehrsprachige Oberfläche (Deutsch/Englisch)
-                  </ThemedText>
-
-                  <ThemedText type="h4">Ziele</ThemedText>
-                  <ThemedText type="body" selectable>
-                    Ziel der App ist es, das selbstgesteuerte Lernen im Studium
-                    zu verbessern, Wiederholung zu erleichtern und regelmäßiges
-                    Üben alltagstauglich zu machen.
-                  </ThemedText>
-
-                  <ThemedText type="h4">Datenschutz</ThemedText>
-                  <ThemedText type="body" selectable>
-                    Es werden keine benutzerbezogenen Daten auf Servern
-                    gespeichert. Nur der Lernfortschritt wird lokal auf dem
-                    Gerät gespeichert.
-                  </ThemedText>
-
-                  <ThemedText type="h4">Entwicklung</ThemedText>
-                  <ThemedText type="body" selectable>
-                    Die App wurde am Studienzentrum IT-Management & Informatik
-                    (SZI) der DHBW Lörrach unter Leitung von Prof. Dr. Erik
-                    Behrends entwickelt.
-                  </ThemedText>
-                  <Pressable
-                    onPress={() =>
-                      void openWebsite("https://www.dhbw-loerrach.de/szi")
-                    }
-                    hitSlop={6}
-                  >
-                    <ThemedText type="link" selectable style={styles.linkText}>
-                      https://www.dhbw-loerrach.de/szi
+              {aboutContent.sections.map((section) => (
+                <View key={section.heading} style={styles.sectionBlock}>
+                  <ThemedText type="h4">{section.heading}</ThemedText>
+                  {section.body ? (
+                    <ThemedText type="body" selectable style={styles.bodyText}>
+                      {section.body}
                     </ThemedText>
-                  </Pressable>
-
-                  <ThemedText type="h4">Quellcode</ThemedText>
-                  <Pressable
-                    onPress={() =>
-                      void openWebsite(
-                        "https://github.com/DHBWLoerrach/CodeCompanion",
-                      )
-                    }
-                    hitSlop={6}
-                  >
-                    <ThemedText type="link" selectable style={styles.linkText}>
-                      https://github.com/DHBWLoerrach/CodeCompanion
-                    </ThemedText>
-                  </Pressable>
-
-                  <ThemedText type="h4">Feedback</ThemedText>
-                  <Pressable
-                    onPress={() => void openEmail("apps@dhbw-loerrach.de")}
-                    hitSlop={6}
-                  >
-                    <ThemedText type="link" selectable style={styles.linkText}>
-                      apps@dhbw-loerrach.de
-                    </ThemedText>
-                  </Pressable>
-                </>
-              ) : (
-                <>
-                  <ThemedText type="body" selectable>
-                    CodeCompanion is a mobile learning and practice app for
-                    students. It helps learners study topics in a structured
-                    way, test knowledge with quizzes, and track their learning
-                    progress over time.
-                  </ThemedText>
-
-                  <ThemedText type="h4">Features</ThemedText>
-                  <ThemedText type="body" selectable>
-                    - Topic-based learning with concise explanations{"\n"}-
-                    AI-assisted quiz generation for targeted practice{"\n"}-
-                    Progress tracking with key metrics and history{"\n"}-
-                    Multilingual interface (German/English)
-                  </ThemedText>
-
-                  <ThemedText type="h4">Goals</ThemedText>
-                  <ThemedText type="body" selectable>
-                    The app is designed to support self-directed learning,
-                    improve retention through repetition, and make regular
-                    practice easier in day-to-day student life.
-                  </ThemedText>
-
-                  <ThemedText type="h4">Privacy</ThemedText>
-                  <ThemedText type="body" selectable>
-                    No user-related personal data is stored on servers. Only
-                    learning progress is stored locally on the device.
-                  </ThemedText>
-
-                  <ThemedText type="h4">Development</ThemedText>
-                  <ThemedText type="body" selectable>
-                    The app is developed at the Studienzentrum IT-Management &
-                    Informatik (SZI) at DHBW Lörrach under the supervision of
-                    Prof. Dr. Erik Behrends.
-                  </ThemedText>
-                  <ThemedText type="body" selectable>
-                    The official SZI page is provided in German:
-                  </ThemedText>
-                  <Pressable
-                    onPress={() =>
-                      void openWebsite("https://www.dhbw-loerrach.de/szi")
-                    }
-                    hitSlop={6}
-                  >
-                    <ThemedText type="link" selectable style={styles.linkText}>
-                      https://www.dhbw-loerrach.de/szi
-                    </ThemedText>
-                  </Pressable>
-
-                  <ThemedText type="h4">Source Code</ThemedText>
-                  <Pressable
-                    onPress={() =>
-                      void openWebsite(
-                        "https://github.com/DHBWLoerrach/CodeCompanion",
-                      )
-                    }
-                    hitSlop={6}
-                  >
-                    <ThemedText type="link" selectable style={styles.linkText}>
-                      https://github.com/DHBWLoerrach/CodeCompanion
-                    </ThemedText>
-                  </Pressable>
-
-                  <ThemedText type="h4">Feedback</ThemedText>
-                  <Pressable
-                    onPress={() => void openEmail("apps@dhbw-loerrach.de")}
-                    hitSlop={6}
-                  >
-                    <ThemedText type="link" selectable style={styles.linkText}>
-                      apps@dhbw-loerrach.de
-                    </ThemedText>
-                  </Pressable>
-                </>
-              )}
+                  ) : null}
+                  {section.bullets?.map((bullet) => (
+                    <View key={bullet} style={styles.bulletRow}>
+                      <View
+                        style={[
+                          styles.bulletDot,
+                          { backgroundColor: theme.primary },
+                        ]}
+                      />
+                      <ThemedText
+                        type="body"
+                        selectable
+                        style={styles.bulletText}
+                      >
+                        {bullet}
+                      </ThemedText>
+                    </View>
+                  ))}
+                  {section.actions?.map((action) => (
+                    <Pressable
+                      key={action.value}
+                      accessibilityRole="link"
+                      hitSlop={6}
+                      onPress={() =>
+                        action.kind === "email"
+                          ? void openEmail(action.value)
+                          : void openWebsite(action.value)
+                      }
+                      style={styles.actionLink}
+                    >
+                      <ThemedText
+                        type="link"
+                        selectable
+                        style={styles.linkText}
+                      >
+                        {action.label}
+                      </ThemedText>
+                      {action.detail && action.detail !== action.label ? (
+                        <ThemedText
+                          type="small"
+                          selectable
+                          style={[
+                            styles.actionDetail,
+                            { color: theme.tabIconDefault },
+                          ]}
+                        >
+                          {action.detail}
+                        </ThemedText>
+                      ) : null}
+                    </Pressable>
+                  ))}
+                </View>
+              ))}
             </SurfaceCard>
           ) : (
             <SurfaceCard style={styles.card}>
@@ -362,13 +429,50 @@ const styles = StyleSheet.create({
   card: {
     gap: Spacing.md,
   },
+  summaryCard: {
+    borderRadius: BorderRadius.lg,
+    borderWidth: StyleSheet.hairlineWidth,
+    gap: Spacing.sm,
+    padding: Spacing.lg,
+  },
+  summaryEyebrow: {
+    letterSpacing: 0.6,
+    textTransform: "uppercase",
+  },
   imprintMainTitle: {
     lineHeight: 32,
+  },
+  sectionBlock: {
+    gap: Spacing.sm,
+  },
+  bodyText: {
+    lineHeight: 24,
+  },
+  bulletRow: {
+    alignItems: "flex-start",
+    flexDirection: "row",
+    gap: Spacing.sm,
+  },
+  bulletDot: {
+    borderRadius: BorderRadius.full,
+    height: 6,
+    marginTop: 9,
+    width: 6,
+  },
+  bulletText: {
+    flex: 1,
+    lineHeight: 24,
   },
   inlineRow: {
     flexDirection: "row",
     alignItems: "center",
     flexWrap: "wrap",
+  },
+  actionLink: {
+    gap: 2,
+  },
+  actionDetail: {
+    lineHeight: 20,
   },
   linkText: {
     textDecorationLine: "underline",
