@@ -177,12 +177,14 @@ describe("SettingsScreen integration", () => {
     });
   });
 
-  it("applies language/theme immediately and saves profile/settings", async () => {
+  it("applies language/theme immediately and autosaves profile changes", async () => {
     const screen = render(<SettingsScreen />);
 
     await waitFor(() => {
-      expect(screen.getByText("saveChanges")).toBeTruthy();
+      expect(screen.getByText("preferences")).toBeTruthy();
     });
+
+    expect(screen.queryByText("saveChanges")).toBeNull();
 
     fireEvent.press(screen.getByText("Deutsch"));
     await waitFor(() => {
@@ -203,18 +205,14 @@ describe("SettingsScreen integration", () => {
     });
 
     fireEvent.changeText(screen.getByDisplayValue("Student"), "Erik");
-    fireEvent.press(screen.getByText("saveChanges"));
 
     await waitFor(() => {
       expect(mockStorage.setProfile).toHaveBeenCalledWith({
         displayName: "Erik",
         avatarIndex: 0,
       });
-      expect(mockStorage.setSettings).toHaveBeenCalledWith({
-        language: "de",
-        themeMode: "dark",
-      });
-      expect(mockBack).toHaveBeenCalledTimes(1);
     });
+
+    expect(mockBack).not.toHaveBeenCalled();
   });
 });

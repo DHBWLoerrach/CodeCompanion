@@ -1,12 +1,11 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, useCallback } from "react";
 import { View, StyleSheet, Pressable, TextInput, Alert } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Stack, useRouter } from "expo-router";
 import SegmentedControl from "@react-native-segmented-control/segmented-control";
 import Constants from "expo-constants";
 
-import { BottomActionBar } from "@/components/BottomActionBar";
-import { PrimaryButton, SecondaryButton } from "@/components/ActionButton";
+import { SecondaryButton } from "@/components/ActionButton";
 import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
 import { KeyboardAwareScrollViewCompat } from "@/components/KeyboardAwareScrollViewCompat";
@@ -22,7 +21,6 @@ import {
   Shadows,
   AvatarColors,
   AVATARS,
-  getBottomActionBarScrollPadding,
 } from "@/constants/theme";
 import {
   storage,
@@ -104,24 +102,17 @@ export default function SettingsScreen() {
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [settings, setSettings] = useState<SettingsData | null>(null);
   const [loading, setLoading] = useState(true);
-  const [saving, setSaving] = useState(false);
   const settingsRef = useRef<SettingsData | null>(null);
   const settingsUpdateInFlightRef = useRef(false);
+  const skipNextProfilePersistRef = useRef(true);
 
-  useEffect(() => {
-    loadData();
-  }, []);
-
-  useEffect(() => {
-    settingsRef.current = settings;
-  }, [settings]);
-
-  const loadData = async () => {
+  const loadData = useCallback(async () => {
     try {
       const [profileData, settingsData] = await Promise.all([
         storage.getProfile(),
         storage.getSettings(),
       ]);
+      skipNextProfilePersistRef.current = true;
       setProfile(profileData);
       setSettings(settingsData);
     } catch (error) {
@@ -129,26 +120,45 @@ export default function SettingsScreen() {
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
 
-  const handleSave = async () => {
-    if (!profile || !settings) return;
+  useEffect(() => {
+    loadData();
+  }, [loadData]);
 
-    setSaving(true);
-    try {
-      await Promise.all([
-        storage.setProfile(profile),
-        storage.setSettings(settings),
-      ]);
-      await Promise.all([refreshLanguage(), refreshTheme()]);
-      router.back();
-    } catch (error) {
-      console.error("Error saving settings:", error);
-      Alert.alert(t("error"), t("failedToSaveSettings"));
-    } finally {
-      setSaving(false);
+  useEffect(() => {
+    settingsRef.current = settings;
+  }, [settings]);
+
+  const persistProfile = useCallback(
+    async (nextProfile: UserProfile) => {
+      try {
+        await storage.setProfile(nextProfile);
+      } catch (error) {
+        console.error("Error saving profile:", error);
+        Alert.alert(t("error"), t("failedToSaveSettings"));
+        await loadData();
+      }
+    },
+    [loadData, t],
+  );
+
+  useEffect(() => {
+    if (!profile) return;
+
+    if (skipNextProfilePersistRef.current) {
+      skipNextProfilePersistRef.current = false;
+      return;
     }
-  };
+
+    const timeoutId = setTimeout(() => {
+      void persistProfile(profile);
+    }, 300);
+
+    return () => {
+      clearTimeout(timeoutId);
+    };
+  }, [persistProfile, profile]);
 
   const handleResetProgress = () => {
     Alert.alert(t("resetProgress"), t("resetProgressMessage"), [
@@ -244,9 +254,7 @@ export default function SettingsScreen() {
             styles.scrollContent,
             {
               paddingTop: Spacing.xl,
-              paddingBottom: getBottomActionBarScrollPadding({
-                safeAreaBottom: insets.bottom,
-              }),
+              paddingBottom: Spacing["3xl"] + insets.bottom,
             },
           ]}
         >
@@ -485,16 +493,6 @@ export default function SettingsScreen() {
           />
         </KeyboardAwareScrollViewCompat>
 
-        <BottomActionBar>
-          <PrimaryButton
-            testID="settings-save-button"
-            color={theme.secondary}
-            label={t("saveChanges")}
-            onPress={handleSave}
-            disabled={saving}
-            loading={saving}
-          />
-        </BottomActionBar>
       </ThemedView>
     </>
   );
