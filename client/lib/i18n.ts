@@ -14,7 +14,6 @@ export function resolveLanguageFromLocale(
 
 export const translations = {
   en: {
-    learnTechnology: "Learn {name}",
     welcomeTagline:
       "Check, practice, and deepen your programming knowledge with AI-generated quizzes",
     getStarted: "Get Started",
@@ -25,7 +24,7 @@ export const translations = {
       "Your level increases when you score at least 80% in a quiz on this topic, and drops again if you score below 50%. At level 5, the topic is considered mastered.",
     levelInfoButtonLabel: "Explain level system",
 
-    learn: "Learn",
+    topicsTab: "Topics",
     progress: "Progress",
     practice: "Practice",
     settings: "Settings",
@@ -108,6 +107,7 @@ export const translations = {
     changeTechnology: "Focus",
     selectTechnology: "Focus",
     chooseTechnology: "Choose your focus",
+    selectFocusHint: "Select {name} as your focus",
     javascript: "JavaScript",
     saveChanges: "Save Changes",
     student: "Student",
@@ -205,7 +205,6 @@ export const translations = {
     selectCategory: "Select Category",
   },
   de: {
-    learnTechnology: "{name} lernen",
     welcomeTagline:
       "Prüfe, übe und vertiefe dein Programmierwissen mit KI-generierten Quizfragen",
     getStarted: "Los geht's",
@@ -216,7 +215,7 @@ export const translations = {
       "Dein Level steigt, wenn du in einem Quiz zu diesem Thema mindestens 80 % erreichst, und sinkt wieder, wenn du unter 50 % bleibst. Ab Level 5 gilt das Thema als gemeistert.",
     levelInfoButtonLabel: "Level-System erklären",
 
-    learn: "Lernen",
+    topicsTab: "Themen",
     progress: "Fortschritt",
     practice: "Üben",
     settings: "Einstellungen",
@@ -301,6 +300,7 @@ export const translations = {
     changeTechnology: "Schwerpunkt",
     selectTechnology: "Schwerpunkt",
     chooseTechnology: "Wähle deinen Schwerpunkt",
+    selectFocusHint: "Wähle {name} als Schwerpunkt",
     javascript: "JavaScript",
     saveChanges: "Änderungen speichern",
     student: "Student",

@@ -1,11 +1,13 @@
-import React from "react";
+import React, { useMemo } from "react";
 import { View, ScrollView, Pressable } from "react-native";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import Animated, { FadeInUp } from "react-native-reanimated";
 import * as Haptics from "expo-haptics";
 
+import { AppIcon } from "@/components/AppIcon";
 import { ThemedText } from "@/components/ThemedText";
 import { useTheme } from "@/contexts/ThemeContext";
+import { usePressAnimation } from "@/hooks/usePressAnimation";
 import { useTranslation } from "@/hooks/useTranslation";
 import { getParam } from "@/lib/router-utils";
 import { useProgrammingLanguage } from "@/contexts/ProgrammingLanguageContext";
@@ -14,9 +16,7 @@ import {
   getLanguageDisplayName,
   type ProgrammingLanguage,
 } from "@/lib/languages";
-import { Spacing, BorderRadius, Shadows } from "@/constants/theme";
-
-const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
+import { Spacing, BorderRadius, Shadows, withOpacity } from "@/constants/theme";
 
 interface LanguageCardProps {
   language: ProgrammingLanguage;
@@ -36,49 +36,95 @@ function LanguageCard({
   topicLabel,
 }: LanguageCardProps) {
   const { theme } = useTheme();
+  const { t } = useTranslation();
+  const { animatedStyle, handlePressIn, handlePressOut } =
+    usePressAnimation(0.985);
+  const chevronTint = useMemo(
+    () => withOpacity(theme.primary, 0.1),
+    [theme.primary],
+  );
+  const pressedOverlay = useMemo(
+    () => withOpacity(theme.primary, 0.03),
+    [theme.primary],
+  );
+  const pressedBorderColor = useMemo(
+    () => withOpacity(theme.primary, 0.2),
+    [theme.primary],
+  );
+  const accessibilityHint = t("selectFocusHint").replace(
+    "{name}",
+    languageName,
+  );
 
   return (
-    <AnimatedPressable
-      entering={FadeInUp.delay(index * 80)}
-      onPress={onPress}
-      style={{
-        flexDirection: "row",
-        alignItems: "center",
-        gap: Spacing.lg,
-        padding: Spacing.lg,
-        backgroundColor: theme.backgroundDefault,
-        borderRadius: BorderRadius.lg,
-        borderCurve: "continuous",
-        ...Shadows.card,
-      }}
-    >
-      <View
-        style={{
-          width: 56,
-          height: 56,
-          borderRadius: BorderRadius.md,
-          borderCurve: "continuous",
-          backgroundColor: language.color,
-          alignItems: "center",
-          justifyContent: "center",
-        }}
-      >
-        <ThemedText
-          type="h3"
-          lightColor="#000000"
-          darkColor="#000000"
-          style={{ fontWeight: "800" }}
+    <Animated.View entering={FadeInUp.delay(index * 80)}>
+      <Animated.View style={animatedStyle}>
+        <Pressable
+          onPress={onPress}
+          onPressIn={handlePressIn}
+          onPressOut={handlePressOut}
+          accessibilityRole="button"
+          accessibilityLabel={languageName}
+          accessibilityHint={accessibilityHint}
+          style={({ pressed }) => ({
+            flexDirection: "row",
+            alignItems: "center",
+            gap: Spacing.lg,
+            padding: Spacing.lg,
+            backgroundColor: pressed ? pressedOverlay : theme.backgroundDefault,
+            borderRadius: BorderRadius.lg,
+            borderCurve: "continuous",
+            borderWidth: 1,
+            borderColor: pressed ? pressedBorderColor : theme.cardBorder,
+            ...Shadows.card,
+          })}
         >
-          {language.shortName}
-        </ThemedText>
-      </View>
-      <View style={{ flex: 1, gap: 4 }}>
-        <ThemedText type="h4">{languageName}</ThemedText>
-        <ThemedText type="caption" style={{ color: theme.tabIconDefault }}>
-          {topicCount} {topicLabel}
-        </ThemedText>
-      </View>
-    </AnimatedPressable>
+          <View
+            style={{
+              width: 56,
+              height: 56,
+              borderRadius: BorderRadius.md,
+              borderCurve: "continuous",
+              backgroundColor: language.color,
+              alignItems: "center",
+              justifyContent: "center",
+            }}
+          >
+            <ThemedText
+              type="h3"
+              lightColor="#000000"
+              darkColor="#000000"
+              style={{ fontWeight: "800" }}
+            >
+              {language.shortName}
+            </ThemedText>
+          </View>
+          <View style={{ flex: 1, gap: 4 }}>
+            <ThemedText type="h4">{languageName}</ThemedText>
+            <ThemedText type="caption" style={{ color: theme.tabIconDefault }}>
+              {topicCount} {topicLabel}
+            </ThemedText>
+          </View>
+          <View
+            style={{
+              width: 36,
+              height: 36,
+              borderRadius: BorderRadius.full,
+              alignItems: "center",
+              justifyContent: "center",
+              backgroundColor: chevronTint,
+            }}
+          >
+            <AppIcon
+              name="chevron-right"
+              size={18}
+              color={theme.primary}
+              weight="semibold"
+            />
+          </View>
+        </Pressable>
+      </Animated.View>
+    </Animated.View>
   );
 }
 
