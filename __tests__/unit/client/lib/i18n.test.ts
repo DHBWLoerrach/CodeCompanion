@@ -11,13 +11,13 @@ describe("resolveLanguageFromLocale", () => {
     expect(resolveLanguageFromLocale("de-AT")).toBe("de");
   });
 
-  it("falls back to german for unsupported locales", () => {
-    expect(resolveLanguageFromLocale("fr-FR")).toBe("de");
-    expect(resolveLanguageFromLocale("es-ES")).toBe("de");
+  it("falls back to english for non-german locales", () => {
+    expect(resolveLanguageFromLocale("fr-FR")).toBe("en");
+    expect(resolveLanguageFromLocale("es-ES")).toBe("en");
   });
 
-  it("falls back to german when locale is missing", () => {
-    expect(resolveLanguageFromLocale(undefined)).toBe("de");
-    expect(resolveLanguageFromLocale(null)).toBe("de");
+  it("falls back to english when locale is missing", () => {
+    expect(resolveLanguageFromLocale(undefined)).toBe("en");
+    expect(resolveLanguageFromLocale(null)).toBe("en");
   });
 });

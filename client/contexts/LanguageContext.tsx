@@ -7,6 +7,7 @@ import React, {
   useMemo,
 } from "react";
 import { storage } from "@/lib/storage";
+import { getDeviceLocale } from "@/lib/device-locale";
 import { resolveLanguageFromLocale, type Language } from "@/lib/i18n";
 
 interface LanguageContextType {
@@ -16,29 +17,20 @@ interface LanguageContextType {
 }
 
 const LanguageContext = createContext<LanguageContextType | null>(null);
-const fallbackLanguageContext: LanguageContextType = {
-  language: "de",
-  isLoading: false,
-  refreshLanguage: async () => {},
-};
 
-function getDeviceLocale(): string | undefined {
-  try {
-    return Intl.DateTimeFormat().resolvedOptions().locale;
-  } catch {
-    return undefined;
-  }
+function getInitialLanguage(): Language {
+  return resolveLanguageFromLocale(getDeviceLocale());
 }
 
 export function LanguageProvider({ children }: { children: React.ReactNode }) {
-  const [language, setLanguage] = useState<Language>("de");
+  const [language, setLanguage] = useState<Language>(getInitialLanguage);
   const [isLoading, setIsLoading] = useState(true);
 
   const loadLanguage = useCallback(async () => {
     try {
       const hasStoredSettings = await storage.hasStoredSettings();
       if (!hasStoredSettings) {
-        const initialLanguage = resolveLanguageFromLocale(getDeviceLocale());
+        const initialLanguage = getInitialLanguage();
         await storage.setSettings({
           language: initialLanguage,
           themeMode: "auto",
@@ -50,7 +42,7 @@ export function LanguageProvider({ children }: { children: React.ReactNode }) {
       const settings = await storage.getSettings();
       setLanguage(settings.language);
     } catch {
-      setLanguage("de");
+      setLanguage(getInitialLanguage());
     } finally {
       setIsLoading(false);
     }
@@ -78,6 +70,12 @@ export function LanguageProvider({ children }: { children: React.ReactNode }) {
 
 export function useLanguage() {
   const context = useContext(LanguageContext);
-  if (!context) return fallbackLanguageContext;
+  if (!context) {
+    return {
+      language: getInitialLanguage(),
+      isLoading: false,
+      refreshLanguage: async () => {},
+    };
+  }
   return context;
 }

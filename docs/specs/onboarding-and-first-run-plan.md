@@ -26,7 +26,7 @@ Ergänzende Produkt-Perspektive:
 - Die Zielgruppe klar benennen: begleitendes Üben, Skill-Check, Auffrischung und Vertiefung; kein eigenständiger Komplettkurs.
 - Den bestehenden Navigation-Flow (Language Select → Learn) nicht brechen.
 - Keine Registrierung, kein Account, kein mehrstufiges Onboarding.
-- Welcome-Screen und Language Select beim ersten Start in Deutsch oder Englisch anzeigen; Standardsprache aus der Gerätesprache ableiten (`de`/`en`, sonst `de`).
+- Welcome-Screen und Language Select beim ersten Start in Deutsch oder Englisch anzeigen; Standardsprache aus der Gerätesprache ableiten (`de`/`en`, sonst `en`).
 
 ## Nicht-Ziele
 
@@ -53,7 +53,7 @@ Ergänzende Produkt-Perspektive:
   - EN: "Check, practice, and deepen your programming knowledge with AI-generated quizzes"
 - Optionaler visueller Bereich (App-Icon oder einfache Illustration, kein aufwändiges Artwork)
 - Ein Weiter-Button ("Los geht's" / "Get Started")
-- Die Texte folgen beim ersten Start der initialen App-Sprache, die aus der Gerätesprache abgeleitet wird (`de`/`en`, sonst `de`)
+- Die Texte folgen beim ersten Start der initialen App-Sprache, die aus der Gerätesprache abgeleitet wird (`de`/`en`, sonst `en`)
 
 **Positionierungsprinzip für alle neuen Texte:**
 
@@ -63,7 +63,7 @@ Ergänzende Produkt-Perspektive:
 **Verhalten:**
 
 - Wird nur angezeigt, wenn `hasSeenWelcome` nicht in AsyncStorage gesetzt ist.
-- Bevor Welcome-Screen oder `language-select` gerendert werden, wird beim ersten Start eine initiale App-Sprache bestimmt: Gerätesprache `de`/`en`, sonst Fallback `de`. Falls noch keine App-Sprache gespeichert ist, wird dieser Wert in den Settings persistiert.
+- Bevor Welcome-Screen oder `language-select` gerendert werden, wird beim ersten Start eine initiale App-Sprache bestimmt: Gerätesprache `de`/`en`, sonst Fallback `en`. Falls noch keine App-Sprache gespeichert ist, wird dieser Wert in den Settings persistiert.
 - `app/index.tsx` wartet, bis `ProgrammingLanguageContext`, `LanguageContext` und der Welcome-Status geladen sind, damit es keinen Sprach-Flash beim ersten Render gibt.
 - Nach Klick auf den Weiter-Button wird `hasSeenWelcome = true` persistiert und per `router.replace("/language-select")` zur bestehenden `language-select`-Route navigiert.
 - Rückkehr zum Welcome-Screen ist nicht möglich; weder Header-Back noch Hardware-/Gesture-Back sollen nach dem Welcome wieder auf diesen Screen führen.
@@ -165,7 +165,7 @@ Ergänzende Produkt-Perspektive:
 Änderungen:
 
 - `client/lib/storage.ts`: neuen Schlüssel `WELCOME_SEEN_KEY` anlegen, Lese-/Schreib-Funktionen (`hasSeenWelcome`, `markWelcomeSeen`), explizit von `clearAllData()` ausschließen.
-- `client/contexts/LanguageContext.tsx`: Initialsprache beim ersten Start aus der Geräte-Locale ableiten (`de`/`en`, sonst `de`) und persistierte Settings weiterhin priorisieren.
+- `client/contexts/LanguageContext.tsx`: Initialsprache beim ersten Start aus der Geräte-Locale ableiten (`de`/`en`, sonst `en`) und persistierte Settings weiterhin priorisieren.
 - `client/lib/i18n.ts`: alle neuen Übersetzungsschlüssel für M1–M4 hinzufügen (Welcome-Screen, LearnScreen-Untertitel, Level-Erklärung, Practice-Untertitel).
 - Ggf. `package.json`: Locale-API ergänzen, falls erforderlich.
 
@@ -174,7 +174,7 @@ Akzeptanzkriterien:
 - `hasSeenWelcome()` gibt `false` zurück, wenn der Schlüssel nicht gesetzt ist.
 - `markWelcomeSeen()` persistiert den Wert korrekt.
 - `clearAllData()` löscht den Welcome-Schlüssel **nicht**.
-- Wenn noch keine App-Sprache gespeichert ist, wird beim ersten Start `de` oder `en` aus der Geräte-Locale übernommen; alle anderen Locales fallen auf `de` zurück.
+- Wenn noch keine App-Sprache gespeichert ist, wird beim ersten Start `de` oder `en` aus der Geräte-Locale übernommen; alle anderen Locales fallen auf `en` zurück.
 - Alle neuen i18n-Schlüssel sind in Deutsch und Englisch vorhanden.
 - Unit-Tests decken `hasSeenWelcome`, `markWelcomeSeen`, `clearAllData()` und die Initialsprachen-Ableitung ab.
 - Bestehende Tests laufen durch (`npm test`).

@@ -5,15 +5,11 @@ export function resolveLanguageFromLocale(
 ): Language {
   const normalizedLocale = locale?.toLowerCase();
 
-  if (normalizedLocale?.startsWith("en")) {
-    return "en";
-  }
-
   if (normalizedLocale?.startsWith("de")) {
     return "de";
   }
 
-  return "de";
+  return "en";
 }
 
 export const translations = {
