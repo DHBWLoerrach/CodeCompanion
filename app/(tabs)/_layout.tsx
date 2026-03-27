@@ -31,7 +31,7 @@ export default function TabsLayout() {
       }}
     >
       <NativeTabs.Trigger name="learn">
-        <NativeTabs.Trigger.Label>{t("learn")}</NativeTabs.Trigger.Label>
+        <NativeTabs.Trigger.Label>{t("topicsTab")}</NativeTabs.Trigger.Label>
         <NativeTabs.Trigger.Icon
           sf="book"
           src={
