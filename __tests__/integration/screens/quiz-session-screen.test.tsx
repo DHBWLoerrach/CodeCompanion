@@ -2,11 +2,14 @@ import React from "react";
 import { Alert } from "react-native";
 import { fireEvent, render, waitFor } from "@testing-library/react-native";
 import QuizSessionScreen from "@/screens/QuizSessionScreen";
+import { hasTopicExplanation } from "@shared/explanations";
 
 const mockReplace = jest.fn();
+const mockPush = jest.fn();
 const mockStackScreen = jest.fn();
 let mockHeaderOptions: { headerLeft?: () => React.ReactElement } | undefined;
 const mockApiRequest = jest.fn();
+const mockHasTopicExplanation = jest.mocked(hasTopicExplanation);
 class MockApiRequestError extends Error {
   status: number;
   body: unknown;
@@ -59,7 +62,7 @@ jest.mock("expo-router", () => ({
   useLocalSearchParams: () => mockSearchParams,
   useRouter: () => ({
     replace: mockReplace,
-    push: jest.fn(),
+    push: mockPush,
     dismiss: jest.fn(),
     dismissAll: jest.fn(),
     back: jest.fn(),
@@ -137,15 +140,21 @@ jest.mock("@/lib/storage", () => ({
   },
 }));
 
+jest.mock("@shared/explanations", () => ({
+  hasTopicExplanation: jest.fn(),
+}));
+
 describe("QuizSessionScreen integration", () => {
   let randomSpy: jest.SpyInstance;
   let alertSpy: jest.SpyInstance;
 
   beforeEach(() => {
     mockReplace.mockReset();
+    mockPush.mockReset();
     mockStackScreen.mockReset();
     mockHeaderOptions = undefined;
     mockApiRequest.mockReset();
+    mockHasTopicExplanation.mockReset();
     mockStorage.getSettings.mockReset();
     mockStorage.getProgress.mockReset();
     mockStorage.getTopicProgressForLanguage.mockClear();
@@ -173,6 +182,7 @@ describe("QuizSessionScreen integration", () => {
     mockStorage.recordPractice.mockResolvedValue(undefined);
     mockStorage.updateTopicProgress.mockResolvedValue(undefined);
     mockStorage.updateTopicSkillLevel.mockResolvedValue(undefined);
+    mockHasTopicExplanation.mockReturnValue(false);
 
     mockApiRequest.mockResolvedValue({
       json: async () => ({
@@ -257,6 +267,73 @@ describe("QuizSessionScreen integration", () => {
     expect(replaceArgs.params.score).toBe("0");
     expect(replaceArgs.params.count).toBe("1");
     expect(replaceArgs.params.answers).toContain('"questionId":"q1"');
+  });
+
+  it("opens the topic explanation from the quiz result when available", async () => {
+    mockHasTopicExplanation.mockReturnValue(true);
+
+    const screen = render(<QuizSessionScreen />);
+
+    await waitFor(() => {
+      expect(screen.getByText("What is const?")).toBeTruthy();
+    });
+
+    fireEvent.press(screen.getByText("Option A"));
+    fireEvent.press(screen.getByText("submitAnswer"));
+
+    await waitFor(() => {
+      expect(screen.getByTestId("quiz-topic-explanation-button")).toBeTruthy();
+    });
+
+    fireEvent.press(screen.getByTestId("quiz-topic-explanation-button"));
+
+    expect(mockPush).toHaveBeenCalledWith({
+      pathname: "/topic-explanation",
+      params: { topicId: "variables", programmingLanguage: "javascript" },
+    });
+  });
+
+  it("uses the current question topic for mixed quiz explanation links", async () => {
+    mockSearchParams = {
+      topicIds: "variables,loops",
+      count: "1",
+      programmingLanguage: "javascript",
+    };
+    mockHasTopicExplanation.mockReturnValue(true);
+    mockApiRequest.mockResolvedValueOnce({
+      json: async () => ({
+        questions: [
+          {
+            id: "q1",
+            topicId: "loops",
+            question: "Question 1",
+            options: ["Option A", "Option B", "Option C", "Option D"],
+            correctIndex: 1,
+            explanation: "Explanation 1",
+          },
+        ],
+      }),
+    });
+
+    const screen = render(<QuizSessionScreen />);
+
+    await waitFor(() => {
+      expect(screen.getByText("Question 1")).toBeTruthy();
+    });
+
+    fireEvent.press(screen.getByText("Option A"));
+    fireEvent.press(screen.getByText("submitAnswer"));
+
+    await waitFor(() => {
+      expect(screen.getByTestId("quiz-topic-explanation-button")).toBeTruthy();
+    });
+
+    fireEvent.press(screen.getByTestId("quiz-topic-explanation-button"));
+
+    expect(mockPush).toHaveBeenCalledWith({
+      pathname: "/topic-explanation",
+      params: { topicId: "loops", programmingLanguage: "javascript" },
+    });
   });
 
   it("renders inline code markers as styled text instead of raw backticks", async () => {
@@ -701,10 +778,10 @@ describe("QuizSessionScreen integration", () => {
       ]),
     );
 
-    const alertButtons = alertSpy.mock.calls[0]?.[2] as Array<{
+    const alertButtons = alertSpy.mock.calls[0]?.[2] as {
       onPress?: () => void;
       text: string;
-    }>;
+    }[];
     const confirmButton = alertButtons.find(
       (button) => button.text === "quitQuizConfirm",
     );

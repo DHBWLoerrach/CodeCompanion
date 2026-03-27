@@ -16,11 +16,18 @@ export function useScreenOptions({
   const { theme, isDark } = useTheme();
   const isIOS = process.env.EXPO_OS === "ios";
   const useTransparentHeader = transparent && isIOS;
+  const usesNativeScrollEdgeMaterial = isIOS && isLiquidGlassAvailable();
 
   return {
     headerTitleAlign: "center",
     headerTransparent: useTransparentHeader,
-    headerBlurEffect: isIOS ? (isDark ? "dark" : "light") : undefined,
+    // Avoid stacking the legacy blur effect on top of iOS scroll-edge material.
+    headerBlurEffect:
+      useTransparentHeader && !usesNativeScrollEdgeMaterial
+        ? isDark
+          ? "dark"
+          : "light"
+        : undefined,
     headerTintColor: theme.text,
     headerBackTitle: "",
     headerBackButtonDisplayMode: "minimal",

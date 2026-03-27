@@ -17,6 +17,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Stack, useLocalSearchParams, useRouter } from "expo-router";
 import Animated from "react-native-reanimated";
 import * as Haptics from "expo-haptics";
+import { hasTopicExplanation } from "@shared/explanations";
 
 import { BottomActionBar } from "@/components/BottomActionBar";
 import { HeaderIconButton } from "@/components/HeaderIconButton";
@@ -325,6 +326,7 @@ export default function QuizSessionScreen() {
       : DEFAULT_QUIZ_QUESTION_COUNT;
   }, [count, isQuickQuiz]);
   const currentLanguage = getLanguageById(resolvedProgrammingLanguage);
+  const currentProgrammingLanguageId = currentLanguage?.id ?? "javascript";
   const currentTopic = resolvedTopicId
     ? getTopicById(resolvedTopicId, currentLanguage?.categories)
     : null;
@@ -486,6 +488,28 @@ export default function QuizSessionScreen() {
   }, [loadQuestions]);
 
   const currentQuestion = questions[currentIndex];
+  const explanationTopicId = currentQuestion?.topicId ?? resolvedTopicId;
+  const canOpenTopicExplanation = explanationTopicId
+    ? hasTopicExplanation(
+        currentProgrammingLanguageId,
+        explanationTopicId,
+        language,
+      )
+    : false;
+
+  const handleOpenTopicExplanation = useCallback(() => {
+    if (!explanationTopicId) {
+      return;
+    }
+
+    router.push({
+      pathname: "/topic-explanation",
+      params: {
+        topicId: explanationTopicId,
+        programmingLanguage: currentProgrammingLanguageId,
+      },
+    });
+  }, [currentProgrammingLanguageId, explanationTopicId, router]);
 
   const handleSelectAnswer = (index: number) => {
     if (showResult) return;
@@ -803,6 +827,16 @@ export default function QuizSessionScreen() {
                 {t("explanation")}
               </ThemedText>
               <InlineCodeText type="body" text={currentQuestion.explanation} />
+              {canOpenTopicExplanation ? (
+                <SecondaryButton
+                  testID="quiz-topic-explanation-button"
+                  color={theme.secondary}
+                  icon="book-open"
+                  label={t("moreOnThisTopic")}
+                  onPress={handleOpenTopicExplanation}
+                  style={styles.explanationAction}
+                />
+              ) : null}
             </SurfaceCard>
           ) : null}
         </ScrollView>
@@ -934,5 +968,9 @@ const styles = StyleSheet.create({
   },
   explanationCard: {
     gap: Spacing.xs,
+  },
+  explanationAction: {
+    alignSelf: "flex-start",
+    marginTop: Spacing.xs,
   },
 });

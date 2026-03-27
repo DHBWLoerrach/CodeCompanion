@@ -67,6 +67,7 @@ export const translations = {
     quitQuizMessage: "Your current quiz progress will be lost.",
     quitQuizConfirm: "Quit Quiz",
     explanation: "Explanation",
+    moreOnThisTopic: "More on this topic",
     question: "Question",
 
     sessionComplete: "Session Complete!",
@@ -259,6 +260,7 @@ export const translations = {
     quitQuizMessage: "Dein aktueller Quiz-Fortschritt geht verloren.",
     quitQuizConfirm: "Quiz abbrechen",
     explanation: "Erklärung",
+    moreOnThisTopic: "Mehr zum Thema",
     question: "Frage",
 
     sessionComplete: "Sitzung abgeschlossen!",
