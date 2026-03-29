@@ -648,6 +648,10 @@ export default function QuizSessionScreen() {
 
   const headerTitle =
     questions.length > 0 ? `${currentIndex + 1}/${questions.length}` : "";
+  const contextProgressLabel =
+    questions.length > 0
+      ? `${t("question")} ${currentIndex + 1} ${t("of")} ${questions.length}`
+      : "";
 
   const renderCloseButton = () => (
     <HeaderIconButton
@@ -765,26 +769,22 @@ export default function QuizSessionScreen() {
               label={contextBadgeLabel}
             />
             <View style={styles.contextMetaRow}>
-              <ThemedText type="small" style={{ color: theme.tabIconDefault }}>
+              <ThemedText
+                type="small"
+                numberOfLines={1}
+                style={[
+                  styles.contextMetaLabel,
+                  { color: theme.tabIconDefault },
+                ]}
+              >
                 {contextDescription}
               </ThemedText>
-              <View
-                style={[
-                  styles.contextMetaDot,
-                  { backgroundColor: theme.tabIconDefault },
-                ]}
-              />
-              <ThemedText type="small" style={{ color: theme.tabIconDefault }}>
-                {requestedQuestionCount} {t("questionsShort")}
-              </ThemedText>
-              <View
-                style={[
-                  styles.contextMetaDot,
-                  { backgroundColor: theme.tabIconDefault },
-                ]}
-              />
-              <ThemedText type="small" style={{ color: theme.tabIconDefault }}>
-                {headerTitle}
+              <ThemedText
+                type="small"
+                numberOfLines={1}
+                style={[styles.contextMetaProgress, { color: theme.text }]}
+              >
+                {contextProgressLabel}
               </ThemedText>
             </View>
           </SurfaceCard>
@@ -920,16 +920,19 @@ const styles = StyleSheet.create({
   contextCard: {
     gap: Spacing.sm,
   },
-  contextMetaDot: {
-    width: 4,
-    height: 4,
-    borderRadius: BorderRadius.full,
-  },
   contextMetaRow: {
-    alignItems: "center",
     flexDirection: "row",
-    flexWrap: "wrap",
-    gap: Spacing.sm,
+    alignItems: "center",
+    justifyContent: "space-between",
+    gap: Spacing.md,
+  },
+  contextMetaLabel: {
+    flex: 1,
+    flexShrink: 1,
+  },
+  contextMetaProgress: {
+    flexShrink: 0,
+    fontWeight: "600",
   },
   questionCard: {
     gap: Spacing.sm,
