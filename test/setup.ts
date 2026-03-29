@@ -25,7 +25,7 @@ jest.mock("react-native-ease", () => {
       if (typeof onTransitionEnd === "function") {
         onTransitionEnd({ finished: true });
       }
-    });
+    }, [onTransitionEnd]);
 
     return mockReact.createElement(mockRN.View, rest);
   }

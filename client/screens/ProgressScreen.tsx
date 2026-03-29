@@ -2,6 +2,7 @@ import React, { useState, useCallback } from "react";
 import { View, ScrollView, StyleSheet, Pressable } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useFocusEffect, useRouter } from "expo-router";
+import { EaseView } from "react-native-ease";
 
 import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
@@ -10,6 +11,7 @@ import { LoadingScreen } from "@/components/LoadingScreen";
 import { StatusBadge } from "@/components/StatusBadge";
 import { SurfaceCard } from "@/components/SurfaceCard";
 import { useTheme } from "@/contexts/ThemeContext";
+import { usePressAnimation } from "@/hooks/usePressAnimation";
 import { useTranslation } from "@/hooks/useTranslation";
 import {
   Spacing,
@@ -139,6 +141,8 @@ export default function ProgressScreen() {
   const [progress, setProgress] = useState<ProgressData | null>(null);
   const [streak, setStreak] = useState<StreakData | null>(null);
   const [loading, setLoading] = useState(true);
+  const { animate, transition, handlePressIn, handlePressOut } =
+    usePressAnimation(0.98);
 
   const ACHIEVEMENTS = [
     {
@@ -273,9 +277,15 @@ export default function ProgressScreen() {
           <ThemedText type="h4">
             {profile.displayName || t("student")}
           </ThemedText>
-          <Pressable onPress={() => router.push("/settings")}>
-            <ThemedText type="link">{t("editProfile")}</ThemedText>
-          </Pressable>
+          <EaseView animate={animate} transition={transition}>
+            <Pressable
+              onPress={() => router.push("/settings")}
+              onPressIn={handlePressIn}
+              onPressOut={handlePressOut}
+            >
+              <ThemedText type="link">{t("editProfile")}</ThemedText>
+            </Pressable>
+          </EaseView>
         </SurfaceCard>
 
         <SurfaceCard

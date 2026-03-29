@@ -4,6 +4,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Stack, useRouter } from "expo-router";
 import SegmentedControl from "@react-native-segmented-control/segmented-control";
 import Constants from "expo-constants";
+import { EaseView } from "react-native-ease";
 
 import { SecondaryButton } from "@/components/ActionButton";
 import { ThemedText } from "@/components/ThemedText";
@@ -13,6 +14,7 @@ import { AppIcon } from "@/components/AppIcon";
 import { LoadingScreen } from "@/components/LoadingScreen";
 import { SurfaceCard } from "@/components/SurfaceCard";
 import { useTheme } from "@/contexts/ThemeContext";
+import { usePressAnimation } from "@/hooks/usePressAnimation";
 import { useTranslation } from "@/hooks/useTranslation";
 import { getLanguageDisplayName } from "@/lib/languages";
 import {
@@ -35,26 +37,50 @@ interface AvatarSelectorProps {
   onSelect: (index: number) => void;
 }
 
-function AvatarSelector({ selectedIndex, onSelect }: AvatarSelectorProps) {
-  const { theme } = useTheme();
+interface AvatarOptionProps {
+  icon: string;
+  index: number;
+  selected: boolean;
+  onSelect: (index: number) => void;
+}
 
+function AvatarOption({ icon, index, selected, onSelect }: AvatarOptionProps) {
+  const { theme } = useTheme();
+  const { animate, transition, handlePressIn, handlePressOut } =
+    usePressAnimation(0.96);
+
+  return (
+    <EaseView animate={animate} transition={transition}>
+      <Pressable
+        style={[
+          styles.avatarOption,
+          {
+            backgroundColor: AvatarColors[index],
+            borderWidth: selected ? 3 : 0,
+            borderColor: theme.text,
+          },
+        ]}
+        onPress={() => onSelect(index)}
+        onPressIn={handlePressIn}
+        onPressOut={handlePressOut}
+      >
+        <AppIcon name={icon} size={28} color={theme.onColor} />
+      </Pressable>
+    </EaseView>
+  );
+}
+
+function AvatarSelector({ selectedIndex, onSelect }: AvatarSelectorProps) {
   return (
     <View style={styles.avatarGrid}>
       {AVATARS.map((icon, index) => (
-        <Pressable
+        <AvatarOption
           key={index}
-          style={[
-            styles.avatarOption,
-            {
-              backgroundColor: AvatarColors[index],
-              borderWidth: selectedIndex === index ? 3 : 0,
-              borderColor: theme.text,
-            },
-          ]}
-          onPress={() => onSelect(index)}
-        >
-          <AppIcon name={icon} size={28} color={theme.onColor} />
-        </Pressable>
+          icon={icon}
+          index={index}
+          selected={selectedIndex === index}
+          onSelect={onSelect}
+        />
       ))}
     </View>
   );
@@ -64,6 +90,50 @@ interface SettingRowProps {
   icon: string;
   label: string;
   children?: React.ReactNode;
+}
+
+interface SettingsActionRowProps {
+  icon: string;
+  label: string;
+  onPress: () => void;
+  rightContent?: React.ReactNode;
+  isLast?: boolean;
+}
+
+function SettingsActionRow({
+  icon,
+  label,
+  onPress,
+  rightContent,
+  isLast = false,
+}: SettingsActionRowProps) {
+  const { theme } = useTheme();
+  const { animate, transition, handlePressIn, handlePressOut } =
+    usePressAnimation(0.985);
+
+  return (
+    <EaseView animate={animate} transition={transition}>
+      <Pressable
+        style={[
+          styles.aboutActionButton,
+          isLast ? styles.aboutActionButtonLast : null,
+          {
+            backgroundColor: theme.backgroundDefault,
+            borderBottomColor: theme.separator,
+          },
+        ]}
+        onPress={onPress}
+        onPressIn={handlePressIn}
+        onPressOut={handlePressOut}
+      >
+        <View style={styles.settingLeft}>
+          <AppIcon name={icon} size={20} color={theme.tabIconDefault} />
+          <ThemedText type="body">{label}</ThemedText>
+        </View>
+        {rightContent}
+      </Pressable>
+    </EaseView>
+  );
 }
 
 function SettingRow({ icon, label, children }: SettingRowProps) {
@@ -320,53 +390,42 @@ export default function SettingsScreen() {
 
                 return (
                   <>
-                    <Pressable
-                      style={[
-                        styles.aboutActionButton,
-                        {
-                          backgroundColor: theme.backgroundDefault,
-                          borderBottomColor: theme.separator,
-                        },
-                      ]}
+                    <SettingsActionRow
+                      icon="code"
+                      label={t("changeTechnology")}
                       onPress={() =>
                         router.push({
                           pathname: "../language-select",
                           params: { allowBack: "1" },
                         })
                       }
-                    >
-                      <View style={styles.settingLeft}>
-                        <AppIcon
-                          name="code"
-                          size={20}
-                          color={theme.tabIconDefault}
-                        />
-                        <ThemedText type="body">
-                          {t("changeTechnology")}
-                        </ThemedText>
-                      </View>
-                      <View
-                        style={{
-                          flexDirection: "row",
-                          alignItems: "center",
-                          gap: Spacing.sm,
-                        }}
-                      >
-                        <ThemedText
-                          type="body"
-                          style={{ color: theme.tabIconDefault }}
+                      rightContent={
+                        <View
+                          style={{
+                            flexDirection: "row",
+                            alignItems: "center",
+                            gap: Spacing.sm,
+                          }}
                         >
-                          {selectedLanguage
-                            ? getLanguageDisplayName(selectedLanguage, language)
-                            : t("javascript")}
-                        </ThemedText>
-                        <AppIcon
-                          name="chevron-right"
-                          size={20}
-                          color={theme.tabIconDefault}
-                        />
-                      </View>
-                    </Pressable>
+                          <ThemedText
+                            type="body"
+                            style={{ color: theme.tabIconDefault }}
+                          >
+                            {selectedLanguage
+                              ? getLanguageDisplayName(
+                                  selectedLanguage,
+                                  language,
+                                )
+                              : t("javascript")}
+                          </ThemedText>
+                          <AppIcon
+                            name="chevron-right"
+                            size={20}
+                            color={theme.tabIconDefault}
+                          />
+                        </View>
+                      }
+                    />
                     <SettingRow icon="globe" label={t("appLanguage")}>
                       <SegmentedControl
                         values={["English", "Deutsch"]}
@@ -414,58 +473,41 @@ export default function SettingsScreen() {
               {t("about")}
             </ThemedText>
             <View style={styles.settingsGroup}>
-              <Pressable
-                style={[
-                  styles.aboutActionButton,
-                  {
-                    backgroundColor: theme.backgroundDefault,
-                    borderBottomColor: theme.separator,
-                  },
-                ]}
+              <SettingsActionRow
+                icon="info"
+                label={t("aboutThisApp")}
                 onPress={() =>
                   router.push({
                     pathname: "/info-modal",
                     params: { type: "about" },
                   })
                 }
-              >
-                <View style={styles.settingLeft}>
-                  <AppIcon name="info" size={20} color={theme.tabIconDefault} />
-                  <ThemedText type="body">{t("aboutThisApp")}</ThemedText>
-                </View>
-                <AppIcon
-                  name="chevron-right"
-                  size={20}
-                  color={theme.tabIconDefault}
-                />
-              </Pressable>
-              <Pressable
-                style={[
-                  styles.aboutActionButton,
-                  styles.aboutActionButtonLast,
-                  { backgroundColor: theme.backgroundDefault },
-                ]}
+                rightContent={
+                  <AppIcon
+                    name="chevron-right"
+                    size={20}
+                    color={theme.tabIconDefault}
+                  />
+                }
+              />
+              <SettingsActionRow
+                icon="file-text"
+                label={t("imprint")}
                 onPress={() =>
                   router.push({
                     pathname: "/info-modal",
                     params: { type: "imprint" },
                   })
                 }
-              >
-                <View style={styles.settingLeft}>
+                rightContent={
                   <AppIcon
-                    name="file-text"
+                    name="chevron-right"
                     size={20}
                     color={theme.tabIconDefault}
                   />
-                  <ThemedText type="body">{t("imprint")}</ThemedText>
-                </View>
-                <AppIcon
-                  name="chevron-right"
-                  size={20}
-                  color={theme.tabIconDefault}
-                />
-              </Pressable>
+                }
+                isLast
+              />
               <View
                 style={[
                   styles.settingRow,

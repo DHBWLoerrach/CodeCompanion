@@ -50,6 +50,7 @@ export function ErrorFallback({ error, resetError }: ErrorFallbackProps) {
           onPress={handleShowDetails}
           style={({ pressed }) => [
             styles.topButton,
+            styles.topButtonInner,
             {
               backgroundColor: fallbackTheme.backgroundDefault,
               opacity: pressed ? 0.8 : 1,
@@ -125,11 +126,15 @@ const styles = StyleSheet.create({
     right: Spacing.lg,
     width: 44,
     height: 44,
+    zIndex: 10,
+  },
+  topButtonInner: {
+    width: 44,
+    height: 44,
     borderRadius: BorderRadius.md,
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
-    zIndex: 10,
   },
   button: {
     paddingVertical: Spacing.lg,

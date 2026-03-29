@@ -78,7 +78,8 @@ jest.mock("@/hooks/useTranslation", () => ({
 
 jest.mock("@/hooks/usePressAnimation", () => ({
   usePressAnimation: () => ({
-    animatedStyle: {},
+    animate: {},
+    transition: { type: "spring" as const },
     handlePressIn: jest.fn(),
     handlePressOut: jest.fn(),
   }),

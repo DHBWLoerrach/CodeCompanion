@@ -32,6 +32,7 @@ import {
   getCategoryName,
 } from "@/lib/topics";
 import { type TopicProgress } from "@/lib/storage";
+import { type MasteryLevel } from "@shared/skill-level";
 import { useProgrammingLanguage } from "@/contexts/ProgrammingLanguageContext";
 
 function pickRandomTopicIds(categories: Category[], limit: number): string[] {
@@ -167,6 +168,13 @@ interface CategoryRowProps {
   testID?: string;
 }
 
+interface DueTopicRowProps {
+  topic: Topic;
+  skillLevel: MasteryLevel;
+  onPress: () => void;
+  testID?: string;
+}
+
 function CategoryRow({
   category,
   categoryName,
@@ -236,6 +244,42 @@ function CategoryRow({
           </View>
         </Pressable>
       </SurfaceCard>
+    </EaseView>
+  );
+}
+
+function DueTopicRow({ topic, skillLevel, onPress, testID }: DueTopicRowProps) {
+  const { theme } = useTheme();
+  const { language } = useTranslation();
+  const { animate, transition, handlePressIn, handlePressOut } =
+    usePressAnimation(0.98);
+
+  return (
+    <EaseView animate={animate} transition={transition}>
+      <Pressable
+        testID={testID}
+        style={[
+          styles.dueTopicRow,
+          {
+            backgroundColor: theme.backgroundDefault,
+            borderColor: theme.cardBorderSubtle,
+          },
+        ]}
+        onPress={onPress}
+        onPressIn={handlePressIn}
+        onPressOut={handlePressOut}
+      >
+        <ThemedText type="body" style={{ flex: 1 }}>
+          {getTopicName(topic, language)}
+        </ThemedText>
+        <SkillLevelDots level={skillLevel} color={theme.accent} />
+        <AppIcon
+          name="play-circle"
+          size={22}
+          color={theme.accent}
+          style={{ marginLeft: Spacing.md }}
+        />
+      </Pressable>
     </EaseView>
   );
 }
@@ -448,32 +492,16 @@ export default function PracticeScreen() {
             <View style={styles.dueTopicsList}>
               {dueTopics.map((topic) => {
                 const progress = topicProgress[topic.id];
-                const skillLevel = progress?.skillLevel ?? 1;
+                const skillLevel = (progress?.skillLevel ?? 1) as MasteryLevel;
 
                 return (
-                  <Pressable
+                  <DueTopicRow
                     key={topic.id}
+                    topic={topic}
+                    skillLevel={skillLevel}
                     testID={`practice-due-topic-${topic.id}`}
-                    style={[
-                      styles.dueTopicRow,
-                      {
-                        backgroundColor: theme.backgroundDefault,
-                        borderColor: theme.cardBorderSubtle,
-                      },
-                    ]}
                     onPress={() => handleTopicQuiz(topic)}
-                  >
-                    <ThemedText type="body" style={{ flex: 1 }}>
-                      {getTopicName(topic, language)}
-                    </ThemedText>
-                    <SkillLevelDots level={skillLevel} color={theme.accent} />
-                    <AppIcon
-                      name="play-circle"
-                      size={22}
-                      color={theme.accent}
-                      style={{ marginLeft: Spacing.md }}
-                    />
-                  </Pressable>
+                  />
                 );
               })}
             </View>

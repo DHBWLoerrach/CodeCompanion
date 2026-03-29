@@ -6,9 +6,11 @@ import {
   type StyleProp,
   type ViewStyle,
 } from "react-native";
+import { EaseView } from "react-native-ease";
 
 import { AppIcon } from "@/components/AppIcon";
 import { useTheme } from "@/contexts/ThemeContext";
+import { usePressAnimation } from "@/hooks/usePressAnimation";
 
 const HEADER_ICON_BUTTON_SIZE = 36;
 
@@ -32,16 +34,22 @@ export function HeaderIconButton({
   style,
 }: HeaderIconButtonProps) {
   const { theme } = useTheme();
+  const { animate, transition, handlePressIn, handlePressOut } =
+    usePressAnimation(0.96);
 
   return (
-    <Pressable
-      testID={testID}
-      style={[styles.button, style]}
-      onPress={onPress}
-      hitSlop={hitSlop}
-    >
-      <AppIcon name={icon} size={iconSize} color={color ?? theme.text} />
-    </Pressable>
+    <EaseView animate={animate} transition={transition}>
+      <Pressable
+        testID={testID}
+        style={[styles.button, style]}
+        onPress={onPress}
+        onPressIn={handlePressIn}
+        onPressOut={handlePressOut}
+        hitSlop={hitSlop}
+      >
+        <AppIcon name={icon} size={iconSize} color={color ?? theme.text} />
+      </Pressable>
+    </EaseView>
   );
 }
 
