@@ -2,7 +2,7 @@
 
 ## Project Overview
 
-DHBW Code Companion is a mobile learning app for programming topics (Expo SDK 55, React Native 0.83, React 19.2, Expo Router 6).
+DHBW Code Companion is a mobile learning app for programming topics (Expo SDK 55, React Native 0.83, React 19.2, Expo Router).
 
 - Supports multiple programming languages (JavaScript, Python, Java) via JSON curricula in `shared/curriculum/`.
 - Supports app localization (German/English) via `client/lib/i18n.ts` and `client/contexts/LanguageContext.tsx`.
@@ -62,6 +62,7 @@ DHBW Code Companion is a mobile learning app for programming topics (Expo SDK 55
 - Path aliases: `@/* -> ./client/*`, `@shared/* -> ./shared/*`, `@server/* -> ./server/*` (configured in `tsconfig.json` and `babel.config.js`).
 - Route files in `app/` should stay thin and delegate to `client/screens/`.
 - State management pattern: React Query + Context + AsyncStorage (no Redux/Zustand).
+- Animations use `react-native-ease` (`EaseView`) — state-driven via `animate`/`transition` props. The shared `usePressAnimation` hook (`client/hooks/usePressAnimation.ts`) returns `{ animate, transition, handlePressIn, handlePressOut }` for press-scale effects.
 - `expo.web.output = "server"` is enabled so Expo API routes can run on EAS Hosting; do not assume this implies a supported browser app surface.
 - API routes:
   - `POST /api/quiz/generate`

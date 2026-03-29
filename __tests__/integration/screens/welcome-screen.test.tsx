@@ -15,22 +15,6 @@ jest.mock("react-native-safe-area-context", () => ({
   useSafeAreaInsets: () => ({ top: 0, right: 0, bottom: 0, left: 0 }),
 }));
 
-jest.mock("react-native-reanimated", () => ({
-  __esModule: true,
-  FadeInUp: {
-    duration: () => ({
-      delay: () => ({}),
-    }),
-    delay: () => ({
-      duration: () => ({}),
-    }),
-  },
-  default: {
-    View: require("react-native").View,
-    createAnimatedComponent: <T,>(component: T) => component,
-  },
-}));
-
 jest.mock("@/components/AppIcon", () => ({
   AppIcon: () => null,
 }));

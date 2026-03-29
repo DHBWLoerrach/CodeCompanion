@@ -15,7 +15,7 @@ import {
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Stack, useLocalSearchParams, useRouter } from "expo-router";
-import Animated from "react-native-reanimated";
+import { EaseView } from "react-native-ease";
 import * as Haptics from "expo-haptics";
 import { hasTopicExplanation } from "@shared/explanations";
 
@@ -149,8 +149,6 @@ function buildTopicQuizResults(
   return Array.from(resultsByTopic.values());
 }
 
-const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
-
 interface AnswerButtonProps {
   text: string;
   index: number;
@@ -176,7 +174,8 @@ function AnswerButton({
 }: AnswerButtonProps) {
   const { theme } = useTheme();
   const {
-    animatedStyle,
+    animate,
+    transition,
     handlePressIn: pressIn,
     handlePressOut,
   } = usePressAnimation(0.98);
@@ -215,54 +214,55 @@ function AnswerButton({
   const hasHighlightedAnswerState = selected || (showResult && isCorrectAnswer);
 
   return (
-    <AnimatedPressable
-      testID={testID}
-      onPress={onPress}
-      onPressIn={handlePressIn}
-      onPressOut={handlePressOut}
-      disabled={disabled}
-      style={[
-        styles.answerButton,
-        {
-          backgroundColor: getBackgroundColor(),
-          borderColor: getBorderColor(),
-        },
-        animatedStyle,
-      ]}
-    >
-      <View
+    <EaseView animate={animate} transition={transition}>
+      <Pressable
+        testID={testID}
+        onPress={onPress}
+        onPressIn={handlePressIn}
+        onPressOut={handlePressOut}
+        disabled={disabled}
         style={[
-          styles.optionLabel,
+          styles.answerButton,
           {
-            backgroundColor:
-              selected || showResult
-                ? withOpacity(theme.onColor, 0.18)
-                : theme.backgroundSecondary,
+            backgroundColor: getBackgroundColor(),
+            borderColor: getBorderColor(),
           },
         ]}
       >
-        <ThemedText type="label" style={{ color: getTextColor() }}>
-          {optionLabel}
-        </ThemedText>
-      </View>
-      <InlineCodeText
-        type="body"
-        style={[styles.answerText, { color: getTextColor() }]}
-        text={text}
-        codeStyle={{
-          color: getTextColor(),
-          backgroundColor: hasHighlightedAnswerState
-            ? withOpacity(theme.onColor, 0.18)
-            : theme.codeBackground,
-        }}
-      />
-      {showResult && isCorrectAnswer ? (
-        <AppIcon name="check-circle" size={20} color={theme.onColor} />
-      ) : null}
-      {showResult && selected && !isCorrect ? (
-        <AppIcon name="x-circle" size={20} color={theme.onColor} />
-      ) : null}
-    </AnimatedPressable>
+        <View
+          style={[
+            styles.optionLabel,
+            {
+              backgroundColor:
+                selected || showResult
+                  ? withOpacity(theme.onColor, 0.18)
+                  : theme.backgroundSecondary,
+            },
+          ]}
+        >
+          <ThemedText type="label" style={{ color: getTextColor() }}>
+            {optionLabel}
+          </ThemedText>
+        </View>
+        <InlineCodeText
+          type="body"
+          style={[styles.answerText, { color: getTextColor() }]}
+          text={text}
+          codeStyle={{
+            color: getTextColor(),
+            backgroundColor: hasHighlightedAnswerState
+              ? withOpacity(theme.onColor, 0.18)
+              : theme.codeBackground,
+          }}
+        />
+        {showResult && isCorrectAnswer ? (
+          <AppIcon name="check-circle" size={20} color={theme.onColor} />
+        ) : null}
+        {showResult && selected && !isCorrect ? (
+          <AppIcon name="x-circle" size={20} color={theme.onColor} />
+        ) : null}
+      </Pressable>
+    </EaseView>
   );
 }
 

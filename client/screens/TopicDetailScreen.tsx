@@ -7,7 +7,7 @@ import {
   useLocalSearchParams,
   useRouter,
 } from "expo-router";
-import Animated, { FadeIn, FadeOut } from "react-native-reanimated";
+import { EaseView } from "react-native-ease";
 import { hasTopicExplanation, getTopicExplanation } from "@shared/explanations";
 
 import { ThemedText } from "@/components/ThemedText";
@@ -56,8 +56,10 @@ export default function TopicDetailScreen() {
   const [progress, setProgress] = useState<TopicProgress | null>(null);
   const [loading, setLoading] = useState(true);
   const [isLevelInfoVisible, setIsLevelInfoVisible] = useState(false);
+  const [isLevelInfoMounted, setIsLevelInfoMounted] = useState(false);
   const {
-    animatedStyle: explainAnimatedStyle,
+    animate: explainAnimate,
+    transition: explainTransition,
     handlePressIn: handleExplainPressIn,
     handlePressOut: handleExplainPressOut,
   } = usePressAnimation(0.98);
@@ -143,7 +145,12 @@ export default function TopicDetailScreen() {
   };
 
   const handleToggleLevelInfo = () => {
-    setIsLevelInfoVisible((current) => !current);
+    if (isLevelInfoVisible) {
+      setIsLevelInfoVisible(false);
+    } else {
+      setIsLevelInfoMounted(true);
+      setIsLevelInfoVisible(true);
+    }
   };
 
   if (loading) {
@@ -336,10 +343,20 @@ export default function TopicDetailScreen() {
                     />
                   </Pressable>
                 </View>
-                {isLevelInfoVisible ? (
-                  <Animated.View
-                    entering={FadeIn.duration(160)}
-                    exiting={FadeOut.duration(140)}
+                {isLevelInfoMounted ? (
+                  <EaseView
+                    initialAnimate={{ opacity: 0 }}
+                    animate={{ opacity: isLevelInfoVisible ? 1 : 0 }}
+                    transition={{
+                      type: "timing",
+                      duration: isLevelInfoVisible ? 160 : 140,
+                      easing: [0.455, 0.03, 0.515, 0.955],
+                    }}
+                    onTransitionEnd={({ finished }: { finished: boolean }) => {
+                      if (finished && !isLevelInfoVisible) {
+                        setIsLevelInfoMounted(false);
+                      }
+                    }}
                   >
                     <ThemedText
                       testID="topic-level-info-text"
@@ -351,15 +368,16 @@ export default function TopicDetailScreen() {
                     >
                       {t("levelInfoText")}
                     </ThemedText>
-                  </Animated.View>
+                  </EaseView>
                 ) : null}
               </View>
             </View>
           ) : null}
         </SurfaceCard>
 
-        <Animated.View
-          style={canExplainTopic ? explainAnimatedStyle : undefined}
+        <EaseView
+          animate={canExplainTopic ? explainAnimate : undefined}
+          transition={canExplainTopic ? explainTransition : undefined}
         >
           <SurfaceCard
             style={styles.explanationCard}
@@ -420,7 +438,7 @@ export default function TopicDetailScreen() {
               />
             </Pressable>
           </SurfaceCard>
-        </Animated.View>
+        </EaseView>
 
         {hasProgress ? (
           <SurfaceCard
@@ -486,10 +504,20 @@ export default function TopicDetailScreen() {
               </View>
             </View>
 
-            {isLevelInfoVisible ? (
-              <Animated.View
-                entering={FadeIn.duration(160)}
-                exiting={FadeOut.duration(140)}
+            {isLevelInfoMounted ? (
+              <EaseView
+                initialAnimate={{ opacity: 0 }}
+                animate={{ opacity: isLevelInfoVisible ? 1 : 0 }}
+                transition={{
+                  type: "timing",
+                  duration: isLevelInfoVisible ? 160 : 140,
+                  easing: [0.455, 0.03, 0.515, 0.955],
+                }}
+                onTransitionEnd={({ finished }: { finished: boolean }) => {
+                  if (finished && !isLevelInfoVisible) {
+                    setIsLevelInfoMounted(false);
+                  }
+                }}
               >
                 <ThemedText
                   testID="topic-level-info-text"
@@ -501,7 +529,7 @@ export default function TopicDetailScreen() {
                 >
                   {t("levelInfoText")}
                 </ThemedText>
-              </Animated.View>
+              </EaseView>
             ) : null}
 
             <View

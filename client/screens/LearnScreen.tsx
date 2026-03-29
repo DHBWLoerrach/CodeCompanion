@@ -2,7 +2,7 @@ import React from "react";
 import { View, ScrollView, StyleSheet, Pressable } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useRouter } from "expo-router";
-import Animated from "react-native-reanimated";
+import { EaseView } from "react-native-ease";
 
 import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
@@ -21,8 +21,6 @@ import {
 } from "@/lib/topics";
 import { type TopicProgress, isTopicDue } from "@/lib/storage";
 import { useProgrammingLanguage } from "@/contexts/ProgrammingLanguageContext";
-
-const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
 
 type TranslateFn = ReturnType<typeof useTranslation>["t"];
 type TopicVisualState = "new" | "started" | "due" | "mastered";
@@ -265,7 +263,7 @@ function TopicTile({
 }: TopicTileProps) {
   const { theme } = useTheme();
   const { t } = useTranslation();
-  const { animatedStyle, handlePressIn, handlePressOut } =
+  const { animate, transition, handlePressIn, handlePressOut } =
     usePressAnimation(0.97);
   const { state, label, iconName } = getTopicStateMeta(progress, t);
   const accentColor = getStateAccentColor(state, theme);
@@ -277,49 +275,53 @@ function TopicTile({
   const shouldShowMeta = state !== "new";
 
   return (
-    <AnimatedPressable
-      testID={testID}
-      onPress={onPress}
-      onPressIn={handlePressIn}
-      onPressOut={handlePressOut}
-      style={[
-        styles.topicTile,
-        isWide && styles.topicTileWide,
-        {
-          backgroundColor,
-          borderColor,
-        },
-        animatedStyle,
-      ]}
+    <EaseView
+      animate={animate}
+      transition={transition}
+      style={[styles.topicTileWrapper, isWide && styles.topicTileWide]}
     >
-      <ThemedText
-        type="label"
-        style={styles.topicTileTitle}
-        numberOfLines={2}
-        ellipsizeMode="tail"
+      <Pressable
+        testID={testID}
+        onPress={onPress}
+        onPressIn={handlePressIn}
+        onPressOut={handlePressOut}
+        style={[
+          styles.topicTile,
+          {
+            backgroundColor,
+            borderColor,
+          },
+        ]}
       >
-        {topicName}
-      </ThemedText>
-      {shouldShowMeta ? (
-        <View style={styles.topicMetaRow}>
-          {iconName ? (
-            <AppIcon
-              name={iconName}
-              size={12}
-              color={metaTextColor}
-              style={styles.topicMetaIcon}
-            />
-          ) : null}
-          <ThemedText
-            type="caption"
-            style={[styles.topicMetaText, { color: metaTextColor }]}
-            numberOfLines={1}
-          >
-            {label}
-          </ThemedText>
-        </View>
-      ) : null}
-    </AnimatedPressable>
+        <ThemedText
+          type="label"
+          style={styles.topicTileTitle}
+          numberOfLines={2}
+          ellipsizeMode="tail"
+        >
+          {topicName}
+        </ThemedText>
+        {shouldShowMeta ? (
+          <View style={styles.topicMetaRow}>
+            {iconName ? (
+              <AppIcon
+                name={iconName}
+                size={12}
+                color={metaTextColor}
+                style={styles.topicMetaIcon}
+              />
+            ) : null}
+            <ThemedText
+              type="caption"
+              style={[styles.topicMetaText, { color: metaTextColor }]}
+              numberOfLines={1}
+            >
+              {label}
+            </ThemedText>
+          </View>
+        ) : null}
+      </Pressable>
+    </EaseView>
   );
 }
 
@@ -342,7 +344,7 @@ function NextStepCard({
 }: NextStepCardProps) {
   const { theme } = useTheme();
   const { t } = useTranslation();
-  const { animatedStyle, handlePressIn, handlePressOut } =
+  const { animate, transition, handlePressIn, handlePressOut } =
     usePressAnimation(0.98);
   const { state, label, iconName } = getTopicStateMeta(progress, t);
   const accentColor =
@@ -355,87 +357,91 @@ function NextStepCard({
   const topicIndexLabel = getTopicPositionLabel(position, total, t);
 
   return (
-    <AnimatedPressable
-      testID={testID}
-      onPress={onPress}
-      onPressIn={handlePressIn}
-      onPressOut={handlePressOut}
-      style={[
-        styles.nextStepCard,
-        {
-          backgroundColor: withOpacity(accentColor, isAndroid ? 0.1 : 0.125),
-          borderColor: withOpacity(accentColor, isAndroid ? 0.22 : 0.32),
-        },
-        isAndroid
-          ? null
-          : {
-              shadowColor: accentColor,
-              shadowOpacity: 0.11,
-              shadowRadius: 12,
-              shadowOffset: { width: 0, height: 5 },
-              elevation: 3,
-            },
-        animatedStyle,
-      ]}
-    >
-      <View style={styles.nextStepBody}>
-        <ThemedText
-          type="caption"
-          style={[styles.nextStepEyebrow, { color: accentColor }]}
-        >
-          {t("nextStep")}
-        </ThemedText>
-        <ThemedText
-          type="h4"
-          style={styles.nextStepTitle}
-          numberOfLines={2}
-          ellipsizeMode="tail"
-        >
-          {topicName}
-        </ThemedText>
-        <View style={styles.nextStepMeta}>
-          {topicIndexLabel ? (
-            <ThemedText
-              type="caption"
-              style={[styles.nextStepMetaText, { color: theme.tabIconDefault }]}
-            >
-              {topicIndexLabel}
-            </ThemedText>
-          ) : null}
-          {topicIndexLabel ? (
-            <View
-              style={[
-                styles.nextStepMetaDot,
-                { backgroundColor: theme.tabIconDefault },
-              ]}
-            />
-          ) : null}
-          <View style={styles.nextStepMetaStatus}>
-            {iconName ? (
-              <AppIcon
-                name={iconName}
-                size={12}
-                color={accentColor}
-                style={styles.nextStepMetaIcon}
+    <EaseView animate={animate} transition={transition}>
+      <Pressable
+        testID={testID}
+        onPress={onPress}
+        onPressIn={handlePressIn}
+        onPressOut={handlePressOut}
+        style={[
+          styles.nextStepCard,
+          {
+            backgroundColor: withOpacity(accentColor, isAndroid ? 0.1 : 0.125),
+            borderColor: withOpacity(accentColor, isAndroid ? 0.22 : 0.32),
+          },
+          isAndroid
+            ? null
+            : {
+                shadowColor: accentColor,
+                shadowOpacity: 0.11,
+                shadowRadius: 12,
+                shadowOffset: { width: 0, height: 5 },
+                elevation: 3,
+              },
+        ]}
+      >
+        <View style={styles.nextStepBody}>
+          <ThemedText
+            type="caption"
+            style={[styles.nextStepEyebrow, { color: accentColor }]}
+          >
+            {t("nextStep")}
+          </ThemedText>
+          <ThemedText
+            type="h4"
+            style={styles.nextStepTitle}
+            numberOfLines={2}
+            ellipsizeMode="tail"
+          >
+            {topicName}
+          </ThemedText>
+          <View style={styles.nextStepMeta}>
+            {topicIndexLabel ? (
+              <ThemedText
+                type="caption"
+                style={[
+                  styles.nextStepMetaText,
+                  { color: theme.tabIconDefault },
+                ]}
+              >
+                {topicIndexLabel}
+              </ThemedText>
+            ) : null}
+            {topicIndexLabel ? (
+              <View
+                style={[
+                  styles.nextStepMetaDot,
+                  { backgroundColor: theme.tabIconDefault },
+                ]}
               />
             ) : null}
-            <ThemedText
-              type="caption"
-              style={[styles.nextStepMetaText, { color: accentColor }]}
-              numberOfLines={1}
-            >
-              {label}
-            </ThemedText>
+            <View style={styles.nextStepMetaStatus}>
+              {iconName ? (
+                <AppIcon
+                  name={iconName}
+                  size={12}
+                  color={accentColor}
+                  style={styles.nextStepMetaIcon}
+                />
+              ) : null}
+              <ThemedText
+                type="caption"
+                style={[styles.nextStepMetaText, { color: accentColor }]}
+                numberOfLines={1}
+              >
+                {label}
+              </ThemedText>
+            </View>
           </View>
         </View>
-      </View>
-      <AppIcon
-        name="chevron-right"
-        size={15}
-        color={accentColor}
-        style={styles.nextStepChevron}
-      />
-    </AnimatedPressable>
+        <AppIcon
+          name="chevron-right"
+          size={15}
+          color={accentColor}
+          style={styles.nextStepChevron}
+        />
+      </Pressable>
+    </EaseView>
   );
 }
 
@@ -857,15 +863,17 @@ const styles = StyleSheet.create({
     alignItems: "flex-start",
     gap: Spacing.xs + 2,
   },
-  topicTile: {
+  topicTileWrapper: {
     alignSelf: "flex-start",
     width: "48%",
+    flexShrink: 1,
+  },
+  topicTile: {
     minHeight: 0,
     paddingHorizontal: Spacing.md,
     paddingVertical: Spacing.sm,
     borderRadius: BorderRadius.md,
     borderWidth: 1,
-    flexShrink: 1,
     justifyContent: "flex-start",
     gap: Spacing.xs,
     ...Shadows.card,

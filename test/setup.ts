@@ -11,14 +11,26 @@ jest.mock("expo-haptics", () => ({
   notificationAsync: jest.fn(),
 }));
 
-jest.mock("react-native-worklets", () =>
-  require("react-native-worklets/lib/module/mock"),
-);
+jest.mock("react-native-ease", () => {
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
+  const mockReact = require("react");
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
+  const mockRN = require("react-native");
 
-jest.mock("react-native-reanimated", () => {
-  const mockReanimated = require("react-native-reanimated/mock");
-  mockReanimated.default.call = () => {};
-  return mockReanimated;
+  function MockEaseView(props: Record<string, unknown>) {
+    const { onTransitionEnd, animate, initialAnimate, transition, ...rest } =
+      props;
+
+    mockReact.useEffect(() => {
+      if (typeof onTransitionEnd === "function") {
+        onTransitionEnd({ finished: true });
+      }
+    });
+
+    return mockReact.createElement(mockRN.View, rest);
+  }
+
+  return { EaseView: MockEaseView };
 });
 
 jest.mock("react-native-keyboard-controller", () => {

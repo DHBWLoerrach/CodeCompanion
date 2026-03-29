@@ -1,25 +1,19 @@
-import {
-  useAnimatedStyle,
-  useSharedValue,
-  withSpring,
-} from "react-native-reanimated";
+import { useState } from "react";
 
-const SPRING_CONFIG = { damping: 15, stiffness: 150 };
+const SPRING_TRANSITION = {
+  type: "spring" as const,
+  damping: 15,
+  stiffness: 150,
+};
 
 export function usePressAnimation(pressedScale = 0.95) {
-  const scale = useSharedValue(1);
+  const [pressed, setPressed] = useState(false);
 
-  const animatedStyle = useAnimatedStyle(() => ({
-    transform: [{ scale: scale.value }],
-  }));
+  const animate = { scale: pressed ? pressedScale : 1 };
+  const transition = SPRING_TRANSITION;
 
-  const handlePressIn = () => {
-    scale.value = withSpring(pressedScale, SPRING_CONFIG);
-  };
+  const handlePressIn = () => setPressed(true);
+  const handlePressOut = () => setPressed(false);
 
-  const handlePressOut = () => {
-    scale.value = withSpring(1, SPRING_CONFIG);
-  };
-
-  return { animatedStyle, handlePressIn, handlePressOut };
+  return { animate, transition, handlePressIn, handlePressOut };
 }

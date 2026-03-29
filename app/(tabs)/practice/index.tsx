@@ -2,7 +2,7 @@ import React, { useRef } from "react";
 import { View, ScrollView, StyleSheet, Pressable } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useRouter } from "expo-router";
-import Animated from "react-native-reanimated";
+import { EaseView } from "react-native-ease";
 
 import { ThemedView } from "@/components/ThemedView";
 import { ThemedText } from "@/components/ThemedText";
@@ -76,7 +76,8 @@ function QuizModeCard({
   const { theme } = useTheme();
   const { t } = useTranslation();
   const {
-    animatedStyle,
+    animate,
+    transition,
     handlePressIn: pressIn,
     handlePressOut,
   } = usePressAnimation(0.95);
@@ -100,7 +101,11 @@ function QuizModeCard({
       : theme.cardBorderSubtle;
 
   return (
-    <Animated.View style={[styles.modeCardWrapper, animatedStyle]}>
+    <EaseView
+      animate={animate}
+      transition={transition}
+      style={styles.modeCardWrapper}
+    >
       <SurfaceCard
         padding={0}
         style={styles.modeCard}
@@ -150,7 +155,7 @@ function QuizModeCard({
           </ThemedText>
         </Pressable>
       </SurfaceCard>
-    </Animated.View>
+    </EaseView>
   );
 }
 
@@ -171,14 +176,18 @@ function CategoryRow({
 }: CategoryRowProps) {
   const { theme } = useTheme();
   const { t } = useTranslation();
-  const { animatedStyle, handlePressIn, handlePressOut } =
+  const { animate, transition, handlePressIn, handlePressOut } =
     usePressAnimation(0.98);
 
   const { progressPercent } = getCategoryProgress(category, topicProgress);
   const topicCount = category.topics.length;
 
   return (
-    <Animated.View style={[styles.categoryRowWrapper, animatedStyle]}>
+    <EaseView
+      animate={animate}
+      transition={transition}
+      style={styles.categoryRowWrapper}
+    >
       <SurfaceCard
         padding={0}
         style={styles.categoryRow}
@@ -227,7 +236,7 @@ function CategoryRow({
           </View>
         </Pressable>
       </SurfaceCard>
-    </Animated.View>
+    </EaseView>
   );
 }
 

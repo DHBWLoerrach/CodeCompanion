@@ -1,7 +1,7 @@
 import React, { useMemo } from "react";
 import { View, ScrollView, Pressable } from "react-native";
 import { useLocalSearchParams, useRouter } from "expo-router";
-import Animated, { FadeInUp } from "react-native-reanimated";
+import { EaseView } from "react-native-ease";
 import * as Haptics from "expo-haptics";
 
 import { AppIcon } from "@/components/AppIcon";
@@ -37,7 +37,7 @@ function LanguageCard({
 }: LanguageCardProps) {
   const { theme } = useTheme();
   const { t } = useTranslation();
-  const { animatedStyle, handlePressIn, handlePressOut } =
+  const { animate, transition, handlePressIn, handlePressOut } =
     usePressAnimation(0.985);
   const chevronTint = useMemo(
     () => withOpacity(theme.primary, 0.1),
@@ -57,8 +57,17 @@ function LanguageCard({
   );
 
   return (
-    <Animated.View entering={FadeInUp.delay(index * 80)}>
-      <Animated.View style={animatedStyle}>
+    <EaseView
+      initialAnimate={{ opacity: 0, translateY: 20 }}
+      animate={{ opacity: 1, translateY: 0 }}
+      transition={{
+        type: "timing",
+        duration: 300,
+        easing: [0.455, 0.03, 0.515, 0.955],
+        delay: index * 80,
+      }}
+    >
+      <EaseView animate={animate} transition={transition}>
         <Pressable
           onPress={onPress}
           onPressIn={handlePressIn}
@@ -123,8 +132,8 @@ function LanguageCard({
             />
           </View>
         </Pressable>
-      </Animated.View>
-    </Animated.View>
+      </EaseView>
+    </EaseView>
   );
 }
 

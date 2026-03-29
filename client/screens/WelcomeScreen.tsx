@@ -2,7 +2,7 @@ import React from "react";
 import { Image, ScrollView, StyleSheet, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useRouter } from "expo-router";
-import Animated, { FadeInUp } from "react-native-reanimated";
+import { EaseView } from "react-native-ease";
 
 import { PrimaryButton } from "@/components/ActionButton";
 import { ThemedText } from "@/components/ThemedText";
@@ -56,8 +56,14 @@ export default function WelcomeScreen() {
         ]}
         showsVerticalScrollIndicator={false}
       >
-        <Animated.View
-          entering={FadeInUp.duration(450)}
+        <EaseView
+          initialAnimate={{ opacity: 0, translateY: 20 }}
+          animate={{ opacity: 1, translateY: 0 }}
+          transition={{
+            type: "timing",
+            duration: 450,
+            easing: [0.455, 0.03, 0.515, 0.955],
+          }}
           style={styles.heroSection}
         >
           <View
@@ -87,10 +93,17 @@ export default function WelcomeScreen() {
               {t("welcomeTagline")}
             </ThemedText>
           </View>
-        </Animated.View>
+        </EaseView>
 
-        <Animated.View
-          entering={FadeInUp.delay(120).duration(450)}
+        <EaseView
+          initialAnimate={{ opacity: 0, translateY: 20 }}
+          animate={{ opacity: 1, translateY: 0 }}
+          transition={{
+            type: "timing",
+            duration: 450,
+            easing: [0.455, 0.03, 0.515, 0.955],
+            delay: 120,
+          }}
           style={styles.ctaWrap}
         >
           <PrimaryButton
@@ -101,7 +114,7 @@ export default function WelcomeScreen() {
             onPress={handleGetStarted}
             style={styles.ctaButton}
           />
-        </Animated.View>
+        </EaseView>
       </ScrollView>
     </ThemedView>
   );
