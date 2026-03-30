@@ -1,6 +1,3 @@
-import * as https from "node:https";
-import type { IncomingMessage } from "node:http";
-import { EventEmitter } from "node:events";
 import {
   generateMixedQuizQuestions,
   generateQuizQuestions,
@@ -91,51 +88,6 @@ function buildStructuredQuizQuestion(
     explanation: "Because",
     ...overrides,
   };
-}
-
-function mockHttpsJsonResponse(json: unknown): {
-  requestSpy: jest.SpyInstance;
-  getLastTimeoutMs: () => number | undefined;
-} {
-  let lastTimeoutMs: number | undefined;
-  const requestSpy = jest.spyOn(https, "request").mockImplementation(((
-    ...args: unknown[]
-  ) => {
-    const callback = args[2] as
-      | ((response: IncomingMessage) => void)
-      | undefined;
-    const requestEmitter = new EventEmitter() as EventEmitter & {
-      setTimeout: (timeoutMs: number, cb: () => void) => typeof requestEmitter;
-      write: (chunk: string) => boolean;
-      end: () => void;
-      destroy: (error?: Error) => void;
-    };
-
-    requestEmitter.setTimeout = (timeoutMs: number) => {
-      lastTimeoutMs = timeoutMs;
-      return requestEmitter;
-    };
-    requestEmitter.write = () => true;
-    requestEmitter.end = () => {
-      const responseEmitter = new EventEmitter() as EventEmitter & {
-        statusCode?: number;
-        setEncoding: (encoding: BufferEncoding) => void;
-      };
-      responseEmitter.statusCode = 200;
-      responseEmitter.setEncoding = () => {};
-      callback?.(responseEmitter as unknown as IncomingMessage);
-      responseEmitter.emit("data", JSON.stringify(json));
-      responseEmitter.emit("end");
-    };
-    requestEmitter.destroy = (error?: Error) => {
-      if (error) {
-        requestEmitter.emit("error", error);
-      }
-    };
-
-    return requestEmitter as unknown as ReturnType<typeof https.request>;
-  }) as typeof https.request);
-  return { requestSpy, getLastTimeoutMs: () => lastTimeoutMs };
 }
 
 describe("server/quiz", () => {
@@ -540,6 +492,28 @@ describe("server/quiz", () => {
       );
     });
 
+    it("throws when answer options contain duplicates", async () => {
+      fetchMock.mockResolvedValueOnce(
+        mockFetchResponse({
+          json: {
+            output_text: JSON.stringify({
+              questions: [
+                buildStructuredQuizQuestion({
+                  options: ["A", "a", "C", "D"],
+                }),
+              ],
+            }),
+          },
+        }),
+      );
+
+      await expect(
+        generateQuizQuestions("javascript", "variables", 1),
+      ).rejects.toThrow(
+        "Invalid quiz question at index 0: answer options contain duplicates",
+      );
+    });
+
     it("throws when explanation is empty", async () => {
       fetchMock.mockResolvedValueOnce(
         mockFetchResponse({
@@ -559,6 +533,28 @@ describe("server/quiz", () => {
         generateQuizQuestions("javascript", "variables", 1),
       ).rejects.toThrow(
         "Invalid quiz question at index 0: explanation is empty",
+      );
+    });
+
+    it("throws when explanation references an option by number or letter", async () => {
+      fetchMock.mockResolvedValueOnce(
+        mockFetchResponse({
+          json: {
+            output_text: JSON.stringify({
+              questions: [
+                buildStructuredQuizQuestion({
+                  explanation: "Option A is correct because it uses const.",
+                }),
+              ],
+            }),
+          },
+        }),
+      );
+
+      await expect(
+        generateQuizQuestions("javascript", "variables", 1),
+      ).rejects.toThrow(
+        "Invalid quiz question at index 0: explanation must not reference options by number or letter",
       );
     });
 
@@ -623,6 +619,12 @@ describe("server/quiz", () => {
       expect(payload.instructions).toContain("JavaScript programming tutor");
       expect(payload.input).toContain(
         "JavaScript primitive data types (string, number, boolean, null, undefined, symbol, bigint) and type checking",
+      );
+      expect(payload.input).toContain(
+        "Have exactly one objectively correct option and three objectively incorrect distractors",
+      );
+      expect(payload.input).toContain(
+        "For syntax questions, the three wrong options must contain actual syntax errors; never use alternative valid syntax as a distractor",
       );
       expect(payload.input).toContain(
         "Avoid web/HTML/CSS context - focus purely on JavaScript language concepts. Always use let and const for variable declarations; never include var in questions or code examples.",
@@ -765,6 +767,9 @@ describe("server/quiz", () => {
       );
       expect(payload.input).toContain(
         "Include a topicId field on every question using only the topic IDs from the topic plan",
+      );
+      expect(payload.input).toContain(
+        "Have exactly one objectively correct option and three objectively incorrect distractors",
       );
     });
 

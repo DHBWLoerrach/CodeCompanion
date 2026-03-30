@@ -117,6 +117,8 @@ function buildMixedQuizResponseFormat(topicIds: string[]) {
 
 const OPENAI_RESPONSES_URL = "https://api.openai.com/v1/responses";
 const DEFAULT_OPENAI_TIMEOUT_MS = 30_000;
+const EXPLANATION_OPTION_REFERENCE_PATTERN =
+  /\b(?:option|antwort|answer|choice|möglichkeit)\s*[1-4abcd]\b/i;
 const MARKDOWN_CODE_BLOCK_PATTERN = /```(?:[^\n\r`]*)\r?\n([\s\S]*?)```/g;
 
 function quizMaxOutputTokens(count: number): number {
@@ -168,9 +170,16 @@ function stripJsonFences(content: string): string {
   return cleanContent.trim();
 }
 
+function parseJsonValue(content: string): unknown {
+  try {
+    return JSON.parse(stripJsonFences(content)) as unknown;
+  } catch {
+    throw new Error("Invalid JSON content from OpenAI");
+  }
+}
+
 function parseQuestions(content: string): unknown[] {
-  const cleanContent = stripJsonFences(content);
-  const parsed = JSON.parse(cleanContent) as unknown;
+  const parsed = parseJsonValue(content);
 
   if (Array.isArray(parsed)) {
     return parsed;
@@ -232,7 +241,7 @@ function assertOpenAIResponseIsUsable(response: unknown): void {
 
 function normalizeStructuredQuizQuestions<
   T extends StructuredQuizQuestion | StructuredMixedQuizQuestion,
->(questions: T[]): Array<Omit<T, "code"> & { code?: string }> {
+>(questions: T[]): (Omit<T, "code"> & { code?: string })[] {
   return questions.map(({ code, ...question }) => {
     const { text, code: extractedCode } = extractMarkdownCodeFromQuestion(
       question.question,
@@ -314,6 +323,15 @@ function validateStructuredQuizQuestionFields(
     );
   }
 
+  const uniqueOptions = new Set(
+    question.options.map((o) => (o as string).trim().toLowerCase()),
+  );
+  if (uniqueOptions.size !== question.options.length) {
+    throw new Error(
+      `Invalid quiz question at index ${index}: answer options contain duplicates`,
+    );
+  }
+
   if (typeof question.explanation !== "string") {
     throw new Error(
       `Invalid quiz question at index ${index}: explanation must be a string`,
@@ -323,6 +341,12 @@ function validateStructuredQuizQuestionFields(
   if (!question.explanation.trim()) {
     throw new Error(
       `Invalid quiz question at index ${index}: explanation is empty`,
+    );
+  }
+
+  if (EXPLANATION_OPTION_REFERENCE_PATTERN.test(question.explanation)) {
+    throw new Error(
+      `Invalid quiz question at index ${index}: explanation must not reference options by number or letter`,
     );
   }
 
@@ -419,6 +443,17 @@ function validateNormalizedQuizQuestions<T extends GeneratedQuizQuestion>(
       throw new Error(`Invalid quiz question at index ${index}: code is empty`);
     }
   }
+}
+
+function getSingleChoiceQualityRequirements(): string {
+  return `- Have exactly 4 answer options
+- Have exactly one objectively correct option and three objectively incorrect distractors
+- For syntax questions, the three wrong options must contain actual syntax errors; never use alternative valid syntax as a distractor
+- Never generate questions where more than one option could be syntactically valid, partially true, or context-dependent
+- Avoid ambiguous or multi-select stems unless the other three options are unambiguously wrong
+- Before finalizing each question, verify every option one by one and discard the question if more than one option could be defended as correct
+- In the explanation, describe the correct answer by quoting its content rather than by option number or letter
+- In the explanation, briefly state why each wrong option is incorrect`;
 }
 
 function extractMarkdownCodeFromQuestion(questionText: string): {
@@ -594,7 +629,7 @@ async function addStableIds<T extends GeneratedQuizQuestion>(
   programmingLanguage: ProgrammingLanguageId,
   questions: T[],
   getTopicId: (question: T, index: number) => string,
-): Promise<Array<T & { id: string }>> {
+): Promise<(T & { id: string })[]> {
   const withIds = await Promise.all(
     questions.map(async (question, index) => {
       const topicId = getTopicId(question, index);
@@ -637,16 +672,21 @@ function resolveLanguageContext(
   return { topicDescription, programmingLanguageName, contextExclusion };
 }
 
-export async function generateQuizQuestions(
-  programmingLanguage: ProgrammingLanguageId,
-  topicId: string,
-  count: number = 5,
-  language: string = "en",
-  skillLevel: QuizDifficultyLevel = 1,
-): Promise<QuizQuestion[]> {
-  const { topicDescription, programmingLanguageName, contextExclusion } =
-    resolveLanguageContext(programmingLanguage, topicId);
-
+async function requestQuizQuestionBatch({
+  programmingLanguageName,
+  topicDescription,
+  contextExclusion,
+  count,
+  language,
+  skillLevel,
+}: {
+  programmingLanguageName: string;
+  topicDescription: string;
+  contextExclusion: string;
+  count: number;
+  language: string;
+  skillLevel: QuizDifficultyLevel;
+}): Promise<GeneratedQuizQuestion[]> {
   const languageInstruction = getLanguageInstruction(
     language,
     programmingLanguageName,
@@ -666,9 +706,7 @@ Each question should:
 - Include a short code snippet when appropriate (keep code under 10 lines)
 - Use "code": null when a code snippet is not needed
 - Do not include Markdown fences or code snippets in the question text; put code only in the code field
-- Have exactly 4 answer options
-- Have only one correct answer
-- Include a brief explanation of why the correct answer is right
+${getSingleChoiceQualityRequirements()}
 
 Important:
 - Make questions progressively challenging
@@ -701,25 +739,20 @@ ${contextExclusion ? `- ${contextExclusion}` : ""}
 
   const questions = normalizeStructuredQuizQuestions(structuredQuestions);
   validateNormalizedQuizQuestions(questions);
-
-  return addStableIds(programmingLanguage, questions, () => topicId);
+  return questions;
 }
 
-export async function generateMixedQuizQuestions(
-  programmingLanguage: ProgrammingLanguageId,
-  topicPlan: MixedQuizTopicPlanItem[],
-  language: string = "en",
-  skillLevel: QuizDifficultyLevel = 1,
-): Promise<QuizQuestion[]> {
-  if (topicPlan.length === 0) {
-    return [];
-  }
-
-  const uniqueTopicIds = new Set(topicPlan.map((item) => item.topicId));
-  if (uniqueTopicIds.size !== topicPlan.length) {
-    throw new Error("Mixed topic plan contains duplicate topicIds");
-  }
-
+async function requestMixedQuizQuestionBatch({
+  programmingLanguage,
+  topicPlan,
+  language,
+  skillLevel,
+}: {
+  programmingLanguage: ProgrammingLanguageId;
+  topicPlan: MixedQuizTopicPlanItem[];
+  language: string;
+  skillLevel: QuizDifficultyLevel;
+}): Promise<GeneratedMixedQuizQuestion[]> {
   const programmingLanguageName =
     LANGUAGE_NAMES[programmingLanguage] ?? programmingLanguage;
   const contextExclusion =
@@ -763,9 +796,7 @@ Each question should:
 - Include a short code snippet when appropriate (keep code under 10 lines)
 - Use "code": null when a code snippet is not needed
 - Do not include Markdown fences or code snippets in the question text; put code only in the code field
-- Have exactly 4 answer options
-- Have only one correct answer
-- Include a brief explanation of why the correct answer is right
+${getSingleChoiceQualityRequirements()}
 
 Important:
 - Return exactly ${totalCount} questions total
@@ -801,12 +832,56 @@ ${contextExclusion ? `- ${contextExclusion}` : ""}
 
   const questions = normalizeStructuredQuizQuestions(structuredQuestions);
   validateNormalizedQuizQuestions(questions);
+  return questions;
+}
 
-  const withIds = await addStableIds(
+export async function generateQuizQuestions(
+  programmingLanguage: ProgrammingLanguageId,
+  topicId: string,
+  count: number = 5,
+  language: string = "en",
+  skillLevel: QuizDifficultyLevel = 1,
+): Promise<QuizQuestion[]> {
+  const { topicDescription, programmingLanguageName, contextExclusion } =
+    resolveLanguageContext(programmingLanguage, topicId);
+
+  const questions = await requestQuizQuestionBatch({
+    programmingLanguageName,
+    topicDescription,
+    contextExclusion,
+    count,
+    language,
+    skillLevel,
+  });
+
+  return addStableIds(programmingLanguage, questions, () => topicId);
+}
+
+export async function generateMixedQuizQuestions(
+  programmingLanguage: ProgrammingLanguageId,
+  topicPlan: MixedQuizTopicPlanItem[],
+  language: string = "en",
+  skillLevel: QuizDifficultyLevel = 1,
+): Promise<QuizQuestion[]> {
+  if (topicPlan.length === 0) {
+    return [];
+  }
+
+  const uniqueTopicIds = new Set(topicPlan.map((item) => item.topicId));
+  if (uniqueTopicIds.size !== topicPlan.length) {
+    throw new Error("Mixed topic plan contains duplicate topicIds");
+  }
+
+  const questions = await requestMixedQuizQuestionBatch({
+    programmingLanguage,
+    topicPlan,
+    language,
+    skillLevel,
+  });
+
+  return addStableIds(
     programmingLanguage,
     questions,
     (question) => question.topicId,
   );
-
-  return withIds;
 }
