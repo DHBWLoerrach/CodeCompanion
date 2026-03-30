@@ -647,8 +647,6 @@ export default function QuizSessionScreen() {
   }, [handleClose, hasUnsavedQuizProgress, t]);
 
   const headerTitle =
-    questions.length > 0 ? `${currentIndex + 1}/${questions.length}` : "";
-  const contextProgressLabel =
     questions.length > 0
       ? `${t("question")} ${currentIndex + 1} ${t("of")} ${questions.length}`
       : "";
@@ -778,13 +776,6 @@ export default function QuizSessionScreen() {
                 ]}
               >
                 {contextDescription}
-              </ThemedText>
-              <ThemedText
-                type="small"
-                numberOfLines={1}
-                style={[styles.contextMetaProgress, { color: theme.text }]}
-              >
-                {contextProgressLabel}
               </ThemedText>
             </View>
           </SurfaceCard>
@@ -923,16 +914,10 @@ const styles = StyleSheet.create({
   contextMetaRow: {
     flexDirection: "row",
     alignItems: "center",
-    justifyContent: "space-between",
-    gap: Spacing.md,
   },
   contextMetaLabel: {
     flex: 1,
     flexShrink: 1,
-  },
-  contextMetaProgress: {
-    flexShrink: 0,
-    fontWeight: "600",
   },
   questionCard: {
     gap: Spacing.sm,
