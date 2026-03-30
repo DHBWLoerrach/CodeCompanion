@@ -117,6 +117,7 @@ function buildMixedQuizResponseFormat(topicIds: string[]) {
 
 const OPENAI_RESPONSES_URL = "https://api.openai.com/v1/responses";
 const DEFAULT_OPENAI_TIMEOUT_MS = 30_000;
+const DEFAULT_OPENAI_MODEL = "gpt-5.4-nano";
 const EXPLANATION_OPTION_REFERENCE_PATTERN =
   /\b(?:option|antwort|answer|choice|möglichkeit)\s*[1-4abcd]\b/i;
 const MARKDOWN_CODE_BLOCK_PATTERN = /```(?:[^\n\r`]*)\r?\n([\s\S]*?)```/g;
@@ -269,6 +270,11 @@ type StructuredQuizQuestionFields = {
   options: string[];
   correctIndex: number;
   explanation: string;
+};
+
+type ProgrammingLanguageContext = {
+  programmingLanguageName: string;
+  contextExclusion: string;
 };
 
 function validateStructuredQuizQuestionFields(
@@ -550,6 +556,20 @@ async function requestOpenAI(payload: Record<string, unknown>) {
   }
 }
 
+async function requestQuizResponseText(
+  payload: Record<string, unknown>,
+): Promise<string> {
+  const response = await requestOpenAI(payload);
+  assertOpenAIResponseIsUsable(response);
+
+  const content = getResponseText(response);
+  if (!content) {
+    throw new Error("Empty response from OpenAI");
+  }
+
+  return content;
+}
+
 function isTimeoutError(error: unknown): boolean {
   const timeoutError = error as { code?: unknown; message?: unknown } | null;
   if (timeoutError?.code === "ETIMEDOUT") {
@@ -657,19 +677,55 @@ async function addStableIds<T extends GeneratedQuizQuestion>(
   return withIds;
 }
 
+function resolveProgrammingLanguageContext(
+  programmingLanguage: ProgrammingLanguageId,
+): ProgrammingLanguageContext {
+  return {
+    programmingLanguageName:
+      LANGUAGE_NAMES[programmingLanguage] ?? programmingLanguage,
+    contextExclusion: LANGUAGE_CONTEXT_EXCLUSIONS[programmingLanguage] ?? "",
+  };
+}
+
+function resolveTopicDescription(
+  programmingLanguage: ProgrammingLanguageId,
+  programmingLanguageName: string,
+  topicId: string,
+): string {
+  return (
+    getTopicPrompt(programmingLanguage, topicId) ||
+    `general ${programmingLanguageName} programming concepts`
+  );
+}
+
 function resolveLanguageContext(
   programmingLanguage: ProgrammingLanguageId,
   topicId: string,
-) {
-  const programmingLanguageName =
-    LANGUAGE_NAMES[programmingLanguage] ?? programmingLanguage;
-  const topicDescription =
-    getTopicPrompt(programmingLanguage, topicId) ||
-    `general ${programmingLanguageName} programming concepts`;
-  const contextExclusion =
-    LANGUAGE_CONTEXT_EXCLUSIONS[programmingLanguage] ?? "";
+): ProgrammingLanguageContext & { topicDescription: string } {
+  const { programmingLanguageName, contextExclusion } =
+    resolveProgrammingLanguageContext(programmingLanguage);
 
-  return { topicDescription, programmingLanguageName, contextExclusion };
+  return {
+    programmingLanguageName,
+    contextExclusion,
+    topicDescription: resolveTopicDescription(
+      programmingLanguage,
+      programmingLanguageName,
+      topicId,
+    ),
+  };
+}
+
+function parseAndNormalizeQuizQuestions<
+  T extends StructuredQuizQuestion | StructuredMixedQuizQuestion,
+>(
+  content: string,
+  validateQuestions: (questions: unknown[]) => T[],
+): (Omit<T, "code"> & { code?: string })[] {
+  const structuredQuestions = validateQuestions(parseQuestions(content));
+  const questions = normalizeStructuredQuizQuestions(structuredQuestions);
+  validateNormalizedQuizQuestions(questions);
+  return questions;
 }
 
 async function requestQuizQuestionBatch({
@@ -715,8 +771,8 @@ Important:
 ${contextExclusion ? `- ${contextExclusion}` : ""}
 - Do not include any keys other than question, code, options, correctIndex, and explanation`;
 
-  const response = await requestOpenAI({
-    model: process.env.OPENAI_MODEL || "gpt-5.4-nano",
+  const content = await requestQuizResponseText({
+    model: process.env.OPENAI_MODEL || DEFAULT_OPENAI_MODEL,
     instructions: `You are a ${programmingLanguageName} programming tutor creating quiz questions. ${
       language === "de" ? "Respond in German." : "Respond in English."
     } Follow the provided response schema exactly.`,
@@ -725,21 +781,9 @@ ${contextExclusion ? `- ${contextExclusion}` : ""}
     max_output_tokens: quizMaxOutputTokens(count),
   });
 
-  assertOpenAIResponseIsUsable(response);
-
-  const content = getResponseText(response);
-  if (!content) {
-    throw new Error("Empty response from OpenAI");
-  }
-
-  const structuredQuestions = validateStructuredQuizQuestions(
-    parseQuestions(content),
-    count,
+  return parseAndNormalizeQuizQuestions(content, (questions) =>
+    validateStructuredQuizQuestions(questions, count),
   );
-
-  const questions = normalizeStructuredQuizQuestions(structuredQuestions);
-  validateNormalizedQuizQuestions(questions);
-  return questions;
 }
 
 async function requestMixedQuizQuestionBatch({
@@ -753,10 +797,8 @@ async function requestMixedQuizQuestionBatch({
   language: string;
   skillLevel: QuizDifficultyLevel;
 }): Promise<GeneratedMixedQuizQuestion[]> {
-  const programmingLanguageName =
-    LANGUAGE_NAMES[programmingLanguage] ?? programmingLanguage;
-  const contextExclusion =
-    LANGUAGE_CONTEXT_EXCLUSIONS[programmingLanguage] ?? "";
+  const { programmingLanguageName, contextExclusion } =
+    resolveProgrammingLanguageContext(programmingLanguage);
   const languageInstruction = getLanguageInstruction(
     language,
     programmingLanguageName,
@@ -770,9 +812,11 @@ async function requestMixedQuizQuestionBatch({
   const resolvedTopicPlan = topicPlan.map(({ topicId, questionCount }) => ({
     topicId,
     questionCount,
-    topicDescription:
-      getTopicPrompt(programmingLanguage, topicId) ||
-      `general ${programmingLanguageName} programming concepts`,
+    topicDescription: resolveTopicDescription(
+      programmingLanguage,
+      programmingLanguageName,
+      topicId,
+    ),
   }));
 
   const prompt = `Generate ${totalCount} multiple-choice quiz questions for computer science students learning ${programmingLanguageName} programming.
@@ -808,8 +852,8 @@ Important:
 ${contextExclusion ? `- ${contextExclusion}` : ""}
 - Do not include any keys other than topicId, question, code, options, correctIndex, and explanation`;
 
-  const response = await requestOpenAI({
-    model: process.env.OPENAI_MODEL || "gpt-5.4-nano",
+  const content = await requestQuizResponseText({
+    model: process.env.OPENAI_MODEL || DEFAULT_OPENAI_MODEL,
     instructions: `You are a ${programmingLanguageName} programming tutor creating mixed-topic quiz questions. ${
       language === "de" ? "Respond in German." : "Respond in English."
     } Follow the provided response schema exactly.`,
@@ -818,21 +862,9 @@ ${contextExclusion ? `- ${contextExclusion}` : ""}
     max_output_tokens: quizMaxOutputTokens(totalCount),
   });
 
-  assertOpenAIResponseIsUsable(response);
-
-  const content = getResponseText(response);
-  if (!content) {
-    throw new Error("Empty response from OpenAI");
-  }
-
-  const structuredQuestions = validateStructuredMixedQuizQuestions(
-    parseQuestions(content),
-    topicPlan,
+  return parseAndNormalizeQuizQuestions(content, (questions) =>
+    validateStructuredMixedQuizQuestions(questions, topicPlan),
   );
-
-  const questions = normalizeStructuredQuizQuestions(structuredQuestions);
-  validateNormalizedQuizQuestions(questions);
-  return questions;
 }
 
 export async function generateQuizQuestions(
