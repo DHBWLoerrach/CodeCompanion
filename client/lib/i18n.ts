@@ -198,7 +198,7 @@ export const translations = {
     submitAnswer: "Antwort absenden",
     nextQuestion: "Nächste Frage",
     viewResults: "Ergebnisse anzeigen",
-    quitQuizTitle: "Quiz wirklich abbrechen?",
+    quitQuizTitle: "Quiz abbrechen?",
     quitQuizMessage: "Dein aktueller Quiz-Fortschritt geht verloren.",
     quitQuizConfirm: "Quiz abbrechen",
     explanation: "Erklärung",
