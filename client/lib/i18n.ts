@@ -61,6 +61,10 @@ export const translations = {
     quitQuizMessage: "Your current quiz progress will be lost.",
     quitQuizConfirm: "Quit Quiz",
     explanation: "Explanation",
+    correctTitle: "Correct",
+    incorrectTitle: "Incorrect — the answer was",
+    takeawayLabel: "Remember:",
+    commonMistakeLabel: "Common mistake:",
     moreOnThisTopic: "More on this topic",
     question: "Question",
 
@@ -202,6 +206,10 @@ export const translations = {
     quitQuizMessage: "Dein aktueller Quiz-Fortschritt geht verloren.",
     quitQuizConfirm: "Quiz abbrechen",
     explanation: "Erklärung",
+    correctTitle: "Richtig",
+    incorrectTitle: "Falsch — die Antwort war",
+    takeawayLabel: "Merke:",
+    commonMistakeLabel: "Typischer Denkfehler:",
     moreOnThisTopic: "Mehr zum Thema",
     question: "Frage",
 

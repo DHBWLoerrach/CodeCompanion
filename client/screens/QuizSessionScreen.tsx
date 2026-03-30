@@ -12,6 +12,9 @@ import {
   Pressable,
   ActivityIndicator,
   Alert,
+  type LayoutChangeEvent,
+  type NativeScrollEvent,
+  type NativeSyntheticEvent,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Stack, useLocalSearchParams, useRouter } from "expo-router";
@@ -21,6 +24,7 @@ import { hasTopicExplanation } from "@shared/explanations";
 
 import { BottomActionBar } from "@/components/BottomActionBar";
 import { HeaderIconButton } from "@/components/HeaderIconButton";
+import { ExplanationCard } from "@/components/ExplanationCard";
 import { InlineCodeText } from "@/components/InlineCodeText";
 import { PrimaryButton, SecondaryButton } from "@/components/ActionButton";
 import { StatusBadge } from "@/components/StatusBadge";
@@ -68,6 +72,12 @@ interface TopicQuizResult {
   questionsAnswered: number;
   correctAnswers: number;
 }
+
+const EXPLANATION_REVEAL_DELAY_MS = 300;
+const EXPLANATION_FADE_DURATION_MS = 300;
+const EXPLANATION_SCROLL_DELAY_MS = Math.round(
+  EXPLANATION_FADE_DURATION_MS * 0.25,
+);
 
 function resolveMixedQuizDifficulty(
   progress: ProgressData,
@@ -388,14 +398,84 @@ export default function QuizSessionScreen() {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [selectedAnswer, setSelectedAnswer] = useState<number | null>(null);
   const [showResult, setShowResult] = useState(false);
+  const [showExplanation, setShowExplanation] = useState(false);
   const [answers, setAnswers] = useState<QuizAnswerResult[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [isAdvancing, setIsAdvancing] = useState(false);
   const nextInFlightRef = useRef(false);
+  const scrollViewRef = useRef<ScrollView | null>(null);
+  const explanationTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(
+    null,
+  );
+  const explanationScrollTimeoutRef = useRef<ReturnType<
+    typeof setTimeout
+  > | null>(null);
+  const explanationLayoutRef = useRef<{ y: number; height: number } | null>(
+    null,
+  );
+  const scrollOffsetYRef = useRef(0);
+  const scrollViewportHeightRef = useRef(0);
   const unableToLoadQuizText = t("unableToLoadQuiz");
   const quizRateLimitDeviceText = t("quizRateLimitDevice");
   const quizRateLimitGlobalText = t("quizRateLimitGlobal");
+
+  const clearExplanationTimeout = useCallback(() => {
+    if (explanationTimeoutRef.current !== null) {
+      clearTimeout(explanationTimeoutRef.current);
+      explanationTimeoutRef.current = null;
+    }
+  }, []);
+
+  const clearExplanationScrollTimeout = useCallback(() => {
+    if (explanationScrollTimeoutRef.current !== null) {
+      clearTimeout(explanationScrollTimeoutRef.current);
+      explanationScrollTimeoutRef.current = null;
+    }
+  }, []);
+
+  const scrollToExplanationIfNeeded = useCallback(() => {
+    const scrollView = scrollViewRef.current;
+    const explanationLayout = explanationLayoutRef.current;
+    const viewportHeight = scrollViewportHeightRef.current;
+
+    if (!scrollView || !explanationLayout || viewportHeight <= 0) {
+      return;
+    }
+
+    const visibleTop = scrollOffsetYRef.current;
+    const unobscuredBottom =
+      visibleTop +
+      viewportHeight -
+      getBottomActionBarScrollPadding({
+        safeAreaBottom: insets.bottom,
+        extraScrollPadding: 0,
+      });
+    const explanationTop = explanationLayout.y;
+    const explanationBottom = explanationTop + explanationLayout.height;
+    const topMargin = Spacing.lg;
+    const bottomMargin = Spacing.md;
+    const isExplanationVisible =
+      explanationTop >= visibleTop + topMargin &&
+      explanationBottom <= unobscuredBottom - bottomMargin;
+
+    if (isExplanationVisible) {
+      return;
+    }
+
+    scrollView.scrollTo({
+      y: Math.max(0, explanationTop - topMargin),
+      animated: true,
+    });
+  }, [insets.bottom]);
+
+  const scheduleExplanationScroll = useCallback(() => {
+    clearExplanationScrollTimeout();
+    explanationScrollTimeoutRef.current = setTimeout(() => {
+      explanationScrollTimeoutRef.current = null;
+      scrollToExplanationIfNeeded();
+    }, EXPLANATION_SCROLL_DELAY_MS);
+  }, [clearExplanationScrollTimeout, scrollToExplanationIfNeeded]);
 
   const loadQuestions = useCallback(async () => {
     try {
@@ -487,6 +567,22 @@ export default function QuizSessionScreen() {
     loadQuestions();
   }, [loadQuestions]);
 
+  useEffect(
+    () => () => {
+      clearExplanationTimeout();
+      clearExplanationScrollTimeout();
+    },
+    [clearExplanationScrollTimeout, clearExplanationTimeout],
+  );
+
+  useEffect(() => {
+    if (!showExplanation) {
+      return;
+    }
+
+    scheduleExplanationScroll();
+  }, [scheduleExplanationScroll, showExplanation]);
+
   const currentQuestion = questions[currentIndex];
   const explanationTopicId = currentQuestion?.topicId ?? resolvedTopicId;
   const canOpenTopicExplanation = explanationTopicId
@@ -517,11 +613,39 @@ export default function QuizSessionScreen() {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
   };
 
+  const handleScroll = useCallback(
+    (event: NativeSyntheticEvent<NativeScrollEvent>) => {
+      scrollOffsetYRef.current = event.nativeEvent.contentOffset.y;
+    },
+    [],
+  );
+
+  const handleScrollViewLayout = useCallback((event: LayoutChangeEvent) => {
+    scrollViewportHeightRef.current = event.nativeEvent.layout.height;
+  }, []);
+
+  const handleExplanationLayout = useCallback(
+    (event: LayoutChangeEvent) => {
+      explanationLayoutRef.current = event.nativeEvent.layout;
+      if (showExplanation) {
+        scheduleExplanationScroll();
+      }
+    },
+    [scheduleExplanationScroll, showExplanation],
+  );
+
   const handleSubmit = async () => {
     if (selectedAnswer === null || showResult) return;
 
     const isCorrect = selectedAnswer === currentQuestion.correctIndex;
     setShowResult(true);
+    setShowExplanation(false);
+    clearExplanationTimeout();
+    clearExplanationScrollTimeout();
+    explanationTimeoutRef.current = setTimeout(() => {
+      setShowExplanation(true);
+      explanationTimeoutRef.current = null;
+    }, EXPLANATION_REVEAL_DELAY_MS);
 
     Haptics.notificationAsync(
       isCorrect
@@ -534,6 +658,9 @@ export default function QuizSessionScreen() {
     if (selectedAnswer === null || nextInFlightRef.current) return;
     nextInFlightRef.current = true;
     setIsAdvancing(true);
+    clearExplanationTimeout();
+    clearExplanationScrollTimeout();
+    explanationLayoutRef.current = null;
 
     const currentAnswer: QuizAnswerResult = {
       questionId: currentQuestion.id,
@@ -548,6 +675,7 @@ export default function QuizSessionScreen() {
         setCurrentIndex((prevIndex) => prevIndex + 1);
         setSelectedAnswer(null);
         setShowResult(false);
+        setShowExplanation(false);
         return;
       }
 
@@ -744,6 +872,10 @@ export default function QuizSessionScreen() {
         </View>
 
         <ScrollView
+          ref={scrollViewRef}
+          onLayout={handleScrollViewLayout}
+          onScroll={handleScroll}
+          scrollEventThrottle={16}
           style={styles.scrollView}
           contentInsetAdjustmentBehavior="automatic"
           contentContainerStyle={[
@@ -810,25 +942,40 @@ export default function QuizSessionScreen() {
           </View>
 
           {showResult ? (
-            <SurfaceCard style={styles.explanationCard}>
-              <ThemedText
-                type="label"
-                style={{ color: theme.secondary, marginBottom: Spacing.sm }}
+            <View
+              onLayout={handleExplanationLayout}
+              style={styles.explanationContainer}
+            >
+              <EaseView
+                animate={{
+                  opacity: showExplanation ? 1 : 0,
+                  translateY: showExplanation ? 0 : 8,
+                }}
+                transition={{
+                  type: "timing",
+                  duration: EXPLANATION_FADE_DURATION_MS,
+                }}
               >
-                {t("explanation")}
-              </ThemedText>
-              <InlineCodeText type="body" text={currentQuestion.explanation} />
-              {canOpenTopicExplanation ? (
-                <SecondaryButton
-                  testID="quiz-topic-explanation-button"
-                  color={theme.secondary}
-                  icon="book-open"
-                  label={t("moreOnThisTopic")}
-                  onPress={handleOpenTopicExplanation}
-                  style={styles.explanationAction}
+                <ExplanationCard
+                  isCorrect={selectedAnswer === currentQuestion.correctIndex}
+                  correctAnswer={
+                    currentQuestion.options[currentQuestion.correctIndex]
+                  }
+                  resultSentence={currentQuestion.resultSentence}
+                  explanation={currentQuestion.explanation}
+                  takeaway={currentQuestion.takeaway}
+                  commonMistake={currentQuestion.commonMistake}
+                  topicId={
+                    canOpenTopicExplanation ? explanationTopicId : undefined
+                  }
+                  onPressTopic={
+                    canOpenTopicExplanation
+                      ? handleOpenTopicExplanation
+                      : undefined
+                  }
                 />
-              ) : null}
-            </SurfaceCard>
+              </EaseView>
+            </View>
           ) : null}
         </ScrollView>
 
@@ -954,11 +1101,7 @@ const styles = StyleSheet.create({
   answerText: {
     flex: 1,
   },
-  explanationCard: {
-    gap: Spacing.xs,
-  },
-  explanationAction: {
-    alignSelf: "flex-start",
-    marginTop: Spacing.xs,
+  explanationContainer: {
+    marginTop: Spacing.sm,
   },
 });

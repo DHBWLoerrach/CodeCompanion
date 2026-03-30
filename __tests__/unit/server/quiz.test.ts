@@ -51,6 +51,9 @@ function buildStructuredQuizQuestions(count: number) {
     options: ["A", "B", "C", "D"],
     correctIndex: 0,
     explanation: `Because ${index + 1}`,
+    resultSentence: "Result: A",
+    takeaway: `Remember ${index + 1}`,
+    commonMistake: "",
   }));
 }
 
@@ -65,6 +68,9 @@ function buildStructuredMixedQuizQuestions(
       options: ["A", "B", "C", "D"],
       correctIndex: 0,
       explanation: `Because ${topicId} ${index + 1}`,
+      resultSentence: "Result: A",
+      takeaway: `Remember ${topicId} ${index + 1}`,
+      commonMistake: "",
     })),
   );
 }
@@ -75,6 +81,9 @@ type StructuredQuizQuestionOverrides = {
   options?: unknown;
   correctIndex?: unknown;
   explanation?: unknown;
+  resultSentence?: unknown;
+  takeaway?: unknown;
+  commonMistake?: unknown;
 };
 
 function buildStructuredQuizQuestion(
@@ -86,6 +95,9 @@ function buildStructuredQuizQuestion(
     options: ["A", "B", "C", "D"],
     correctIndex: 0,
     explanation: "Because",
+    resultSentence: "Result: A",
+    takeaway: "Remember A",
+    commonMistake: "",
     ...overrides,
   };
 }
@@ -137,7 +149,7 @@ describe("server/quiz", () => {
         mockFetchResponse({
           json: {
             output_text:
-              '{"questions":[{"question":"Q?","code":null,"options":["A","B","C","D"],"correctIndex":0,"explanation":"Because"}]}',
+              '{"questions":[{"question":"Q?","code":null,"options":["A","B","C","D"],"correctIndex":0,"explanation":"Because","resultSentence":"Result: A","takeaway":"Remember A","commonMistake":""}]}',
           },
         }),
       );
@@ -212,7 +224,7 @@ describe("server/quiz", () => {
         mockFetchResponse({
           json: {
             output_text:
-              '{"questions":[{"question":"What is const?","code":null,"options":["A","B","C","D"],"correctIndex":1,"explanation":"Because"}]}',
+              '{"questions":[{"question":"What is const?","code":null,"options":["A","B","C","D"],"correctIndex":1,"explanation":"Because","resultSentence":"Result: B","takeaway":"Remember const","commonMistake":""}]}',
           },
         }),
       );
@@ -230,6 +242,30 @@ describe("server/quiz", () => {
       expect(question.code).toBeUndefined();
     });
 
+    it("collapses empty-string commonMistake back to the optional domain field", async () => {
+      fetchMock.mockResolvedValueOnce(
+        mockFetchResponse({
+          json: {
+            output_text:
+              '{"questions":[{"question":"Q?","code":null,"options":["A","B","C","D"],"correctIndex":0,"explanation":"Because","resultSentence":"Result: A","takeaway":"Remember A","commonMistake":""}]}',
+          },
+        }),
+      );
+
+      const [question] = await generateQuizQuestions(
+        "javascript",
+        "variables",
+        1,
+        "en",
+        1,
+      );
+
+      expect(question.commonMistake).toBeUndefined();
+      expect(
+        Object.prototype.hasOwnProperty.call(question, "commonMistake"),
+      ).toBe(false);
+    });
+
     it("parses wrapped questions from output content blocks", async () => {
       fetchMock.mockResolvedValueOnce(
         mockFetchResponse({
@@ -239,7 +275,7 @@ describe("server/quiz", () => {
                 content: [
                   {
                     type: "output_text",
-                    text: '{"questions":[{"question":"Q?","code":"for (let i = 0; i < 1; i += 1) {}","options":["A","B","C","D"],"correctIndex":2,"explanation":"E"}]}',
+                    text: '{"questions":[{"question":"Q?","code":"for (let i = 0; i < 1; i += 1) {}","options":["A","B","C","D"],"correctIndex":2,"explanation":"E","resultSentence":"Result: C","takeaway":"Remember loops","commonMistake":""}]}',
                   },
                 ],
               },
@@ -275,6 +311,9 @@ describe("server/quiz", () => {
                   options: ["A", "B", "C", "D"],
                   correctIndex: 0,
                   explanation: "Because",
+                  resultSentence: "Result: A",
+                  takeaway: "Remember A",
+                  commonMistake: "",
                 },
               ],
             }),
@@ -331,6 +370,9 @@ describe("server/quiz", () => {
                   options: ["A", "B", "C", "D"],
                   correctIndex: 0,
                   explanation: "Because",
+                  resultSentence: "Result: A",
+                  takeaway: "Remember A",
+                  commonMistake: "",
                 },
               ],
             }),
@@ -350,6 +392,117 @@ describe("server/quiz", () => {
       expect(question.code).toBe(code);
     });
 
+    it("removes duplicate plain code blocks from question text", async () => {
+      const code = "let a = 5; let b = '5';\nconsole.log(a == b);";
+
+      fetchMock.mockResolvedValueOnce(
+        mockFetchResponse({
+          json: {
+            output_text: JSON.stringify({
+              questions: [
+                {
+                  question: `Welche Aussage trifft auf den Operator == im folgenden Code zu?\n\n${code}`,
+                  code,
+                  options: ["A", "B", "C", "D"],
+                  correctIndex: 0,
+                  explanation: "Because",
+                  resultSentence: "Result: A",
+                  takeaway: "Remember A",
+                  commonMistake: "",
+                },
+              ],
+            }),
+          },
+        }),
+      );
+
+      const [question] = await generateQuizQuestions(
+        "javascript",
+        "variables",
+        1,
+        "de",
+        1,
+      );
+
+      expect(question.question).toBe(
+        "Welche Aussage trifft auf den Operator == im folgenden Code zu?",
+      );
+      expect(question.code).toBe(code);
+    });
+
+    it("preserves a single literal \\n mention in regular question text", async () => {
+      fetchMock.mockResolvedValueOnce(
+        mockFetchResponse({
+          json: {
+            output_text: JSON.stringify({
+              questions: [
+                {
+                  question: "What does `\\n` represent in a string literal?",
+                  code: "const value = 'line1';",
+                  options: ["A", "B", "C", "D"],
+                  correctIndex: 0,
+                  explanation: "Because",
+                  resultSentence: "Result: A",
+                  takeaway: "Remember A",
+                  commonMistake: "",
+                },
+              ],
+            }),
+          },
+        }),
+      );
+
+      const [question] = await generateQuizQuestions(
+        "javascript",
+        "strings",
+        1,
+        "en",
+        1,
+      );
+
+      expect(question.question).toBe(
+        "What does `\\n` represent in a string literal?",
+      );
+      expect(question.code).toBe("const value = 'line1';");
+    });
+
+    it("decodes repeated escaped newlines when removing duplicate code from question text", async () => {
+      const code = "let total = 0;\nconsole.log(total);";
+
+      fetchMock.mockResolvedValueOnce(
+        mockFetchResponse({
+          json: {
+            output_text: JSON.stringify({
+              questions: [
+                {
+                  question:
+                    "What does this print?\\n\\nlet total = 0;\\nconsole.log(total);",
+                  code,
+                  options: ["A", "B", "C", "D"],
+                  correctIndex: 0,
+                  explanation: "Because",
+                  resultSentence: "Result: A",
+                  takeaway: "Remember A",
+                  commonMistake: "",
+                },
+              ],
+            }),
+          },
+        }),
+      );
+
+      const [question] = await generateQuizQuestions(
+        "javascript",
+        "variables",
+        1,
+        "en",
+        1,
+      );
+
+      expect(question.question).toBe("What does this print?");
+      expect(question.code).toBe(code);
+    });
+
     it("includes programming language and full question content in stable ID input", async () => {
       fetchMock
         .mockResolvedValueOnce(
@@ -363,6 +516,9 @@ describe("server/quiz", () => {
                     options: ["A", "B", "C", "D"],
                     correctIndex: 0,
                     explanation: "JavaScript explanation",
+                    resultSentence: "Result: A",
+                    takeaway: "Remember JS",
+                    commonMistake: "",
                   },
                 ],
               }),
@@ -380,6 +536,9 @@ describe("server/quiz", () => {
                     options: ["A", "B", "C", "D"],
                     correctIndex: 0,
                     explanation: "Python explanation",
+                    resultSentence: "Result: A",
+                    takeaway: "Remember Py",
+                    commonMistake: "",
                   },
                 ],
               }),
@@ -418,9 +577,12 @@ describe("server/quiz", () => {
       expect(firstDigestInput).toContain(
         '"explanation":"JavaScript explanation"',
       );
+      expect(firstDigestInput).toContain('"resultSentence":"Result: A"');
+      expect(firstDigestInput).toContain('"takeaway":"Remember JS"');
       expect(secondDigestInput).toContain('"programmingLanguage":"python"');
       expect(secondDigestInput).toContain('"code":"print(\'py\')"');
       expect(secondDigestInput).toContain('"explanation":"Python explanation"');
+      expect(secondDigestInput).toContain('"takeaway":"Remember Py"');
       expect(firstDigestInput).not.toBe(secondDigestInput);
     });
 
@@ -536,6 +698,70 @@ describe("server/quiz", () => {
       );
     });
 
+    it("throws when resultSentence is empty", async () => {
+      fetchMock.mockResolvedValueOnce(
+        mockFetchResponse({
+          json: {
+            output_text: JSON.stringify({
+              questions: [
+                buildStructuredQuizQuestion({
+                  resultSentence: "   ",
+                }),
+              ],
+            }),
+          },
+        }),
+      );
+
+      await expect(
+        generateQuizQuestions("javascript", "variables", 1),
+      ).rejects.toThrow(
+        "Invalid quiz question at index 0: resultSentence is empty",
+      );
+    });
+
+    it("throws when takeaway is empty", async () => {
+      fetchMock.mockResolvedValueOnce(
+        mockFetchResponse({
+          json: {
+            output_text: JSON.stringify({
+              questions: [
+                buildStructuredQuizQuestion({
+                  takeaway: "   ",
+                }),
+              ],
+            }),
+          },
+        }),
+      );
+
+      await expect(
+        generateQuizQuestions("javascript", "variables", 1),
+      ).rejects.toThrow("Invalid quiz question at index 0: takeaway is empty");
+    });
+
+    it("throws when resultSentence references an option by number or letter", async () => {
+      fetchMock.mockResolvedValueOnce(
+        mockFetchResponse({
+          json: {
+            output_text: JSON.stringify({
+              questions: [
+                buildStructuredQuizQuestion({
+                  resultSentence: "Option A is the result.",
+                }),
+              ],
+            }),
+          },
+        }),
+      );
+
+      await expect(
+        generateQuizQuestions("javascript", "variables", 1),
+      ).rejects.toThrow(
+        "Invalid quiz question at index 0: resultSentence must not reference options by number or letter",
+      );
+    });
+
     it("throws when explanation references an option by number or letter", async () => {
       fetchMock.mockResolvedValueOnce(
         mockFetchResponse({
@@ -575,7 +801,7 @@ describe("server/quiz", () => {
         mockFetchResponse({
           json: {
             output_text:
-              '{"questions":[{"question":"Q?","code":null,"options":["A","B","C","D"],"correctIndex":0,"explanation":"Because"}]}',
+              '{"questions":[{"question":"Q?","code":null,"options":["A","B","C","D"],"correctIndex":0,"explanation":"Because","resultSentence":"Result: A","takeaway":"Remember A","commonMistake":""}]}',
           },
         }),
       );
@@ -596,6 +822,12 @@ describe("server/quiz", () => {
       expect(payload.input).toContain(
         "Do not include Markdown fences or code snippets in the question text",
       );
+      expect(payload.input).toContain(
+        "In the resultSentence, state the correct result in one short sentence",
+      );
+      expect(payload.input).toContain(
+        "In the takeaway, provide one memorable rule the learner should remember",
+      );
     });
 
     it("uses javascript language context when generating javascript quizzes", async () => {
@@ -603,7 +835,7 @@ describe("server/quiz", () => {
         mockFetchResponse({
           json: {
             output_text:
-              '{"questions":[{"question":"Q?","code":null,"options":["A","B","C","D"],"correctIndex":0,"explanation":"Because"}]}',
+              '{"questions":[{"question":"Q?","code":null,"options":["A","B","C","D"],"correctIndex":0,"explanation":"Because","resultSentence":"Result: A","takeaway":"Remember A","commonMistake":""}]}',
           },
         }),
       );
@@ -625,6 +857,9 @@ describe("server/quiz", () => {
       );
       expect(payload.input).toContain(
         "For syntax questions, the three wrong options must contain actual syntax errors; never use alternative valid syntax as a distractor",
+      );
+      expect(payload.input).toContain(
+        "In the commonMistake, briefly explain a common misconception relevant to this question if one exists",
       );
       expect(payload.input).toContain(
         "Avoid web/HTML/CSS context - focus purely on JavaScript language concepts. Always use let and const for variable declarations; never include var in questions or code examples.",

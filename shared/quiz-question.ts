@@ -6,4 +6,7 @@ export interface QuizQuestion {
   options: string[];
   correctIndex: number;
   explanation: string;
+  resultSentence: string;
+  takeaway: string;
+  commonMistake?: string;
 }

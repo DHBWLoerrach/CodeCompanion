@@ -123,6 +123,8 @@ describe("POST /api/quiz/generate", () => {
         options: ["A", "B", "C", "D"],
         correctIndex: 0,
         explanation: "Because",
+        resultSentence: "Result: A",
+        takeaway: "Remember A",
       },
     ]);
 

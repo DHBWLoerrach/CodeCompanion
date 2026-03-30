@@ -30,6 +30,11 @@ type MixedQuizTopicPlanItem = {
   questionCount: number;
 };
 
+// The strict wire schema always includes commonMistake as a string because
+// OpenAI structured outputs require all declared properties when
+// additionalProperties is false. An empty string means "not applicable" and
+// is collapsed back to the optional QuizQuestion.commonMistake field during
+// validation.
 const QUIZ_RESPONSE_FORMAT = {
   format: {
     type: "json_schema",
@@ -51,6 +56,9 @@ const QUIZ_RESPONSE_FORMAT = {
               },
               correctIndex: { type: "integer" },
               explanation: { type: "string" },
+              resultSentence: { type: "string" },
+              takeaway: { type: "string" },
+              commonMistake: { type: "string" },
             },
             required: [
               "question",
@@ -58,6 +66,9 @@ const QUIZ_RESPONSE_FORMAT = {
               "options",
               "correctIndex",
               "explanation",
+              "resultSentence",
+              "takeaway",
+              "commonMistake",
             ],
             additionalProperties: false,
           },
@@ -95,6 +106,9 @@ function buildMixedQuizResponseFormat(topicIds: string[]) {
                 },
                 correctIndex: { type: "integer" },
                 explanation: { type: "string" },
+                resultSentence: { type: "string" },
+                takeaway: { type: "string" },
+                commonMistake: { type: "string" },
               },
               required: [
                 "topicId",
@@ -103,6 +117,9 @@ function buildMixedQuizResponseFormat(topicIds: string[]) {
                 "options",
                 "correctIndex",
                 "explanation",
+                "resultSentence",
+                "takeaway",
+                "commonMistake",
               ],
               additionalProperties: false,
             },
@@ -248,20 +265,27 @@ function normalizeStructuredQuizQuestions<
       question.question,
     );
     const normalizedCode = code ?? extractedCode;
+    const normalizedQuestionText =
+      normalizedCode === null
+        ? text
+        : stripDuplicateCodeFromQuestion(text, normalizedCode);
 
     return normalizedCode === null
-      ? { ...question, question: text }
-      : { ...question, question: text, code: normalizedCode };
+      ? { ...question, question: normalizedQuestionText }
+      : { ...question, question: normalizedQuestionText, code: normalizedCode };
   });
 }
 
-type StructuredQuizQuestionCandidate = {
+type StructuredQuizQuestionWireCandidate = {
   topicId?: unknown;
   question?: unknown;
   code?: unknown;
   options?: unknown;
   correctIndex?: unknown;
   explanation?: unknown;
+  resultSentence?: unknown;
+  takeaway?: unknown;
+  commonMistake?: unknown;
 };
 
 type StructuredQuizQuestionFields = {
@@ -270,6 +294,9 @@ type StructuredQuizQuestionFields = {
   options: string[];
   correctIndex: number;
   explanation: string;
+  resultSentence: string;
+  takeaway: string;
+  commonMistake?: string;
 };
 
 type ProgrammingLanguageContext = {
@@ -281,7 +308,7 @@ function validateStructuredQuizQuestionFields(
   rawQuestion: unknown,
   index: number,
 ): StructuredQuizQuestionFields {
-  const question = rawQuestion as StructuredQuizQuestionCandidate | null;
+  const question = rawQuestion as StructuredQuizQuestionWireCandidate | null;
 
   if (!question || typeof question !== "object") {
     throw new Error(
@@ -356,6 +383,68 @@ function validateStructuredQuizQuestionFields(
     );
   }
 
+  if (typeof question.resultSentence !== "string") {
+    throw new Error(
+      `Invalid quiz question at index ${index}: resultSentence must be a string`,
+    );
+  }
+
+  if (!question.resultSentence.trim()) {
+    throw new Error(
+      `Invalid quiz question at index ${index}: resultSentence is empty`,
+    );
+  }
+
+  if (EXPLANATION_OPTION_REFERENCE_PATTERN.test(question.resultSentence)) {
+    throw new Error(
+      `Invalid quiz question at index ${index}: resultSentence must not reference options by number or letter`,
+    );
+  }
+
+  if (typeof question.takeaway !== "string") {
+    throw new Error(
+      `Invalid quiz question at index ${index}: takeaway must be a string`,
+    );
+  }
+
+  if (!question.takeaway.trim()) {
+    throw new Error(
+      `Invalid quiz question at index ${index}: takeaway is empty`,
+    );
+  }
+
+  if (EXPLANATION_OPTION_REFERENCE_PATTERN.test(question.takeaway)) {
+    throw new Error(
+      `Invalid quiz question at index ${index}: takeaway must not reference options by number or letter`,
+    );
+  }
+
+  if (
+    question.commonMistake !== undefined &&
+    typeof question.commonMistake !== "string"
+  ) {
+    throw new Error(
+      `Invalid quiz question at index ${index}: commonMistake must be a string`,
+    );
+  }
+
+  const commonMistake =
+    typeof question.commonMistake === "string"
+      ? question.commonMistake.trim()
+      : undefined;
+
+  // The wire format uses "" as the sentinel for "not applicable". Collapse
+  // that back to the optional domain field so QuizQuestion stays string |
+  // undefined instead of leaking wire-only semantics.
+  if (
+    commonMistake &&
+    EXPLANATION_OPTION_REFERENCE_PATTERN.test(commonMistake)
+  ) {
+    throw new Error(
+      `Invalid quiz question at index ${index}: commonMistake must not reference options by number or letter`,
+    );
+  }
+
   const correctIndex = question.correctIndex;
   if (
     typeof correctIndex !== "number" ||
@@ -374,6 +463,9 @@ function validateStructuredQuizQuestionFields(
     options: question.options,
     correctIndex,
     explanation: question.explanation,
+    resultSentence: question.resultSentence,
+    takeaway: question.takeaway,
+    ...(commonMistake ? { commonMistake } : {}),
   };
 }
 
@@ -412,7 +504,7 @@ function validateStructuredMixedQuizQuestions(
   const actualCounts = new Map(topicPlan.map((item) => [item.topicId, 0]));
 
   const validatedQuestions = questions.map((rawQuestion, index) => {
-    const question = rawQuestion as StructuredQuizQuestionCandidate | null;
+    const question = rawQuestion as StructuredQuizQuestionWireCandidate | null;
     const topicId = question?.topicId;
 
     if (typeof topicId !== "string" || !allowedTopicIdSet.has(topicId)) {
@@ -488,6 +580,70 @@ function extractMarkdownCodeFromQuestion(questionText: string): {
     text: normalizedText,
     code: blocks.length > 0 ? blocks.join("\n\n") : null,
   };
+}
+
+function normalizeEmbeddedMultilineText(text: string): string {
+  const normalizedText = text.replace(/\r\n?/g, "\n");
+  const embeddedLineBreakMatches = normalizedText.match(/\\r\\n|\\n|\\r/g);
+
+  // OpenAI occasionally returns multiline content with literal escape
+  // sequences. Decode only when the text looks like embedded multiline
+  // content, not when it contains a single literal "\n" mention.
+  if (!embeddedLineBreakMatches || embeddedLineBreakMatches.length < 2) {
+    return normalizedText;
+  }
+
+  return normalizedText
+    .replace(/\\r\\n/g, "\n")
+    .replace(/\\n/g, "\n")
+    .replace(/\\r/g, "\n");
+}
+
+function normalizeQuestionText(text: string): string {
+  return normalizeEmbeddedMultilineText(text)
+    .replace(/\n{3,}/g, "\n\n")
+    .replace(/[ \t]+\n/g, "\n")
+    .trim();
+}
+
+function normalizeCodeForComparison(code: string): string {
+  return normalizeEmbeddedMultilineText(code)
+    .split("\n")
+    .map((line) => line.replace(/[ \t]+$/g, ""))
+    .join("\n")
+    .trim();
+}
+
+function stripDuplicateCodeFromQuestion(
+  questionText: string,
+  code: string,
+): string {
+  const normalizedQuestion = normalizeEmbeddedMultilineText(questionText);
+  const normalizedCode = normalizeCodeForComparison(code);
+  const blocks = normalizedQuestion
+    .split(/\n\s*\n/)
+    .map((block) => block.trim())
+    .filter((block) => block.length > 0);
+  const filteredBlocks = blocks.filter(
+    (block) => normalizeCodeForComparison(block) !== normalizedCode,
+  );
+
+  if (filteredBlocks.length > 0 && filteredBlocks.length !== blocks.length) {
+    return normalizeQuestionText(filteredBlocks.join("\n\n"));
+  }
+
+  const duplicateCodeIndex = normalizedQuestion.lastIndexOf(normalizedCode);
+  if (duplicateCodeIndex > 0) {
+    const prefix = normalizedQuestion.slice(0, duplicateCodeIndex);
+    if (/\n\s*$/.test(prefix)) {
+      const trimmedPrefix = normalizeQuestionText(prefix);
+      if (trimmedPrefix.length > 0) {
+        return trimmedPrefix;
+      }
+    }
+  }
+
+  return normalizeQuestionText(normalizedQuestion);
 }
 
 function getDifficultyLabel(skillLevel: QuizDifficultyLevel): string {
@@ -664,6 +820,12 @@ async function addStableIds<T extends GeneratedQuizQuestion>(
           options: question.options,
           correctIndex: question.correctIndex,
           explanation: question.explanation,
+          resultSentence: question.resultSentence,
+          takeaway: question.takeaway,
+          // Canonicalize the optional domain field in the hash input. This keeps
+          // stable IDs identical whether commonMistake is absent or came from
+          // the wire as the empty-string sentinel.
+          commonMistake: question.commonMistake ?? null,
           index,
         }),
       );
@@ -763,13 +925,17 @@ Each question should:
 - Use "code": null when a code snippet is not needed
 - Do not include Markdown fences or code snippets in the question text; put code only in the code field
 ${getSingleChoiceQualityRequirements()}
+- In the resultSentence, state the correct result in one short sentence (e.g. "Result: \`0\`"). Use inline code for values.
+- In the takeaway, provide one memorable rule the learner should remember (e.g. "\`??\` only checks for \`null\` and \`undefined\`")
+- In the commonMistake, briefly explain a common misconception relevant to this question if one exists; include a comparison if helpful; use an empty string if not applicable
+- In the explanation, explain why the answer is correct in 2-3 sentences and do not repeat the resultSentence or takeaway.
 
 Important:
 - Make questions progressively challenging
 - Use realistic code examples students would encounter
 - The response schema already defines the JSON shape, so focus on the question content
 ${contextExclusion ? `- ${contextExclusion}` : ""}
-- Do not include any keys other than question, code, options, correctIndex, and explanation`;
+- Do not include any keys other than question, code, options, correctIndex, explanation, resultSentence, takeaway, and commonMistake`;
 
   const content = await requestQuizResponseText({
     model: process.env.OPENAI_MODEL || DEFAULT_OPENAI_MODEL,
@@ -841,6 +1007,10 @@ Each question should:
 - Use "code": null when a code snippet is not needed
 - Do not include Markdown fences or code snippets in the question text; put code only in the code field
 ${getSingleChoiceQualityRequirements()}
+- In the resultSentence, state the correct result in one short sentence (e.g. "Result: \`0\`"). Use inline code for values.
+- In the takeaway, provide one memorable rule the learner should remember (e.g. "\`??\` only checks for \`null\` and \`undefined\`")
+- In the commonMistake, briefly explain a common misconception relevant to this question if one exists; include a comparison if helpful; use an empty string if not applicable
+- In the explanation, explain why the answer is correct in 2-3 sentences and do not repeat the resultSentence or takeaway.
 
 Important:
 - Return exactly ${totalCount} questions total
@@ -850,7 +1020,7 @@ Important:
 - Use realistic code examples students would encounter
 - The response schema already defines the JSON shape, so focus on the question content
 ${contextExclusion ? `- ${contextExclusion}` : ""}
-- Do not include any keys other than topicId, question, code, options, correctIndex, and explanation`;
+- Do not include any keys other than topicId, question, code, options, correctIndex, explanation, resultSentence, takeaway, and commonMistake`;
 
   const content = await requestQuizResponseText({
     model: process.env.OPENAI_MODEL || DEFAULT_OPENAI_MODEL,
