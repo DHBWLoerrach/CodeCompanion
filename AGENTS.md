@@ -39,6 +39,7 @@ DHBW Code Companion is a mobile learning app for programming topics (Expo SDK 55
 
 - TypeScript-first (`.ts`/`.tsx`), strict typing, Expo Router patterns.
 - Prettier + ESLint are mandatory; fix warnings before PR.
+- Formatting is enforced via Prettier CLI (`npm run check:format` / `npm run format`); ESLint only uses `eslint-config-prettier` to avoid rule conflicts and does not run Prettier as a lint rule.
 - Components/screens use `PascalCase` (for example `TopicDetailScreen.tsx`).
 - Hooks use `useXxx` naming.
 - API route files end with `+api.ts`.
@@ -62,8 +63,10 @@ DHBW Code Companion is a mobile learning app for programming topics (Expo SDK 55
 - Path aliases: `@/* -> ./client/*`, `@shared/* -> ./shared/*`, `@server/* -> ./server/*` (configured in `tsconfig.json` and `babel.config.js`).
 - Route files in `app/` should stay thin and delegate to `client/screens/`.
 - State management pattern: React Query + Context + AsyncStorage (no Redux/Zustand).
+- Keep Expo config plugins minimal: only list plugins in `app.json` when the app actively uses or configures them.
 - Animations use `react-native-ease` (`EaseView`) — state-driven via `animate`/`transition` props. The shared `usePressAnimation` hook (`client/hooks/usePressAnimation.ts`) returns `{ animate, transition, handlePressIn, handlePressOut }` for press-scale effects.
 - `expo.web.output = "server"` is enabled so Expo API routes can run on EAS Hosting; do not assume this implies a supported browser app surface.
+- Keep `expo-system-ui` as a direct dependency while `expo.userInterfaceStyle` remains `"automatic"` in `app.json`.
 - API routes:
   - `POST /api/quiz/generate`
   - `POST /api/quiz/generate-mixed`

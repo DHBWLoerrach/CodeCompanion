@@ -41,8 +41,6 @@
         }
       ],
       "expo-router",
-      "expo-web-browser",
-      "expo-font",
       "react-native-enriched-markdown"
     ],
     "experiments": {
