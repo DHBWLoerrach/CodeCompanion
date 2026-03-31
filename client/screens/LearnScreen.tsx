@@ -35,7 +35,6 @@ interface TopicTileProps {
   onPress: () => void;
   topicName: string;
   testID?: string;
-  isWide?: boolean;
 }
 
 function getTopicCountLabel(topicCount: number, t: TranslateFn) {
@@ -129,6 +128,41 @@ function getWideTileIndexes(topicNames: string[]) {
   return wideIndexes;
 }
 
+function getTopicRows<T extends { id: string }>(
+  topics: T[],
+  wideTileIndexes: Set<number>
+) {
+  const rows: T[][] = [];
+  let currentRow: T[] = [];
+
+  for (let index = 0; index < topics.length; index += 1) {
+    const topic = topics[index];
+
+    if (wideTileIndexes.has(index)) {
+      if (currentRow.length > 0) {
+        rows.push(currentRow);
+        currentRow = [];
+      }
+
+      rows.push([topic]);
+      continue;
+    }
+
+    currentRow.push(topic);
+
+    if (currentRow.length === 2) {
+      rows.push(currentRow);
+      currentRow = [];
+    }
+  }
+
+  if (currentRow.length > 0) {
+    rows.push(currentRow);
+  }
+
+  return rows;
+}
+
 function getCategoryVisualProgress(
   category: Category,
   topicProgress: Record<string, TopicProgress>
@@ -217,13 +251,7 @@ function getStateAccentColor(
   }
 }
 
-function TopicTile({
-  progress,
-  onPress,
-  topicName,
-  testID,
-  isWide,
-}: TopicTileProps) {
+function TopicTile({ progress, onPress, topicName, testID }: TopicTileProps) {
   const { theme } = useTheme();
   const { t } = useTranslation();
   const { animate, transition, handlePressIn, handlePressOut } =
@@ -241,7 +269,7 @@ function TopicTile({
     <EaseView
       animate={animate}
       transition={transition}
-      style={[styles.topicTileWrapper, isWide && styles.topicTileWide]}
+      style={styles.topicTileWrapper}
     >
       <Pressable
         testID={testID}
@@ -452,6 +480,7 @@ function CategoryCard({
   const wideTileIndexes = getWideTileIndexes(
     visibleTopics.map((topic) => getTopicDisplayName(topic))
   );
+  const topicRows = getTopicRows(visibleTopics, wideTileIndexes);
 
   return (
     <View
@@ -569,19 +598,22 @@ function CategoryCard({
 
       {visibleTopics.length > 0 ? (
         <View style={styles.topicsGrid}>
-          {visibleTopics.map((topic, index) => {
-            const topicDisplayName = getTopicDisplayName(topic);
-            return (
-              <TopicTile
-                key={topic.id}
-                topicName={topicDisplayName}
-                progress={topicProgress[topic.id]}
-                testID={getTopicTestId(topic)}
-                onPress={() => onTopicPress(topic)}
-                isWide={wideTileIndexes.has(index)}
-              />
-            );
-          })}
+          {topicRows.map((row) => (
+            <View
+              key={row.map((topic) => topic.id).join('-')}
+              style={styles.topicRow}
+            >
+              {row.map((topic) => (
+                <TopicTile
+                  key={topic.id}
+                  topicName={getTopicDisplayName(topic)}
+                  progress={topicProgress[topic.id]}
+                  testID={getTopicTestId(topic)}
+                  onPress={() => onTopicPress(topic)}
+                />
+              ))}
+            </View>
+          ))}
         </View>
       ) : null}
     </View>
@@ -604,6 +636,7 @@ export default function LearnScreen() {
   });
   const dueTopicNames = dueTopics.map((topic) => getTopicName(topic, language));
   const wideDueTileIndexes = getWideTileIndexes(dueTopicNames);
+  const dueTopicRows = getTopicRows(dueTopics, wideDueTileIndexes);
 
   const handleTopicPress = (topic: Topic) => {
     router.push({
@@ -658,15 +691,21 @@ export default function LearnScreen() {
               </ThemedText>
             </View>
             <View style={styles.topicsGrid}>
-              {dueTopics.map((topic, index) => (
-                <TopicTile
-                  key={topic.id}
-                  topicName={dueTopicNames[index]}
-                  progress={topicProgress[topic.id]}
-                  testID={`learn-due-topic-${topic.id}`}
-                  onPress={() => handleTopicPress(topic)}
-                  isWide={wideDueTileIndexes.has(index)}
-                />
+              {dueTopicRows.map((row) => (
+                <View
+                  key={row.map((topic) => topic.id).join('-')}
+                  style={styles.topicRow}
+                >
+                  {row.map((topic) => (
+                    <TopicTile
+                      key={topic.id}
+                      topicName={getTopicName(topic, language)}
+                      progress={topicProgress[topic.id]}
+                      testID={`learn-due-topic-${topic.id}`}
+                      onPress={() => handleTopicPress(topic)}
+                    />
+                  ))}
+                </View>
               ))}
             </View>
           </View>
@@ -821,28 +860,26 @@ const styles = StyleSheet.create({
     alignSelf: 'center',
   },
   topicsGrid: {
+    gap: Spacing.xs + 2,
+  },
+  topicRow: {
     flexDirection: 'row',
-    flexWrap: 'wrap',
-    alignItems: 'flex-start',
+    alignItems: 'stretch',
     gap: Spacing.xs + 2,
   },
   topicTileWrapper: {
-    alignSelf: 'flex-start',
-    width: '48%',
-    flexShrink: 1,
+    flex: 1,
+    minWidth: 0,
   },
   topicTile: {
-    minHeight: 0,
+    flex: 1,
     paddingHorizontal: Spacing.md,
     paddingVertical: Spacing.sm,
     borderRadius: BorderRadius.md,
     borderWidth: 1,
-    justifyContent: 'flex-start',
+    justifyContent: 'center',
     gap: Spacing.xs,
     ...Shadows.card,
-  },
-  topicTileWide: {
-    width: '100%',
   },
   topicTileTitle: {
     fontSize: 13,
