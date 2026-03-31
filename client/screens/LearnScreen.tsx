@@ -354,6 +354,7 @@ function TopicTile({ progress, onPress, topicName, testID }: TopicTileProps) {
                   color={accentColor}
                   size={5}
                   gap={3}
+                  inactiveOpacity={0.4}
                   style={styles.topicMetaLevelDots}
                 />
               ) : null}
@@ -490,6 +491,7 @@ function NextStepCard({
                   color={accentColor}
                   size={5}
                   gap={3}
+                  inactiveOpacity={0.4}
                   style={styles.nextStepMetaLevelDots}
                 />
               ) : null}

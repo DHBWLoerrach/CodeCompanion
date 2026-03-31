@@ -8,6 +8,7 @@ interface SkillLevelDotsProps {
   color: string;
   size?: number;
   gap?: number;
+  inactiveOpacity?: number;
   style?: StyleProp<ViewStyle>;
 }
 
@@ -16,6 +17,7 @@ export function SkillLevelDots({
   color,
   size = 6,
   gap = 2,
+  inactiveOpacity = 0.25,
   style,
 }: SkillLevelDotsProps) {
   return (
@@ -30,7 +32,10 @@ export function SkillLevelDots({
               height: size,
               borderRadius: size / 2,
             },
-            { backgroundColor: i <= level ? color : withOpacity(color, 0.25) },
+            {
+              backgroundColor:
+                i <= level ? color : withOpacity(color, inactiveOpacity),
+            },
           ]}
         />
       ))}
