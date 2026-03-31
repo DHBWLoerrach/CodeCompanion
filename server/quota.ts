@@ -39,7 +39,7 @@ export type QuotaEnforcementResult = {
   reason?: ApiQuotaReason;
 };
 
-export class QuotaServiceError extends Error {
+class QuotaServiceError extends Error {
   constructor(message: string, options?: { cause?: unknown }) {
     super(message, options);
     this.name = 'QuotaServiceError';
@@ -139,15 +139,15 @@ async function insertApiUsage(
   }
 }
 
-export function isQuotaEnabled(): boolean {
+function isQuotaEnabled(): boolean {
   return process.env.API_QUOTA_ENABLED === 'true';
 }
 
-export function isValidDeviceId(deviceId: string | null): deviceId is string {
+function isValidDeviceId(deviceId: string | null): deviceId is string {
   return typeof deviceId === 'string' && UUID_V4_PATTERN.test(deviceId);
 }
 
-export async function hashDeviceId(deviceId: string): Promise<string> {
+async function hashDeviceId(deviceId: string): Promise<string> {
   try {
     return await sha256Hex(deviceId);
   } catch (error) {

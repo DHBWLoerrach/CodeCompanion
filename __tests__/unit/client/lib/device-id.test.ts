@@ -1,12 +1,13 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as Crypto from 'expo-crypto';
-import { deviceIdStorageKey, getOrCreateDeviceId } from '@/lib/device-id';
+import { getOrCreateDeviceId } from '@/lib/device-id';
 
 jest.mock('expo-crypto', () => ({
   randomUUID: jest.fn(() => 'generated-device-id'),
 }));
 
 const randomUUIDMock = jest.mocked(Crypto.randomUUID);
+const DEVICE_ID_STORAGE_KEY = 'dhbw_device_id';
 const EXISTING_DEVICE_ID = '123e4567-e89b-42d3-a456-426614174000';
 const GENERATED_DEVICE_ID = '123e4567-e89b-42d3-b456-426614174001';
 
@@ -22,13 +23,13 @@ describe('device ID storage', () => {
 
     expect(deviceId).toBe(GENERATED_DEVICE_ID);
     expect(randomUUIDMock).toHaveBeenCalledTimes(1);
-    expect(await AsyncStorage.getItem(deviceIdStorageKey)).toBe(
+    expect(await AsyncStorage.getItem(DEVICE_ID_STORAGE_KEY)).toBe(
       GENERATED_DEVICE_ID
     );
   });
 
   it('returns the stored device ID without generating a new one', async () => {
-    await AsyncStorage.setItem(deviceIdStorageKey, EXISTING_DEVICE_ID);
+    await AsyncStorage.setItem(DEVICE_ID_STORAGE_KEY, EXISTING_DEVICE_ID);
 
     const deviceId = await getOrCreateDeviceId();
 
@@ -37,13 +38,13 @@ describe('device ID storage', () => {
   });
 
   it('replaces an invalid stored device ID with a new UUID v4', async () => {
-    await AsyncStorage.setItem(deviceIdStorageKey, 'existing-device-id');
+    await AsyncStorage.setItem(DEVICE_ID_STORAGE_KEY, 'existing-device-id');
 
     const deviceId = await getOrCreateDeviceId();
 
     expect(deviceId).toBe(GENERATED_DEVICE_ID);
     expect(randomUUIDMock).toHaveBeenCalledTimes(1);
-    expect(await AsyncStorage.getItem(deviceIdStorageKey)).toBe(
+    expect(await AsyncStorage.getItem(DEVICE_ID_STORAGE_KEY)).toBe(
       GENERATED_DEVICE_ID
     );
   });

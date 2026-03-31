@@ -6,8 +6,11 @@ const mockPush = jest.fn();
 const mockGetProgress = jest.fn();
 const mockIsTopicDue = jest.fn();
 const mockRefreshLanguage = jest.fn();
+const mockJavascriptCategories = require('@/lib/topics').getCategoriesByLanguage(
+  'javascript'
+);
 const fundamentalsTopicIds = (
-  require('@/lib/topics').JAVASCRIPT_CATEGORIES.find(
+  mockJavascriptCategories.find(
     (category: { id: string }) => category.id === 'fundamentals'
   )?.topics ?? []
 ).map((topic: { id: string }) => topic.id);
@@ -99,7 +102,7 @@ jest.mock('@/contexts/ProgrammingLanguageContext', () => ({
       nameKey: 'javascript',
       shortName: 'JS',
       color: '#F7DF1E',
-      categories: require('@/lib/topics').JAVASCRIPT_CATEGORIES,
+      categories: mockJavascriptCategories,
     },
     selectedLanguageId: 'javascript',
     setSelectedLanguage: jest.fn(),

@@ -4,7 +4,7 @@ import {
   type SupabaseClientOptions,
 } from '@supabase/supabase-js';
 
-export class MissingSupabaseAdminEnvError extends Error {
+class MissingSupabaseAdminEnvError extends Error {
   constructor() {
     super('SUPABASE_URL and SUPABASE_SECRET_KEY are required');
     this.name = 'MissingSupabaseAdminEnvError';

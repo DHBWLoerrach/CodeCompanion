@@ -8,7 +8,7 @@ function getLocaleFromIntl(): string | undefined {
   }
 }
 
-export function getPreferredLanguageTag(): string | undefined {
+function getPreferredLanguageTag(): string | undefined {
   try {
     const primaryLocale = getLocales()[0];
 

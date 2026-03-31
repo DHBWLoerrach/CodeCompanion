@@ -1,5 +1,4 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { deviceIdStorageKey } from '@/lib/device-id';
 import {
   getDaysUntilDue,
   isTopicDue,
@@ -9,6 +8,7 @@ import {
   type TopicProgress,
 } from '@/lib/storage';
 
+const DEVICE_ID_STORAGE_KEY = 'dhbw_device_id';
 const STREAK_KEY = 'dhbw_streak';
 const SETTINGS_KEY = 'dhbw_settings';
 
@@ -278,13 +278,13 @@ describe('storage state updates', () => {
 
   describe('clearAllData', () => {
     it('keeps the device ID while removing other local app data', async () => {
-      await AsyncStorage.setItem(deviceIdStorageKey, 'device-uuid');
+      await AsyncStorage.setItem(DEVICE_ID_STORAGE_KEY, 'device-uuid');
       await storage.setSelectedLanguage('python');
       await storage.markWelcomeSeen();
 
       await storage.clearAllData();
 
-      expect(await AsyncStorage.getItem(deviceIdStorageKey)).toBe(
+      expect(await AsyncStorage.getItem(DEVICE_ID_STORAGE_KEY)).toBe(
         'device-uuid'
       );
       expect(await storage.hasSeenWelcome()).toBe(true);

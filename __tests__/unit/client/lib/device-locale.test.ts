@@ -1,6 +1,6 @@
 import type { Locale } from 'expo-localization';
 import { getLocales } from 'expo-localization';
-import { getDeviceLocale, getPreferredLanguageTag } from '@/lib/device-locale';
+import { getDeviceLocale } from '@/lib/device-locale';
 
 jest.mock('expo-localization', () => ({
   getLocales: jest.fn(),
@@ -28,23 +28,42 @@ function createLocale(overrides: Partial<Locale>): Locale {
   };
 }
 
-beforeEach(() => {
-  mockGetLocales.mockReset();
-});
+describe('getDeviceLocale', () => {
+  let dateTimeFormatSpy: jest.SpyInstance;
 
-describe('getPreferredLanguageTag', () => {
-  it('returns undefined when getLocales returns an empty array', () => {
+  beforeEach(() => {
+    mockGetLocales.mockReset();
+  });
+
+  afterEach(() => {
+    dateTimeFormatSpy?.mockRestore();
+  });
+
+  it('returns undefined when both sources return nothing', () => {
     mockGetLocales.mockReturnValue(
       [] as unknown as ReturnType<typeof getLocales>
     );
-    expect(getPreferredLanguageTag()).toBeUndefined();
+    // Intl.DateTimeFormat is not mocked, but returns the host locale;
+    // override it to also fail:
+    const spy = jest.spyOn(Intl, 'DateTimeFormat').mockImplementation(() => {
+      throw new Error('no intl');
+    });
+
+    expect(getDeviceLocale()).toBeUndefined();
+    spy.mockRestore();
   });
 
-  it('returns undefined when getLocales throws', () => {
+  it('returns undefined when expo-localization throws and Intl also fails', () => {
     mockGetLocales.mockImplementation(() => {
       throw new Error('native error');
     });
-    expect(getPreferredLanguageTag()).toBeUndefined();
+    dateTimeFormatSpy = jest.spyOn(Intl, 'DateTimeFormat').mockImplementation(
+      ((() => {
+        throw new Error('no intl');
+      }) as unknown) as typeof Intl.DateTimeFormat
+    );
+
+    expect(getDeviceLocale()).toBeUndefined();
   });
 
   it('uses the first preferred locale from expo-localization', () => {
@@ -65,7 +84,7 @@ describe('getPreferredLanguageTag', () => {
       }),
     ]);
 
-    expect(getPreferredLanguageTag()).toBe('de-DE');
+    expect(getDeviceLocale()).toBe('de-DE');
   });
 
   it('falls back to the language code when the language tag is missing', () => {
@@ -86,29 +105,7 @@ describe('getPreferredLanguageTag', () => {
       }),
     ]);
 
-    expect(getPreferredLanguageTag()).toBe('de');
-  });
-});
-
-describe('getDeviceLocale', () => {
-  let dateTimeFormatSpy: jest.SpyInstance;
-
-  afterEach(() => {
-    dateTimeFormatSpy?.mockRestore();
-  });
-
-  it('returns undefined when both sources return nothing', () => {
-    mockGetLocales.mockReturnValue(
-      [] as unknown as ReturnType<typeof getLocales>
-    );
-    // Intl.DateTimeFormat is not mocked, but returns the host locale;
-    // override it to also fail:
-    const spy = jest.spyOn(Intl, 'DateTimeFormat').mockImplementation(() => {
-      throw new Error('no intl');
-    });
-
-    expect(getDeviceLocale()).toBeUndefined();
-    spy.mockRestore();
+    expect(getDeviceLocale()).toBe('de');
   });
 
   it('falls back to Intl when expo-localization returns no usable locale', () => {

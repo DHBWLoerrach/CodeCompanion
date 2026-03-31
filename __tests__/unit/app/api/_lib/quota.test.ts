@@ -8,7 +8,6 @@ import {
   checkAndConsumeQuota,
   createRateLimitResponse,
   enforceQuizQuota,
-  type QuotaServiceError,
 } from '@server/quota';
 
 type ApiUsageRow = {
@@ -221,7 +220,7 @@ describe('quota helpers', () => {
 
     await expect(
       checkAndConsumeQuota('device-a', QUIZ_GENERATE_QUOTA_ENDPOINT, client)
-    ).rejects.toMatchObject<Partial<QuotaServiceError>>({
+    ).rejects.toMatchObject({
       name: 'QuotaServiceError',
       message: 'api_usage insert failed: insert failed',
     });
@@ -234,7 +233,7 @@ describe('quota helpers', () => {
 
     await expect(
       checkAndConsumeQuota('device-a', QUIZ_GENERATE_QUOTA_ENDPOINT, client)
-    ).rejects.toMatchObject<Partial<QuotaServiceError>>({
+    ).rejects.toMatchObject({
       name: 'QuotaServiceError',
       message: 'Global quota count failed: count failed',
     });

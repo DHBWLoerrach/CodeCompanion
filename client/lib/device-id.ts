@@ -19,5 +19,3 @@ export async function getOrCreateDeviceId(): Promise<string> {
   await AsyncStorage.setItem(DEVICE_ID_STORAGE_KEY, deviceId);
   return deviceId;
 }
-
-export const deviceIdStorageKey = DEVICE_ID_STORAGE_KEY;
