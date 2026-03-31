@@ -1,19 +1,19 @@
-import { getAllCurricula, getLocalizedText } from "@shared/curriculum";
+import { getAllCurricula, getLocalizedText } from '@shared/curriculum';
 import type {
   CurriculumCategory,
   CurriculumTopic,
   LocalizedText,
-} from "@shared/curriculum/types";
+} from '@shared/curriculum/types';
 import {
   DEFAULT_PROGRAMMING_LANGUAGE_ID,
   type ProgrammingLanguageId,
-} from "@shared/programming-language";
+} from '@shared/programming-language';
 import {
   isTranslationKey,
   type Language,
   type TranslationKey,
   translations,
-} from "./i18n";
+} from './i18n';
 
 export interface Topic {
   id: string;
@@ -37,7 +37,7 @@ export interface Category {
 }
 
 function toTranslationKey(
-  value: string | undefined,
+  value: string | undefined
 ): TranslationKey | undefined {
   if (!value || !isTranslationKey(value)) return undefined;
   return value;
@@ -77,7 +77,7 @@ const CATEGORIES_BY_LANGUAGE = Object.fromEntries(
   getAllCurricula().map((curriculum) => [
     curriculum.languageId,
     curriculum.categories.map(mapCategory),
-  ]),
+  ])
 ) as { [K in ProgrammingLanguageId]: Category[] };
 
 // @visibleForTesting
@@ -85,14 +85,14 @@ export const JAVASCRIPT_CATEGORIES =
   CATEGORIES_BY_LANGUAGE[DEFAULT_PROGRAMMING_LANGUAGE_ID];
 
 export function getCategoriesByLanguage(
-  languageId: ProgrammingLanguageId,
+  languageId: ProgrammingLanguageId
 ): Category[] {
   return CATEGORIES_BY_LANGUAGE[languageId] ?? JAVASCRIPT_CATEGORIES;
 }
 
 export function getTopicById(
   topicId: string,
-  categories: Category[] = JAVASCRIPT_CATEGORIES,
+  categories: Category[] = JAVASCRIPT_CATEGORIES
 ): Topic | undefined {
   for (const category of categories) {
     const topic = category.topics.find((candidate) => candidate.id === topicId);
@@ -103,7 +103,7 @@ export function getTopicById(
 
 function resolveLegacyTranslation(
   key: TranslationKey | undefined,
-  language: Language,
+  language: Language
 ): string | undefined {
   if (!key) return undefined;
   const localizedTranslations = translations[language] as Record<
@@ -131,12 +131,12 @@ export function getTopicDescription(topic: Topic, language: Language): string {
   const legacy = resolveLegacyTranslation(topic.legacyDescKey, language);
   if (legacy) return legacy;
 
-  return "";
+  return '';
 }
 
 export function getCategoryName(
   category: Category,
-  language: Language,
+  language: Language
 ): string {
   const localized = getLocalizedText(category.name, language).trim();
   if (localized) return localized;

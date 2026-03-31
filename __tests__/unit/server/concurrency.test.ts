@@ -1,33 +1,33 @@
-import { mapWithConcurrency } from "@server/concurrency";
+import { mapWithConcurrency } from '@server/concurrency';
 
-describe("mapWithConcurrency", () => {
-  it("preserves input order while processing items concurrently", async () => {
+describe('mapWithConcurrency', () => {
+  it('preserves input order while processing items concurrently', async () => {
     const resolvers: ((value: string) => void)[] = [];
     const startedIndices: number[] = [];
 
     const pending = mapWithConcurrency(
-      ["a", "b", "c"],
+      ['a', 'b', 'c'],
       2,
       (item, index) =>
         new Promise<string>((resolve) => {
           startedIndices.push(index);
           resolvers[index] = () => resolve(item.toUpperCase());
-        }),
+        })
     );
 
     expect(startedIndices).toEqual([0, 1]);
 
-    resolvers[1]("B");
+    resolvers[1]('B');
     await Promise.resolve();
     expect(startedIndices).toEqual([0, 1, 2]);
 
-    resolvers[0]("A");
-    resolvers[2]("C");
+    resolvers[0]('A');
+    resolvers[2]('C');
 
-    await expect(pending).resolves.toEqual(["A", "B", "C"]);
+    await expect(pending).resolves.toEqual(['A', 'B', 'C']);
   });
 
-  it("never exceeds the configured concurrency", async () => {
+  it('never exceeds the configured concurrency', async () => {
     let activeWorkers = 0;
     let peakWorkers = 0;
 
@@ -41,16 +41,16 @@ describe("mapWithConcurrency", () => {
         await Promise.resolve();
         activeWorkers -= 1;
         return item * 2;
-      },
+      }
     );
 
     expect(results).toEqual([2, 4, 6, 8, 10]);
     expect(peakWorkers).toBe(2);
   });
 
-  it("throws for invalid concurrency values", async () => {
+  it('throws for invalid concurrency values', async () => {
     await expect(
-      mapWithConcurrency([1], 0, async (value) => value),
-    ).rejects.toThrow("concurrency must be a positive integer");
+      mapWithConcurrency([1], 0, async (value) => value)
+    ).rejects.toThrow('concurrency must be a positive integer');
   });
 });

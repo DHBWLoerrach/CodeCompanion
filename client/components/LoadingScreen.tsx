@@ -1,7 +1,7 @@
-import React from "react";
-import { ActivityIndicator, StyleSheet } from "react-native";
-import { ThemedView } from "@/components/ThemedView";
-import { useTheme } from "@/contexts/ThemeContext";
+import React from 'react';
+import { ActivityIndicator, StyleSheet } from 'react-native';
+import { ThemedView } from '@/components/ThemedView';
+import { useTheme } from '@/contexts/ThemeContext';
 
 export function LoadingScreen() {
   const { theme } = useTheme();
@@ -16,7 +16,7 @@ export function LoadingScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    alignItems: "center",
-    justifyContent: "center",
+    alignItems: 'center',
+    justifyContent: 'center',
   },
 });

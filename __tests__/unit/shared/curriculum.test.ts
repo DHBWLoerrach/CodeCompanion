@@ -5,19 +5,19 @@ import {
   getTopicById,
   getTopicIdsByLanguage,
   isValidTopicId,
-} from "@shared/curriculum";
+} from '@shared/curriculum';
 
-describe("shared/curriculum", () => {
-  it("loads all supported curricula", () => {
+describe('shared/curriculum', () => {
+  it('loads all supported curricula', () => {
     const curricula = getAllCurricula();
     expect(curricula.map((curriculum) => curriculum.languageId)).toEqual([
-      "javascript",
-      "python",
-      "java",
+      'javascript',
+      'python',
+      'java',
     ]);
   });
 
-  it("provides required localized language metadata", () => {
+  it('provides required localized language metadata', () => {
     const curricula = getAllCurricula();
     for (const curriculum of curricula) {
       expect(curriculum.languageName.en.length).toBeGreaterThan(0);
@@ -27,8 +27,8 @@ describe("shared/curriculum", () => {
     }
   });
 
-  it("keeps categories and topics sorted by order", () => {
-    const python = getCurriculumByLanguage("python");
+  it('keeps categories and topics sorted by order', () => {
+    const python = getCurriculumByLanguage('python');
     const categoryOrders = python.categories.map((category) => category.order);
     expect(categoryOrders).toEqual([...categoryOrders].sort((a, b) => a - b));
 
@@ -38,30 +38,30 @@ describe("shared/curriculum", () => {
     }
   });
 
-  it("exposes topic lookup and validation helpers", () => {
-    expect(isValidTopicId("javascript", "variables")).toBe(true);
-    expect(isValidTopicId("python", "variables")).toBe(false);
-    expect(isValidTopicId("python", "variables-assignment")).toBe(true);
-    expect(isValidTopicId("java", "variables-constants")).toBe(true);
-    expect(isValidTopicId("java", "variables")).toBe(false);
+  it('exposes topic lookup and validation helpers', () => {
+    expect(isValidTopicId('javascript', 'variables')).toBe(true);
+    expect(isValidTopicId('python', 'variables')).toBe(false);
+    expect(isValidTopicId('python', 'variables-assignment')).toBe(true);
+    expect(isValidTopicId('java', 'variables-constants')).toBe(true);
+    expect(isValidTopicId('java', 'variables')).toBe(false);
 
-    expect(getTopicById("python", "type-hints")?.id).toBe("type-hints");
-    expect(getTopicById("java", "does-not-exist")).toBeUndefined();
+    expect(getTopicById('python', 'type-hints')?.id).toBe('type-hints');
+    expect(getTopicById('java', 'does-not-exist')).toBeUndefined();
   });
 
-  it("returns deterministic topic IDs by language", () => {
-    const javascriptTopicIds = getTopicIdsByLanguage("javascript");
-    expect(javascriptTopicIds[0]).toBe("variables");
-    expect(javascriptTopicIds[javascriptTopicIds.length - 1]).toBe("modules");
+  it('returns deterministic topic IDs by language', () => {
+    const javascriptTopicIds = getTopicIdsByLanguage('javascript');
+    expect(javascriptTopicIds[0]).toBe('variables');
+    expect(javascriptTopicIds[javascriptTopicIds.length - 1]).toBe('modules');
 
-    const javaTopicIds = getTopicIdsByLanguage("java");
-    expect(javaTopicIds[0]).toBe("variables-constants");
-    expect(javaTopicIds[javaTopicIds.length - 1]).toBe("concurrency-basics");
+    const javaTopicIds = getTopicIdsByLanguage('java');
+    expect(javaTopicIds[0]).toBe('variables-constants');
+    expect(javaTopicIds[javaTopicIds.length - 1]).toBe('concurrency-basics');
   });
 
-  it("resolves localized text with english fallback", () => {
-    const text = { en: "English", de: "Deutsch" };
-    expect(getLocalizedText(text, "de")).toBe("Deutsch");
-    expect(getLocalizedText(text, "en")).toBe("English");
+  it('resolves localized text with english fallback', () => {
+    const text = { en: 'English', de: 'Deutsch' };
+    expect(getLocalizedText(text, 'de')).toBe('Deutsch');
+    expect(getLocalizedText(text, 'en')).toBe('English');
   });
 });

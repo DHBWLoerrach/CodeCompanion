@@ -1,9 +1,9 @@
-import React, { type ReactNode } from "react";
-import { StyleSheet, View, type StyleProp, type ViewStyle } from "react-native";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
+import React, { type ReactNode } from 'react';
+import { StyleSheet, View, type StyleProp, type ViewStyle } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { BottomActionBarLayout, Spacing } from "@/constants/theme";
-import { useTheme } from "@/contexts/ThemeContext";
+import { BottomActionBarLayout, Spacing } from '@/constants/theme';
+import { useTheme } from '@/contexts/ThemeContext';
 
 type BottomActionBarProps = {
   children: ReactNode;
@@ -39,7 +39,7 @@ const styles = StyleSheet.create({
     left: 0,
     paddingHorizontal: Spacing.lg,
     paddingTop: BottomActionBarLayout.paddingTop,
-    position: "absolute",
+    position: 'absolute',
     right: 0,
   },
 });

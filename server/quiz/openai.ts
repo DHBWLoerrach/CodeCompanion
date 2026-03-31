@@ -1,9 +1,9 @@
-import * as https from "node:https";
+import * as https from 'node:https';
 
-const OPENAI_RESPONSES_URL = "https://api.openai.com/v1/responses";
+const OPENAI_RESPONSES_URL = 'https://api.openai.com/v1/responses';
 const DEFAULT_OPENAI_TIMEOUT_MS = 30_000;
 
-export const DEFAULT_OPENAI_MODEL = "gpt-5.4-nano";
+export const DEFAULT_OPENAI_MODEL = 'gpt-5.4-nano';
 
 export function quizMaxOutputTokens(count: number): number {
   return Math.min(8192, Math.max(4096, count * 300));
@@ -11,14 +11,14 @@ export function quizMaxOutputTokens(count: number): number {
 
 function getResponseText(response: unknown): string {
   if (
-    typeof (response as { output_text?: unknown })?.output_text === "string"
+    typeof (response as { output_text?: unknown })?.output_text === 'string'
   ) {
     return (response as { output_text: string }).output_text;
   }
 
   const output = (response as { output?: unknown })?.output;
   if (!Array.isArray(output)) {
-    return "";
+    return '';
   }
 
   const parts: string[] = [];
@@ -27,17 +27,17 @@ function getResponseText(response: unknown): string {
     if (!Array.isArray(content)) continue;
     for (const block of content) {
       if (
-        (block as { type?: string })?.type === "output_text" &&
-        typeof (block as { text?: unknown })?.text === "string"
+        (block as { type?: string })?.type === 'output_text' &&
+        typeof (block as { text?: unknown })?.text === 'string'
       ) {
         parts.push((block as { text: string }).text);
-      } else if (typeof (block as { text?: unknown })?.text === "string") {
+      } else if (typeof (block as { text?: unknown })?.text === 'string') {
         parts.push((block as { text: string }).text);
       }
     }
   }
 
-  return parts.join("");
+  return parts.join('');
 }
 
 function getResponseRefusal(response: unknown): string | null {
@@ -51,8 +51,8 @@ function getResponseRefusal(response: unknown): string | null {
     if (!Array.isArray(content)) continue;
     for (const block of content) {
       if (
-        (block as { type?: string })?.type === "refusal" &&
-        typeof (block as { refusal?: unknown })?.refusal === "string"
+        (block as { type?: string })?.type === 'refusal' &&
+        typeof (block as { refusal?: unknown })?.refusal === 'string'
       ) {
         return (block as { refusal: string }).refusal;
       }
@@ -69,7 +69,7 @@ function assertOpenAIResponseIsUsable(response: unknown): void {
   }
 
   const status = (response as { status?: unknown })?.status;
-  if (status !== "incomplete") {
+  if (status !== 'incomplete') {
     return;
   }
 
@@ -79,22 +79,22 @@ function assertOpenAIResponseIsUsable(response: unknown): void {
     }
   )?.incomplete_details?.reason;
 
-  if (typeof reason === "string" && reason.length > 0) {
+  if (typeof reason === 'string' && reason.length > 0) {
     throw new Error(`OpenAI response incomplete: ${reason}`);
   }
 
-  throw new Error("OpenAI response incomplete");
+  throw new Error('OpenAI response incomplete');
 }
 
 function isTimeoutError(error: unknown): boolean {
   const timeoutError = error as { code?: unknown; message?: unknown } | null;
-  if (timeoutError?.code === "ETIMEDOUT") {
+  if (timeoutError?.code === 'ETIMEDOUT') {
     return true;
   }
 
   return (
-    typeof timeoutError?.message === "string" &&
-    timeoutError.message.toLowerCase().includes("timed out")
+    typeof timeoutError?.message === 'string' &&
+    timeoutError.message.toLowerCase().includes('timed out')
   );
 }
 
@@ -108,7 +108,7 @@ function getOpenAIRequestTimeoutMs(): number {
 
 async function requestOpenAIViaHttps(
   apiKey: string,
-  payload: Record<string, unknown>,
+  payload: Record<string, unknown>
 ): Promise<unknown> {
   const requestBody = JSON.stringify(payload);
 
@@ -116,24 +116,24 @@ async function requestOpenAIViaHttps(
     const request = https.request(
       OPENAI_RESPONSES_URL,
       {
-        method: "POST",
+        method: 'POST',
         headers: {
-          "Content-Type": "application/json",
+          'Content-Type': 'application/json',
           Authorization: `Bearer ${apiKey}`,
-          "Content-Length": Buffer.byteLength(requestBody).toString(),
+          'Content-Length': Buffer.byteLength(requestBody).toString(),
         },
       },
       (response) => {
-        response.setEncoding("utf8");
-        let responseBody = "";
-        response.on("data", (chunk) => {
+        response.setEncoding('utf8');
+        let responseBody = '';
+        response.on('data', (chunk) => {
           responseBody += chunk;
         });
-        response.on("end", () => {
+        response.on('end', () => {
           const statusCode = response.statusCode ?? 500;
           if (statusCode < 200 || statusCode >= 300) {
             reject(
-              new Error(`OpenAI request failed with status ${statusCode}`),
+              new Error(`OpenAI request failed with status ${statusCode}`)
             );
             return;
           }
@@ -141,21 +141,21 @@ async function requestOpenAIViaHttps(
           try {
             resolve(responseBody ? (JSON.parse(responseBody) as unknown) : {});
           } catch {
-            reject(new Error("Invalid JSON response from OpenAI"));
+            reject(new Error('Invalid JSON response from OpenAI'));
           }
         });
-      },
+      }
     );
 
     request.setTimeout(getOpenAIRequestTimeoutMs(), () => {
       const timeoutError = new Error(
-        "Request timed out",
+        'Request timed out'
       ) as NodeJS.ErrnoException;
-      timeoutError.code = "ETIMEDOUT";
+      timeoutError.code = 'ETIMEDOUT';
       request.destroy(timeoutError);
     });
 
-    request.on("error", reject);
+    request.on('error', reject);
     request.write(requestBody);
     request.end();
   });
@@ -164,15 +164,15 @@ async function requestOpenAIViaHttps(
 async function requestOpenAI(payload: Record<string, unknown>) {
   const apiKey = process.env.OPENAI_API_KEY;
   if (!apiKey) {
-    throw new Error("OPENAI_API_KEY is not set");
+    throw new Error('OPENAI_API_KEY is not set');
   }
 
   let response: Response;
   try {
     response = await fetch(OPENAI_RESPONSES_URL, {
-      method: "POST",
+      method: 'POST',
       headers: {
-        "Content-Type": "application/json",
+        'Content-Type': 'application/json',
         Authorization: `Bearer ${apiKey}`,
       },
       body: JSON.stringify(payload),
@@ -198,19 +198,19 @@ async function requestOpenAI(payload: Record<string, unknown>) {
       return requestOpenAIViaHttps(apiKey, payload);
     }
 
-    throw new Error("Invalid JSON response from OpenAI");
+    throw new Error('Invalid JSON response from OpenAI');
   }
 }
 
 export async function requestQuizResponseText(
-  payload: Record<string, unknown>,
+  payload: Record<string, unknown>
 ): Promise<string> {
   const response = await requestOpenAI(payload);
   assertOpenAIResponseIsUsable(response);
 
   const content = getResponseText(response);
   if (!content) {
-    throw new Error("Empty response from OpenAI");
+    throw new Error('Empty response from OpenAI');
   }
 
   return content;

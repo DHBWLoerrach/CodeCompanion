@@ -1,36 +1,36 @@
-import React, { useState, useEffect, useRef, useCallback } from "react";
-import { View, StyleSheet, Pressable, TextInput, Alert } from "react-native";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { Stack, useRouter } from "expo-router";
-import SegmentedControl from "@react-native-segmented-control/segmented-control";
-import Constants from "expo-constants";
-import { EaseView } from "react-native-ease";
+import React, { useState, useEffect, useRef, useCallback } from 'react';
+import { View, StyleSheet, Pressable, TextInput, Alert } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { Stack, useRouter } from 'expo-router';
+import SegmentedControl from '@react-native-segmented-control/segmented-control';
+import Constants from 'expo-constants';
+import { EaseView } from 'react-native-ease';
 
-import { SecondaryButton } from "@/components/ActionButton";
-import { ThemedText } from "@/components/ThemedText";
-import { ThemedView } from "@/components/ThemedView";
-import { KeyboardAwareScrollViewCompat } from "@/components/KeyboardAwareScrollViewCompat";
-import { AppIcon } from "@/components/AppIcon";
-import { LoadingScreen } from "@/components/LoadingScreen";
-import { SurfaceCard } from "@/components/SurfaceCard";
-import { useTheme } from "@/contexts/ThemeContext";
-import { usePressAnimation } from "@/hooks/usePressAnimation";
-import { useTranslation } from "@/hooks/useTranslation";
-import { getLanguageDisplayName } from "@/lib/languages";
+import { SecondaryButton } from '@/components/ActionButton';
+import { ThemedText } from '@/components/ThemedText';
+import { ThemedView } from '@/components/ThemedView';
+import { KeyboardAwareScrollViewCompat } from '@/components/KeyboardAwareScrollViewCompat';
+import { AppIcon } from '@/components/AppIcon';
+import { LoadingScreen } from '@/components/LoadingScreen';
+import { SurfaceCard } from '@/components/SurfaceCard';
+import { useTheme } from '@/contexts/ThemeContext';
+import { usePressAnimation } from '@/hooks/usePressAnimation';
+import { useTranslation } from '@/hooks/useTranslation';
+import { getLanguageDisplayName } from '@/lib/languages';
 import {
   Spacing,
   BorderRadius,
   Shadows,
   AvatarColors,
   AVATARS,
-} from "@/constants/theme";
+} from '@/constants/theme';
 import {
   storage,
   type UserProfile,
   type SettingsData,
   type ThemeMode,
-} from "@/lib/storage";
-import { useProgrammingLanguage } from "@/contexts/ProgrammingLanguageContext";
+} from '@/lib/storage';
+import { useProgrammingLanguage } from '@/contexts/ProgrammingLanguageContext';
 
 interface AvatarSelectorProps {
   selectedIndex: number;
@@ -165,8 +165,8 @@ export default function SettingsScreen() {
   const insets = useSafeAreaInsets();
   const router = useRouter();
   const settingsScreenOptions = {
-    title: t("settings"),
-    headerTransparent: process.env.EXPO_OS === "ios",
+    title: t('settings'),
+    headerTransparent: process.env.EXPO_OS === 'ios',
   } as const;
 
   const [profile, setProfile] = useState<UserProfile | null>(null);
@@ -186,7 +186,7 @@ export default function SettingsScreen() {
       setProfile(profileData);
       setSettings(settingsData);
     } catch (error) {
-      console.error("Error loading settings:", error);
+      console.error('Error loading settings:', error);
     } finally {
       setLoading(false);
     }
@@ -205,12 +205,12 @@ export default function SettingsScreen() {
       try {
         await storage.setProfile(nextProfile);
       } catch (error) {
-        console.error("Error saving profile:", error);
-        Alert.alert(t("error"), t("failedToSaveSettings"));
+        console.error('Error saving profile:', error);
+        Alert.alert(t('error'), t('failedToSaveSettings'));
         await loadData();
       }
     },
-    [loadData, t],
+    [loadData, t]
   );
 
   useEffect(() => {
@@ -231,11 +231,11 @@ export default function SettingsScreen() {
   }, [persistProfile, profile]);
 
   const handleResetProgress = () => {
-    Alert.alert(t("resetProgress"), t("resetProgressMessage"), [
-      { text: t("cancel"), style: "cancel" },
+    Alert.alert(t('resetProgress'), t('resetProgressMessage'), [
+      { text: t('cancel'), style: 'cancel' },
       {
-        text: t("reset"),
-        style: "destructive",
+        text: t('reset'),
+        style: 'destructive',
         onPress: async () => {
           await storage.clearAllData();
           router.back();
@@ -246,18 +246,18 @@ export default function SettingsScreen() {
 
   const getThemeModeLabel = (mode: ThemeMode) => {
     switch (mode) {
-      case "auto":
-        return t("themeAuto");
-      case "light":
-        return t("themeLight");
-      case "dark":
-        return t("themeDark");
+      case 'auto':
+        return t('themeAuto');
+      case 'light':
+        return t('themeLight');
+      case 'dark':
+        return t('themeDark');
       default:
         return mode;
     }
   };
 
-  const applyLanguage = async (newLanguage: "en" | "de") => {
+  const applyLanguage = async (newLanguage: 'en' | 'de') => {
     const currentSettings = settingsRef.current;
     if (!currentSettings || settingsUpdateInFlightRef.current) return;
 
@@ -273,8 +273,8 @@ export default function SettingsScreen() {
       await storage.setSettings(newSettings);
       await refreshLanguage();
     } catch (error) {
-      console.error("Error updating language:", error);
-      Alert.alert(t("error"), t("failedToSaveSettings"));
+      console.error('Error updating language:', error);
+      Alert.alert(t('error'), t('failedToSaveSettings'));
       await loadData();
     } finally {
       settingsUpdateInFlightRef.current = false;
@@ -297,8 +297,8 @@ export default function SettingsScreen() {
       await storage.setSettings(newSettings);
       await refreshTheme();
     } catch (error) {
-      console.error("Error updating theme:", error);
-      Alert.alert(t("error"), t("failedToSaveSettings"));
+      console.error('Error updating theme:', error);
+      Alert.alert(t('error'), t('failedToSaveSettings'));
       await loadData();
     } finally {
       settingsUpdateInFlightRef.current = false;
@@ -324,7 +324,7 @@ export default function SettingsScreen() {
             styles.scrollContent,
             {
               paddingTop: Spacing.xl,
-              paddingBottom: Spacing["3xl"] + insets.bottom,
+              paddingBottom: Spacing['3xl'] + insets.bottom,
             },
           ]}
         >
@@ -333,11 +333,11 @@ export default function SettingsScreen() {
               type="label"
               style={[styles.sectionTitle, { color: theme.tabIconDefault }]}
             >
-              {t("profile")}
+              {t('profile')}
             </ThemedText>
             <SurfaceCard style={styles.card}>
               <ThemedText type="label" style={styles.fieldLabel}>
-                {t("avatar")}
+                {t('avatar')}
               </ThemedText>
               <AvatarSelector
                 selectedIndex={profile.avatarIndex}
@@ -350,7 +350,7 @@ export default function SettingsScreen() {
                 type="label"
                 style={[styles.fieldLabel, { marginTop: Spacing.lg }]}
               >
-                {t("displayName")}
+                {t('displayName')}
               </ThemedText>
               <TextInput
                 testID="settings-display-name-input"
@@ -366,7 +366,7 @@ export default function SettingsScreen() {
                 onChangeText={(text) =>
                   setProfile({ ...profile, displayName: text })
                 }
-                placeholder={t("student")}
+                placeholder={t('student')}
                 placeholderTextColor={theme.tabIconDefault}
               />
             </SurfaceCard>
@@ -377,33 +377,33 @@ export default function SettingsScreen() {
               type="label"
               style={[styles.sectionTitle, { color: theme.tabIconDefault }]}
             >
-              {t("preferences")}
+              {t('preferences')}
             </ThemedText>
             <View style={styles.settingsGroup}>
               {(() => {
-                const languageIndex = settings.language === "en" ? 0 : 1;
-                const themeModes: ThemeMode[] = ["auto", "light", "dark"];
+                const languageIndex = settings.language === 'en' ? 0 : 1;
+                const themeModes: ThemeMode[] = ['auto', 'light', 'dark'];
                 const themeIndex = Math.max(
                   0,
-                  themeModes.indexOf(settings.themeMode),
+                  themeModes.indexOf(settings.themeMode)
                 );
 
                 return (
                   <>
                     <SettingsActionRow
                       icon="code"
-                      label={t("changeTechnology")}
+                      label={t('changeTechnology')}
                       onPress={() =>
                         router.push({
-                          pathname: "../language-select",
-                          params: { allowBack: "1" },
+                          pathname: '../language-select',
+                          params: { allowBack: '1' },
                         })
                       }
                       rightContent={
                         <View
                           style={{
-                            flexDirection: "row",
-                            alignItems: "center",
+                            flexDirection: 'row',
+                            alignItems: 'center',
                             gap: Spacing.sm,
                           }}
                         >
@@ -414,9 +414,9 @@ export default function SettingsScreen() {
                             {selectedLanguage
                               ? getLanguageDisplayName(
                                   selectedLanguage,
-                                  language,
+                                  language
                                 )
-                              : t("javascript")}
+                              : t('javascript')}
                           </ThemedText>
                           <AppIcon
                             name="chevron-right"
@@ -426,34 +426,34 @@ export default function SettingsScreen() {
                         </View>
                       }
                     />
-                    <SettingRow icon="globe" label={t("appLanguage")}>
+                    <SettingRow icon="globe" label={t('appLanguage')}>
                       <SegmentedControl
-                        values={["English", "Deutsch"]}
+                        values={['English', 'Deutsch']}
                         selectedIndex={languageIndex}
                         onChange={({ nativeEvent }) => {
                           if (settingsUpdateInFlightRef.current) return;
                           const nextLanguage =
                             nativeEvent.selectedSegmentIndex === 0
-                              ? "en"
-                              : "de";
+                              ? 'en'
+                              : 'de';
                           applyLanguage(nextLanguage);
                         }}
                         style={styles.segmentedControl}
                       />
                     </SettingRow>
-                    <SettingRow icon="moon" label={t("theme")}>
+                    <SettingRow icon="moon" label={t('theme')}>
                       <SegmentedControl
                         values={[
-                          getThemeModeLabel("auto"),
-                          getThemeModeLabel("light"),
-                          getThemeModeLabel("dark"),
+                          getThemeModeLabel('auto'),
+                          getThemeModeLabel('light'),
+                          getThemeModeLabel('dark'),
                         ]}
                         selectedIndex={themeIndex}
                         onChange={({ nativeEvent }) => {
                           if (settingsUpdateInFlightRef.current) return;
                           const nextMode =
                             themeModes[nativeEvent.selectedSegmentIndex] ??
-                            "auto";
+                            'auto';
                           applyThemeMode(nextMode);
                         }}
                         style={styles.segmentedControlWide}
@@ -470,16 +470,16 @@ export default function SettingsScreen() {
               type="label"
               style={[styles.sectionTitle, { color: theme.tabIconDefault }]}
             >
-              {t("about")}
+              {t('about')}
             </ThemedText>
             <View style={styles.settingsGroup}>
               <SettingsActionRow
                 icon="info"
-                label={t("aboutThisApp")}
+                label={t('aboutThisApp')}
                 onPress={() =>
                   router.push({
-                    pathname: "/info-modal",
-                    params: { type: "about" },
+                    pathname: '/info-modal',
+                    params: { type: 'about' },
                   })
                 }
                 rightContent={
@@ -492,11 +492,11 @@ export default function SettingsScreen() {
               />
               <SettingsActionRow
                 icon="file-text"
-                label={t("imprint")}
+                label={t('imprint')}
                 onPress={() =>
                   router.push({
-                    pathname: "/info-modal",
-                    params: { type: "imprint" },
+                    pathname: '/info-modal',
+                    params: { type: 'imprint' },
                   })
                 }
                 rightContent={
@@ -516,10 +516,10 @@ export default function SettingsScreen() {
               >
                 <View style={styles.settingLeft}>
                   <AppIcon name="tag" size={20} color={theme.tabIconDefault} />
-                  <ThemedText type="body">{t("version")}</ThemedText>
+                  <ThemedText type="body">{t('version')}</ThemedText>
                 </View>
                 <ThemedText type="body" style={{ color: theme.tabIconDefault }}>
-                  {Constants.expoConfig?.version ?? "1.0.0"}
+                  {Constants.expoConfig?.version ?? '1.0.0'}
                 </ThemedText>
               </View>
             </View>
@@ -529,7 +529,7 @@ export default function SettingsScreen() {
             testID="settings-reset-progress-button"
             color={theme.error}
             icon="trash-2"
-            label={t("resetAllProgress")}
+            label={t('resetAllProgress')}
             onPress={handleResetProgress}
             style={styles.dangerButton}
           />
@@ -554,7 +554,7 @@ const styles = StyleSheet.create({
     gap: Spacing.md,
   },
   sectionTitle: {
-    textTransform: "uppercase",
+    textTransform: 'uppercase',
     letterSpacing: 0.5,
   },
   card: {
@@ -564,16 +564,16 @@ const styles = StyleSheet.create({
     marginBottom: Spacing.sm,
   },
   avatarGrid: {
-    flexDirection: "row",
+    flexDirection: 'row',
     gap: Spacing.md,
-    justifyContent: "center",
+    justifyContent: 'center',
   },
   avatarOption: {
     width: 60,
     height: 60,
     borderRadius: 30,
-    alignItems: "center",
-    justifyContent: "center",
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   textInput: {
     height: 48,
@@ -584,20 +584,20 @@ const styles = StyleSheet.create({
   },
   settingsGroup: {
     borderRadius: BorderRadius.md,
-    overflow: "hidden",
+    overflow: 'hidden',
     ...Shadows.card,
   },
   settingRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
     padding: Spacing.lg,
     borderBottomWidth: StyleSheet.hairlineWidth,
   },
   aboutActionButton: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
     padding: Spacing.lg,
     borderBottomWidth: StyleSheet.hairlineWidth,
   },
@@ -605,20 +605,20 @@ const styles = StyleSheet.create({
     borderBottomWidth: 0,
   },
   settingLeft: {
-    flexDirection: "row",
-    alignItems: "center",
+    flexDirection: 'row',
+    alignItems: 'center',
     gap: Spacing.md,
   },
   segmentedControl: {
     minWidth: 160,
     maxWidth: 200,
-    alignSelf: "flex-end",
+    alignSelf: 'flex-end',
     flexShrink: 1,
   },
   segmentedControlWide: {
     minWidth: 200,
     maxWidth: 240,
-    alignSelf: "flex-end",
+    alignSelf: 'flex-end',
     flexShrink: 1,
   },
   dangerButton: {

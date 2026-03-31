@@ -1,29 +1,29 @@
-import React from "react";
-import { View, ScrollView, StyleSheet, Pressable } from "react-native";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { useRouter } from "expo-router";
-import { EaseView } from "react-native-ease";
+import React from 'react';
+import { View, ScrollView, StyleSheet, Pressable } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useRouter } from 'expo-router';
+import { EaseView } from 'react-native-ease';
 
-import { ThemedText } from "@/components/ThemedText";
-import { ThemedView } from "@/components/ThemedView";
-import { AppIcon } from "@/components/AppIcon";
-import { LoadingScreen } from "@/components/LoadingScreen";
-import { useTheme } from "@/contexts/ThemeContext";
-import { useTranslation } from "@/hooks/useTranslation";
-import { usePressAnimation } from "@/hooks/usePressAnimation";
-import { useTopicProgress } from "@/hooks/useTopicProgress";
-import { Spacing, BorderRadius, Shadows, withOpacity } from "@/constants/theme";
+import { ThemedText } from '@/components/ThemedText';
+import { ThemedView } from '@/components/ThemedView';
+import { AppIcon } from '@/components/AppIcon';
+import { LoadingScreen } from '@/components/LoadingScreen';
+import { useTheme } from '@/contexts/ThemeContext';
+import { useTranslation } from '@/hooks/useTranslation';
+import { usePressAnimation } from '@/hooks/usePressAnimation';
+import { useTopicProgress } from '@/hooks/useTopicProgress';
+import { Spacing, BorderRadius, Shadows, withOpacity } from '@/constants/theme';
 import {
   type Topic,
   type Category,
   getTopicName,
   getCategoryName,
-} from "@/lib/topics";
-import { type TopicProgress, isTopicDue } from "@/lib/storage";
-import { useProgrammingLanguage } from "@/contexts/ProgrammingLanguageContext";
+} from '@/lib/topics';
+import { type TopicProgress, isTopicDue } from '@/lib/storage';
+import { useProgrammingLanguage } from '@/contexts/ProgrammingLanguageContext';
 
-type TranslateFn = ReturnType<typeof useTranslation>["t"];
-type TopicVisualState = "new" | "started" | "due" | "mastered";
+type TranslateFn = ReturnType<typeof useTranslation>['t'];
+type TopicVisualState = 'new' | 'started' | 'due' | 'mastered';
 
 interface TopicTileProps {
   progress?: TopicProgress;
@@ -41,7 +41,7 @@ function getLastPracticedTime(progress: TopicProgress | undefined) {
 
 function getRecommendedTopicId(
   category: Category,
-  topicProgress: Record<string, TopicProgress>,
+  topicProgress: Record<string, TopicProgress>
 ): string {
   const startedTopics = category.topics.filter((topic) => {
     const progress = topicProgress[topic.id];
@@ -49,7 +49,7 @@ function getRecommendedTopicId(
   });
 
   const dueStartedTopics = startedTopics.filter((topic) =>
-    isTopicDue(topicProgress[topic.id]),
+    isTopicDue(topicProgress[topic.id])
   );
 
   const candidates =
@@ -76,7 +76,7 @@ function getRecommendedTopicId(
 }
 
 function getTopicCountLabel(topicCount: number, t: TranslateFn) {
-  return `${topicCount} ${topicCount === 1 ? t("topic") : t("topics")}`;
+  return `${topicCount} ${topicCount === 1 ? t('topic') : t('topics')}`;
 }
 
 function capitalizeLabel(label: string) {
@@ -84,64 +84,64 @@ function capitalizeLabel(label: string) {
 }
 
 function getTopicVisualState(
-  progress: TopicProgress | undefined,
+  progress: TopicProgress | undefined
 ): TopicVisualState {
   const hasStarted = Boolean(progress && progress.questionsAnswered > 0);
 
   if (progress?.skillLevel === 5) {
-    return "mastered";
+    return 'mastered';
   }
 
   if (hasStarted && isTopicDue(progress)) {
-    return "due";
+    return 'due';
   }
 
   if (hasStarted) {
-    return "started";
+    return 'started';
   }
 
-  return "new";
+  return 'new';
 }
 
 function getTopicStateMeta(
   progress: TopicProgress | undefined,
-  t: TranslateFn,
+  t: TranslateFn
 ) {
   const state = getTopicVisualState(progress);
 
   switch (state) {
-    case "mastered":
-      return { state, label: t("mastered"), iconName: "award" as const };
-    case "due":
-      return { state, label: t("reviewLabel"), iconName: "clock" as const };
-    case "started":
+    case 'mastered':
+      return { state, label: t('mastered'), iconName: 'award' as const };
+    case 'due':
+      return { state, label: t('reviewLabel'), iconName: 'clock' as const };
+    case 'started':
       return {
         state,
-        label: t("inProgressLabel"),
-        iconName: "play" as const,
+        label: t('inProgressLabel'),
+        iconName: 'play' as const,
       };
-    case "new":
+    case 'new':
     default:
-      return { state: "new" as const, label: t("newLabel"), iconName: null };
+      return { state: 'new' as const, label: t('newLabel'), iconName: null };
   }
 }
 
 function getTopicPositionLabel(
   position: number | undefined,
   total: number | undefined,
-  t: TranslateFn,
+  t: TranslateFn
 ) {
   if (!position || !total) {
     return undefined;
   }
 
-  return `${capitalizeLabel(t("topic"))} ${position} ${t("of")} ${total}`;
+  return `${capitalizeLabel(t('topic'))} ${position} ${t('of')} ${total}`;
 }
 
 function shouldUseWideTopicTile(topicName: string) {
   return (
     topicName.length > 22 ||
-    ((topicName.includes(",") || topicName.includes("(")) &&
+    ((topicName.includes(',') || topicName.includes('(')) &&
       topicName.length > 18)
   );
 }
@@ -168,19 +168,19 @@ function getWideTileIndexes(topicNames: string[]) {
 
 function getCategoryVisualProgress(
   category: Category,
-  topicProgress: Record<string, TopicProgress>,
+  topicProgress: Record<string, TopicProgress>
 ) {
   const totalTopics = category.topics.length;
   const weightedProgress = category.topics.reduce((sum, topic) => {
     const state = getTopicVisualState(topicProgress[topic.id]);
 
     switch (state) {
-      case "mastered":
+      case 'mastered':
         return sum + 1;
-      case "started":
-      case "due":
+      case 'started':
+      case 'due':
         return sum + 0.55;
-      case "new":
+      case 'new':
       default:
         return sum;
     }
@@ -192,7 +192,7 @@ function getCategoryVisualProgress(
 function getCategoryStatus(
   category: Category,
   topicProgress: Record<string, TopicProgress>,
-  t: TranslateFn,
+  t: TranslateFn
 ) {
   const totalTopics = category.topics.length;
   const startedTopics = category.topics.filter((topic) => {
@@ -201,16 +201,16 @@ function getCategoryStatus(
   });
   const startedCount = startedTopics.length;
   const masteredCount = startedTopics.filter(
-    (topic) => topicProgress[topic.id]?.skillLevel === 5,
+    (topic) => topicProgress[topic.id]?.skillLevel === 5
   ).length;
   const dueCount = startedTopics.filter((topic) =>
-    isTopicDue(topicProgress[topic.id]),
+    isTopicDue(topicProgress[topic.id])
   ).length;
-  const topicLabel = totalTopics === 1 ? t("topic") : t("topics");
+  const topicLabel = totalTopics === 1 ? t('topic') : t('topics');
 
   if (startedCount === 0) {
     return {
-      primaryLabel: t("notStartedYet"),
+      primaryLabel: t('notStartedYet'),
       secondaryLabel: undefined,
       topicCountLabel: getTopicCountLabel(totalTopics, t),
     };
@@ -218,20 +218,20 @@ function getCategoryStatus(
 
   const primaryLabel =
     masteredCount === totalTopics
-      ? `${masteredCount} ${t("of")} ${totalTopics} ${topicLabel} ${t(
-          "mastered",
+      ? `${masteredCount} ${t('of')} ${totalTopics} ${topicLabel} ${t(
+          'mastered'
         ).toLowerCase()}`
-      : `${startedCount} ${t("of")} ${totalTopics} ${topicLabel} ${t(
-          "started",
+      : `${startedCount} ${t('of')} ${totalTopics} ${topicLabel} ${t(
+          'started'
         )}`;
 
   return {
     primaryLabel,
     secondaryLabel:
       dueCount > 0
-        ? `${dueCount} ${t("dueLabel")}`
+        ? `${dueCount} ${t('dueLabel')}`
         : masteredCount > 0
-          ? `${masteredCount} ${t("mastered").toLowerCase()}`
+          ? `${masteredCount} ${t('mastered').toLowerCase()}`
           : undefined,
     topicCountLabel: getTopicCountLabel(totalTopics, t),
   };
@@ -239,16 +239,16 @@ function getCategoryStatus(
 
 function getStateAccentColor(
   state: TopicVisualState,
-  theme: ReturnType<typeof useTheme>["theme"],
+  theme: ReturnType<typeof useTheme>['theme']
 ) {
   switch (state) {
-    case "mastered":
+    case 'mastered':
       return theme.success;
-    case "due":
+    case 'due':
       return theme.accent;
-    case "started":
+    case 'started':
       return theme.secondary;
-    case "new":
+    case 'new':
     default:
       return theme.tabIconDefault;
   }
@@ -268,11 +268,11 @@ function TopicTile({
   const { state, label, iconName } = getTopicStateMeta(progress, t);
   const accentColor = getStateAccentColor(state, theme);
   const borderColor =
-    state === "new" ? theme.backgroundTertiary : withOpacity(accentColor, 0.25);
+    state === 'new' ? theme.backgroundTertiary : withOpacity(accentColor, 0.25);
   const backgroundColor =
-    state === "new" ? theme.backgroundRoot : withOpacity(accentColor, 0.04);
-  const metaTextColor = state === "new" ? theme.tabIconDefault : accentColor;
-  const shouldShowMeta = state !== "new";
+    state === 'new' ? theme.backgroundRoot : withOpacity(accentColor, 0.04);
+  const metaTextColor = state === 'new' ? theme.tabIconDefault : accentColor;
+  const shouldShowMeta = state !== 'new';
 
   return (
     <EaseView
@@ -348,12 +348,12 @@ function NextStepCard({
     usePressAnimation(0.98);
   const { state, label, iconName } = getTopicStateMeta(progress, t);
   const accentColor =
-    state === "due"
+    state === 'due'
       ? theme.accent
-      : state === "mastered"
+      : state === 'mastered'
         ? theme.success
         : theme.secondary;
-  const isAndroid = process.env.EXPO_OS === "android";
+  const isAndroid = process.env.EXPO_OS === 'android';
   const topicIndexLabel = getTopicPositionLabel(position, total, t);
 
   return (
@@ -385,7 +385,7 @@ function NextStepCard({
             type="caption"
             style={[styles.nextStepEyebrow, { color: accentColor }]}
           >
-            {t("nextStep")}
+            {t('nextStep')}
           </ThemedText>
           <ThemedText
             type="h4"
@@ -470,11 +470,11 @@ function CategoryCard({
   const { primaryLabel, secondaryLabel, topicCountLabel } = getCategoryStatus(
     category,
     topicProgress,
-    t,
+    t
   );
   const visualProgressPercent = getCategoryVisualProgress(
     category,
-    topicProgress,
+    topicProgress
   );
   const useCompactProgressBar = category.topics.length >= 6;
   const recommendedTopic = recommendedTopicId
@@ -487,7 +487,7 @@ function CategoryCard({
     ? category.topics.filter((topic) => topic.id !== recommendedTopic.id)
     : category.topics;
   const wideTileIndexes = getWideTileIndexes(
-    visibleTopics.map((topic) => getTopicDisplayName(topic)),
+    visibleTopics.map((topic) => getTopicDisplayName(topic))
   );
 
   return (
@@ -553,9 +553,9 @@ function CategoryCard({
                     styles.categorySegment,
                     {
                       backgroundColor:
-                        state === "new" ? theme.backgroundRoot : accentColor,
+                        state === 'new' ? theme.backgroundRoot : accentColor,
                       borderColor:
-                        state === "new"
+                        state === 'new'
                           ? theme.cardBorder
                           : withOpacity(accentColor, 0.2),
                     },
@@ -630,7 +630,7 @@ export default function LearnScreen() {
   const { t, language, refreshLanguage } = useTranslation();
   const { selectedLanguage } = useProgrammingLanguage();
   const categories = selectedLanguage?.categories ?? [];
-  const languageId = selectedLanguage?.id ?? "javascript";
+  const languageId = selectedLanguage?.id ?? 'javascript';
   const insets = useSafeAreaInsets();
   const router = useRouter();
 
@@ -644,7 +644,7 @@ export default function LearnScreen() {
 
   const handleTopicPress = (topic: Topic) => {
     router.push({
-      pathname: "/topic/[topicId]",
+      pathname: '/topic/[topicId]',
       params: { topicId: topic.id },
     });
   };
@@ -670,7 +670,7 @@ export default function LearnScreen() {
           type="body"
           style={[styles.screenSubtitle, { color: theme.tabIconDefault }]}
         >
-          {t("learnScreenSubtitle")}
+          {t('learnScreenSubtitle')}
         </ThemedText>
 
         {dueTopics.length > 0 ? (
@@ -687,7 +687,7 @@ export default function LearnScreen() {
               <View style={styles.dueSectionTitleRow}>
                 <AppIcon name="clock" size={20} color={theme.accent} />
                 <ThemedText type="h4" style={{ color: theme.accent }}>
-                  {t("dueForReview")}
+                  {t('dueForReview')}
                 </ThemedText>
               </View>
               <ThemedText type="caption" style={{ color: theme.accent }}>
@@ -752,9 +752,9 @@ const styles = StyleSheet.create({
     ...Shadows.card,
   },
   categoryHeader: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
     gap: Spacing.md,
     marginBottom: Spacing.md,
   },
@@ -767,7 +767,7 @@ const styles = StyleSheet.create({
     paddingVertical: Spacing.xs,
   },
   categoryBadgeText: {
-    fontWeight: "600",
+    fontWeight: '600',
   },
   categoryProgressGroup: {
     gap: Spacing.xs,
@@ -777,14 +777,14 @@ const styles = StyleSheet.create({
     height: 8,
     borderRadius: BorderRadius.full,
     borderWidth: 1,
-    overflow: "hidden",
+    overflow: 'hidden',
   },
   categoryProgressFill: {
-    height: "100%",
+    height: '100%',
     borderRadius: BorderRadius.full,
   },
   categorySegments: {
-    flexDirection: "row",
+    flexDirection: 'row',
     gap: 6,
   },
   categorySegment: {
@@ -794,7 +794,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
   },
   categoryStatus: {
-    fontWeight: "500",
+    fontWeight: '500',
   },
   statusPill: {
     borderRadius: BorderRadius.full,
@@ -803,7 +803,7 @@ const styles = StyleSheet.create({
     paddingVertical: Spacing.xs,
   },
   statusPillText: {
-    fontWeight: "600",
+    fontWeight: '600',
   },
   recommendedSection: {
     marginBottom: Spacing.md,
@@ -813,27 +813,27 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     padding: Spacing.md,
     minHeight: 104,
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
     gap: Spacing.sm,
   },
   nextStepBody: {
     flex: 1,
   },
   nextStepEyebrow: {
-    fontWeight: "700",
+    fontWeight: '700',
     letterSpacing: 0.8,
-    textTransform: "uppercase",
+    textTransform: 'uppercase',
     marginBottom: Spacing.xs,
   },
   nextStepTitle: {
     marginBottom: Spacing.xs,
   },
   nextStepMeta: {
-    flexDirection: "row",
-    alignItems: "center",
-    flexWrap: "wrap",
+    flexDirection: 'row',
+    alignItems: 'center',
+    flexWrap: 'wrap',
     gap: Spacing.sm,
   },
   nextStepMetaDot: {
@@ -842,30 +842,30 @@ const styles = StyleSheet.create({
     borderRadius: BorderRadius.full,
   },
   nextStepMetaStatus: {
-    flexDirection: "row",
-    alignItems: "center",
+    flexDirection: 'row',
+    alignItems: 'center',
     flexShrink: 1,
   },
   nextStepMetaIcon: {
     marginRight: Spacing.xs,
   },
   nextStepMetaText: {
-    fontWeight: "600",
+    fontWeight: '600',
   },
   nextStepChevron: {
     opacity: 0.66,
     marginLeft: 2,
-    alignSelf: "center",
+    alignSelf: 'center',
   },
   topicsGrid: {
-    flexDirection: "row",
-    flexWrap: "wrap",
-    alignItems: "flex-start",
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    alignItems: 'flex-start',
     gap: Spacing.xs + 2,
   },
   topicTileWrapper: {
-    alignSelf: "flex-start",
-    width: "48%",
+    alignSelf: 'flex-start',
+    width: '48%',
     flexShrink: 1,
   },
   topicTile: {
@@ -874,12 +874,12 @@ const styles = StyleSheet.create({
     paddingVertical: Spacing.sm,
     borderRadius: BorderRadius.md,
     borderWidth: 1,
-    justifyContent: "flex-start",
+    justifyContent: 'flex-start',
     gap: Spacing.xs,
     ...Shadows.card,
   },
   topicTileWide: {
-    width: "100%",
+    width: '100%',
   },
   topicTileTitle: {
     fontSize: 13,
@@ -887,16 +887,16 @@ const styles = StyleSheet.create({
     marginBottom: 0,
   },
   topicMetaRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    flexWrap: "wrap",
+    flexDirection: 'row',
+    alignItems: 'center',
+    flexWrap: 'wrap',
     gap: 6,
   },
   topicMetaIcon: {
     marginRight: Spacing.xs,
   },
   topicMetaText: {
-    fontWeight: "600",
+    fontWeight: '600',
   },
   dueSection: {
     borderRadius: BorderRadius.lg,
@@ -904,15 +904,15 @@ const styles = StyleSheet.create({
     borderWidth: 1,
   },
   dueSectionHeader: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
     gap: Spacing.md,
     marginBottom: Spacing.md,
   },
   dueSectionTitleRow: {
-    flexDirection: "row",
-    alignItems: "center",
+    flexDirection: 'row',
+    alignItems: 'center',
     gap: Spacing.sm,
   },
 });

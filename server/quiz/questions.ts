@@ -5,7 +5,7 @@ import type {
   StructuredQuizQuestion,
   StructuredQuizQuestionFields,
   StructuredQuizQuestionWireCandidate,
-} from "./types";
+} from './types';
 
 const EXPLANATION_OPTION_REFERENCE_PATTERN =
   /\b(?:option|antwort|answer|choice|möglichkeit)\s*[1-4abcd]\b/i;
@@ -13,13 +13,13 @@ const MARKDOWN_CODE_BLOCK_PATTERN = /```(?:[^\n\r`]*)\r?\n([\s\S]*?)```/g;
 
 function stripJsonFences(content: string): string {
   let cleanContent = content.trim();
-  if (cleanContent.startsWith("```json")) {
+  if (cleanContent.startsWith('```json')) {
     cleanContent = cleanContent.slice(7);
   }
-  if (cleanContent.startsWith("```")) {
+  if (cleanContent.startsWith('```')) {
     cleanContent = cleanContent.slice(3);
   }
-  if (cleanContent.endsWith("```")) {
+  if (cleanContent.endsWith('```')) {
     cleanContent = cleanContent.slice(0, -3);
   }
   return cleanContent.trim();
@@ -29,7 +29,7 @@ function parseJsonValue(content: string): unknown {
   try {
     return JSON.parse(stripJsonFences(content)) as unknown;
   } catch {
-    throw new Error("Invalid JSON content from OpenAI");
+    throw new Error('Invalid JSON content from OpenAI');
   }
 }
 
@@ -60,24 +60,24 @@ function extractMarkdownCodeFromQuestion(questionText: string): {
       if (trimmedCodeBlock) {
         blocks.push(trimmedCodeBlock);
       }
-      return "\n\n";
-    },
+      return '\n\n';
+    }
   );
 
   const normalizedText =
     textWithoutCode
-      .replace(/\n{3,}/g, "\n\n")
-      .replace(/[ \t]+\n/g, "\n")
+      .replace(/\n{3,}/g, '\n\n')
+      .replace(/[ \t]+\n/g, '\n')
       .trim() || questionText.trim();
 
   return {
     text: normalizedText,
-    code: blocks.length > 0 ? blocks.join("\n\n") : null,
+    code: blocks.length > 0 ? blocks.join('\n\n') : null,
   };
 }
 
 function normalizeEmbeddedMultilineText(text: string): string {
-  const normalizedText = text.replace(/\r\n?/g, "\n");
+  const normalizedText = text.replace(/\r\n?/g, '\n');
   const embeddedLineBreakMatches = normalizedText.match(/\\r\\n|\\n|\\r/g);
 
   // OpenAI occasionally returns multiline content with literal escape
@@ -88,29 +88,29 @@ function normalizeEmbeddedMultilineText(text: string): string {
   }
 
   return normalizedText
-    .replace(/\\r\\n/g, "\n")
-    .replace(/\\n/g, "\n")
-    .replace(/\\r/g, "\n");
+    .replace(/\\r\\n/g, '\n')
+    .replace(/\\n/g, '\n')
+    .replace(/\\r/g, '\n');
 }
 
 function normalizeQuestionText(text: string): string {
   return normalizeEmbeddedMultilineText(text)
-    .replace(/\n{3,}/g, "\n\n")
-    .replace(/[ \t]+\n/g, "\n")
+    .replace(/\n{3,}/g, '\n\n')
+    .replace(/[ \t]+\n/g, '\n')
     .trim();
 }
 
 function normalizeCodeForComparison(code: string): string {
   return normalizeEmbeddedMultilineText(code)
-    .split("\n")
-    .map((line) => line.replace(/[ \t]+$/g, ""))
-    .join("\n")
+    .split('\n')
+    .map((line) => line.replace(/[ \t]+$/g, ''))
+    .join('\n')
     .trim();
 }
 
 function stripDuplicateCodeFromQuestion(
   questionText: string,
-  code: string,
+  code: string
 ): string {
   const normalizedQuestion = normalizeEmbeddedMultilineText(questionText);
   const normalizedCode = normalizeCodeForComparison(code);
@@ -119,11 +119,11 @@ function stripDuplicateCodeFromQuestion(
     .map((block) => block.trim())
     .filter((block) => block.length > 0);
   const filteredBlocks = blocks.filter(
-    (block) => normalizeCodeForComparison(block) !== normalizedCode,
+    (block) => normalizeCodeForComparison(block) !== normalizedCode
   );
 
   if (filteredBlocks.length > 0 && filteredBlocks.length !== blocks.length) {
-    return normalizeQuestionText(filteredBlocks.join("\n\n"));
+    return normalizeQuestionText(filteredBlocks.join('\n\n'));
   }
 
   const duplicateCodeIndex = normalizedQuestion.lastIndexOf(normalizedCode);
@@ -142,10 +142,10 @@ function stripDuplicateCodeFromQuestion(
 
 function normalizeStructuredQuizQuestions<
   T extends StructuredQuizQuestion | StructuredMixedQuizQuestion,
->(questions: T[]): (Omit<T, "code"> & { code?: string })[] {
+>(questions: T[]): (Omit<T, 'code'> & { code?: string })[] {
   return questions.map(({ code, ...question }) => {
     const { text, code: extractedCode } = extractMarkdownCodeFromQuestion(
-      question.question,
+      question.question
     );
     const normalizedCode = code ?? extractedCode;
     const normalizedQuestionText =
@@ -161,130 +161,130 @@ function normalizeStructuredQuizQuestions<
 
 function validateStructuredQuizQuestionFields(
   rawQuestion: unknown,
-  index: number,
+  index: number
 ): StructuredQuizQuestionFields {
   const question = rawQuestion as StructuredQuizQuestionWireCandidate | null;
 
-  if (!question || typeof question !== "object") {
+  if (!question || typeof question !== 'object') {
     throw new Error(
-      `Invalid quiz question at index ${index}: question must be an object`,
+      `Invalid quiz question at index ${index}: question must be an object`
     );
   }
 
-  if (typeof question.question !== "string") {
+  if (typeof question.question !== 'string') {
     throw new Error(
-      `Invalid quiz question at index ${index}: question text must be a string`,
+      `Invalid quiz question at index ${index}: question text must be a string`
     );
   }
 
   if (!question.question.trim()) {
     throw new Error(
-      `Invalid quiz question at index ${index}: question text is empty`,
+      `Invalid quiz question at index ${index}: question text is empty`
     );
   }
 
-  if (!(typeof question.code === "string" || question.code === null)) {
+  if (!(typeof question.code === 'string' || question.code === null)) {
     throw new Error(
-      `Invalid quiz question at index ${index}: code must be a string or null`,
+      `Invalid quiz question at index ${index}: code must be a string or null`
     );
   }
 
   if (!Array.isArray(question.options)) {
     throw new Error(
-      `Invalid quiz question at index ${index}: options must be an array`,
+      `Invalid quiz question at index ${index}: options must be an array`
     );
   }
 
   if (question.options.length !== 4) {
     throw new Error(
-      `Invalid quiz question at index ${index}: expected exactly 4 options`,
+      `Invalid quiz question at index ${index}: expected exactly 4 options`
     );
   }
 
   if (
     question.options.some(
-      (option) => typeof option !== "string" || option.trim().length === 0,
+      (option) => typeof option !== 'string' || option.trim().length === 0
     )
   ) {
     throw new Error(
-      `Invalid quiz question at index ${index}: answer options must be non-empty strings`,
+      `Invalid quiz question at index ${index}: answer options must be non-empty strings`
     );
   }
 
   const uniqueOptions = new Set(
-    question.options.map((option) => (option as string).trim().toLowerCase()),
+    question.options.map((option) => (option as string).trim().toLowerCase())
   );
   if (uniqueOptions.size !== question.options.length) {
     throw new Error(
-      `Invalid quiz question at index ${index}: answer options contain duplicates`,
+      `Invalid quiz question at index ${index}: answer options contain duplicates`
     );
   }
 
-  if (typeof question.explanation !== "string") {
+  if (typeof question.explanation !== 'string') {
     throw new Error(
-      `Invalid quiz question at index ${index}: explanation must be a string`,
+      `Invalid quiz question at index ${index}: explanation must be a string`
     );
   }
 
   if (!question.explanation.trim()) {
     throw new Error(
-      `Invalid quiz question at index ${index}: explanation is empty`,
+      `Invalid quiz question at index ${index}: explanation is empty`
     );
   }
 
   if (EXPLANATION_OPTION_REFERENCE_PATTERN.test(question.explanation)) {
     throw new Error(
-      `Invalid quiz question at index ${index}: explanation must not reference options by number or letter`,
+      `Invalid quiz question at index ${index}: explanation must not reference options by number or letter`
     );
   }
 
-  if (typeof question.resultSentence !== "string") {
+  if (typeof question.resultSentence !== 'string') {
     throw new Error(
-      `Invalid quiz question at index ${index}: resultSentence must be a string`,
+      `Invalid quiz question at index ${index}: resultSentence must be a string`
     );
   }
 
   if (!question.resultSentence.trim()) {
     throw new Error(
-      `Invalid quiz question at index ${index}: resultSentence is empty`,
+      `Invalid quiz question at index ${index}: resultSentence is empty`
     );
   }
 
   if (EXPLANATION_OPTION_REFERENCE_PATTERN.test(question.resultSentence)) {
     throw new Error(
-      `Invalid quiz question at index ${index}: resultSentence must not reference options by number or letter`,
+      `Invalid quiz question at index ${index}: resultSentence must not reference options by number or letter`
     );
   }
 
-  if (typeof question.takeaway !== "string") {
+  if (typeof question.takeaway !== 'string') {
     throw new Error(
-      `Invalid quiz question at index ${index}: takeaway must be a string`,
+      `Invalid quiz question at index ${index}: takeaway must be a string`
     );
   }
 
   if (!question.takeaway.trim()) {
     throw new Error(
-      `Invalid quiz question at index ${index}: takeaway is empty`,
+      `Invalid quiz question at index ${index}: takeaway is empty`
     );
   }
 
   if (EXPLANATION_OPTION_REFERENCE_PATTERN.test(question.takeaway)) {
     throw new Error(
-      `Invalid quiz question at index ${index}: takeaway must not reference options by number or letter`,
+      `Invalid quiz question at index ${index}: takeaway must not reference options by number or letter`
     );
   }
 
   if (
     question.commonMistake !== undefined &&
-    typeof question.commonMistake !== "string"
+    typeof question.commonMistake !== 'string'
   ) {
     throw new Error(
-      `Invalid quiz question at index ${index}: commonMistake must be a string`,
+      `Invalid quiz question at index ${index}: commonMistake must be a string`
     );
   }
 
   const commonMistake =
-    typeof question.commonMistake === "string"
+    typeof question.commonMistake === 'string'
       ? question.commonMistake.trim()
       : undefined;
 
@@ -296,19 +296,19 @@ function validateStructuredQuizQuestionFields(
     EXPLANATION_OPTION_REFERENCE_PATTERN.test(commonMistake)
   ) {
     throw new Error(
-      `Invalid quiz question at index ${index}: commonMistake must not reference options by number or letter`,
+      `Invalid quiz question at index ${index}: commonMistake must not reference options by number or letter`
     );
   }
 
   const correctIndex = question.correctIndex;
   if (
-    typeof correctIndex !== "number" ||
+    typeof correctIndex !== 'number' ||
     !Number.isInteger(correctIndex) ||
     correctIndex < 0 ||
     correctIndex >= question.options.length
   ) {
     throw new Error(
-      `Invalid quiz question at index ${index}: correctIndex is out of bounds`,
+      `Invalid quiz question at index ${index}: correctIndex is out of bounds`
     );
   }
 
@@ -326,31 +326,31 @@ function validateStructuredQuizQuestionFields(
 
 export function validateStructuredQuizQuestions(
   questions: unknown[],
-  expectedCount: number,
+  expectedCount: number
 ): StructuredQuizQuestion[] {
   if (questions.length !== expectedCount) {
     throw new Error(
-      `OpenAI returned ${questions.length} quiz questions, expected ${expectedCount}`,
+      `OpenAI returned ${questions.length} quiz questions, expected ${expectedCount}`
     );
   }
 
   return questions.map((question, index) =>
-    validateStructuredQuizQuestionFields(question, index),
+    validateStructuredQuizQuestionFields(question, index)
   );
 }
 
 export function validateStructuredMixedQuizQuestions(
   questions: unknown[],
-  topicPlan: MixedQuizTopicPlanItem[],
+  topicPlan: MixedQuizTopicPlanItem[]
 ): StructuredMixedQuizQuestion[] {
   const expectedCount = topicPlan.reduce(
     (sum, item) => sum + item.questionCount,
-    0,
+    0
   );
 
   if (questions.length !== expectedCount) {
     throw new Error(
-      `OpenAI returned ${questions.length} quiz questions, expected ${expectedCount}`,
+      `OpenAI returned ${questions.length} quiz questions, expected ${expectedCount}`
     );
   }
 
@@ -362,9 +362,9 @@ export function validateStructuredMixedQuizQuestions(
     const question = rawQuestion as StructuredQuizQuestionWireCandidate | null;
     const topicId = question?.topicId;
 
-    if (typeof topicId !== "string" || !allowedTopicIdSet.has(topicId)) {
+    if (typeof topicId !== 'string' || !allowedTopicIdSet.has(topicId)) {
       throw new Error(
-        `Invalid mixed quiz question at index ${index}: topicId must be one of ${allowedTopicIds.join(", ")}`,
+        `Invalid mixed quiz question at index ${index}: topicId must be one of ${allowedTopicIds.join(', ')}`
       );
     }
 
@@ -380,7 +380,7 @@ export function validateStructuredMixedQuizQuestions(
     const actualCount = actualCounts.get(topicId) ?? 0;
     if (actualCount !== questionCount) {
       throw new Error(
-        `OpenAI returned ${actualCount} questions for topic '${topicId}', expected ${questionCount}`,
+        `OpenAI returned ${actualCount} questions for topic '${topicId}', expected ${questionCount}`
       );
     }
   }
@@ -389,7 +389,7 @@ export function validateStructuredMixedQuizQuestions(
 }
 
 function validateNormalizedQuizQuestions<T extends GeneratedQuizQuestion>(
-  questions: T[],
+  questions: T[]
 ): void {
   for (const [index, question] of questions.entries()) {
     if (question.code !== undefined && !question.code.trim()) {
@@ -402,8 +402,8 @@ export function parseAndNormalizeQuizQuestions<
   T extends StructuredQuizQuestion | StructuredMixedQuizQuestion,
 >(
   content: string,
-  validateQuestions: (questions: unknown[]) => T[],
-): (Omit<T, "code"> & { code?: string })[] {
+  validateQuestions: (questions: unknown[]) => T[]
+): (Omit<T, 'code'> & { code?: string })[] {
   const structuredQuestions = validateQuestions(parseQuestions(content));
   const questions = normalizeStructuredQuizQuestions(structuredQuestions);
   validateNormalizedQuizQuestions(questions);

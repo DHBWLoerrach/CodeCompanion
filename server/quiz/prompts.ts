@@ -1,5 +1,5 @@
-import type { QuizDifficultyLevel } from "@shared/skill-level";
-import type { MixedQuizTopicPlanItem } from "./types";
+import type { QuizDifficultyLevel } from '@shared/skill-level';
+import type { MixedQuizTopicPlanItem } from './types';
 
 function getSingleChoiceQualityRequirements(): string {
   return `- Have exactly 4 answer options
@@ -14,35 +14,35 @@ function getSingleChoiceQualityRequirements(): string {
 
 function getDifficultyLabel(skillLevel: QuizDifficultyLevel): string {
   return skillLevel === 1
-    ? "Beginner"
+    ? 'Beginner'
     : skillLevel === 2
-      ? "Intermediate"
-      : "Advanced";
+      ? 'Intermediate'
+      : 'Advanced';
 }
 
 function getDifficultyInstruction(skillLevel: QuizDifficultyLevel): string {
   return skillLevel === 1
-    ? "Create BEGINNER level questions: Focus on basic syntax, simple examples, and fundamental concepts. Use straightforward code snippets under 5 lines."
+    ? 'Create BEGINNER level questions: Focus on basic syntax, simple examples, and fundamental concepts. Use straightforward code snippets under 5 lines.'
     : skillLevel === 2
-      ? "Create INTERMEDIATE level questions: Include more complex scenarios, edge cases, and require deeper understanding. Use code snippets of 5-8 lines with subtle behavior."
-      : "Create ADVANCED level questions: Focus on tricky edge cases, performance considerations, and expert-level understanding. Use complex code with multiple concepts combined.";
+      ? 'Create INTERMEDIATE level questions: Include more complex scenarios, edge cases, and require deeper understanding. Use code snippets of 5-8 lines with subtle behavior.'
+      : 'Create ADVANCED level questions: Focus on tricky edge cases, performance considerations, and expert-level understanding. Use complex code with multiple concepts combined.';
 }
 
 function getLanguageInstruction(
   language: string,
-  programmingLanguageName: string,
+  programmingLanguageName: string
 ): string {
-  return language === "de"
+  return language === 'de'
     ? `Write all questions, answer options, and explanations in German (Deutsch). Keep code examples and ${programmingLanguageName} syntax in English as they are programming terms.`
-    : "Write all questions, answer options, and explanations in English.";
+    : 'Write all questions, answer options, and explanations in English.';
 }
 
 export function buildQuizInstructions(
   programmingLanguageName: string,
-  language: string,
+  language: string
 ): string {
   return `You are a ${programmingLanguageName} programming tutor creating quiz questions. ${
-    language === "de" ? "Respond in German." : "Respond in English."
+    language === 'de' ? 'Respond in German.' : 'Respond in English.'
   } Follow the provided response schema exactly.`;
 }
 
@@ -63,7 +63,7 @@ export function buildQuizPrompt({
 }): string {
   const languageInstruction = getLanguageInstruction(
     language,
-    programmingLanguageName,
+    programmingLanguageName
   );
   const difficultyInstruction = getDifficultyInstruction(skillLevel);
   const difficultyLabel = getDifficultyLabel(skillLevel);
@@ -90,16 +90,16 @@ Important:
 - Make questions progressively challenging
 - Use realistic code examples students would encounter
 - The response schema already defines the JSON shape, so focus on the question content
-${contextExclusion ? `- ${contextExclusion}` : ""}
+${contextExclusion ? `- ${contextExclusion}` : ''}
 - Do not include any keys other than question, code, options, correctIndex, explanation, resultSentence, takeaway, and commonMistake`;
 }
 
 export function buildMixedQuizInstructions(
   programmingLanguageName: string,
-  language: string,
+  language: string
 ): string {
   return `You are a ${programmingLanguageName} programming tutor creating mixed-topic quiz questions. ${
-    language === "de" ? "Respond in German." : "Respond in English."
+    language === 'de' ? 'Respond in German.' : 'Respond in English.'
   } Follow the provided response schema exactly.`;
 }
 
@@ -120,13 +120,13 @@ export function buildMixedQuizPrompt({
 }): string {
   const languageInstruction = getLanguageInstruction(
     language,
-    programmingLanguageName,
+    programmingLanguageName
   );
   const difficultyInstruction = getDifficultyInstruction(skillLevel);
   const difficultyLabel = getDifficultyLabel(skillLevel);
   const totalCount = resolvedTopicPlan.reduce(
     (sum, item) => sum + item.questionCount,
-    0,
+    0
   );
 
   return `Generate ${totalCount} multiple-choice quiz questions for computer science students learning ${programmingLanguageName} programming.
@@ -140,9 +140,9 @@ TOPIC PLAN:
 ${resolvedTopicPlan
   .map(
     ({ topicId, questionCount, topicDescription }) =>
-      `- ${topicId}: exactly ${questionCount} question(s) about ${topicDescription}`,
+      `- ${topicId}: exactly ${questionCount} question(s) about ${topicDescription}`
   )
-  .join("\n")}
+  .join('\n')}
 
 Each question should:
 - Stay primarily focused on its assigned topicId
@@ -163,6 +163,6 @@ Important:
 - Avoid near-duplicate questions across the entire quiz
 - Use realistic code examples students would encounter
 - The response schema already defines the JSON shape, so focus on the question content
-${contextExclusion ? `- ${contextExclusion}` : ""}
+${contextExclusion ? `- ${contextExclusion}` : ''}
 - Do not include any keys other than topicId, question, code, options, correctIndex, explanation, resultSentence, takeaway, and commonMistake`;
 }

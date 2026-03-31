@@ -1,49 +1,49 @@
-import { Platform } from "react-native";
+import { Platform } from 'react-native';
 
 export const Colors = {
   light: {
-    text: "#2C3E50",
-    buttonText: "#FFFFFF",
-    onColor: "#FFFFFF",
-    tabIconDefault: "#687076",
-    tabIconSelected: "#E2001A",
-    link: "#4A90E2",
-    backgroundRoot: "#FFFFFF",
-    backgroundDefault: "#F8F9FA",
-    backgroundSecondary: "#F0F2F4",
-    backgroundTertiary: "#E8EBED",
-    primary: "#E2001A",
-    secondary: "#4A90E2",
-    success: "#34C759",
-    accent: "#FFB800",
-    disabled: "#D1D5DB",
-    error: "#E2001A",
-    codeBackground: "#F8F9FA",
-    cardBorder: "#E8EBED",
-    cardBorderSubtle: "rgba(232, 235, 237, 0.72)",
-    separator: "rgba(44, 62, 80, 0.08)",
+    text: '#2C3E50',
+    buttonText: '#FFFFFF',
+    onColor: '#FFFFFF',
+    tabIconDefault: '#687076',
+    tabIconSelected: '#E2001A',
+    link: '#4A90E2',
+    backgroundRoot: '#FFFFFF',
+    backgroundDefault: '#F8F9FA',
+    backgroundSecondary: '#F0F2F4',
+    backgroundTertiary: '#E8EBED',
+    primary: '#E2001A',
+    secondary: '#4A90E2',
+    success: '#34C759',
+    accent: '#FFB800',
+    disabled: '#D1D5DB',
+    error: '#E2001A',
+    codeBackground: '#F8F9FA',
+    cardBorder: '#E8EBED',
+    cardBorderSubtle: 'rgba(232, 235, 237, 0.72)',
+    separator: 'rgba(44, 62, 80, 0.08)',
   },
   dark: {
-    text: "#ECEDEE",
-    buttonText: "#FFFFFF",
-    onColor: "#FFFFFF",
-    tabIconDefault: "#9BA1A6",
-    tabIconSelected: "#E2001A",
-    link: "#4A90E2",
-    backgroundRoot: "#1F2123",
-    backgroundDefault: "#2A2C2E",
-    backgroundSecondary: "#353739",
-    backgroundTertiary: "#404244",
-    primary: "#E2001A",
-    secondary: "#4A90E2",
-    success: "#34C759",
-    accent: "#FFB800",
-    disabled: "#6B7280",
-    error: "#E2001A",
-    codeBackground: "#2A2C2E",
-    cardBorder: "#404244",
-    cardBorderSubtle: "rgba(255, 255, 255, 0.12)",
-    separator: "rgba(255, 255, 255, 0.08)",
+    text: '#ECEDEE',
+    buttonText: '#FFFFFF',
+    onColor: '#FFFFFF',
+    tabIconDefault: '#9BA1A6',
+    tabIconSelected: '#E2001A',
+    link: '#4A90E2',
+    backgroundRoot: '#1F2123',
+    backgroundDefault: '#2A2C2E',
+    backgroundSecondary: '#353739',
+    backgroundTertiary: '#404244',
+    primary: '#E2001A',
+    secondary: '#4A90E2',
+    success: '#34C759',
+    accent: '#FFB800',
+    disabled: '#6B7280',
+    error: '#E2001A',
+    codeBackground: '#2A2C2E',
+    cardBorder: '#404244',
+    cardBorderSubtle: 'rgba(255, 255, 255, 0.12)',
+    separator: 'rgba(255, 255, 255, 0.08)',
   },
 };
 
@@ -55,10 +55,10 @@ export const Spacing = {
   md: 12,
   lg: 16,
   xl: 24,
-  "2xl": 32,
-  "3xl": 40,
-  "4xl": 48,
-  "5xl": 56,
+  '2xl': 32,
+  '3xl': 40,
+  '4xl': 48,
+  '5xl': 56,
   inputHeight: 48,
   buttonHeight: 56,
 };
@@ -69,66 +69,66 @@ export const BorderRadius = {
   md: 12,
   lg: 16,
   xl: 20,
-  "2xl": 24,
-  "3xl": 32,
+  '2xl': 24,
+  '3xl': 32,
   full: 9999,
 };
 
 export const Typography = {
   h1: {
     fontSize: 32,
-    fontWeight: "700" as const,
+    fontWeight: '700' as const,
   },
   h2: {
     fontSize: 28,
-    fontWeight: "700" as const,
+    fontWeight: '700' as const,
   },
   h3: {
     fontSize: 24,
-    fontWeight: "700" as const,
+    fontWeight: '700' as const,
   },
   h4: {
     fontSize: 18,
-    fontWeight: "600" as const,
+    fontWeight: '600' as const,
   },
   body: {
     fontSize: 16,
-    fontWeight: "400" as const,
+    fontWeight: '400' as const,
   },
   small: {
     fontSize: 14,
-    fontWeight: "400" as const,
+    fontWeight: '400' as const,
   },
   caption: {
     fontSize: 12,
-    fontWeight: "400" as const,
+    fontWeight: '400' as const,
   },
   link: {
     fontSize: 16,
-    fontWeight: "400" as const,
+    fontWeight: '400' as const,
   },
   code: {
     fontSize: 14,
-    fontWeight: "400" as const,
+    fontWeight: '400' as const,
   },
   label: {
     fontSize: 14,
-    fontWeight: "500" as const,
+    fontWeight: '500' as const,
   },
 };
 
 export const Fonts = Platform.select({
   ios: {
-    sans: "system-ui",
-    serif: "ui-serif",
-    rounded: "ui-rounded",
-    mono: "ui-monospace",
+    sans: 'system-ui',
+    serif: 'ui-serif',
+    rounded: 'ui-rounded',
+    mono: 'ui-monospace',
   },
   default: {
-    sans: "normal",
-    serif: "serif",
-    rounded: "normal",
-    mono: "monospace",
+    sans: 'normal',
+    serif: 'serif',
+    rounded: 'normal',
+    mono: 'monospace',
   },
   web: {
     sans: "Inter, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif",
@@ -140,14 +140,14 @@ export const Fonts = Platform.select({
 
 export const Shadows = {
   card: {
-    shadowColor: "#000",
+    shadowColor: '#000',
     shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.05,
     shadowRadius: 4,
     elevation: 2,
   },
   floatingButton: {
-    shadowColor: "#000",
+    shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 8,
@@ -155,14 +155,14 @@ export const Shadows = {
   },
 };
 
-export const AvatarColors = ["#E2001A", "#4A90E2", "#34C759", "#FFB800"];
+export const AvatarColors = ['#E2001A', '#4A90E2', '#34C759', '#FFB800'];
 
-export const AVATARS = ["monitor", "award", "code", "zap"] as const;
+export const AVATARS = ['monitor', 'award', 'code', 'zap'] as const;
 
-export type ButtonSize = "default" | "compact";
+export type ButtonSize = 'default' | 'compact';
 
-export function getButtonHeight(size: ButtonSize = "default") {
-  return size === "compact" ? 48 : Spacing.buttonHeight;
+export function getButtonHeight(size: ButtonSize = 'default') {
+  return size === 'compact' ? 48 : Spacing.buttonHeight;
 }
 
 export const BottomActionBarLayout = {
@@ -174,7 +174,7 @@ export const BottomActionBarLayout = {
 
 export function getBottomActionBarScrollPadding({
   buttonCount = 1,
-  buttonSize = "default",
+  buttonSize = 'default',
   extraScrollPadding = BottomActionBarLayout.extraScrollPadding,
   safeAreaBottom = 0,
 }: {
@@ -197,7 +197,7 @@ export function withOpacity(color: string | null | undefined, opacity: number) {
   const clampedOpacity = Math.min(Math.max(opacity, 0), 1);
 
   if (!color) {
-    return "transparent";
+    return 'transparent';
   }
 
   const hex = color.trim();
@@ -216,7 +216,7 @@ export function withOpacity(color: string | null | undefined, opacity: number) {
   }
 
   const rgbMatch = hex.match(
-    /^rgba?\(\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d+)(?:\s*,\s*[\d.]+\s*)?\)$/i,
+    /^rgba?\(\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d+)(?:\s*,\s*[\d.]+\s*)?\)$/i
   );
 
   if (rgbMatch) {

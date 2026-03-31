@@ -1,1 +1,1 @@
-export { default } from "@/screens/InfoModalScreen";
+export { default } from '@/screens/InfoModalScreen';

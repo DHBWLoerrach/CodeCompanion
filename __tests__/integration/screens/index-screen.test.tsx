@@ -1,33 +1,33 @@
-import React from "react";
-import { render, waitFor } from "@testing-library/react-native";
-import Index from "../../../app/index";
+import React from 'react';
+import { render, waitFor } from '@testing-library/react-native';
+import Index from '../../../app/index';
 
 const mockHasSeenWelcome = jest.fn();
 const mockUseLanguage = jest.fn();
 const mockUseProgrammingLanguage = jest.fn();
 
-jest.mock("expo-router", () => ({
+jest.mock('expo-router', () => ({
   Redirect: ({ href }: { href: string }) => {
-    const { Text } = require("react-native");
+    const { Text } = require('react-native');
     return <Text>{href}</Text>;
   },
 }));
 
-jest.mock("@/contexts/LanguageContext", () => ({
+jest.mock('@/contexts/LanguageContext', () => ({
   useLanguage: () => mockUseLanguage(),
 }));
 
-jest.mock("@/contexts/ProgrammingLanguageContext", () => ({
+jest.mock('@/contexts/ProgrammingLanguageContext', () => ({
   useProgrammingLanguage: () => mockUseProgrammingLanguage(),
 }));
 
-jest.mock("@/lib/storage", () => ({
+jest.mock('@/lib/storage', () => ({
   storage: {
     hasSeenWelcome: (...args: unknown[]) => mockHasSeenWelcome(...args),
   },
 }));
 
-describe("Index screen routing", () => {
+describe('Index screen routing', () => {
   beforeEach(() => {
     mockHasSeenWelcome.mockReset();
     mockUseLanguage.mockReset();
@@ -42,27 +42,27 @@ describe("Index screen routing", () => {
     });
   });
 
-  it("redirects first-time users to welcome", async () => {
+  it('redirects first-time users to welcome', async () => {
     mockHasSeenWelcome.mockResolvedValue(false);
 
     const screen = render(<Index />);
 
     await waitFor(() => {
-      expect(screen.getByText("/welcome")).toBeTruthy();
+      expect(screen.getByText('/welcome')).toBeTruthy();
     });
   });
 
-  it("redirects returning users without a selected language to language select", async () => {
+  it('redirects returning users without a selected language to language select', async () => {
     mockHasSeenWelcome.mockResolvedValue(true);
 
     const screen = render(<Index />);
 
     await waitFor(() => {
-      expect(screen.getByText("/language-select")).toBeTruthy();
+      expect(screen.getByText('/language-select')).toBeTruthy();
     });
   });
 
-  it("redirects returning users with a selected language to learn", async () => {
+  it('redirects returning users with a selected language to learn', async () => {
     mockHasSeenWelcome.mockResolvedValue(true);
     mockUseProgrammingLanguage.mockReturnValue({
       isLoading: false,
@@ -72,7 +72,7 @@ describe("Index screen routing", () => {
     const screen = render(<Index />);
 
     await waitFor(() => {
-      expect(screen.getByText("/learn")).toBeTruthy();
+      expect(screen.getByText('/learn')).toBeTruthy();
     });
   });
 });

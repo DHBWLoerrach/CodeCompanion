@@ -1,41 +1,41 @@
-import React from "react";
-import { ScrollView, StyleSheet, Linking } from "react-native";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { Stack, useLocalSearchParams, useRouter } from "expo-router";
+import React from 'react';
+import { ScrollView, StyleSheet, Linking } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
 import {
   EnrichedMarkdownText,
   type MarkdownStyle,
-} from "react-native-enriched-markdown";
-import { getTopicExplanation } from "@shared/explanations";
+} from 'react-native-enriched-markdown';
+import { getTopicExplanation } from '@shared/explanations';
 import {
   DEFAULT_PROGRAMMING_LANGUAGE_ID,
   SUPPORTED_PROGRAMMING_LANGUAGE_IDS,
   type ProgrammingLanguageId,
-} from "@shared/programming-language";
+} from '@shared/programming-language';
 
-import { HeaderIconButton } from "@/components/HeaderIconButton";
-import { StatusBadge } from "@/components/StatusBadge";
-import { SurfaceCard } from "@/components/SurfaceCard";
-import { ThemedView } from "@/components/ThemedView";
-import { ThemedText } from "@/components/ThemedText";
-import { useTheme } from "@/contexts/ThemeContext";
-import { useTranslation } from "@/hooks/useTranslation";
-import { useCloseHandler } from "@/hooks/useCloseHandler";
+import { HeaderIconButton } from '@/components/HeaderIconButton';
+import { StatusBadge } from '@/components/StatusBadge';
+import { SurfaceCard } from '@/components/SurfaceCard';
+import { ThemedView } from '@/components/ThemedView';
+import { ThemedText } from '@/components/ThemedText';
+import { useTheme } from '@/contexts/ThemeContext';
+import { useTranslation } from '@/hooks/useTranslation';
+import { useCloseHandler } from '@/hooks/useCloseHandler';
 import {
   BorderRadius,
   Fonts,
   Spacing,
   Typography,
   withOpacity,
-} from "@/constants/theme";
-import { getParam, getParamWithDefault } from "@/lib/router-utils";
+} from '@/constants/theme';
+import { getParam, getParamWithDefault } from '@/lib/router-utils';
 import {
   getCategoryName,
   getCategoriesByLanguage,
   getTopicById,
   getTopicDescription,
   getTopicName,
-} from "@/lib/topics";
+} from '@/lib/topics';
 
 function resolveProgrammingLanguage(value: string): ProgrammingLanguageId {
   if (
@@ -48,8 +48,8 @@ function resolveProgrammingLanguage(value: string): ProgrammingLanguageId {
 }
 
 function getMarkdownStyle(
-  theme: ReturnType<typeof useTheme>["theme"],
-  isDark: boolean,
+  theme: ReturnType<typeof useTheme>['theme'],
+  isDark: boolean
 ): MarkdownStyle {
   return {
     paragraph: {
@@ -61,21 +61,21 @@ function getMarkdownStyle(
     h1: {
       color: theme.text,
       fontSize: 24,
-      fontWeight: "700",
+      fontWeight: '700',
       marginTop: Spacing.lg,
       marginBottom: Spacing.sm,
     },
     h2: {
       color: theme.text,
       fontSize: 20,
-      fontWeight: "700",
+      fontWeight: '700',
       marginTop: Spacing.lg,
       marginBottom: Spacing.sm,
     },
     h3: {
       color: theme.text,
       fontSize: 18,
-      fontWeight: "600",
+      fontWeight: '600',
       marginTop: Spacing.md,
       marginBottom: Spacing.xs,
     },
@@ -86,7 +86,7 @@ function getMarkdownStyle(
       gapWidth: Spacing.sm,
       marginLeft: Spacing.sm,
       markerColor: theme.secondary,
-      markerFontWeight: "600",
+      markerFontWeight: '600',
     },
     link: {
       color: theme.link,
@@ -130,35 +130,35 @@ export default function TopicExplanationScreen() {
   }>();
   const resolvedTopicId = getParam(topicId);
   const resolvedProgrammingLanguage = resolveProgrammingLanguage(
-    getParamWithDefault(programmingLanguage, DEFAULT_PROGRAMMING_LANGUAGE_ID),
+    getParamWithDefault(programmingLanguage, DEFAULT_PROGRAMMING_LANGUAGE_ID)
   );
   const topic = resolvedTopicId
     ? getTopicById(
         resolvedTopicId,
-        getCategoriesByLanguage(resolvedProgrammingLanguage),
+        getCategoriesByLanguage(resolvedProgrammingLanguage)
       )
     : undefined;
   const staticExplanation = resolvedTopicId
     ? getTopicExplanation(
         resolvedProgrammingLanguage,
         resolvedTopicId,
-        language,
+        language
       )
     : undefined;
   const handleClose = useCloseHandler();
   const markdownStyle = getMarkdownStyle(theme, isDark);
-  const title = topic ? getTopicName(topic, language) : t("topicExplanation");
+  const title = topic ? getTopicName(topic, language) : t('topicExplanation');
   const topicDescription = topic
     ? getTopicDescription(topic, language)
     : undefined;
   const currentCategory = topic
     ? getCategoriesByLanguage(resolvedProgrammingLanguage).find(
-        (category) => category.id === topic.category,
+        (category) => category.id === topic.category
       )
     : undefined;
   const errorMessage = !resolvedTopicId
-    ? t("topicNotFound")
-    : t("explanationUnavailable");
+    ? t('topicNotFound')
+    : t('explanationUnavailable');
 
   return (
     <>
@@ -189,13 +189,13 @@ export default function TopicExplanationScreen() {
               <StatusBadge
                 color={theme.secondary}
                 icon="book-open"
-                label={t("topicExplanation")}
+                label={t('topicExplanation')}
               />
               <ThemedText type="h3">{getTopicName(topic, language)}</ThemedText>
               {currentCategory ? (
                 <ThemedText
                   type="small"
-                  style={{ color: theme.tabIconDefault, fontWeight: "600" }}
+                  style={{ color: theme.tabIconDefault, fontWeight: '600' }}
                 >
                   {getCategoryName(currentCategory, language)}
                 </ThemedText>

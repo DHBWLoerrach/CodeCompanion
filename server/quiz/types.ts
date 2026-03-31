@@ -1,6 +1,6 @@
-import type { QuizQuestion } from "@shared/quiz-question";
+import type { QuizQuestion } from '@shared/quiz-question';
 
-export type GeneratedQuizQuestion = Omit<QuizQuestion, "id" | "code"> & {
+export type GeneratedQuizQuestion = Omit<QuizQuestion, 'id' | 'code'> & {
   code?: string;
 };
 
@@ -8,13 +8,13 @@ export type GeneratedMixedQuizQuestion = GeneratedQuizQuestion & {
   topicId: string;
 };
 
-export type StructuredQuizQuestion = Omit<GeneratedQuizQuestion, "code"> & {
+export type StructuredQuizQuestion = Omit<GeneratedQuizQuestion, 'code'> & {
   code: string | null;
 };
 
 export type StructuredMixedQuizQuestion = Omit<
   GeneratedMixedQuizQuestion,
-  "code"
+  'code'
 > & {
   code: string | null;
 };

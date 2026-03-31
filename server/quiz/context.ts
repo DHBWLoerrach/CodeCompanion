@@ -1,25 +1,25 @@
-import type { ProgrammingLanguageId } from "@shared/programming-language";
+import type { ProgrammingLanguageId } from '@shared/programming-language';
 import {
   getTopicPrompt,
   LANGUAGE_CONTEXT_EXCLUSIONS,
   LANGUAGE_NAMES,
-} from "@shared/topic-prompts";
-import type { ProgrammingLanguageContext } from "./types";
+} from '@shared/topic-prompts';
+import type { ProgrammingLanguageContext } from './types';
 
 export function resolveProgrammingLanguageContext(
-  programmingLanguage: ProgrammingLanguageId,
+  programmingLanguage: ProgrammingLanguageId
 ): ProgrammingLanguageContext {
   return {
     programmingLanguageName:
       LANGUAGE_NAMES[programmingLanguage] ?? programmingLanguage,
-    contextExclusion: LANGUAGE_CONTEXT_EXCLUSIONS[programmingLanguage] ?? "",
+    contextExclusion: LANGUAGE_CONTEXT_EXCLUSIONS[programmingLanguage] ?? '',
   };
 }
 
 export function resolveTopicDescription(
   programmingLanguage: ProgrammingLanguageId,
   programmingLanguageName: string,
-  topicId: string,
+  topicId: string
 ): string {
   return (
     getTopicPrompt(programmingLanguage, topicId) ||
@@ -29,7 +29,7 @@ export function resolveTopicDescription(
 
 export function resolveLanguageContext(
   programmingLanguage: ProgrammingLanguageId,
-  topicId: string,
+  topicId: string
 ): ProgrammingLanguageContext & { topicDescription: string } {
   const { programmingLanguageName, contextExclusion } =
     resolveProgrammingLanguageContext(programmingLanguage);
@@ -40,7 +40,7 @@ export function resolveLanguageContext(
     topicDescription: resolveTopicDescription(
       programmingLanguage,
       programmingLanguageName,
-      topicId,
+      topicId
     ),
   };
 }

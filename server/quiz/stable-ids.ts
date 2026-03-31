@@ -1,11 +1,11 @@
-import type { ProgrammingLanguageId } from "@shared/programming-language";
-import { sha256Hex } from "@server/crypto";
-import type { GeneratedQuizQuestion } from "./types";
+import type { ProgrammingLanguageId } from '@shared/programming-language';
+import { sha256Hex } from '@server/crypto';
+import type { GeneratedQuizQuestion } from './types';
 
 export async function addStableIds<T extends GeneratedQuizQuestion>(
   programmingLanguage: ProgrammingLanguageId,
   questions: T[],
-  getTopicId: (question: T, index: number) => string,
+  getTopicId: (question: T, index: number) => string
 ): Promise<(T & { id: string })[]> {
   const withIds = await Promise.all(
     questions.map(async (question, index) => {
@@ -28,13 +28,13 @@ export async function addStableIds<T extends GeneratedQuizQuestion>(
           // the wire as the empty-string sentinel.
           commonMistake: question.commonMistake ?? null,
           index,
-        }),
+        })
       );
       return {
         ...question,
         id: `${topicId}-${contentHash.substring(0, 12)}`,
       };
-    }),
+    })
   );
 
   return withIds;

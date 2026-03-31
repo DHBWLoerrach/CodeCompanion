@@ -1,4 +1,4 @@
-import { getLocales } from "expo-localization";
+import { getLocales } from 'expo-localization';
 
 function getLocaleFromIntl(): string | undefined {
   try {
@@ -13,14 +13,14 @@ export function getPreferredLanguageTag(): string | undefined {
     const primaryLocale = getLocales()[0];
 
     if (
-      typeof primaryLocale?.languageTag === "string" &&
+      typeof primaryLocale?.languageTag === 'string' &&
       primaryLocale.languageTag.length > 0
     ) {
       return primaryLocale.languageTag;
     }
 
     if (
-      typeof primaryLocale?.languageCode === "string" &&
+      typeof primaryLocale?.languageCode === 'string' &&
       primaryLocale.languageCode.length > 0
     ) {
       return primaryLocale.languageCode;

@@ -1,9 +1,9 @@
-import React from "react";
-import { reloadAppAsync } from "expo";
-import { StyleSheet, View, Pressable, Text, Alert } from "react-native";
-import { AppIcon } from "@/components/AppIcon";
-import { Spacing, BorderRadius, Colors } from "@/constants/theme";
-import { useTranslation } from "@/hooks/useTranslation";
+import React from 'react';
+import { reloadAppAsync } from 'expo';
+import { StyleSheet, View, Pressable, Text, Alert } from 'react-native';
+import { AppIcon } from '@/components/AppIcon';
+import { Spacing, BorderRadius, Colors } from '@/constants/theme';
+import { useTranslation } from '@/hooks/useTranslation';
 
 export type ErrorFallbackProps = {
   error: Error;
@@ -19,22 +19,22 @@ export function ErrorFallback({ error, resetError }: ErrorFallbackProps) {
     try {
       await reloadAppAsync();
     } catch (restartError) {
-      console.error("Failed to restart app:", restartError);
+      console.error('Failed to restart app:', restartError);
       resetError();
     }
   };
 
   const formatErrorDetails = (): string => {
-    let details = `${t("error")}: ${error.message}\n\n`;
+    let details = `${t('error')}: ${error.message}\n\n`;
     if (error.stack) {
-      details += `${t("stackTrace")}:\n${error.stack}`;
+      details += `${t('stackTrace')}:\n${error.stack}`;
     }
     return details;
   };
 
   const handleShowDetails = () => {
-    Alert.alert(t("errorDetails"), formatErrorDetails(), [
-      { text: t("ok"), style: "default" },
+    Alert.alert(t('errorDetails'), formatErrorDetails(), [
+      { text: t('ok'), style: 'default' },
     ]);
   };
 
@@ -63,11 +63,11 @@ export function ErrorFallback({ error, resetError }: ErrorFallbackProps) {
 
       <View style={styles.content}>
         <Text style={[styles.title, { color: fallbackTheme.text }]}>
-          {t("errorFallbackTitle")}
+          {t('errorFallbackTitle')}
         </Text>
 
         <Text style={[styles.message, { color: fallbackTheme.text }]}>
-          {t("errorMessage")}
+          {t('errorMessage')}
         </Text>
 
         <Pressable
@@ -84,7 +84,7 @@ export function ErrorFallback({ error, resetError }: ErrorFallbackProps) {
           <Text
             style={[styles.buttonText, { color: fallbackTheme.buttonText }]}
           >
-            {t("backToLearning")}
+            {t('backToLearning')}
           </Text>
         </Pressable>
       </View>
@@ -95,34 +95,34 @@ export function ErrorFallback({ error, resetError }: ErrorFallbackProps) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    width: "100%",
-    height: "100%",
-    justifyContent: "center",
-    alignItems: "center",
-    padding: Spacing["2xl"],
+    width: '100%',
+    height: '100%',
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: Spacing['2xl'],
   },
   content: {
-    alignItems: "center",
-    justifyContent: "center",
+    alignItems: 'center',
+    justifyContent: 'center',
     gap: Spacing.lg,
-    width: "100%",
+    width: '100%',
     maxWidth: 600,
   },
   title: {
-    textAlign: "center",
+    textAlign: 'center',
     lineHeight: 40,
     fontSize: 32,
-    fontWeight: "700",
+    fontWeight: '700',
   },
   message: {
-    textAlign: "center",
+    textAlign: 'center',
     opacity: 0.7,
     lineHeight: 24,
     fontSize: 16,
   },
   topButton: {
-    position: "absolute",
-    top: Spacing["2xl"] + Spacing.lg,
+    position: 'absolute',
+    top: Spacing['2xl'] + Spacing.lg,
     right: Spacing.lg,
     width: 44,
     height: 44,
@@ -132,16 +132,16 @@ const styles = StyleSheet.create({
     width: 44,
     height: 44,
     borderRadius: BorderRadius.md,
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   button: {
     paddingVertical: Spacing.lg,
     borderRadius: BorderRadius.md,
-    paddingHorizontal: Spacing["2xl"],
+    paddingHorizontal: Spacing['2xl'],
     minWidth: 200,
-    shadowColor: "#000",
+    shadowColor: '#000',
     shadowOffset: {
       width: 0,
       height: 2,
@@ -151,8 +151,8 @@ const styles = StyleSheet.create({
     elevation: 3,
   },
   buttonText: {
-    fontWeight: "600",
-    textAlign: "center",
+    fontWeight: '600',
+    textAlign: 'center',
     fontSize: 16,
   },
 });

@@ -1,15 +1,15 @@
-import AsyncStorage from "@react-native-async-storage/async-storage";
-import type { MasteryLevel } from "@shared/skill-level";
-import type { Language } from "./i18n";
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import type { MasteryLevel } from '@shared/skill-level';
+import type { Language } from './i18n';
 
 const STORAGE_KEYS = {
-  USER_PROFILE: "dhbw_user_profile",
-  PROGRESS: "dhbw_progress",
-  STREAK: "dhbw_streak",
-  SETTINGS: "dhbw_settings",
-  WELCOME_SEEN: "dhbw_welcome_seen",
-  SELECTED_LANGUAGE: "dhbw_selected_language",
-  PROGRESS_MIGRATED: "dhbw_progress_migrated",
+  USER_PROFILE: 'dhbw_user_profile',
+  PROGRESS: 'dhbw_progress',
+  STREAK: 'dhbw_streak',
+  SETTINGS: 'dhbw_settings',
+  WELCOME_SEEN: 'dhbw_welcome_seen',
+  SELECTED_LANGUAGE: 'dhbw_selected_language',
+  PROGRESS_MIGRATED: 'dhbw_progress_migrated',
 };
 
 export interface UserProfile {
@@ -39,7 +39,7 @@ export function isTopicDue(progress: TopicProgress | undefined): boolean {
   const lastPracticed = new Date(progress.lastPracticed);
   const now = new Date();
   const daysSinceLastPractice = Math.floor(
-    (now.getTime() - lastPracticed.getTime()) / (1000 * 60 * 60 * 24),
+    (now.getTime() - lastPracticed.getTime()) / (1000 * 60 * 60 * 24)
   );
 
   const interval = SKILL_LEVEL_INTERVALS[progress.skillLevel];
@@ -53,7 +53,7 @@ export function getDaysUntilDue(progress: TopicProgress | undefined): number {
   const lastPracticed = new Date(progress.lastPracticed);
   const now = new Date();
   const daysSinceLastPractice = Math.floor(
-    (now.getTime() - lastPracticed.getTime()) / (1000 * 60 * 60 * 24),
+    (now.getTime() - lastPracticed.getTime()) / (1000 * 60 * 60 * 24)
   );
 
   const interval = SKILL_LEVEL_INTERVALS[progress.skillLevel];
@@ -74,7 +74,7 @@ export interface StreakData {
   weekHistory: boolean[];
 }
 
-export type ThemeMode = "auto" | "light" | "dark";
+export type ThemeMode = 'auto' | 'light' | 'dark';
 
 export interface SettingsData {
   language: Language;
@@ -82,7 +82,7 @@ export interface SettingsData {
 }
 
 const defaultProfile: UserProfile = {
-  displayName: "",
+  displayName: '',
   avatarIndex: 0,
 };
 
@@ -101,20 +101,20 @@ const defaultStreak: StreakData = {
 };
 
 const defaultSettings: SettingsData = {
-  language: "de",
-  themeMode: "auto",
+  language: 'de',
+  themeMode: 'auto',
 };
 
 function isLanguage(value: unknown): value is Language {
-  return value === "en" || value === "de";
+  return value === 'en' || value === 'de';
 }
 
 function isThemeMode(value: unknown): value is ThemeMode {
-  return value === "auto" || value === "light" || value === "dark";
+  return value === 'auto' || value === 'light' || value === 'dark';
 }
 
 function normalizeSettings(
-  settings: Partial<SettingsData> | null,
+  settings: Partial<SettingsData> | null
 ): SettingsData {
   return {
     language: isLanguage(settings?.language)
@@ -139,7 +139,7 @@ export const storage = {
   async setProfile(profile: UserProfile): Promise<void> {
     await AsyncStorage.setItem(
       STORAGE_KEYS.USER_PROFILE,
-      JSON.stringify(profile),
+      JSON.stringify(profile)
     );
   },
 
@@ -160,7 +160,7 @@ export const storage = {
     languageId: string,
     topicId: string,
     questionsAnswered: number,
-    correctAnswers: number,
+    correctAnswers: number
   ): Promise<void> {
     const progress = await this.getProgress();
     const compositeKey = `${languageId}:${topicId}`;
@@ -249,7 +249,7 @@ export const storage = {
 
     await AsyncStorage.setItem(
       STORAGE_KEYS.STREAK,
-      JSON.stringify(newStreakData),
+      JSON.stringify(newStreakData)
     );
     return newStreakData;
   },
@@ -277,19 +277,19 @@ export const storage = {
 
   async hasSeenWelcome(): Promise<boolean> {
     try {
-      return (await AsyncStorage.getItem(STORAGE_KEYS.WELCOME_SEEN)) === "true";
+      return (await AsyncStorage.getItem(STORAGE_KEYS.WELCOME_SEEN)) === 'true';
     } catch {
       return false;
     }
   },
 
   async markWelcomeSeen(): Promise<void> {
-    await AsyncStorage.setItem(STORAGE_KEYS.WELCOME_SEEN, "true");
+    await AsyncStorage.setItem(STORAGE_KEYS.WELCOME_SEEN, 'true');
   },
 
   async getTopicSkillLevel(
     languageId: string,
-    topicId: string,
+    topicId: string
   ): Promise<MasteryLevel> {
     const progress = await this.getProgress();
     const compositeKey = `${languageId}:${topicId}`;
@@ -299,7 +299,7 @@ export const storage = {
   async updateTopicSkillLevel(
     languageId: string,
     topicId: string,
-    scorePercent: number,
+    scorePercent: number
   ): Promise<void> {
     const progress = await this.getProgress();
     const compositeKey = `${languageId}:${topicId}`;
@@ -340,16 +340,16 @@ export const storage = {
   async migrateProgressToCompositeKeys(): Promise<void> {
     try {
       const migrated = await AsyncStorage.getItem(
-        STORAGE_KEYS.PROGRESS_MIGRATED,
+        STORAGE_KEYS.PROGRESS_MIGRATED
       );
-      if (migrated === "true") return;
+      if (migrated === 'true') return;
 
       const progress = await this.getProgress();
       const newTopicProgress: Record<string, TopicProgress> = {};
       let changed = false;
 
       for (const [key, value] of Object.entries(progress.topicProgress)) {
-        if (key.includes(":")) {
+        if (key.includes(':')) {
           newTopicProgress[key] = value;
         } else {
           newTopicProgress[`javascript:${key}`] = value;
@@ -362,15 +362,15 @@ export const storage = {
         await this.setProgress(progress);
       }
 
-      await AsyncStorage.setItem(STORAGE_KEYS.PROGRESS_MIGRATED, "true");
+      await AsyncStorage.setItem(STORAGE_KEYS.PROGRESS_MIGRATED, 'true');
     } catch (error) {
-      console.error("Error migrating progress data:", error);
+      console.error('Error migrating progress data:', error);
     }
   },
 
   getTopicProgressForLanguage(
     topicProgress: Record<string, TopicProgress>,
-    languageId: string,
+    languageId: string
   ): Record<string, TopicProgress> {
     const prefix = `${languageId}:`;
     const filtered: Record<string, TopicProgress> = {};

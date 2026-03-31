@@ -1,15 +1,15 @@
-import React from "react";
-import { StyleSheet, View, type StyleProp, type ViewStyle } from "react-native";
+import React from 'react';
+import { StyleSheet, View, type StyleProp, type ViewStyle } from 'react-native';
 
-import { AppIcon } from "@/components/AppIcon";
-import { ThemedText } from "@/components/ThemedText";
-import { BorderRadius, Spacing, withOpacity } from "@/constants/theme";
+import { AppIcon } from '@/components/AppIcon';
+import { ThemedText } from '@/components/ThemedText';
+import { BorderRadius, Spacing, withOpacity } from '@/constants/theme';
 
 type StatusBadgeProps = {
   color: string;
   icon?: string;
   label: string;
-  size?: "default" | "compact";
+  size?: 'default' | 'compact';
   style?: StyleProp<ViewStyle>;
 };
 
@@ -17,10 +17,10 @@ export function StatusBadge({
   color,
   icon,
   label,
-  size = "default",
+  size = 'default',
   style,
 }: StatusBadgeProps) {
-  const isCompact = size === "compact";
+  const isCompact = size === 'compact';
 
   return (
     <View
@@ -35,7 +35,7 @@ export function StatusBadge({
         <AppIcon name={icon} size={isCompact ? 14 : 16} color={color} />
       ) : null}
       <ThemedText
-        type={isCompact ? "small" : "label"}
+        type={isCompact ? 'small' : 'label'}
         numberOfLines={1}
         style={[styles.label, { color }]}
       >
@@ -51,19 +51,19 @@ const styles = StyleSheet.create({
     paddingVertical: 6,
   },
   container: {
-    alignSelf: "flex-start",
-    alignItems: "center",
-    borderCurve: "continuous",
+    alignSelf: 'flex-start',
+    alignItems: 'center',
+    borderCurve: 'continuous',
     borderRadius: BorderRadius.full,
-    flexDirection: "row",
+    flexDirection: 'row',
     gap: 6,
-    maxWidth: "100%",
+    maxWidth: '100%',
   },
   default: {
     paddingHorizontal: Spacing.md,
     paddingVertical: 8,
   },
   label: {
-    fontWeight: "600",
+    fontWeight: '600',
   },
 });

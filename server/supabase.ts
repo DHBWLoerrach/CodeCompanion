@@ -2,16 +2,16 @@ import {
   createClient,
   type SupabaseClient,
   type SupabaseClientOptions,
-} from "@supabase/supabase-js";
+} from '@supabase/supabase-js';
 
 export class MissingSupabaseAdminEnvError extends Error {
   constructor() {
-    super("SUPABASE_URL and SUPABASE_SECRET_KEY are required");
-    this.name = "MissingSupabaseAdminEnvError";
+    super('SUPABASE_URL and SUPABASE_SECRET_KEY are required');
+    this.name = 'MissingSupabaseAdminEnvError';
   }
 }
 
-const supabaseClientOptions: SupabaseClientOptions<"public"> = {
+const supabaseClientOptions: SupabaseClientOptions<'public'> = {
   auth: {
     autoRefreshToken: false,
     persistSession: false,
@@ -43,7 +43,7 @@ export function getSupabaseAdminClient(): SupabaseClient {
   cachedClient = createClient(
     supabaseUrl,
     supabaseSecretKey,
-    supabaseClientOptions,
+    supabaseClientOptions
   );
   return cachedClient;
 }

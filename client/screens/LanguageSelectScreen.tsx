@@ -1,22 +1,22 @@
-import React, { useMemo } from "react";
-import { View, ScrollView, Pressable } from "react-native";
-import { useLocalSearchParams, useRouter } from "expo-router";
-import { EaseView } from "react-native-ease";
-import * as Haptics from "expo-haptics";
+import React, { useMemo } from 'react';
+import { View, ScrollView, Pressable } from 'react-native';
+import { useLocalSearchParams, useRouter } from 'expo-router';
+import { EaseView } from 'react-native-ease';
+import * as Haptics from 'expo-haptics';
 
-import { AppIcon } from "@/components/AppIcon";
-import { ThemedText } from "@/components/ThemedText";
-import { useTheme } from "@/contexts/ThemeContext";
-import { usePressAnimation } from "@/hooks/usePressAnimation";
-import { useTranslation } from "@/hooks/useTranslation";
-import { getParam } from "@/lib/router-utils";
-import { useProgrammingLanguage } from "@/contexts/ProgrammingLanguageContext";
+import { AppIcon } from '@/components/AppIcon';
+import { ThemedText } from '@/components/ThemedText';
+import { useTheme } from '@/contexts/ThemeContext';
+import { usePressAnimation } from '@/hooks/usePressAnimation';
+import { useTranslation } from '@/hooks/useTranslation';
+import { getParam } from '@/lib/router-utils';
+import { useProgrammingLanguage } from '@/contexts/ProgrammingLanguageContext';
 import {
   LANGUAGES,
   getLanguageDisplayName,
   type ProgrammingLanguage,
-} from "@/lib/languages";
-import { Spacing, BorderRadius, Shadows, withOpacity } from "@/constants/theme";
+} from '@/lib/languages';
+import { Spacing, BorderRadius, Shadows, withOpacity } from '@/constants/theme';
 
 interface LanguageCardProps {
   language: ProgrammingLanguage;
@@ -41,19 +41,19 @@ function LanguageCard({
     usePressAnimation(0.985);
   const chevronTint = useMemo(
     () => withOpacity(theme.primary, 0.1),
-    [theme.primary],
+    [theme.primary]
   );
   const pressedOverlay = useMemo(
     () => withOpacity(theme.primary, 0.03),
-    [theme.primary],
+    [theme.primary]
   );
   const pressedBorderColor = useMemo(
     () => withOpacity(theme.primary, 0.2),
-    [theme.primary],
+    [theme.primary]
   );
-  const accessibilityHint = t("selectFocusHint").replace(
-    "{name}",
-    languageName,
+  const accessibilityHint = t('selectFocusHint').replace(
+    '{name}',
+    languageName
   );
 
   return (
@@ -61,7 +61,7 @@ function LanguageCard({
       initialAnimate={{ opacity: 0, translateY: 20 }}
       animate={{ opacity: 1, translateY: 0 }}
       transition={{
-        type: "timing",
+        type: 'timing',
         duration: 300,
         easing: [0.455, 0.03, 0.515, 0.955],
         delay: index * 80,
@@ -76,13 +76,13 @@ function LanguageCard({
           accessibilityLabel={languageName}
           accessibilityHint={accessibilityHint}
           style={({ pressed }) => ({
-            flexDirection: "row",
-            alignItems: "center",
+            flexDirection: 'row',
+            alignItems: 'center',
             gap: Spacing.lg,
             padding: Spacing.lg,
             backgroundColor: pressed ? pressedOverlay : theme.backgroundDefault,
             borderRadius: BorderRadius.lg,
-            borderCurve: "continuous",
+            borderCurve: 'continuous',
             borderWidth: 1,
             borderColor: pressed ? pressedBorderColor : theme.cardBorder,
             ...Shadows.card,
@@ -93,17 +93,17 @@ function LanguageCard({
               width: 56,
               height: 56,
               borderRadius: BorderRadius.md,
-              borderCurve: "continuous",
+              borderCurve: 'continuous',
               backgroundColor: language.color,
-              alignItems: "center",
-              justifyContent: "center",
+              alignItems: 'center',
+              justifyContent: 'center',
             }}
           >
             <ThemedText
               type="h3"
               lightColor="#000000"
               darkColor="#000000"
-              style={{ fontWeight: "800" }}
+              style={{ fontWeight: '800' }}
             >
               {language.shortName}
             </ThemedText>
@@ -119,8 +119,8 @@ function LanguageCard({
               width: 36,
               height: 36,
               borderRadius: BorderRadius.full,
-              alignItems: "center",
-              justifyContent: "center",
+              alignItems: 'center',
+              justifyContent: 'center',
               backgroundColor: chevronTint,
             }}
           >
@@ -143,10 +143,10 @@ export default function LanguageSelectScreen() {
   const router = useRouter();
   const { allowBack } = useLocalSearchParams<{ allowBack?: string }>();
   const { setSelectedLanguage } = useProgrammingLanguage();
-  const canReturnToPreviousScreen = getParam(allowBack) === "1";
+  const canReturnToPreviousScreen = getParam(allowBack) === '1';
 
   const handleSelectLanguage = async (language: ProgrammingLanguage) => {
-    if (process.env.EXPO_OS === "ios") {
+    if (process.env.EXPO_OS === 'ios') {
       Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     }
     await setSelectedLanguage(language.id);
@@ -154,7 +154,7 @@ export default function LanguageSelectScreen() {
       router.back();
       return;
     }
-    router.replace("/learn");
+    router.replace('/learn');
   };
 
   return (
@@ -173,12 +173,12 @@ export default function LanguageSelectScreen() {
           marginBottom: Spacing.sm,
         }}
       >
-        {t("chooseTechnology")}
+        {t('chooseTechnology')}
       </ThemedText>
       {LANGUAGES.map((programmingLanguage, index) => {
         const topicCount = programmingLanguage.categories.reduce(
           (sum, cat) => sum + cat.topics.length,
-          0,
+          0
         );
         return (
           <LanguageCard
@@ -186,11 +186,11 @@ export default function LanguageSelectScreen() {
             language={programmingLanguage}
             languageName={getLanguageDisplayName(
               programmingLanguage,
-              appLanguage,
+              appLanguage
             )}
             index={index}
             topicCount={topicCount}
-            topicLabel={topicCount === 1 ? t("topic") : t("topics")}
+            topicLabel={topicCount === 1 ? t('topic') : t('topics')}
             onPress={() => handleSelectLanguage(programmingLanguage)}
           />
         );

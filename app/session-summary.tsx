@@ -1,1 +1,1 @@
-export { default } from "@/screens/SessionSummaryScreen";
+export { default } from '@/screens/SessionSummaryScreen';

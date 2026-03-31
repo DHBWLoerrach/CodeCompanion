@@ -1,4 +1,4 @@
-import type { ProgrammingLanguageId } from "@shared/programming-language";
+import type { ProgrammingLanguageId } from '@shared/programming-language';
 
 export interface LocalizedText {
   en: string;

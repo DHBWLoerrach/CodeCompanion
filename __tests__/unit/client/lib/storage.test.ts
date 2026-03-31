@@ -1,5 +1,5 @@
-import AsyncStorage from "@react-native-async-storage/async-storage";
-import { deviceIdStorageKey } from "@/lib/device-id";
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { deviceIdStorageKey } from '@/lib/device-id';
 import {
   getDaysUntilDue,
   isTopicDue,
@@ -7,30 +7,30 @@ import {
   type ProgressData,
   type StreakData,
   type TopicProgress,
-} from "@/lib/storage";
+} from '@/lib/storage';
 
-const STREAK_KEY = "dhbw_streak";
-const SETTINGS_KEY = "dhbw_settings";
+const STREAK_KEY = 'dhbw_streak';
+const SETTINGS_KEY = 'dhbw_settings';
 
 function daysAgo(base: string, days: number): string {
   return new Date(
-    new Date(base).getTime() - days * 24 * 60 * 60 * 1000,
+    new Date(base).getTime() - days * 24 * 60 * 60 * 1000
   ).toISOString();
 }
 
-describe("storage helpers", () => {
+describe('storage helpers', () => {
   afterEach(() => {
     jest.useRealTimers();
   });
 
-  describe("isTopicDue", () => {
-    it("returns true when progress is missing", () => {
+  describe('isTopicDue', () => {
+    it('returns true when progress is missing', () => {
       expect(isTopicDue(undefined)).toBe(true);
     });
 
-    it("returns true when lastPracticed is missing", () => {
+    it('returns true when lastPracticed is missing', () => {
       const progress = {
-        topicId: "variables",
+        topicId: 'variables',
         questionsAnswered: 10,
         correctAnswers: 8,
         skillLevel: 2,
@@ -38,12 +38,12 @@ describe("storage helpers", () => {
       expect(isTopicDue(progress)).toBe(true);
     });
 
-    it("returns false when interval is not reached", () => {
-      const now = "2026-02-08T12:00:00.000Z";
+    it('returns false when interval is not reached', () => {
+      const now = '2026-02-08T12:00:00.000Z';
       jest.useFakeTimers().setSystemTime(new Date(now));
 
       const progress: TopicProgress = {
-        topicId: "variables",
+        topicId: 'variables',
         questionsAnswered: 10,
         correctAnswers: 8,
         skillLevel: 3,
@@ -53,12 +53,12 @@ describe("storage helpers", () => {
       expect(isTopicDue(progress)).toBe(false);
     });
 
-    it("returns true when interval is reached", () => {
-      const now = "2026-02-08T12:00:00.000Z";
+    it('returns true when interval is reached', () => {
+      const now = '2026-02-08T12:00:00.000Z';
       jest.useFakeTimers().setSystemTime(new Date(now));
 
       const progress: TopicProgress = {
-        topicId: "variables",
+        topicId: 'variables',
         questionsAnswered: 10,
         correctAnswers: 8,
         skillLevel: 3,
@@ -69,17 +69,17 @@ describe("storage helpers", () => {
     });
   });
 
-  describe("getDaysUntilDue", () => {
-    it("returns 0 when progress is missing", () => {
+  describe('getDaysUntilDue', () => {
+    it('returns 0 when progress is missing', () => {
       expect(getDaysUntilDue(undefined)).toBe(0);
     });
 
-    it("returns remaining days for not-due topic", () => {
-      const now = "2026-02-08T12:00:00.000Z";
+    it('returns remaining days for not-due topic', () => {
+      const now = '2026-02-08T12:00:00.000Z';
       jest.useFakeTimers().setSystemTime(new Date(now));
 
       const progress: TopicProgress = {
-        topicId: "closures",
+        topicId: 'closures',
         questionsAnswered: 10,
         correctAnswers: 8,
         skillLevel: 4,
@@ -89,12 +89,12 @@ describe("storage helpers", () => {
       expect(getDaysUntilDue(progress)).toBe(4);
     });
 
-    it("returns 0 when topic is already due", () => {
-      const now = "2026-02-08T12:00:00.000Z";
+    it('returns 0 when topic is already due', () => {
+      const now = '2026-02-08T12:00:00.000Z';
       jest.useFakeTimers().setSystemTime(new Date(now));
 
       const progress: TopicProgress = {
-        topicId: "closures",
+        topicId: 'closures',
         questionsAnswered: 10,
         correctAnswers: 8,
         skillLevel: 2,
@@ -106,14 +106,14 @@ describe("storage helpers", () => {
   });
 });
 
-describe("storage state updates", () => {
+describe('storage state updates', () => {
   afterEach(() => {
     jest.useRealTimers();
   });
 
-  describe("recordPractice", () => {
-    it("starts a new streak when there is no previous entry", async () => {
-      const now = "2026-02-08T12:00:00.000Z";
+  describe('recordPractice', () => {
+    it('starts a new streak when there is no previous entry', async () => {
+      const now = '2026-02-08T12:00:00.000Z';
       jest.useFakeTimers().setSystemTime(new Date(now));
       const today = new Date(now).getDay();
 
@@ -126,8 +126,8 @@ describe("storage state updates", () => {
       expect(result.weekHistory.filter(Boolean)).toHaveLength(1);
     });
 
-    it("does not increment streak when already practiced today", async () => {
-      const now = "2026-02-08T12:00:00.000Z";
+    it('does not increment streak when already practiced today', async () => {
+      const now = '2026-02-08T12:00:00.000Z';
       jest.useFakeTimers().setSystemTime(new Date(now));
 
       const streak: StreakData = {
@@ -137,7 +137,7 @@ describe("storage state updates", () => {
         weekHistory: [false, true, false, false, false, false, true],
       };
       await AsyncStorage.setItem(STREAK_KEY, JSON.stringify(streak));
-      const setItemSpy = jest.spyOn(AsyncStorage, "setItem");
+      const setItemSpy = jest.spyOn(AsyncStorage, 'setItem');
       setItemSpy.mockClear();
 
       const result = await storage.recordPractice();
@@ -146,8 +146,8 @@ describe("storage state updates", () => {
       expect(setItemSpy).not.toHaveBeenCalled();
     });
 
-    it("resets broken streak to 1", async () => {
-      const now = "2026-02-08T12:00:00.000Z";
+    it('resets broken streak to 1', async () => {
+      const now = '2026-02-08T12:00:00.000Z';
       jest.useFakeTimers().setSystemTime(new Date(now));
       const today = new Date(now).getDay();
 
@@ -168,43 +168,43 @@ describe("storage state updates", () => {
     });
   });
 
-  describe("updateTopicProgress", () => {
-    it("increments topic and global counters", async () => {
-      await storage.updateTopicProgress("javascript", "variables", 5, 4);
-      await storage.updateTopicProgress("javascript", "variables", 2, 1);
+  describe('updateTopicProgress', () => {
+    it('increments topic and global counters', async () => {
+      await storage.updateTopicProgress('javascript', 'variables', 5, 4);
+      await storage.updateTopicProgress('javascript', 'variables', 2, 1);
 
       const progress = await storage.getProgress();
 
       expect(progress.totalQuestions).toBe(7);
       expect(progress.correctAnswers).toBe(5);
       expect(
-        progress.topicProgress["javascript:variables"].questionsAnswered,
+        progress.topicProgress['javascript:variables'].questionsAnswered
       ).toBe(7);
       expect(
-        progress.topicProgress["javascript:variables"].correctAnswers,
+        progress.topicProgress['javascript:variables'].correctAnswers
       ).toBe(5);
       expect(
-        progress.topicProgress["javascript:variables"].lastPracticed,
+        progress.topicProgress['javascript:variables'].lastPracticed
       ).toBeTruthy();
     });
   });
 
-  describe("updateTopicSkillLevel", () => {
-    it("raises level on high score", async () => {
-      await storage.updateTopicSkillLevel("javascript", "promises", 85);
-      expect(await storage.getTopicSkillLevel("javascript", "promises")).toBe(
-        2,
+  describe('updateTopicSkillLevel', () => {
+    it('raises level on high score', async () => {
+      await storage.updateTopicSkillLevel('javascript', 'promises', 85);
+      expect(await storage.getTopicSkillLevel('javascript', 'promises')).toBe(
+        2
       );
     });
 
-    it("lowers level on low score", async () => {
+    it('lowers level on low score', async () => {
       const seeded: ProgressData = {
         totalQuestions: 0,
         correctAnswers: 0,
         achievements: [],
         topicProgress: {
-          "javascript:promises": {
-            topicId: "promises",
+          'javascript:promises': {
+            topicId: 'promises',
             questionsAnswered: 10,
             correctAnswers: 7,
             skillLevel: 3,
@@ -213,26 +213,26 @@ describe("storage state updates", () => {
       };
       await storage.setProgress(seeded);
 
-      await storage.updateTopicSkillLevel("javascript", "promises", 40);
-      expect(await storage.getTopicSkillLevel("javascript", "promises")).toBe(
-        2,
+      await storage.updateTopicSkillLevel('javascript', 'promises', 40);
+      expect(await storage.getTopicSkillLevel('javascript', 'promises')).toBe(
+        2
       );
     });
 
-    it("does not exceed upper and lower bounds", async () => {
+    it('does not exceed upper and lower bounds', async () => {
       const seeded: ProgressData = {
         totalQuestions: 0,
         correctAnswers: 0,
         achievements: [],
         topicProgress: {
-          "javascript:advanced": {
-            topicId: "advanced",
+          'javascript:advanced': {
+            topicId: 'advanced',
             questionsAnswered: 10,
             correctAnswers: 9,
             skillLevel: 5,
           },
-          "javascript:basics": {
-            topicId: "basics",
+          'javascript:basics': {
+            topicId: 'basics',
             questionsAnswered: 10,
             correctAnswers: 1,
             skillLevel: 1,
@@ -241,63 +241,63 @@ describe("storage state updates", () => {
       };
       await storage.setProgress(seeded);
 
-      await storage.updateTopicSkillLevel("javascript", "advanced", 95);
-      await storage.updateTopicSkillLevel("javascript", "basics", 20);
+      await storage.updateTopicSkillLevel('javascript', 'advanced', 95);
+      await storage.updateTopicSkillLevel('javascript', 'basics', 20);
 
-      expect(await storage.getTopicSkillLevel("javascript", "advanced")).toBe(
-        5,
+      expect(await storage.getTopicSkillLevel('javascript', 'advanced')).toBe(
+        5
       );
-      expect(await storage.getTopicSkillLevel("javascript", "basics")).toBe(1);
+      expect(await storage.getTopicSkillLevel('javascript', 'basics')).toBe(1);
     });
   });
 
-  describe("getSettings", () => {
-    it("uses hardcoded german default on first start", async () => {
+  describe('getSettings', () => {
+    it('uses hardcoded german default on first start', async () => {
       const settings = await storage.getSettings();
 
       expect(settings).toEqual({
-        language: "de",
-        themeMode: "auto",
+        language: 'de',
+        themeMode: 'auto',
       });
     });
 
-    it("normalizes invalid stored settings values", async () => {
+    it('normalizes invalid stored settings values', async () => {
       await AsyncStorage.setItem(
         SETTINGS_KEY,
-        JSON.stringify({ language: "fr", themeMode: "light" }),
+        JSON.stringify({ language: 'fr', themeMode: 'light' })
       );
 
       const settings = await storage.getSettings();
 
       expect(settings).toEqual({
-        language: "de",
-        themeMode: "light",
+        language: 'de',
+        themeMode: 'light',
       });
     });
   });
 
-  describe("clearAllData", () => {
-    it("keeps the device ID while removing other local app data", async () => {
-      await AsyncStorage.setItem(deviceIdStorageKey, "device-uuid");
-      await storage.setSelectedLanguage("python");
+  describe('clearAllData', () => {
+    it('keeps the device ID while removing other local app data', async () => {
+      await AsyncStorage.setItem(deviceIdStorageKey, 'device-uuid');
+      await storage.setSelectedLanguage('python');
       await storage.markWelcomeSeen();
 
       await storage.clearAllData();
 
       expect(await AsyncStorage.getItem(deviceIdStorageKey)).toBe(
-        "device-uuid",
+        'device-uuid'
       );
       expect(await storage.hasSeenWelcome()).toBe(true);
       expect(await storage.getSelectedLanguage()).toBeNull();
     });
   });
 
-  describe("welcome state", () => {
-    it("returns false when welcome has not been seen", async () => {
+  describe('welcome state', () => {
+    it('returns false when welcome has not been seen', async () => {
       expect(await storage.hasSeenWelcome()).toBe(false);
     });
 
-    it("persists when welcome has been seen", async () => {
+    it('persists when welcome has been seen', async () => {
       await storage.markWelcomeSeen();
 
       expect(await storage.hasSeenWelcome()).toBe(true);

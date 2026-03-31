@@ -1,4 +1,4 @@
-import React from "react";
+import React from 'react';
 import {
   ActivityIndicator,
   Pressable,
@@ -8,11 +8,11 @@ import {
   type StyleProp,
   type TextStyle,
   type ViewStyle,
-} from "react-native";
-import { EaseView } from "react-native-ease";
+} from 'react-native';
+import { EaseView } from 'react-native-ease';
 
-import { AppIcon } from "@/components/AppIcon";
-import { ThemedText } from "@/components/ThemedText";
+import { AppIcon } from '@/components/AppIcon';
+import { ThemedText } from '@/components/ThemedText';
 import {
   BorderRadius,
   Shadows,
@@ -20,11 +20,11 @@ import {
   getButtonHeight,
   type ButtonSize,
   withOpacity,
-} from "@/constants/theme";
-import { useTheme } from "@/contexts/ThemeContext";
-import { usePressAnimation } from "@/hooks/usePressAnimation";
+} from '@/constants/theme';
+import { useTheme } from '@/contexts/ThemeContext';
+import { usePressAnimation } from '@/hooks/usePressAnimation';
 
-type SharedButtonProps = Omit<PressableProps, "style" | "children"> & {
+type SharedButtonProps = Omit<PressableProps, 'style' | 'children'> & {
   color?: string;
   icon?: string;
   label: string;
@@ -76,7 +76,7 @@ export function PrimaryButton({
   onPress,
   onPressIn,
   onPressOut,
-  size = "default",
+  size = 'default',
   style,
   textStyle,
   ...props
@@ -137,7 +137,7 @@ export function SecondaryButton({
   onPress,
   onPressIn,
   onPressOut,
-  size = "default",
+  size = 'default',
   style,
   textStyle,
   ...props
@@ -192,20 +192,20 @@ export function SecondaryButton({
 
 const styles = StyleSheet.create({
   base: {
-    alignItems: "center",
-    borderCurve: "continuous",
+    alignItems: 'center',
+    borderCurve: 'continuous',
     borderRadius: BorderRadius.md,
-    justifyContent: "center",
+    justifyContent: 'center',
     paddingHorizontal: Spacing.lg,
   },
   content: {
-    alignItems: "center",
-    flexDirection: "row",
+    alignItems: 'center',
+    flexDirection: 'row',
     gap: Spacing.sm,
-    justifyContent: "center",
+    justifyContent: 'center',
   },
   label: {
-    fontWeight: "600",
+    fontWeight: '600',
   },
   primary: {
     ...Shadows.floatingButton,

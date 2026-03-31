@@ -1,9 +1,9 @@
-import type { ApiQuotaReason } from "@shared/api-quota";
+import type { ApiQuotaReason } from '@shared/api-quota';
 
 function toErrorMessage(error: unknown): string {
   if (error instanceof Error) return error.message;
-  if (typeof error === "string") return error;
-  if (error === null || error === undefined) return "Unknown error";
+  if (typeof error === 'string') return error;
+  if (error === null || error === undefined) return 'Unknown error';
 
   try {
     return JSON.stringify(error);
@@ -13,7 +13,7 @@ function toErrorMessage(error: unknown): string {
 }
 
 export function logApiError(context: string, error: unknown): void {
-  if (process.env.NODE_ENV === "production") {
+  if (process.env.NODE_ENV === 'production') {
     console.error(`${context}: ${toErrorMessage(error)}`);
     return;
   }
@@ -50,12 +50,12 @@ export function logApiRequestOutcome({
     ...(upstreamDurationMs !== undefined ? { upstreamDurationMs } : {}),
   };
 
-  if (process.env.NODE_ENV === "production") {
+  if (process.env.NODE_ENV === 'production') {
     console.info(JSON.stringify(payload));
     return;
   }
 
-  console.info("API request outcome:", payload);
+  console.info('API request outcome:', payload);
 }
 
 export function buildApiRequestTimingFields({
@@ -68,7 +68,7 @@ export function buildApiRequestTimingFields({
   upstreamStartedAt?: number | null;
 }): Pick<
   ApiRequestOutcome,
-  "requestDurationMs" | "quotaDurationMs" | "upstreamDurationMs"
+  'requestDurationMs' | 'quotaDurationMs' | 'upstreamDurationMs'
 > {
   const finishedAt = Date.now();
 

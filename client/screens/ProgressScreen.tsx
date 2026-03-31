@@ -1,32 +1,32 @@
-import React, { useState, useCallback } from "react";
-import { View, ScrollView, StyleSheet, Pressable } from "react-native";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { useFocusEffect, useRouter } from "expo-router";
-import { EaseView } from "react-native-ease";
+import React, { useState, useCallback } from 'react';
+import { View, ScrollView, StyleSheet, Pressable } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useFocusEffect, useRouter } from 'expo-router';
+import { EaseView } from 'react-native-ease';
 
-import { ThemedText } from "@/components/ThemedText";
-import { ThemedView } from "@/components/ThemedView";
-import { AppIcon } from "@/components/AppIcon";
-import { LoadingScreen } from "@/components/LoadingScreen";
-import { StatusBadge } from "@/components/StatusBadge";
-import { SurfaceCard } from "@/components/SurfaceCard";
-import { useTheme } from "@/contexts/ThemeContext";
-import { usePressAnimation } from "@/hooks/usePressAnimation";
-import { useTranslation } from "@/hooks/useTranslation";
+import { ThemedText } from '@/components/ThemedText';
+import { ThemedView } from '@/components/ThemedView';
+import { AppIcon } from '@/components/AppIcon';
+import { LoadingScreen } from '@/components/LoadingScreen';
+import { StatusBadge } from '@/components/StatusBadge';
+import { SurfaceCard } from '@/components/SurfaceCard';
+import { useTheme } from '@/contexts/ThemeContext';
+import { usePressAnimation } from '@/hooks/usePressAnimation';
+import { useTranslation } from '@/hooks/useTranslation';
 import {
   Spacing,
   BorderRadius,
   AvatarColors,
   AVATARS,
   withOpacity,
-} from "@/constants/theme";
+} from '@/constants/theme';
 import {
   storage,
   type UserProfile,
   type ProgressData,
   type StreakData,
-} from "@/lib/storage";
-import { useProgrammingLanguage } from "@/contexts/ProgrammingLanguageContext";
+} from '@/lib/storage';
+import { useProgrammingLanguage } from '@/contexts/ProgrammingLanguageContext';
 
 interface StatCardProps {
   title: string;
@@ -134,7 +134,7 @@ export default function ProgressScreen() {
   const { theme } = useTheme();
   const { t, refreshLanguage } = useTranslation();
   const { selectedLanguage } = useProgrammingLanguage();
-  const languageId = selectedLanguage?.id ?? "javascript";
+  const languageId = selectedLanguage?.id ?? 'javascript';
   const insets = useSafeAreaInsets();
   const router = useRouter();
   const [profile, setProfile] = useState<UserProfile | null>(null);
@@ -146,39 +146,39 @@ export default function ProgressScreen() {
 
   const ACHIEVEMENTS = [
     {
-      id: "first-quiz",
-      nameKey: "firstQuiz" as const,
-      icon: "star",
+      id: 'first-quiz',
+      nameKey: 'firstQuiz' as const,
+      icon: 'star',
       threshold: 1,
     },
     {
-      id: "streak-7",
-      nameKey: "streak7Days" as const,
-      icon: "zap",
+      id: 'streak-7',
+      nameKey: 'streak7Days' as const,
+      icon: 'zap',
       threshold: 7,
     },
     {
-      id: "streak-30",
-      nameKey: "streak30Days" as const,
-      icon: "award",
+      id: 'streak-30',
+      nameKey: 'streak30Days' as const,
+      icon: 'award',
       threshold: 30,
     },
     {
-      id: "questions-100",
-      nameKey: "questions100" as const,
-      icon: "check-circle",
+      id: 'questions-100',
+      nameKey: 'questions100' as const,
+      icon: 'check-circle',
       threshold: 100,
     },
     {
-      id: "novice",
-      nameKey: "novice" as const,
-      icon: "book",
+      id: 'novice',
+      nameKey: 'novice' as const,
+      icon: 'book',
       threshold: 50,
     },
     {
-      id: "expert",
-      nameKey: "expert" as const,
-      icon: "award",
+      id: 'expert',
+      nameKey: 'expert' as const,
+      icon: 'award',
       threshold: 200,
     },
   ];
@@ -194,7 +194,7 @@ export default function ProgressScreen() {
       setProgress(progressData);
       setStreak(streakData);
     } catch (error) {
-      console.error("Error loading data:", error);
+      console.error('Error loading data:', error);
     } finally {
       setLoading(false);
     }
@@ -204,14 +204,14 @@ export default function ProgressScreen() {
     useCallback(() => {
       loadData();
       refreshLanguage();
-    }, [loadData, refreshLanguage]),
+    }, [loadData, refreshLanguage])
   );
 
   const getTopicsMastered = () => {
     if (!progress) return 0;
     const langProgress = storage.getTopicProgressForLanguage(
       progress.topicProgress,
-      languageId,
+      languageId
     );
     return Object.values(langProgress).filter((t) => t.skillLevel === 5).length;
   };
@@ -220,12 +220,12 @@ export default function ProgressScreen() {
     if (!progress || !streak) return [];
     const unlocked: string[] = [];
 
-    if (progress.totalQuestions >= 1) unlocked.push("first-quiz");
-    if (streak.currentStreak >= 7) unlocked.push("streak-7");
-    if (streak.currentStreak >= 30) unlocked.push("streak-30");
-    if (progress.totalQuestions >= 100) unlocked.push("questions-100");
-    if (progress.correctAnswers >= 50) unlocked.push("novice");
-    if (progress.correctAnswers >= 200) unlocked.push("expert");
+    if (progress.totalQuestions >= 1) unlocked.push('first-quiz');
+    if (streak.currentStreak >= 7) unlocked.push('streak-7');
+    if (streak.currentStreak >= 30) unlocked.push('streak-30');
+    if (progress.totalQuestions >= 100) unlocked.push('questions-100');
+    if (progress.correctAnswers >= 50) unlocked.push('novice');
+    if (progress.correctAnswers >= 200) unlocked.push('expert');
 
     return unlocked;
   };
@@ -237,13 +237,13 @@ export default function ProgressScreen() {
   const unlockedAchievements = getUnlockedAchievements();
   const today = new Date().getDay();
   const dayLabels = [
-    t("sunday"),
-    t("monday"),
-    t("tuesday"),
-    t("wednesday"),
-    t("thursday"),
-    t("friday"),
-    t("saturday"),
+    t('sunday'),
+    t('monday'),
+    t('tuesday'),
+    t('wednesday'),
+    t('thursday'),
+    t('friday'),
+    t('saturday'),
   ];
 
   return (
@@ -253,7 +253,7 @@ export default function ProgressScreen() {
         contentInsetAdjustmentBehavior="automatic"
         contentContainerStyle={[
           styles.scrollContent,
-          { paddingBottom: Spacing["4xl"] + insets.bottom },
+          { paddingBottom: Spacing['4xl'] + insets.bottom },
         ]}
         showsVerticalScrollIndicator={false}
       >
@@ -275,15 +275,15 @@ export default function ProgressScreen() {
             />
           </View>
           <ThemedText type="h4">
-            {profile.displayName || t("student")}
+            {profile.displayName || t('student')}
           </ThemedText>
           <EaseView animate={animate} transition={transition}>
             <Pressable
-              onPress={() => router.push("/settings")}
+              onPress={() => router.push('/settings')}
               onPressIn={handlePressIn}
               onPressOut={handlePressOut}
             >
-              <ThemedText type="link">{t("editProfile")}</ThemedText>
+              <ThemedText type="link">{t('editProfile')}</ThemedText>
             </Pressable>
           </EaseView>
         </SurfaceCard>
@@ -301,7 +301,7 @@ export default function ProgressScreen() {
               >
                 {streak.currentStreak}
               </ThemedText>
-              <ThemedText type="body">{t("dayStreak")}</ThemedText>
+              <ThemedText type="body">{t('dayStreak')}</ThemedText>
             </View>
             <AppIcon name="zap" size={40} color={theme.accent} />
           </View>
@@ -326,25 +326,25 @@ export default function ProgressScreen() {
 
         <View style={styles.statsGrid}>
           <StatCard
-            title={t("totalQuestions")}
+            title={t('totalQuestions')}
             value={progress.totalQuestions}
             icon="help-circle"
             color={theme.secondary}
           />
           <StatCard
-            title={t("topicsMastered")}
+            title={t('topicsMastered')}
             value={getTopicsMastered()}
             icon="check-square"
             color={theme.success}
           />
           <StatCard
-            title={t("currentStreak")}
+            title={t('currentStreak')}
             value={streak.currentStreak}
             icon="zap"
             color={theme.accent}
           />
           <StatCard
-            title={t("bestStreak")}
+            title={t('bestStreak')}
             value={streak.bestStreak}
             icon="award"
             color={theme.primary}
@@ -354,7 +354,7 @@ export default function ProgressScreen() {
         <View style={styles.achievementsSection}>
           <View style={styles.achievementsHeader}>
             <ThemedText type="h4" style={styles.sectionTitle}>
-              {t("achievements")}
+              {t('achievements')}
             </ThemedText>
             <StatusBadge
               color={theme.accent}
@@ -391,7 +391,7 @@ const styles = StyleSheet.create({
     gap: Spacing.lg,
   },
   profileCard: {
-    alignItems: "center",
+    alignItems: 'center',
     padding: Spacing.xl,
     gap: Spacing.sm,
   },
@@ -399,28 +399,28 @@ const styles = StyleSheet.create({
     width: 80,
     height: 80,
     borderRadius: 40,
-    alignItems: "center",
-    justifyContent: "center",
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   streakCard: {
     gap: Spacing.lg,
   },
   streakHeader: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
   },
   streakInfo: {
-    flexDirection: "row",
-    alignItems: "baseline",
+    flexDirection: 'row',
+    alignItems: 'baseline',
     gap: Spacing.sm,
   },
   weekRow: {
-    flexDirection: "row",
-    justifyContent: "space-around",
+    flexDirection: 'row',
+    justifyContent: 'space-around',
   },
   dayColumn: {
-    alignItems: "center",
+    alignItems: 'center',
     gap: Spacing.xs,
   },
   dayIndicator: {
@@ -429,64 +429,64 @@ const styles = StyleSheet.create({
     borderRadius: 16,
   },
   statsGrid: {
-    flexDirection: "row",
-    flexWrap: "wrap",
+    flexDirection: 'row',
+    flexWrap: 'wrap',
     gap: Spacing.md,
   },
   statCard: {
     flex: 1,
-    minWidth: "45%",
-    alignItems: "center",
+    minWidth: '45%',
+    alignItems: 'center',
     gap: Spacing.xs,
   },
   statIconContainer: {
     width: 40,
     height: 40,
     borderRadius: 20,
-    alignItems: "center",
-    justifyContent: "center",
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   statValue: {
-    fontVariant: ["tabular-nums"],
+    fontVariant: ['tabular-nums'],
   },
   metricValue: {
-    fontVariant: ["tabular-nums"],
+    fontVariant: ['tabular-nums'],
   },
   achievementsSection: {
     gap: Spacing.md,
   },
   achievementsHeader: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
     gap: Spacing.md,
   },
   sectionTitle: {
     marginBottom: 0,
   },
   achievementsGrid: {
-    flexDirection: "row",
-    flexWrap: "wrap",
+    flexDirection: 'row',
+    flexWrap: 'wrap',
     gap: Spacing.md,
   },
   achievementContainer: {
-    width: "47%",
+    width: '47%',
   },
   achievementCard: {
-    alignItems: "center",
+    alignItems: 'center',
     minHeight: 132,
-    justifyContent: "center",
+    justifyContent: 'center',
     gap: Spacing.sm,
   },
   achievementBadge: {
     width: 60,
     height: 60,
     borderRadius: BorderRadius.full,
-    alignItems: "center",
-    justifyContent: "center",
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   achievementName: {
-    textAlign: "center",
+    textAlign: 'center',
     lineHeight: 18,
   },
 });

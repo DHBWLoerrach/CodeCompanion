@@ -1,13 +1,13 @@
-import React from "react";
-import { StyleSheet, View } from "react-native";
+import React from 'react';
+import { StyleSheet, View } from 'react-native';
 
-import { SecondaryButton } from "@/components/ActionButton";
-import { InlineCodeText } from "@/components/InlineCodeText";
-import { SurfaceCard } from "@/components/SurfaceCard";
-import { ThemedText } from "@/components/ThemedText";
-import { BorderRadius, Spacing, withOpacity } from "@/constants/theme";
-import { useTheme } from "@/contexts/ThemeContext";
-import { useTranslation } from "@/hooks/useTranslation";
+import { SecondaryButton } from '@/components/ActionButton';
+import { InlineCodeText } from '@/components/InlineCodeText';
+import { SurfaceCard } from '@/components/SurfaceCard';
+import { ThemedText } from '@/components/ThemedText';
+import { BorderRadius, Spacing, withOpacity } from '@/constants/theme';
+import { useTheme } from '@/contexts/ThemeContext';
+import { useTranslation } from '@/hooks/useTranslation';
 
 interface ExplanationCardProps {
   isCorrect: boolean;
@@ -22,9 +22,9 @@ interface ExplanationCardProps {
 
 function normalizeComparableText(value: string) {
   return value
-    .replace(/`([^`]+)`/g, "$1")
-    .replace(/^\s*(result|ergebnis|resultat|ausgabe|output)\s*:\s*/i, "")
-    .replace(/\s+/g, " ")
+    .replace(/`([^`]+)`/g, '$1')
+    .replace(/^\s*(result|ergebnis|resultat|ausgabe|output)\s*:\s*/i, '')
+    .replace(/\s+/g, ' ')
     .trim()
     .toLowerCase();
 }
@@ -58,8 +58,8 @@ export function ExplanationCard({
         style={[styles.title, { color: titleColor }]}
         text={
           isCorrect
-            ? `${t("correctTitle")} — ${correctAnswer}`
-            : `${t("incorrectTitle")} ${correctAnswer}`
+            ? `${t('correctTitle')} — ${correctAnswer}`
+            : `${t('incorrectTitle')} ${correctAnswer}`
         }
       />
 
@@ -80,7 +80,7 @@ export function ExplanationCard({
         ]}
       >
         <ThemedText type="label" style={{ color: theme.secondary }}>
-          {t("takeawayLabel")}
+          {t('takeawayLabel')}
         </ThemedText>
         <InlineCodeText type="body" text={takeaway} />
       </View>
@@ -93,7 +93,7 @@ export function ExplanationCard({
           ]}
         >
           <ThemedText type="label" style={{ color: theme.tabIconDefault }}>
-            {t("commonMistakeLabel")}
+            {t('commonMistakeLabel')}
           </ThemedText>
           <InlineCodeText type="body" text={commonMistake} />
         </View>
@@ -104,7 +104,7 @@ export function ExplanationCard({
           testID="quiz-topic-explanation-button"
           color={theme.secondary}
           icon="book-open"
-          label={t("moreOnThisTopic")}
+          label={t('moreOnThisTopic')}
           onPress={onPressTopic}
           style={styles.topicAction}
         />
@@ -124,7 +124,7 @@ const styles = StyleSheet.create({
     gap: Spacing.sm,
   },
   takeaway: {
-    borderCurve: "continuous",
+    borderCurve: 'continuous',
     borderLeftWidth: 3,
     borderRadius: BorderRadius.md,
     gap: Spacing.xs,
@@ -132,14 +132,14 @@ const styles = StyleSheet.create({
     paddingVertical: Spacing.sm,
   },
   commonMistake: {
-    borderCurve: "continuous",
+    borderCurve: 'continuous',
     borderRadius: BorderRadius.md,
     gap: Spacing.xs,
     paddingHorizontal: Spacing.md,
     paddingVertical: Spacing.sm,
   },
   topicAction: {
-    alignSelf: "flex-start",
+    alignSelf: 'flex-start',
     marginTop: Spacing.xs,
   },
 });

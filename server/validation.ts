@@ -1,19 +1,19 @@
 import {
   clampQuizDifficultyLevel,
   type QuizDifficultyLevel,
-} from "@shared/skill-level";
-import { isValidTopicId } from "@shared/curriculum";
+} from '@shared/skill-level';
+import { isValidTopicId } from '@shared/curriculum';
 import {
   DEFAULT_PROGRAMMING_LANGUAGE_ID,
   SUPPORTED_PROGRAMMING_LANGUAGE_IDS,
   type ProgrammingLanguageId,
-} from "@shared/programming-language";
+} from '@shared/programming-language';
 
-type SupportedLanguage = "en" | "de";
+type SupportedLanguage = 'en' | 'de';
 
 // @visibleForTesting
 export function toNumber(value: unknown, fallback: number): number {
-  const parsed = typeof value === "number" ? value : Number(value);
+  const parsed = typeof value === 'number' ? value : Number(value);
   return Number.isFinite(parsed) ? parsed : fallback;
 }
 
@@ -27,12 +27,12 @@ export function toQuestionCount(value: unknown, fallback: number): number {
 }
 
 export function toLanguage(value: unknown): SupportedLanguage | null {
-  if (value === undefined || value === null) return "en";
-  return value === "en" || value === "de" ? value : null;
+  if (value === undefined || value === null) return 'en';
+  return value === 'en' || value === 'de' ? value : null;
 }
 
 export function requireTopicId(value: unknown): string | null {
-  if (typeof value !== "string" || value.length === 0) {
+  if (typeof value !== 'string' || value.length === 0) {
     return null;
   }
 
@@ -40,14 +40,14 @@ export function requireTopicId(value: unknown): string | null {
 }
 
 export function toProgrammingLanguage(
-  value: unknown,
+  value: unknown
 ): ProgrammingLanguageId | null {
   if (value === undefined || value === null) {
     return DEFAULT_PROGRAMMING_LANGUAGE_ID;
   }
 
   if (
-    typeof value === "string" &&
+    typeof value === 'string' &&
     SUPPORTED_PROGRAMMING_LANGUAGE_IDS.includes(value as ProgrammingLanguageId)
   ) {
     return value as ProgrammingLanguageId;
@@ -57,16 +57,16 @@ export function toProgrammingLanguage(
 
 export function toQuizDifficultyLevel(
   value: unknown,
-  fallback: QuizDifficultyLevel = 1,
+  fallback: QuizDifficultyLevel = 1
 ): QuizDifficultyLevel {
   return clampQuizDifficultyLevel(value, fallback);
 }
 
 export function validateTopicIdForLanguage(
   topicId: string,
-  languageId: ProgrammingLanguageId,
+  languageId: ProgrammingLanguageId
 ): boolean {
-  if (typeof topicId !== "string" || topicId.length === 0) {
+  if (typeof topicId !== 'string' || topicId.length === 0) {
     return false;
   }
 
@@ -75,13 +75,13 @@ export function validateTopicIdForLanguage(
 
 export function validateTopicIdsForLanguage(
   topicIds: string[],
-  languageId: ProgrammingLanguageId,
+  languageId: ProgrammingLanguageId
 ): boolean {
   if (!Array.isArray(topicIds)) {
     return false;
   }
 
   return topicIds.every((topicId) =>
-    validateTopicIdForLanguage(topicId, languageId),
+    validateTopicIdForLanguage(topicId, languageId)
   );
 }

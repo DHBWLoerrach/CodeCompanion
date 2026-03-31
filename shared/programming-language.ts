@@ -1,9 +1,9 @@
-export const DEFAULT_PROGRAMMING_LANGUAGE_ID = "javascript" as const;
+export const DEFAULT_PROGRAMMING_LANGUAGE_ID = 'javascript' as const;
 
 export const SUPPORTED_PROGRAMMING_LANGUAGE_IDS = [
   DEFAULT_PROGRAMMING_LANGUAGE_ID,
-  "python",
-  "java",
+  'python',
+  'java',
 ] as const;
 
 export type ProgrammingLanguageId =

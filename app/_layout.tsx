@@ -1,19 +1,19 @@
-import React from "react";
-import { StyleSheet } from "react-native";
-import { Stack } from "expo-router";
-import { GestureHandlerRootView } from "react-native-gesture-handler";
-import { KeyboardProvider } from "react-native-keyboard-controller";
-import { SafeAreaProvider } from "react-native-safe-area-context";
-import { QueryClientProvider } from "@tanstack/react-query";
+import React from 'react';
+import { StyleSheet } from 'react-native';
+import { Stack } from 'expo-router';
+import { GestureHandlerRootView } from 'react-native-gesture-handler';
+import { KeyboardProvider } from 'react-native-keyboard-controller';
+import { SafeAreaProvider } from 'react-native-safe-area-context';
+import { QueryClientProvider } from '@tanstack/react-query';
 
-import { queryClient } from "@/lib/query-client";
-import { ErrorBoundary } from "@/components/ErrorBoundary";
-import { ThemeProvider } from "@/contexts/ThemeContext";
-import { LanguageProvider } from "@/contexts/LanguageContext";
-import { ProgrammingLanguageProvider } from "@/contexts/ProgrammingLanguageContext";
-import { ThemedStatusBar } from "@/components/ThemedStatusBar";
-import { useScreenOptions } from "@/hooks/useScreenOptions";
-import { useTranslation } from "@/hooks/useTranslation";
+import { queryClient } from '@/lib/query-client';
+import { ErrorBoundary } from '@/components/ErrorBoundary';
+import { ThemeProvider } from '@/contexts/ThemeContext';
+import { LanguageProvider } from '@/contexts/LanguageContext';
+import { ProgrammingLanguageProvider } from '@/contexts/ProgrammingLanguageContext';
+import { ThemedStatusBar } from '@/components/ThemedStatusBar';
+import { useScreenOptions } from '@/hooks/useScreenOptions';
+import { useTranslation } from '@/hooks/useTranslation';
 
 function RootStack() {
   const screenOptions = useScreenOptions();
@@ -28,27 +28,27 @@ function RootStack() {
         options={({ route }) => {
           const canNavigateBack =
             (route.params as { allowBack?: string } | undefined)?.allowBack ===
-            "1";
+            '1';
 
           return {
-            title: t("selectTechnology"),
+            title: t('selectTechnology'),
             headerBackVisible: canNavigateBack,
             gestureEnabled: canNavigateBack,
           };
         }}
       />
-      <Stack.Screen name="(tabs)" options={{ headerShown: false, title: "" }} />
+      <Stack.Screen name="(tabs)" options={{ headerShown: false, title: '' }} />
       <Stack.Screen
         name="quiz-session"
         options={{
-          presentation: "modal",
+          presentation: 'modal',
           gestureEnabled: false,
         }}
       />
       <Stack.Screen
         name="session-summary"
         options={{
-          presentation: "modal",
+          presentation: 'modal',
           gestureEnabled: false,
           headerBackVisible: false,
         }}
@@ -56,11 +56,11 @@ function RootStack() {
       <Stack.Screen
         name="info-modal"
         options={{
-          presentation: "modal",
+          presentation: 'modal',
         }}
       />
       <Stack.Screen name="settings" />
-      <Stack.Screen name="topic/[topicId]" options={{ title: "" }} />
+      <Stack.Screen name="topic/[topicId]" options={{ title: '' }} />
     </Stack>
   );
 }

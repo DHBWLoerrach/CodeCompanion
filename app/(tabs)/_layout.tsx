@@ -1,10 +1,10 @@
-import React, { useCallback } from "react";
-import { NativeTabs } from "expo-router/unstable-native-tabs";
-import { useFocusEffect } from "expo-router";
-import Feather from "@expo/vector-icons/Feather";
+import React, { useCallback } from 'react';
+import { NativeTabs } from 'expo-router/unstable-native-tabs';
+import { useFocusEffect } from 'expo-router';
+import Feather from '@expo/vector-icons/Feather';
 
-import { useTheme } from "@/contexts/ThemeContext";
-import { useTranslation } from "@/hooks/useTranslation";
+import { useTheme } from '@/contexts/ThemeContext';
+import { useTranslation } from '@/hooks/useTranslation';
 
 export default function TabsLayout() {
   const { theme, isDark } = useTheme();
@@ -16,7 +16,7 @@ export default function TabsLayout() {
   useFocusEffect(
     useCallback(() => {
       refreshLanguage();
-    }, [refreshLanguage]),
+    }, [refreshLanguage])
   );
 
   return (
@@ -31,7 +31,7 @@ export default function TabsLayout() {
       }}
     >
       <NativeTabs.Trigger name="learn">
-        <NativeTabs.Trigger.Label>{t("topicsTab")}</NativeTabs.Trigger.Label>
+        <NativeTabs.Trigger.Label>{t('topicsTab')}</NativeTabs.Trigger.Label>
         <NativeTabs.Trigger.Icon
           sf="book"
           src={
@@ -40,7 +40,7 @@ export default function TabsLayout() {
         />
       </NativeTabs.Trigger>
       <NativeTabs.Trigger name="practice">
-        <NativeTabs.Trigger.Label>{t("practice")}</NativeTabs.Trigger.Label>
+        <NativeTabs.Trigger.Label>{t('practice')}</NativeTabs.Trigger.Label>
         <NativeTabs.Trigger.Icon
           sf="questionmark.circle"
           src={
@@ -52,7 +52,7 @@ export default function TabsLayout() {
         />
       </NativeTabs.Trigger>
       <NativeTabs.Trigger name="progress">
-        <NativeTabs.Trigger.Label>{t("progress")}</NativeTabs.Trigger.Label>
+        <NativeTabs.Trigger.Label>{t('progress')}</NativeTabs.Trigger.Label>
         <NativeTabs.Trigger.Icon
           sf="chart.bar"
           src={

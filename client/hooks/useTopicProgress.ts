@@ -1,7 +1,7 @@
-import { useState, useCallback } from "react";
-import { useFocusEffect } from "expo-router";
-import { storage, type TopicProgress, isTopicDue } from "@/lib/storage";
-import type { Category } from "@/lib/topics";
+import { useState, useCallback } from 'react';
+import { useFocusEffect } from 'expo-router';
+import { storage, type TopicProgress, isTopicDue } from '@/lib/storage';
+import type { Category } from '@/lib/topics';
 
 interface UseTopicProgressOptions {
   languageId: string;
@@ -23,10 +23,10 @@ export function useTopicProgress({
     try {
       const progress = await storage.getProgress();
       setTopicProgress(
-        storage.getTopicProgressForLanguage(progress.topicProgress, languageId),
+        storage.getTopicProgressForLanguage(progress.topicProgress, languageId)
       );
     } catch (error) {
-      console.error("Error loading progress:", error);
+      console.error('Error loading progress:', error);
     } finally {
       setLoading(false);
     }
@@ -36,12 +36,12 @@ export function useTopicProgress({
     useCallback(() => {
       loadProgress();
       refreshLanguage();
-    }, [loadProgress, refreshLanguage]),
+    }, [loadProgress, refreshLanguage])
   );
 
   const allTopics = categories.flatMap((cat) => cat.topics);
   const hasQuizHistory = Object.values(topicProgress).some(
-    (progress) => progress.questionsAnswered > 0,
+    (progress) => progress.questionsAnswered > 0
   );
   const dueTopics = allTopics.filter((topic) => {
     const progress = topicProgress[topic.id];
@@ -53,7 +53,7 @@ export function useTopicProgress({
 
 export function getCategoryProgress(
   category: Category,
-  topicProgress: Record<string, TopicProgress>,
+  topicProgress: Record<string, TopicProgress>
 ) {
   const avgSkillLevel =
     category.topics.reduce((sum, topic) => {

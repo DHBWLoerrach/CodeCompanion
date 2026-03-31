@@ -1,24 +1,24 @@
-import { QUIZ_GENERATE_MIXED_QUOTA_ENDPOINT } from "@shared/api-quota";
-import { getTopicIdsByLanguage } from "@shared/curriculum";
-import { enforceQuizQuota, quotaUnavailableResponse } from "@server/quota";
-import { generateMixedQuizQuestions } from "@server/quiz";
+import { QUIZ_GENERATE_MIXED_QUOTA_ENDPOINT } from '@shared/api-quota';
+import { getTopicIdsByLanguage } from '@shared/curriculum';
+import { enforceQuizQuota, quotaUnavailableResponse } from '@server/quota';
+import { generateMixedQuizQuestions } from '@server/quiz';
 import {
   buildApiRequestTimingFields,
   logApiError,
   logApiRequestOutcome,
-} from "@server/logging";
+} from '@server/logging';
 import {
   invalidJsonBodyResponse,
   InvalidJsonBodyError,
   parseJsonBody,
-} from "@server/request";
+} from '@server/request';
 import {
   toLanguage,
   toProgrammingLanguage,
   toQuestionCount,
   toQuizDifficultyLevel,
   validateTopicIdsForLanguage,
-} from "@server/validation";
+} from '@server/validation';
 
 function hasTooManyTopicIds(value: unknown): boolean {
   return Array.isArray(value) && value.length > 20;
@@ -40,7 +40,7 @@ type TopicQuestionPlan = {
 
 function buildTopicQuestionPlan(
   topicIds: string[],
-  totalQuestionCount: number,
+  totalQuestionCount: number
 ): TopicQuestionPlan[] {
   const baseCount = Math.floor(totalQuestionCount / topicIds.length);
   const remainder = totalQuestionCount % topicIds.length;
@@ -72,7 +72,7 @@ export async function POST(request: Request) {
     const count = toQuestionCount(body?.count, 5);
     const skillLevel = toQuizDifficultyLevel(body?.skillLevel, 1);
     const programmingLanguage = toProgrammingLanguage(
-      body?.programmingLanguage,
+      body?.programmingLanguage
     );
     if (!programmingLanguage) {
       logApiRequestOutcome({
@@ -86,9 +86,9 @@ export async function POST(request: Request) {
       });
       return Response.json(
         {
-          error: "programmingLanguage must be one of: javascript, python, java",
+          error: 'programmingLanguage must be one of: javascript, python, java',
         },
-        { status: 400 },
+        { status: 400 }
       );
     }
     if (hasTooManyTopicIds(body?.topicIds)) {
@@ -102,8 +102,8 @@ export async function POST(request: Request) {
         }),
       });
       return Response.json(
-        { error: "topicIds cannot contain more than 20 entries" },
-        { status: 400 },
+        { error: 'topicIds cannot contain more than 20 entries' },
+        { status: 400 }
       );
     }
     const language = toLanguage(body?.language);
@@ -119,7 +119,7 @@ export async function POST(request: Request) {
       });
       return Response.json(
         { error: "language must be 'en' or 'de'" },
-        { status: 400 },
+        { status: 400 }
       );
     }
 
@@ -138,9 +138,9 @@ export async function POST(request: Request) {
         });
         return Response.json(
           {
-            error: "topicIds contains invalid entries for programmingLanguage",
+            error: 'topicIds contains invalid entries for programmingLanguage',
           },
-          { status: 400 },
+          { status: 400 }
         );
       }
       selectedTopics = body.topicIds;
@@ -160,14 +160,14 @@ export async function POST(request: Request) {
           upstreamStartedAt,
         }),
       });
-      return Response.json({ error: "No topics available" }, { status: 500 });
+      return Response.json({ error: 'No topics available' }, { status: 500 });
     }
 
     try {
       quotaStartedAt = Date.now();
       const quota = await enforceQuizQuota(
         request,
-        QUIZ_GENERATE_MIXED_QUOTA_ENDPOINT,
+        QUIZ_GENERATE_MIXED_QUOTA_ENDPOINT
       );
       quotaDurationMs = Date.now() - quotaStartedAt;
       deviceIdHash = quota.deviceIdHash;
@@ -200,7 +200,7 @@ export async function POST(request: Request) {
           upstreamStartedAt,
         }),
       });
-      logApiError("Mixed quiz quota error", error);
+      logApiError('Mixed quiz quota error', error);
       return quotaUnavailableResponse();
     }
 
@@ -210,7 +210,7 @@ export async function POST(request: Request) {
       programmingLanguage,
       topicPlan,
       language,
-      skillLevel,
+      skillLevel
     );
 
     logApiRequestOutcome({
@@ -247,10 +247,10 @@ export async function POST(request: Request) {
         upstreamStartedAt,
       }),
     });
-    logApiError("Mixed quiz generation error", error);
+    logApiError('Mixed quiz generation error', error);
     return Response.json(
-      { error: "Failed to generate quiz questions" },
-      { status: 500 },
+      { error: 'Failed to generate quiz questions' },
+      { status: 500 }
     );
   }
 }

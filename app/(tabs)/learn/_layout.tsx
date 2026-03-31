@@ -1,20 +1,20 @@
-import React, { useCallback } from "react";
-import { StyleSheet, View } from "react-native";
-import { Stack, useFocusEffect, useRouter } from "expo-router";
+import React, { useCallback } from 'react';
+import { StyleSheet, View } from 'react-native';
+import { Stack, useFocusEffect, useRouter } from 'expo-router';
 
-import { HeaderIconButton } from "@/components/HeaderIconButton";
-import { ThemedText } from "@/components/ThemedText";
-import { useTheme } from "@/contexts/ThemeContext";
-import { useTranslation } from "@/hooks/useTranslation";
-import { useProgrammingLanguage } from "@/contexts/ProgrammingLanguageContext";
-import { BorderRadius, withOpacity } from "@/constants/theme";
-import { getLanguageDisplayName } from "@/lib/languages";
+import { HeaderIconButton } from '@/components/HeaderIconButton';
+import { ThemedText } from '@/components/ThemedText';
+import { useTheme } from '@/contexts/ThemeContext';
+import { useTranslation } from '@/hooks/useTranslation';
+import { useProgrammingLanguage } from '@/contexts/ProgrammingLanguageContext';
+import { BorderRadius, withOpacity } from '@/constants/theme';
+import { getLanguageDisplayName } from '@/lib/languages';
 
 function HeaderBrand() {
   const { theme } = useTheme();
   const { selectedLanguage } = useProgrammingLanguage();
   const badgeColor = selectedLanguage?.color ?? theme.primary;
-  const shortName = selectedLanguage?.shortName ?? "JS";
+  const shortName = selectedLanguage?.shortName ?? 'JS';
 
   return (
     <View style={styles.headerBrand}>
@@ -47,14 +47,14 @@ export default function LearnStack() {
   useFocusEffect(
     useCallback(() => {
       refreshLanguage();
-    }, [refreshLanguage]),
+    }, [refreshLanguage])
   );
 
   return (
     <Stack
       screenOptions={{
         headerShadowVisible: false,
-        headerTitleAlign: "left",
+        headerTitleAlign: 'left',
         headerTitleStyle: { color: theme.text },
         headerStyle: { backgroundColor: theme.backgroundRoot },
       }}
@@ -64,13 +64,13 @@ export default function LearnStack() {
         options={{
           title: selectedLanguage
             ? getLanguageDisplayName(selectedLanguage, language)
-            : t("topicsTab"),
+            : t('topicsTab'),
           headerLeft: () => <HeaderBrand />,
           headerRight: () => (
             <HeaderIconButton
               icon="settings"
               testID="open-settings-button"
-              onPress={() => router.push("/settings")}
+              onPress={() => router.push('/settings')}
               hitSlop={8}
               color={theme.tabIconDefault}
               iconSize={17}
@@ -86,20 +86,20 @@ const styles = StyleSheet.create({
   headerBrand: {
     width: 32,
     height: 32,
-    alignItems: "center",
-    justifyContent: "center",
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   headerBadge: {
     width: 28,
     height: 28,
     borderRadius: BorderRadius.sm,
-    alignItems: "center",
-    justifyContent: "center",
-    borderCurve: "continuous",
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderCurve: 'continuous',
     borderWidth: 1,
   },
   headerBadgeText: {
-    fontWeight: "700",
+    fontWeight: '700',
     fontSize: 13,
   },
 });

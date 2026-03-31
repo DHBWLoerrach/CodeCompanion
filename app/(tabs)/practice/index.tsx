@@ -1,43 +1,43 @@
-import React, { useRef } from "react";
-import { View, ScrollView, StyleSheet, Pressable } from "react-native";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { useRouter } from "expo-router";
-import { EaseView } from "react-native-ease";
+import React, { useRef } from 'react';
+import { View, ScrollView, StyleSheet, Pressable } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useRouter } from 'expo-router';
+import { EaseView } from 'react-native-ease';
 
-import { ThemedView } from "@/components/ThemedView";
-import { ThemedText } from "@/components/ThemedText";
-import { AppIcon } from "@/components/AppIcon";
-import { PrimaryButton } from "@/components/ActionButton";
-import { LoadingScreen } from "@/components/LoadingScreen";
-import { SkillLevelDots } from "@/components/SkillLevelDots";
-import { StatusBadge } from "@/components/StatusBadge";
-import { SurfaceCard } from "@/components/SurfaceCard";
-import { useTheme } from "@/contexts/ThemeContext";
-import { useTranslation } from "@/hooks/useTranslation";
-import { usePressAnimation } from "@/hooks/usePressAnimation";
+import { ThemedView } from '@/components/ThemedView';
+import { ThemedText } from '@/components/ThemedText';
+import { AppIcon } from '@/components/AppIcon';
+import { PrimaryButton } from '@/components/ActionButton';
+import { LoadingScreen } from '@/components/LoadingScreen';
+import { SkillLevelDots } from '@/components/SkillLevelDots';
+import { StatusBadge } from '@/components/StatusBadge';
+import { SurfaceCard } from '@/components/SurfaceCard';
+import { useTheme } from '@/contexts/ThemeContext';
+import { useTranslation } from '@/hooks/useTranslation';
+import { usePressAnimation } from '@/hooks/usePressAnimation';
 import {
   useTopicProgress,
   getCategoryProgress,
-} from "@/hooks/useTopicProgress";
+} from '@/hooks/useTopicProgress';
 import {
   QUICK_QUIZ_MODE,
   QUICK_QUIZ_QUESTION_COUNT,
   QUICK_QUIZ_TOPIC_LIMIT,
-} from "@/constants/quiz";
-import { Spacing, BorderRadius, withOpacity } from "@/constants/theme";
+} from '@/constants/quiz';
+import { Spacing, BorderRadius, withOpacity } from '@/constants/theme';
 import {
   type Topic,
   type Category,
   getTopicName,
   getCategoryName,
-} from "@/lib/topics";
-import { type TopicProgress } from "@/lib/storage";
-import { type MasteryLevel } from "@shared/skill-level";
-import { useProgrammingLanguage } from "@/contexts/ProgrammingLanguageContext";
+} from '@/lib/topics';
+import { type TopicProgress } from '@/lib/storage';
+import { type MasteryLevel } from '@shared/skill-level';
+import { useProgrammingLanguage } from '@/contexts/ProgrammingLanguageContext';
 
 function pickRandomTopicIds(categories: Category[], limit: number): string[] {
   const topicIds = categories.flatMap((category) =>
-    category.topics.map((topic) => topic.id),
+    category.topics.map((topic) => topic.id)
   );
   const shuffled = [...topicIds];
 
@@ -134,7 +134,7 @@ function QuizModeCard({
               {emphasized && !disabled ? (
                 <StatusBadge
                   color={color}
-                  label={t("recommendedLabel")}
+                  label={t('recommendedLabel')}
                   size="compact"
                 />
               ) : null}
@@ -215,7 +215,7 @@ function CategoryRow({
                 type="caption"
                 style={{ color: theme.tabIconDefault }}
               >
-                {topicCount} {topicCount === 1 ? t("topic") : t("topics")}
+                {topicCount} {topicCount === 1 ? t('topic') : t('topics')}
               </ThemedText>
             </View>
             <View style={styles.categoryRowRight}>
@@ -289,7 +289,7 @@ export default function PracticeScreen() {
   const { t, language, refreshLanguage } = useTranslation();
   const { selectedLanguage } = useProgrammingLanguage();
   const categories = selectedLanguage?.categories ?? [];
-  const languageId = selectedLanguage?.id ?? "javascript";
+  const languageId = selectedLanguage?.id ?? 'javascript';
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const categorySectionRef = useRef<View>(null);
@@ -304,18 +304,18 @@ export default function PracticeScreen() {
     });
 
   const hasDueTopics = dueTopics.length > 0;
-  const dueTopicIds = dueTopics.map((t) => t.id).join(",");
+  const dueTopicIds = dueTopics.map((t) => t.id).join(',');
 
   const handleStartReview = () => {
     router.push({
-      pathname: "/quiz-session",
+      pathname: '/quiz-session',
       params: { topicIds: dueTopicIds, programmingLanguage: languageId },
     });
   };
 
   const handleTopicQuiz = (topic: Topic) => {
     router.push({
-      pathname: "/quiz-session",
+      pathname: '/quiz-session',
       params: { topicId: topic.id, programmingLanguage: languageId },
     });
   };
@@ -328,9 +328,9 @@ export default function PracticeScreen() {
   };
 
   const handleCategoryPress = (category: Category) => {
-    const ids = category.topics.map((t) => t.id).join(",");
+    const ids = category.topics.map((t) => t.id).join(',');
     router.push({
-      pathname: "/quiz-session",
+      pathname: '/quiz-session',
       params: { topicIds: ids, programmingLanguage: languageId },
     });
   };
@@ -338,17 +338,17 @@ export default function PracticeScreen() {
   const handleQuickQuiz = () => {
     const quickTopicIds = pickRandomTopicIds(
       categories,
-      QUICK_QUIZ_TOPIC_LIMIT,
+      QUICK_QUIZ_TOPIC_LIMIT
     );
 
     router.push({
-      pathname: "/quiz-session",
+      pathname: '/quiz-session',
       params: {
         count: String(QUICK_QUIZ_QUESTION_COUNT),
         programmingLanguage: languageId,
         quizMode: QUICK_QUIZ_MODE,
         ...(quickTopicIds.length > 0
-          ? { topicIds: quickTopicIds.join(",") }
+          ? { topicIds: quickTopicIds.join(',') }
           : {}),
       },
     });
@@ -357,88 +357,88 @@ export default function PracticeScreen() {
   const quizModes: QuizModeConfig[] = hasDueTopics
     ? [
         {
-          key: "due",
-          icon: "clock",
+          key: 'due',
+          icon: 'clock',
           color: theme.accent,
-          title: t("dueTopicsQuiz"),
-          description: t("dueTopicsQuizDesc"),
+          title: t('dueTopicsQuiz'),
+          description: t('dueTopicsQuizDesc'),
           emphasized: true,
-          testID: "practice-mode-due",
+          testID: 'practice-mode-due',
           onPress: handleStartReview,
         },
         {
-          key: "mixed",
-          icon: "edit-3",
+          key: 'mixed',
+          icon: 'edit-3',
           color: theme.secondary,
-          title: t("mixedQuiz"),
-          description: t("mixedQuizDesc"),
-          testID: "practice-mode-mixed",
+          title: t('mixedQuiz'),
+          description: t('mixedQuizDesc'),
+          testID: 'practice-mode-mixed',
           onPress: () =>
             router.push({
-              pathname: "/quiz-session",
+              pathname: '/quiz-session',
               params: { programmingLanguage: languageId },
             }),
         },
         {
-          key: "quick",
-          icon: "zap",
+          key: 'quick',
+          icon: 'zap',
           color: theme.secondary,
-          title: t("quickQuiz"),
-          description: t("quickQuizDesc"),
-          testID: "practice-mode-quick",
+          title: t('quickQuiz'),
+          description: t('quickQuizDesc'),
+          testID: 'practice-mode-quick',
           onPress: handleQuickQuiz,
         },
         {
-          key: "category",
-          icon: "book-open",
+          key: 'category',
+          icon: 'book-open',
           color: theme.secondary,
-          title: t("byCategoryQuiz"),
-          description: t("byCategoryQuizDesc"),
-          testID: "practice-mode-category",
+          title: t('byCategoryQuiz'),
+          description: t('byCategoryQuizDesc'),
+          testID: 'practice-mode-category',
           onPress: handleScrollToCategories,
         },
       ]
     : [
         {
-          key: "mixed",
-          icon: "edit-3",
+          key: 'mixed',
+          icon: 'edit-3',
           color: theme.secondary,
-          title: t("mixedQuiz"),
-          description: t("mixedQuizDesc"),
+          title: t('mixedQuiz'),
+          description: t('mixedQuizDesc'),
           emphasized: true,
-          testID: "practice-mode-mixed",
+          testID: 'practice-mode-mixed',
           onPress: () =>
             router.push({
-              pathname: "/quiz-session",
+              pathname: '/quiz-session',
               params: { programmingLanguage: languageId },
             }),
         },
         {
-          key: "due",
-          icon: "clock",
+          key: 'due',
+          icon: 'clock',
           color: theme.accent,
-          title: t("dueTopicsQuiz"),
-          description: t("dueTopicsQuizDesc"),
-          testID: "practice-mode-due",
+          title: t('dueTopicsQuiz'),
+          description: t('dueTopicsQuizDesc'),
+          testID: 'practice-mode-due',
           onPress: handleStartReview,
           disabled: true,
         },
         {
-          key: "quick",
-          icon: "zap",
+          key: 'quick',
+          icon: 'zap',
           color: theme.secondary,
-          title: t("quickQuiz"),
-          description: t("quickQuizDesc"),
-          testID: "practice-mode-quick",
+          title: t('quickQuiz'),
+          description: t('quickQuizDesc'),
+          testID: 'practice-mode-quick',
           onPress: handleQuickQuiz,
         },
         {
-          key: "category",
-          icon: "book-open",
+          key: 'category',
+          icon: 'book-open',
           color: theme.secondary,
-          title: t("byCategoryQuiz"),
-          description: t("byCategoryQuizDesc"),
-          testID: "practice-mode-category",
+          title: t('byCategoryQuiz'),
+          description: t('byCategoryQuizDesc'),
+          testID: 'practice-mode-category',
           onPress: handleScrollToCategories,
         },
       ];
@@ -455,7 +455,7 @@ export default function PracticeScreen() {
         contentInsetAdjustmentBehavior="automatic"
         contentContainerStyle={[
           styles.scrollContent,
-          { paddingBottom: Spacing["4xl"] + insets.bottom },
+          { paddingBottom: Spacing['4xl'] + insets.bottom },
         ]}
         showsVerticalScrollIndicator={false}
       >
@@ -463,7 +463,7 @@ export default function PracticeScreen() {
           type="body"
           style={[styles.screenSubtitle, { color: theme.tabIconDefault }]}
         >
-          {t("practiceScreenSubtitle")}
+          {t('practiceScreenSubtitle')}
         </ThemedText>
 
         {/* Section 1: Due for Review */}
@@ -478,14 +478,14 @@ export default function PracticeScreen() {
               <StatusBadge
                 color={theme.accent}
                 icon="clock"
-                label={t("dueForReview")}
+                label={t('dueForReview')}
               />
               <ThemedText
                 type="caption"
                 style={[styles.dueCount, { color: theme.accent }]}
               >
-                {dueTopics.length}{" "}
-                {dueTopics.length === 1 ? t("topic") : t("topics")}
+                {dueTopics.length}{' '}
+                {dueTopics.length === 1 ? t('topic') : t('topics')}
               </ThemedText>
             </View>
 
@@ -509,7 +509,7 @@ export default function PracticeScreen() {
             <PrimaryButton
               testID="practice-start-review-button"
               color={theme.accent}
-              label={t("startReview")}
+              label={t('startReview')}
               onPress={handleStartReview}
               size="compact"
             />
@@ -520,25 +520,25 @@ export default function PracticeScreen() {
             borderColor={theme.cardBorderSubtle}
           >
             <AppIcon
-              name={hasQuizHistory ? "check-circle" : "info"}
+              name={hasQuizHistory ? 'check-circle' : 'info'}
               size={36}
               color={hasQuizHistory ? theme.success : theme.secondary}
             />
             <ThemedText type="h4">
-              {t(hasQuizHistory ? "noDueTopics" : "noPracticeYet")}
+              {t(hasQuizHistory ? 'noDueTopics' : 'noPracticeYet')}
             </ThemedText>
             <ThemedText
               type="caption"
-              style={{ color: theme.tabIconDefault, textAlign: "center" }}
+              style={{ color: theme.tabIconDefault, textAlign: 'center' }}
             >
-              {t(hasQuizHistory ? "noDueTopicsDesc" : "noPracticeYetDesc")}
+              {t(hasQuizHistory ? 'noDueTopicsDesc' : 'noPracticeYetDesc')}
             </ThemedText>
           </SurfaceCard>
         )}
 
         {/* Section 2: Quiz Modes */}
         <ThemedText type="h4" style={styles.sectionHeader}>
-          {t("quizModes")}
+          {t('quizModes')}
         </ThemedText>
         <View style={styles.modesGrid}>
           {quizModes.map(({ key, ...quizMode }) => (
@@ -554,7 +554,7 @@ export default function PracticeScreen() {
           }}
         >
           <ThemedText type="h4" style={styles.sectionHeader}>
-            {t("selectCategory")}
+            {t('selectCategory')}
           </ThemedText>
         </View>
         <View style={styles.categoriesList}>
@@ -595,44 +595,44 @@ const styles = StyleSheet.create({
     gap: Spacing.md,
   },
   dueSectionHeader: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
     gap: Spacing.md,
   },
   dueCount: {
-    fontWeight: "600",
+    fontWeight: '600',
   },
   dueTopicsList: {
     gap: Spacing.sm,
   },
   dueTopicRow: {
-    flexDirection: "row",
-    alignItems: "center",
+    flexDirection: 'row',
+    alignItems: 'center',
     borderRadius: BorderRadius.md,
     borderWidth: StyleSheet.hairlineWidth,
     paddingHorizontal: Spacing.md,
     paddingVertical: Spacing.sm,
   },
   emptyState: {
-    alignItems: "center",
+    alignItems: 'center',
     gap: Spacing.xs,
     paddingHorizontal: Spacing.lg,
     paddingVertical: Spacing.lg,
   },
   modesGrid: {
-    flexDirection: "row",
-    flexWrap: "wrap",
+    flexDirection: 'row',
+    flexWrap: 'wrap',
     gap: Spacing.md,
   },
   modeCardWrapper: {
-    width: "47.5%",
+    width: '47.5%',
   },
   modeCard: {
-    width: "100%",
+    width: '100%',
   },
   modeCardAction: {
-    justifyContent: "space-between",
+    justifyContent: 'space-between',
     minHeight: 156,
     padding: Spacing.md,
   },
@@ -640,17 +640,17 @@ const styles = StyleSheet.create({
     gap: Spacing.xs,
   },
   modeCardTopRow: {
-    flexDirection: "row",
-    alignItems: "flex-start",
-    justifyContent: "space-between",
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    justifyContent: 'space-between',
     gap: Spacing.sm,
   },
   modeIconBubble: {
     width: 46,
     height: 46,
     borderRadius: 23,
-    alignItems: "center",
-    justifyContent: "center",
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   modeTitle: {
     fontSize: 15,
@@ -665,39 +665,39 @@ const styles = StyleSheet.create({
     gap: Spacing.md,
   },
   categoryRowWrapper: {
-    width: "100%",
+    width: '100%',
   },
   categoryRow: {
-    width: "100%",
+    width: '100%',
   },
   categoryAction: {
-    justifyContent: "center",
+    justifyContent: 'center',
     minHeight: 76,
     paddingHorizontal: Spacing.lg,
     paddingVertical: Spacing.sm,
   },
   categoryRowContent: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
   },
   categoryRowLeft: {
     flex: 1,
     gap: Spacing.xs,
   },
   categoryRowRight: {
-    flexDirection: "row",
-    alignItems: "center",
+    flexDirection: 'row',
+    alignItems: 'center',
     gap: Spacing.md,
   },
   categoryProgressBar: {
     width: 80,
     height: 6,
     borderRadius: 3,
-    overflow: "hidden",
+    overflow: 'hidden',
   },
   categoryProgressFill: {
-    height: "100%",
+    height: '100%',
     borderRadius: 3,
   },
 });

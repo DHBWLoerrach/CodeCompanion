@@ -1,7 +1,7 @@
-import React from "react";
-import { View, StyleSheet } from "react-native";
-import type { MasteryLevel } from "@shared/skill-level";
-import { withOpacity } from "@/constants/theme";
+import React from 'react';
+import { View, StyleSheet } from 'react-native';
+import type { MasteryLevel } from '@shared/skill-level';
+import { withOpacity } from '@/constants/theme';
 
 interface SkillLevelDotsProps {
   level: MasteryLevel;
@@ -26,7 +26,7 @@ export function SkillLevelDots({ level, color }: SkillLevelDotsProps) {
 
 const styles = StyleSheet.create({
   container: {
-    flexDirection: "row",
+    flexDirection: 'row',
     gap: 2,
   },
   dot: {

@@ -5,10 +5,10 @@ import React, {
   useEffect,
   useCallback,
   useMemo,
-} from "react";
-import { useColorScheme as useSystemColorScheme } from "react-native";
-import { storage, type ThemeMode } from "@/lib/storage";
-import { Colors } from "@/constants/theme";
+} from 'react';
+import { useColorScheme as useSystemColorScheme } from 'react-native';
+import { storage, type ThemeMode } from '@/lib/storage';
+import { Colors } from '@/constants/theme';
 
 interface ThemeContextType {
   theme: typeof Colors.light;
@@ -21,7 +21,7 @@ const ThemeContext = createContext<ThemeContextType | null>(null);
 
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
   const systemColorScheme = useSystemColorScheme();
-  const [themeMode, setThemeMode] = useState<ThemeMode>("auto");
+  const [themeMode, setThemeMode] = useState<ThemeMode>('auto');
   const [isLoaded, setIsLoaded] = useState(false);
 
   const loadTheme = useCallback(async () => {
@@ -29,7 +29,7 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
       const settings = await storage.getSettings();
       setThemeMode(settings.themeMode);
     } catch {
-      setThemeMode("auto");
+      setThemeMode('auto');
     } finally {
       setIsLoaded(true);
     }
@@ -43,25 +43,25 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
     await loadTheme();
   }, [loadTheme]);
 
-  const effectiveColorScheme = useMemo<"light" | "dark">(() => {
+  const effectiveColorScheme = useMemo<'light' | 'dark'>(() => {
     const resolvedSystemScheme =
-      systemColorScheme === "dark" ? "dark" : "light";
+      systemColorScheme === 'dark' ? 'dark' : 'light';
 
     if (!isLoaded) {
       return resolvedSystemScheme;
     }
-    if (themeMode === "auto") {
+    if (themeMode === 'auto') {
       return resolvedSystemScheme;
     }
     return themeMode;
   }, [isLoaded, themeMode, systemColorScheme]);
 
-  const isDark = effectiveColorScheme === "dark";
+  const isDark = effectiveColorScheme === 'dark';
   const theme = Colors[effectiveColorScheme];
 
   const value = useMemo(
     () => ({ theme, isDark, themeMode, refreshTheme }),
-    [theme, isDark, themeMode, refreshTheme],
+    [theme, isDark, themeMode, refreshTheme]
   );
 
   return (
@@ -75,7 +75,7 @@ export function useTheme() {
     return {
       theme: Colors.light,
       isDark: false,
-      themeMode: "auto" as ThemeMode,
+      themeMode: 'auto' as ThemeMode,
       refreshTheme: async () => {},
     };
   }

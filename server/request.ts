@@ -1,7 +1,7 @@
 export class InvalidJsonBodyError extends Error {
   constructor() {
-    super("Request body must be valid JSON");
-    this.name = "InvalidJsonBodyError";
+    super('Request body must be valid JSON');
+    this.name = 'InvalidJsonBodyError';
   }
 }
 
@@ -15,7 +15,7 @@ export async function parseJsonBody<T>(request: Request): Promise<T> {
 
 export function invalidJsonBodyResponse(): Response {
   return Response.json(
-    { error: "Request body must be valid JSON" },
-    { status: 400 },
+    { error: 'Request body must be valid JSON' },
+    { status: 400 }
   );
 }

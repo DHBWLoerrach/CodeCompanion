@@ -1,16 +1,16 @@
-import React from "react";
+import React from 'react';
 import {
   Pressable,
   StyleSheet,
   type Insets,
   type StyleProp,
   type ViewStyle,
-} from "react-native";
-import { EaseView } from "react-native-ease";
+} from 'react-native';
+import { EaseView } from 'react-native-ease';
 
-import { AppIcon } from "@/components/AppIcon";
-import { useTheme } from "@/contexts/ThemeContext";
-import { usePressAnimation } from "@/hooks/usePressAnimation";
+import { AppIcon } from '@/components/AppIcon';
+import { useTheme } from '@/contexts/ThemeContext';
+import { usePressAnimation } from '@/hooks/usePressAnimation';
 
 const HEADER_ICON_BUTTON_SIZE = 36;
 
@@ -57,7 +57,7 @@ const styles = StyleSheet.create({
   button: {
     width: HEADER_ICON_BUTTON_SIZE,
     height: HEADER_ICON_BUTTON_SIZE,
-    alignItems: "center",
-    justifyContent: "center",
+    alignItems: 'center',
+    justifyContent: 'center',
   },
 });

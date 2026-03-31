@@ -1,20 +1,20 @@
-import React from "react";
-import { View, ScrollView, StyleSheet, Pressable, Linking } from "react-native";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { Stack, useLocalSearchParams } from "expo-router";
+import React from 'react';
+import { View, ScrollView, StyleSheet, Pressable, Linking } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { Stack, useLocalSearchParams } from 'expo-router';
 
-import { HeaderIconButton } from "@/components/HeaderIconButton";
-import { SurfaceCard } from "@/components/SurfaceCard";
-import { ThemedView } from "@/components/ThemedView";
-import { ThemedText } from "@/components/ThemedText";
-import { BorderRadius, Spacing } from "@/constants/theme";
-import { useTheme } from "@/contexts/ThemeContext";
-import { useCloseHandler } from "@/hooks/useCloseHandler";
-import { useTranslation } from "@/hooks/useTranslation";
+import { HeaderIconButton } from '@/components/HeaderIconButton';
+import { SurfaceCard } from '@/components/SurfaceCard';
+import { ThemedView } from '@/components/ThemedView';
+import { ThemedText } from '@/components/ThemedText';
+import { BorderRadius, Spacing } from '@/constants/theme';
+import { useTheme } from '@/contexts/ThemeContext';
+import { useCloseHandler } from '@/hooks/useCloseHandler';
+import { useTranslation } from '@/hooks/useTranslation';
 
-type InfoModalType = "about" | "imprint";
+type InfoModalType = 'about' | 'imprint';
 type AboutAction = {
-  kind: "email" | "website";
+  kind: 'email' | 'website';
   label: string;
   value: string;
   detail?: string;
@@ -28,118 +28,118 @@ type AboutSection = {
 
 const ABOUT_CONTENT = {
   de: {
-    eyebrow: "Programmieren lernen",
+    eyebrow: 'Programmieren lernen',
     intro:
-      "CodeCompanion ist eine mobile Lern- und Übungsapp für Programmierinhalte. Die App verbindet strukturierte Lernpfade, kompakte Erklärungen und Quiz-Training für JavaScript, Python und Java.",
+      'CodeCompanion ist eine mobile Lern- und Übungsapp für Programmierinhalte. Die App verbindet strukturierte Lernpfade, kompakte Erklärungen und Quiz-Training für JavaScript, Python und Java.',
     sections: [
       {
-        heading: "Lernkonzept",
-        body: "CodeCompanion unterstützt Studierende dabei, Themen Schritt für Schritt zu erarbeiten, Wissen direkt zu überprüfen und Lernfortschritte im Alltag sichtbar zu machen.",
+        heading: 'Lernkonzept',
+        body: 'CodeCompanion unterstützt Studierende dabei, Themen Schritt für Schritt zu erarbeiten, Wissen direkt zu überprüfen und Lernfortschritte im Alltag sichtbar zu machen.',
       },
       {
-        heading: "Was die App bietet",
+        heading: 'Was die App bietet',
         bullets: [
-          "Strukturierte Curricula mit aufeinander aufbauenden Themen",
-          "Kompakte Erklärungen zu zentralen Konzepten und Begriffen",
-          "KI-gestützte Quizfragen für gezieltes Üben und Wiederholen",
-          "Lokale Speicherung von Profil, Einstellungen, Fortschritt und Lernserie",
-          "Mehrsprachige Oberfläche in Deutsch und Englisch",
+          'Strukturierte Curricula mit aufeinander aufbauenden Themen',
+          'Kompakte Erklärungen zu zentralen Konzepten und Begriffen',
+          'KI-gestützte Quizfragen für gezieltes Üben und Wiederholen',
+          'Lokale Speicherung von Profil, Einstellungen, Fortschritt und Lernserie',
+          'Mehrsprachige Oberfläche in Deutsch und Englisch',
         ],
       },
       {
-        heading: "KI und Datenschutz",
-        body: "Für die KI-gestützte Quizerstellung werden Anfragen serverseitig verarbeitet. Dabei werden nur die für die Generierung notwendigen Inhalte übertragen.",
+        heading: 'KI und Datenschutz',
+        body: 'Für die KI-gestützte Quizerstellung werden Anfragen serverseitig verarbeitet. Dabei werden nur die für die Generierung notwendigen Inhalte übertragen.',
         bullets: [
-          "Die App verwendet kein Benutzerkonto.",
-          "Lernhistorie, Fortschritt, Einstellungen und Streaks bleiben lokal auf dem Gerät gespeichert.",
-          "Es wird keine serverseitige Lernhistorie für die App geführt.",
+          'Die App verwendet kein Benutzerkonto.',
+          'Lernhistorie, Fortschritt, Einstellungen und Streaks bleiben lokal auf dem Gerät gespeichert.',
+          'Es wird keine serverseitige Lernhistorie für die App geführt.',
         ],
       },
       {
-        heading: "Entwicklung",
-        body: "Die App wird am Studienzentrum IT-Management & Informatik (SZI) der DHBW Lörrach unter Leitung von Prof. Dr. Erik Behrends entwickelt.",
+        heading: 'Entwicklung',
+        body: 'Die App wird am Studienzentrum IT-Management & Informatik (SZI) der DHBW Lörrach unter Leitung von Prof. Dr. Erik Behrends entwickelt.',
         actions: [
           {
-            kind: "website",
-            label: "SZI der DHBW Lörrach",
-            value: "https://www.dhbw-loerrach.de/szi",
-            detail: "https://www.dhbw-loerrach.de/szi",
+            kind: 'website',
+            label: 'SZI der DHBW Lörrach',
+            value: 'https://www.dhbw-loerrach.de/szi',
+            detail: 'https://www.dhbw-loerrach.de/szi',
           },
         ],
       },
       {
-        heading: "Open Source und Feedback",
-        body: "Der Quellcode ist öffentlich verfügbar. Fragen, Feedback und Fehlermeldungen können direkt an das App-Team geschickt werden.",
+        heading: 'Open Source und Feedback',
+        body: 'Der Quellcode ist öffentlich verfügbar. Fragen, Feedback und Fehlermeldungen können direkt an das App-Team geschickt werden.',
         actions: [
           {
-            kind: "website",
-            label: "GitHub-Repository",
-            value: "https://github.com/DHBWLoerrach/CodeCompanion",
-            detail: "https://github.com/DHBWLoerrach/CodeCompanion",
+            kind: 'website',
+            label: 'GitHub-Repository',
+            value: 'https://github.com/DHBWLoerrach/CodeCompanion',
+            detail: 'https://github.com/DHBWLoerrach/CodeCompanion',
           },
           {
-            kind: "email",
-            label: "apps@dhbw-loerrach.de",
-            value: "apps@dhbw-loerrach.de",
+            kind: 'email',
+            label: 'apps@dhbw-loerrach.de',
+            value: 'apps@dhbw-loerrach.de',
           },
         ],
       },
     ] satisfies AboutSection[],
   },
   en: {
-    eyebrow: "Learn programming",
+    eyebrow: 'Learn programming',
     intro:
-      "CodeCompanion is a mobile learning and practice app for programming topics. It combines structured learning paths, concise explanations, and quiz-based practice for JavaScript, Python, and Java.",
+      'CodeCompanion is a mobile learning and practice app for programming topics. It combines structured learning paths, concise explanations, and quiz-based practice for JavaScript, Python, and Java.',
     sections: [
       {
-        heading: "Learning approach",
-        body: "CodeCompanion helps students work through topics step by step, check understanding immediately, and keep learning progress visible in everyday study.",
+        heading: 'Learning approach',
+        body: 'CodeCompanion helps students work through topics step by step, check understanding immediately, and keep learning progress visible in everyday study.',
       },
       {
-        heading: "What the app offers",
+        heading: 'What the app offers',
         bullets: [
-          "Structured curricula with topics that build on each other",
-          "Concise explanations for core concepts and terminology",
-          "AI-assisted quizzes for targeted practice and revision",
-          "Local storage for profile, settings, progress, and streak data",
-          "A multilingual interface in German and English",
+          'Structured curricula with topics that build on each other',
+          'Concise explanations for core concepts and terminology',
+          'AI-assisted quizzes for targeted practice and revision',
+          'Local storage for profile, settings, progress, and streak data',
+          'A multilingual interface in German and English',
         ],
       },
       {
-        heading: "AI and privacy",
-        body: "Requests for AI-assisted quiz generation are processed server-side. Only the content required to generate quiz questions is transmitted.",
+        heading: 'AI and privacy',
+        body: 'Requests for AI-assisted quiz generation are processed server-side. Only the content required to generate quiz questions is transmitted.',
         bullets: [
-          "The app does not require a user account.",
-          "Learning history, progress, settings, and streaks remain stored locally on the device.",
-          "No server-side learning history is maintained for the app.",
+          'The app does not require a user account.',
+          'Learning history, progress, settings, and streaks remain stored locally on the device.',
+          'No server-side learning history is maintained for the app.',
         ],
       },
       {
-        heading: "Development",
-        body: "The app is developed at the Studienzentrum IT-Management & Informatik (SZI) at DHBW Lörrach under the supervision of Prof. Dr. Erik Behrends.",
+        heading: 'Development',
+        body: 'The app is developed at the Studienzentrum IT-Management & Informatik (SZI) at DHBW Lörrach under the supervision of Prof. Dr. Erik Behrends.',
         actions: [
           {
-            kind: "website",
-            label: "SZI at DHBW Lörrach",
-            value: "https://www.dhbw-loerrach.de/szi",
-            detail: "https://www.dhbw-loerrach.de/szi",
+            kind: 'website',
+            label: 'SZI at DHBW Lörrach',
+            value: 'https://www.dhbw-loerrach.de/szi',
+            detail: 'https://www.dhbw-loerrach.de/szi',
           },
         ],
       },
       {
-        heading: "Open source and feedback",
-        body: "The source code is publicly available. Questions, feedback, and bug reports can be sent directly to the app team.",
+        heading: 'Open source and feedback',
+        body: 'The source code is publicly available. Questions, feedback, and bug reports can be sent directly to the app team.',
         actions: [
           {
-            kind: "website",
-            label: "GitHub repository",
-            value: "https://github.com/DHBWLoerrach/CodeCompanion",
-            detail: "https://github.com/DHBWLoerrach/CodeCompanion",
+            kind: 'website',
+            label: 'GitHub repository',
+            value: 'https://github.com/DHBWLoerrach/CodeCompanion',
+            detail: 'https://github.com/DHBWLoerrach/CodeCompanion',
           },
           {
-            kind: "email",
-            label: "apps@dhbw-loerrach.de",
-            value: "apps@dhbw-loerrach.de",
+            kind: 'email',
+            label: 'apps@dhbw-loerrach.de',
+            value: 'apps@dhbw-loerrach.de',
           },
         ],
       },
@@ -153,9 +153,9 @@ export default function InfoModalScreen() {
   const insets = useSafeAreaInsets();
   const { type } = useLocalSearchParams<{ type?: string }>();
 
-  const resolvedType: InfoModalType = type === "imprint" ? "imprint" : "about";
-  const title = resolvedType === "imprint" ? "Impressum" : t("aboutThisApp");
-  const aboutContent = language === "de" ? ABOUT_CONTENT.de : ABOUT_CONTENT.en;
+  const resolvedType: InfoModalType = type === 'imprint' ? 'imprint' : 'about';
+  const title = resolvedType === 'imprint' ? 'Impressum' : t('aboutThisApp');
+  const aboutContent = language === 'de' ? ABOUT_CONTENT.de : ABOUT_CONTENT.en;
 
   const openEmail = async (email: string) => {
     const url = `mailto:${email}`;
@@ -165,13 +165,13 @@ export default function InfoModalScreen() {
   };
 
   const openWebsite = async (website: string) => {
-    const url = website.startsWith("http") ? website : `https://${website}`;
+    const url = website.startsWith('http') ? website : `https://${website}`;
     if (await Linking.canOpenURL(url)) {
       await Linking.openURL(url);
     }
   };
 
-  const handleClose = useCloseHandler("/settings");
+  const handleClose = useCloseHandler('/settings');
 
   return (
     <>
@@ -192,7 +192,7 @@ export default function InfoModalScreen() {
           ]}
           showsVerticalScrollIndicator={false}
         >
-          {resolvedType === "about" ? (
+          {resolvedType === 'about' ? (
             <SurfaceCard style={styles.card}>
               <ThemedText
                 type="h3"
@@ -252,7 +252,7 @@ export default function InfoModalScreen() {
                       accessibilityRole="link"
                       hitSlop={6}
                       onPress={() =>
-                        action.kind === "email"
+                        action.kind === 'email'
                           ? void openEmail(action.value)
                           : void openWebsite(action.value)
                       }
@@ -293,18 +293,18 @@ export default function InfoModalScreen() {
 
               <ThemedText type="h4">Herausgeber</ThemedText>
               <ThemedText type="body" selectable>
-                Duale Hochschule Baden-Württemberg Lörrach{"\n"}
-                Baden-Württemberg Cooperative State University Lörrach{"\n"}
-                Hangstraße 46 - 50{"\n"}
+                Duale Hochschule Baden-Württemberg Lörrach{'\n'}
+                Baden-Württemberg Cooperative State University Lörrach{'\n'}
+                Hangstraße 46 - 50{'\n'}
                 D-79539 Lörrach
               </ThemedText>
               <ThemedText type="body" selectable>
-                Telefon +49 7621 2071 0{"\n"}
+                Telefon +49 7621 2071 0{'\n'}
               </ThemedText>
               <View style={styles.inlineRow}>
                 <ThemedText type="body">E-Mail: </ThemedText>
                 <Pressable
-                  onPress={() => void openEmail("info@dhbw-loerrach.de")}
+                  onPress={() => void openEmail('info@dhbw-loerrach.de')}
                   hitSlop={6}
                 >
                   <ThemedText type="link" selectable style={styles.linkText}>
@@ -313,7 +313,7 @@ export default function InfoModalScreen() {
                 </Pressable>
               </View>
               <Pressable
-                onPress={() => void openWebsite("https://dhbw-loerrach.de")}
+                onPress={() => void openWebsite('https://dhbw-loerrach.de')}
                 hitSlop={6}
               >
                 <ThemedText type="link" selectable style={styles.linkText}>
@@ -331,7 +331,7 @@ export default function InfoModalScreen() {
               <ThemedText type="body" selectable>
                 Umsatzsteuer-Identifikationsnummer gemäß § 27 a
                 Umsatzsteuergesetz: DE287664832
-                {"\n"}
+                {'\n'}
                 Wirtschafts-Identifikationsnummer (W-IdNr.): DE287664832-00001
               </ThemedText>
 
@@ -339,18 +339,18 @@ export default function InfoModalScreen() {
               <ThemedText type="body" selectable>
                 Ministerium für Wissenschaft, Forschung und Kunst des Landes
                 Baden-Württemberg
-                {"\n"}
-                Königstraße 46{"\n"}
+                {'\n'}
+                Königstraße 46{'\n'}
                 D-70173 Stuttgart
               </ThemedText>
               <ThemedText type="body" selectable>
-                Telefon: +49 711 279 0{"\n"}
-                Telefax: +49 711 279 3081{"\n"}
+                Telefon: +49 711 279 0{'\n'}
+                Telefax: +49 711 279 3081{'\n'}
               </ThemedText>
               <View style={styles.inlineRow}>
                 <ThemedText type="body">E-Mail: </ThemedText>
                 <Pressable
-                  onPress={() => void openEmail("poststelle@mwk.bwl.de")}
+                  onPress={() => void openEmail('poststelle@mwk.bwl.de')}
                   hitSlop={6}
                 >
                   <ThemedText type="link" selectable style={styles.linkText}>
@@ -359,7 +359,7 @@ export default function InfoModalScreen() {
                 </Pressable>
               </View>
               <Pressable
-                onPress={() => void openWebsite("www.mwk.bwl.de")}
+                onPress={() => void openWebsite('www.mwk.bwl.de')}
                 hitSlop={6}
               >
                 <ThemedText type="link" selectable style={styles.linkText}>
@@ -380,7 +380,7 @@ export default function InfoModalScreen() {
                 Feedback:
               </ThemedText>
               <Pressable
-                onPress={() => void openEmail("apps@dhbw-loerrach.de")}
+                onPress={() => void openEmail('apps@dhbw-loerrach.de')}
                 hitSlop={6}
               >
                 <ThemedText type="link" selectable style={styles.linkText}>
@@ -437,7 +437,7 @@ const styles = StyleSheet.create({
   },
   summaryEyebrow: {
     letterSpacing: 0.6,
-    textTransform: "uppercase",
+    textTransform: 'uppercase',
   },
   imprintMainTitle: {
     lineHeight: 32,
@@ -449,8 +449,8 @@ const styles = StyleSheet.create({
     lineHeight: 24,
   },
   bulletRow: {
-    alignItems: "flex-start",
-    flexDirection: "row",
+    alignItems: 'flex-start',
+    flexDirection: 'row',
     gap: Spacing.sm,
   },
   bulletDot: {
@@ -464,9 +464,9 @@ const styles = StyleSheet.create({
     lineHeight: 24,
   },
   inlineRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    flexWrap: "wrap",
+    flexDirection: 'row',
+    alignItems: 'center',
+    flexWrap: 'wrap',
   },
   actionLink: {
     gap: 2,
@@ -475,6 +475,6 @@ const styles = StyleSheet.create({
     lineHeight: 20,
   },
   linkText: {
-    textDecorationLine: "underline",
+    textDecorationLine: 'underline',
   },
 });

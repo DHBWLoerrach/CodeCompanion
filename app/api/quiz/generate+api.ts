@@ -1,16 +1,16 @@
-import { QUIZ_GENERATE_QUOTA_ENDPOINT } from "@shared/api-quota";
-import { enforceQuizQuota, quotaUnavailableResponse } from "@server/quota";
-import { generateQuizQuestions } from "@server/quiz";
+import { QUIZ_GENERATE_QUOTA_ENDPOINT } from '@shared/api-quota';
+import { enforceQuizQuota, quotaUnavailableResponse } from '@server/quota';
+import { generateQuizQuestions } from '@server/quiz';
 import {
   buildApiRequestTimingFields,
   logApiError,
   logApiRequestOutcome,
-} from "@server/logging";
+} from '@server/logging';
 import {
   invalidJsonBodyResponse,
   InvalidJsonBodyError,
   parseJsonBody,
-} from "@server/request";
+} from '@server/request';
 import {
   requireTopicId,
   toLanguage,
@@ -18,7 +18,7 @@ import {
   toQuestionCount,
   toQuizDifficultyLevel,
   validateTopicIdForLanguage,
-} from "@server/validation";
+} from '@server/validation';
 
 export async function POST(request: Request) {
   const requestStartedAt = Date.now();
@@ -47,7 +47,7 @@ export async function POST(request: Request) {
           upstreamStartedAt,
         }),
       });
-      return Response.json({ error: "topicId is required" }, { status: 400 });
+      return Response.json({ error: 'topicId is required' }, { status: 400 });
     }
 
     const count = toQuestionCount(body?.count, 5);
@@ -64,12 +64,12 @@ export async function POST(request: Request) {
       });
       return Response.json(
         { error: "language must be 'en' or 'de'" },
-        { status: 400 },
+        { status: 400 }
       );
     }
     const skillLevel = toQuizDifficultyLevel(body?.skillLevel, 1);
     const programmingLanguage = toProgrammingLanguage(
-      body?.programmingLanguage,
+      body?.programmingLanguage
     );
     if (!programmingLanguage) {
       logApiRequestOutcome({
@@ -83,9 +83,9 @@ export async function POST(request: Request) {
       });
       return Response.json(
         {
-          error: "programmingLanguage must be one of: javascript, python, java",
+          error: 'programmingLanguage must be one of: javascript, python, java',
         },
-        { status: 400 },
+        { status: 400 }
       );
     }
     if (!validateTopicIdForLanguage(topicId, programmingLanguage)) {
@@ -99,8 +99,8 @@ export async function POST(request: Request) {
         }),
       });
       return Response.json(
-        { error: "Invalid topicId for programmingLanguage" },
-        { status: 400 },
+        { error: 'Invalid topicId for programmingLanguage' },
+        { status: 400 }
       );
     }
 
@@ -108,7 +108,7 @@ export async function POST(request: Request) {
       quotaStartedAt = Date.now();
       const quota = await enforceQuizQuota(
         request,
-        QUIZ_GENERATE_QUOTA_ENDPOINT,
+        QUIZ_GENERATE_QUOTA_ENDPOINT
       );
       quotaDurationMs = Date.now() - quotaStartedAt;
       deviceIdHash = quota.deviceIdHash;
@@ -141,7 +141,7 @@ export async function POST(request: Request) {
           upstreamStartedAt,
         }),
       });
-      logApiError("Quiz quota error", error);
+      logApiError('Quiz quota error', error);
       return quotaUnavailableResponse();
     }
 
@@ -151,7 +151,7 @@ export async function POST(request: Request) {
       topicId,
       count,
       language,
-      skillLevel,
+      skillLevel
     );
     logApiRequestOutcome({
       endpoint: QUIZ_GENERATE_QUOTA_ENDPOINT,
@@ -187,10 +187,10 @@ export async function POST(request: Request) {
         upstreamStartedAt,
       }),
     });
-    logApiError("Quiz generation error", error);
+    logApiError('Quiz generation error', error);
     return Response.json(
-      { error: "Failed to generate quiz questions" },
-      { status: 500 },
+      { error: 'Failed to generate quiz questions' },
+      { status: 500 }
     );
   }
 }

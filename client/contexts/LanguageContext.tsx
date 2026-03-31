@@ -5,10 +5,10 @@ import React, {
   useEffect,
   useCallback,
   useMemo,
-} from "react";
-import { storage } from "@/lib/storage";
-import { getDeviceLocale } from "@/lib/device-locale";
-import { resolveLanguageFromLocale, type Language } from "@/lib/i18n";
+} from 'react';
+import { storage } from '@/lib/storage';
+import { getDeviceLocale } from '@/lib/device-locale';
+import { resolveLanguageFromLocale, type Language } from '@/lib/i18n';
 
 interface LanguageContextType {
   language: Language;
@@ -33,7 +33,7 @@ export function LanguageProvider({ children }: { children: React.ReactNode }) {
         const initialLanguage = getInitialLanguage();
         await storage.setSettings({
           language: initialLanguage,
-          themeMode: "auto",
+          themeMode: 'auto',
         });
         setLanguage(initialLanguage);
         return;
@@ -58,7 +58,7 @@ export function LanguageProvider({ children }: { children: React.ReactNode }) {
 
   const value = useMemo(
     () => ({ language, isLoading, refreshLanguage }),
-    [language, isLoading, refreshLanguage],
+    [language, isLoading, refreshLanguage]
   );
 
   return (

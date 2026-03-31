@@ -1,10 +1,10 @@
 export async function mapWithConcurrency<T, R>(
   items: readonly T[],
   concurrency: number,
-  worker: (item: T, index: number) => Promise<R>,
+  worker: (item: T, index: number) => Promise<R>
 ): Promise<R[]> {
   if (!Number.isInteger(concurrency) || concurrency < 1) {
-    throw new Error("concurrency must be a positive integer");
+    throw new Error('concurrency must be a positive integer');
   }
 
   if (items.length === 0) {
@@ -24,8 +24,8 @@ export async function mapWithConcurrency<T, R>(
 
   await Promise.all(
     Array.from({ length: Math.min(concurrency, items.length) }, () =>
-      runWorker(),
-    ),
+      runWorker()
+    )
   );
 
   return results;

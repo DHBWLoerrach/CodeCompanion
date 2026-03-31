@@ -1,6 +1,6 @@
-import { useRouter } from "expo-router";
+import { useRouter } from 'expo-router';
 
-export function useCloseHandler(fallbackRoute = "/learn") {
+export function useCloseHandler(fallbackRoute = '/learn') {
   const router = useRouter();
 
   return () => {

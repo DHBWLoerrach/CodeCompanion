@@ -6,14 +6,14 @@ function toFiniteNumber(value: unknown, fallback: number): number {
     return fallback;
   }
 
-  const parsed = typeof value === "number" ? value : Number(value);
+  const parsed = typeof value === 'number' ? value : Number(value);
   return Number.isFinite(parsed) ? parsed : fallback;
 }
 
 // @visibleForTesting
 export function clampMasteryLevel(
   value: unknown,
-  fallback: MasteryLevel = 1,
+  fallback: MasteryLevel = 1
 ): MasteryLevel {
   const parsed = toFiniteNumber(value, fallback);
   return Math.min(5, Math.max(1, Math.trunc(parsed))) as MasteryLevel;
@@ -21,7 +21,7 @@ export function clampMasteryLevel(
 
 export function clampQuizDifficultyLevel(
   value: unknown,
-  fallback: QuizDifficultyLevel = 1,
+  fallback: QuizDifficultyLevel = 1
 ): QuizDifficultyLevel {
   const parsed = toFiniteNumber(value, fallback);
   return Math.min(3, Math.max(1, Math.trunc(parsed))) as QuizDifficultyLevel;
@@ -36,7 +36,7 @@ export function masteryToQuizDifficulty(level: number): QuizDifficultyLevel {
 
 export function averageMasteryToQuizDifficulty(
   levels: number[],
-  fallback: QuizDifficultyLevel = 1,
+  fallback: QuizDifficultyLevel = 1
 ): QuizDifficultyLevel {
   if (levels.length === 0) {
     return fallback;

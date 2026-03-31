@@ -1,28 +1,28 @@
-import React, { useMemo } from "react";
-import { View, ScrollView, StyleSheet } from "react-native";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { Stack, useLocalSearchParams, useRouter } from "expo-router";
-import Svg, { Circle } from "react-native-svg";
+import React, { useMemo } from 'react';
+import { View, ScrollView, StyleSheet } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
+import Svg, { Circle } from 'react-native-svg';
 
-import { BottomActionBar } from "@/components/BottomActionBar";
-import { InlineCodeText } from "@/components/InlineCodeText";
-import { PrimaryButton, SecondaryButton } from "@/components/ActionButton";
-import { StatusBadge } from "@/components/StatusBadge";
-import { SurfaceCard } from "@/components/SurfaceCard";
-import { ThemedText } from "@/components/ThemedText";
-import { ThemedView } from "@/components/ThemedView";
-import { AppIcon } from "@/components/AppIcon";
-import { useTheme } from "@/contexts/ThemeContext";
-import { useTranslation } from "@/hooks/useTranslation";
-import { QUICK_QUIZ_MODE } from "@/constants/quiz";
+import { BottomActionBar } from '@/components/BottomActionBar';
+import { InlineCodeText } from '@/components/InlineCodeText';
+import { PrimaryButton, SecondaryButton } from '@/components/ActionButton';
+import { StatusBadge } from '@/components/StatusBadge';
+import { SurfaceCard } from '@/components/SurfaceCard';
+import { ThemedText } from '@/components/ThemedText';
+import { ThemedView } from '@/components/ThemedView';
+import { AppIcon } from '@/components/AppIcon';
+import { useTheme } from '@/contexts/ThemeContext';
+import { useTranslation } from '@/hooks/useTranslation';
+import { QUICK_QUIZ_MODE } from '@/constants/quiz';
 import {
   Spacing,
   getBottomActionBarScrollPadding,
   withOpacity,
-} from "@/constants/theme";
-import { getTopicById, getTopicName } from "@/lib/topics";
-import { getParam, getParamWithDefault } from "@/lib/router-utils";
-import { getLanguageById, getLanguageDisplayName } from "@/lib/languages";
+} from '@/constants/theme';
+import { getTopicById, getTopicName } from '@/lib/topics';
+import { getParam, getParamWithDefault } from '@/lib/router-utils';
+import { getLanguageById, getLanguageDisplayName } from '@/lib/languages';
 
 interface ScoreCircleProps {
   score: number;
@@ -107,7 +107,7 @@ function AnswerItem({
           ]}
         >
           <AppIcon
-            name={correct ? "check" : "x"}
+            name={correct ? 'check' : 'x'}
             size={16}
             color={correct ? theme.success : theme.error}
           />
@@ -152,7 +152,7 @@ export default function SessionSummaryScreen() {
   const quizModeParam = getParam(params.quizMode);
   const programmingLanguageParam = getParamWithDefault(
     params.programmingLanguage,
-    "javascript",
+    'javascript'
   );
 
   const score = Number(scoreParam ?? 0);
@@ -174,35 +174,35 @@ export default function SessionSummaryScreen() {
     ? getTopicById(topicIdParam, langCategories)
     : null;
   const selectedTopicCount = topicIdsParam
-    ? topicIdsParam.split(",").filter(Boolean).length
+    ? topicIdsParam.split(',').filter(Boolean).length
     : 0;
   const summaryBadgeLabel =
     quizModeParam === QUICK_QUIZ_MODE
-      ? t("quickQuiz")
+      ? t('quickQuiz')
       : topic
-        ? t("topic")
-        : t("mixedQuiz");
+        ? t('topic')
+        : t('mixedQuiz');
   const summaryBadgeIcon =
-    quizModeParam === QUICK_QUIZ_MODE ? "zap" : topic ? "book-open" : "edit-3";
+    quizModeParam === QUICK_QUIZ_MODE ? 'zap' : topic ? 'book-open' : 'edit-3';
   const summaryTitle = topic
     ? getTopicName(topic, language)
     : quizModeParam === QUICK_QUIZ_MODE
-      ? t("quickQuiz")
-      : t("mixedQuiz");
+      ? t('quickQuiz')
+      : t('mixedQuiz');
   const summarySubtitle =
     selectedTopicCount > 0
       ? `${selectedTopicCount} ${
-          selectedTopicCount === 1 ? t("topic") : t("topics")
+          selectedTopicCount === 1 ? t('topic') : t('topics')
         }`
       : selectedLanguage
         ? getLanguageDisplayName(selectedLanguage, language)
         : programmingLanguageParam;
 
   const getFeedbackMessage = (pct: number): string => {
-    if (pct >= 80) return t("excellentWork");
-    if (pct >= 70) return t("greatJob");
-    if (pct >= 50) return t("goodStart");
-    return t("keepLearning");
+    if (pct >= 80) return t('excellentWork');
+    if (pct >= 70) return t('greatJob');
+    if (pct >= 50) return t('goodStart');
+    return t('keepLearning');
   };
 
   const handlePracticeAgain = () => {
@@ -221,7 +221,7 @@ export default function SessionSummaryScreen() {
     if (quizModeParam) {
       nextParams.quizMode = quizModeParam;
     }
-    router.replace({ pathname: "/quiz-session", params: nextParams });
+    router.replace({ pathname: '/quiz-session', params: nextParams });
   };
 
   const handleBackToTopics = () => {
@@ -230,7 +230,7 @@ export default function SessionSummaryScreen() {
 
   return (
     <>
-      <Stack.Screen options={{ title: t("sessionComplete") }} />
+      <Stack.Screen options={{ title: t('sessionComplete') }} />
       <ThemedView style={styles.container}>
         <ScrollView
           style={styles.scrollView}
@@ -269,7 +269,7 @@ export default function SessionSummaryScreen() {
 
           <View style={styles.breakdownSection}>
             <ThemedText type="h4" style={styles.sectionTitle}>
-              {t("questionBreakdown")}
+              {t('questionBreakdown')}
             </ThemedText>
             <View style={styles.answersList}>
               {answers.map((answer, index) => (
@@ -278,7 +278,7 @@ export default function SessionSummaryScreen() {
                   index={index}
                   correct={answer.correct}
                   correctAnswer={answer.correctAnswer}
-                  questionLabel={t("question")}
+                  questionLabel={t('question')}
                 />
               ))}
             </View>
@@ -290,13 +290,13 @@ export default function SessionSummaryScreen() {
             testID="summary-practice-again-button"
             color={theme.secondary}
             icon="refresh-cw"
-            label={t("practiceAgain")}
+            label={t('practiceAgain')}
             onPress={handlePracticeAgain}
           />
           <SecondaryButton
             testID="summary-back-to-topics-button"
             color={theme.secondary}
-            label={t("backToTopics")}
+            label={t('backToTopics')}
             onPress={handleBackToTopics}
           />
         </BottomActionBar>
@@ -317,24 +317,24 @@ const styles = StyleSheet.create({
     gap: Spacing.xl,
   },
   header: {
-    alignItems: "center",
+    alignItems: 'center',
     gap: Spacing.sm,
   },
   scoreCard: {
-    alignItems: "center",
+    alignItems: 'center',
   },
   scoreCircleContainer: {
     width: 180,
     height: 180,
-    alignItems: "center",
-    justifyContent: "center",
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   scoreTextContainer: {
-    position: "absolute",
-    alignItems: "center",
+    position: 'absolute',
+    alignItems: 'center',
   },
   feedbackText: {
-    textAlign: "center",
+    textAlign: 'center',
     marginTop: Spacing.lg,
     paddingHorizontal: Spacing.md,
   },
@@ -348,24 +348,24 @@ const styles = StyleSheet.create({
     gap: Spacing.sm,
   },
   answerItem: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
   },
   answerLeft: {
-    flexDirection: "row",
-    alignItems: "center",
+    flexDirection: 'row',
+    alignItems: 'center',
     gap: Spacing.md,
   },
   answerIcon: {
     width: 28,
     height: 28,
     borderRadius: 14,
-    alignItems: "center",
-    justifyContent: "center",
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   correctAnswerText: {
     flexShrink: 1,
-    textAlign: "right",
+    textAlign: 'right',
   },
 });

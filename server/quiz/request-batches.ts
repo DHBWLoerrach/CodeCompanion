@@ -1,34 +1,34 @@
-import type { QuizDifficultyLevel } from "@shared/skill-level";
-import type { ProgrammingLanguageId } from "@shared/programming-language";
+import type { QuizDifficultyLevel } from '@shared/skill-level';
+import type { ProgrammingLanguageId } from '@shared/programming-language';
 import {
   resolveProgrammingLanguageContext,
   resolveTopicDescription,
-} from "./context";
+} from './context';
 import {
   DEFAULT_OPENAI_MODEL,
   quizMaxOutputTokens,
   requestQuizResponseText,
-} from "./openai";
+} from './openai';
 import {
   parseAndNormalizeQuizQuestions,
   validateStructuredMixedQuizQuestions,
   validateStructuredQuizQuestions,
-} from "./questions";
+} from './questions';
 import {
   buildMixedQuizResponseFormat,
   QUIZ_RESPONSE_FORMAT,
-} from "./response-format";
+} from './response-format';
 import {
   buildMixedQuizInstructions,
   buildMixedQuizPrompt,
   buildQuizInstructions,
   buildQuizPrompt,
-} from "./prompts";
+} from './prompts';
 import type {
   GeneratedMixedQuizQuestion,
   GeneratedQuizQuestion,
   MixedQuizTopicPlanItem,
-} from "./types";
+} from './types';
 
 export async function requestQuizQuestionBatch({
   programmingLanguageName,
@@ -61,7 +61,7 @@ export async function requestQuizQuestionBatch({
   });
 
   return parseAndNormalizeQuizQuestions(content, (questions) =>
-    validateStructuredQuizQuestions(questions, count),
+    validateStructuredQuizQuestions(questions, count)
   );
 }
 
@@ -80,7 +80,7 @@ export async function requestMixedQuizQuestionBatch({
     resolveProgrammingLanguageContext(programmingLanguage);
   const totalCount = topicPlan.reduce(
     (sum, item) => sum + item.questionCount,
-    0,
+    0
   );
   const resolvedTopicPlan = topicPlan.map(({ topicId, questionCount }) => ({
     topicId,
@@ -88,7 +88,7 @@ export async function requestMixedQuizQuestionBatch({
     topicDescription: resolveTopicDescription(
       programmingLanguage,
       programmingLanguageName,
-      topicId,
+      topicId
     ),
   }));
 
@@ -107,6 +107,6 @@ export async function requestMixedQuizQuestionBatch({
   });
 
   return parseAndNormalizeQuizQuestions(content, (questions) =>
-    validateStructuredMixedQuizQuestions(questions, topicPlan),
+    validateStructuredMixedQuizQuestions(questions, topicPlan)
   );
 }

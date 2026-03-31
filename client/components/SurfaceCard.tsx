@@ -1,14 +1,14 @@
-import React, { type ReactNode } from "react";
+import React, { type ReactNode } from 'react';
 import {
   StyleSheet,
   View,
   type StyleProp,
   type ViewProps,
   type ViewStyle,
-} from "react-native";
+} from 'react-native';
 
-import { BorderRadius, Shadows, Spacing } from "@/constants/theme";
-import { useTheme } from "@/contexts/ThemeContext";
+import { BorderRadius, Shadows, Spacing } from '@/constants/theme';
+import { useTheme } from '@/contexts/ThemeContext';
 
 type SurfaceCardProps = ViewProps & {
   backgroundColor?: string;
@@ -63,7 +63,7 @@ export function SurfaceCard({
 
 const styles = StyleSheet.create({
   card: {
-    borderCurve: "continuous",
+    borderCurve: 'continuous',
     borderRadius: BorderRadius.lg,
     ...Shadows.card,
   },

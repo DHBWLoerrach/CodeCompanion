@@ -5,9 +5,9 @@ import React, {
   useEffect,
   useCallback,
   useMemo,
-} from "react";
-import { storage } from "@/lib/storage";
-import { getLanguageById, type ProgrammingLanguage } from "@/lib/languages";
+} from 'react';
+import { storage } from '@/lib/storage';
+import { getLanguageById, type ProgrammingLanguage } from '@/lib/languages';
 
 interface ProgrammingLanguageContextType {
   selectedLanguageId: string | null;
@@ -26,7 +26,7 @@ export function ProgrammingLanguageProvider({
   children: React.ReactNode;
 }) {
   const [selectedLanguageId, setSelectedLanguageId] = useState<string | null>(
-    null,
+    null
   );
   const [isLoading, setIsLoading] = useState(true);
 
@@ -55,7 +55,7 @@ export function ProgrammingLanguageProvider({
   const selectedLanguage = useMemo(
     () =>
       selectedLanguageId ? (getLanguageById(selectedLanguageId) ?? null) : null,
-    [selectedLanguageId],
+    [selectedLanguageId]
   );
 
   const isLanguageSelected = selectedLanguage !== null;
@@ -74,7 +74,7 @@ export function ProgrammingLanguageProvider({
       setSelectedLanguage,
       isLoading,
       isLanguageSelected,
-    ],
+    ]
   );
 
   return (
@@ -88,7 +88,7 @@ export function useProgrammingLanguage(): ProgrammingLanguageContextType {
   const context = useContext(ProgrammingLanguageContext);
   if (!context) {
     throw new Error(
-      "useProgrammingLanguage must be used within ProgrammingLanguageProvider",
+      'useProgrammingLanguage must be used within ProgrammingLanguageProvider'
     );
   }
   return context;

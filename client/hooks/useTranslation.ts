@@ -1,6 +1,6 @@
-import { useCallback } from "react";
-import { translations, type TranslationKey } from "@/lib/i18n";
-import { useLanguage } from "@/contexts/LanguageContext";
+import { useCallback } from 'react';
+import { translations, type TranslationKey } from '@/lib/i18n';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 export function useTranslation() {
   const { language, isLoading, refreshLanguage } = useLanguage();
@@ -17,7 +17,7 @@ export function useTranslation() {
       >;
       return localizedTranslations[key] || englishTranslations[key] || key;
     },
-    [language],
+    [language]
   );
 
   return { t, language, isLoading, refreshLanguage };

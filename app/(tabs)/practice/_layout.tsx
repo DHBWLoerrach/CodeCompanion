@@ -1,9 +1,9 @@
-import React, { useCallback } from "react";
-import { Stack, useFocusEffect, useRouter } from "expo-router";
+import React, { useCallback } from 'react';
+import { Stack, useFocusEffect, useRouter } from 'expo-router';
 
-import { HeaderIconButton } from "@/components/HeaderIconButton";
-import { useTheme } from "@/contexts/ThemeContext";
-import { useTranslation } from "@/hooks/useTranslation";
+import { HeaderIconButton } from '@/components/HeaderIconButton';
+import { useTheme } from '@/contexts/ThemeContext';
+import { useTranslation } from '@/hooks/useTranslation';
 
 export default function PracticeStack() {
   const { theme } = useTheme();
@@ -13,14 +13,14 @@ export default function PracticeStack() {
   useFocusEffect(
     useCallback(() => {
       refreshLanguage();
-    }, [refreshLanguage]),
+    }, [refreshLanguage])
   );
 
   return (
     <Stack
       screenOptions={{
         headerShadowVisible: false,
-        headerTitleAlign: "left",
+        headerTitleAlign: 'left',
         headerTitleStyle: { color: theme.text },
         headerStyle: { backgroundColor: theme.backgroundRoot },
       }}
@@ -28,12 +28,12 @@ export default function PracticeStack() {
       <Stack.Screen
         name="index"
         options={{
-          title: t("practice"),
+          title: t('practice'),
           headerRight: () => (
             <HeaderIconButton
               icon="settings"
               testID="open-settings-button"
-              onPress={() => router.push("/settings")}
+              onPress={() => router.push('/settings')}
               hitSlop={8}
               color={theme.tabIconDefault}
             />

@@ -1,7 +1,7 @@
-import { useState } from "react";
+import { useState } from 'react';
 
 const SPRING_TRANSITION = {
-  type: "spring" as const,
+  type: 'spring' as const,
   damping: 15,
   stiffness: 150,
 };
