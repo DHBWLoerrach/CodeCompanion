@@ -57,11 +57,11 @@ describe('getDeviceLocale', () => {
     mockGetLocales.mockImplementation(() => {
       throw new Error('native error');
     });
-    dateTimeFormatSpy = jest.spyOn(Intl, 'DateTimeFormat').mockImplementation(
-      ((() => {
+    dateTimeFormatSpy = jest
+      .spyOn(Intl, 'DateTimeFormat')
+      .mockImplementation((() => {
         throw new Error('no intl');
-      }) as unknown) as typeof Intl.DateTimeFormat
-    );
+      }) as unknown as typeof Intl.DateTimeFormat);
 
     expect(getDeviceLocale()).toBeUndefined();
   });

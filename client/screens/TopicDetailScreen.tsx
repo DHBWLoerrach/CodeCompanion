@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 import { View, ScrollView, StyleSheet, Pressable } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import {
@@ -55,8 +55,11 @@ export default function TopicDetailScreen() {
   const [topic, setTopic] = useState<Topic | null>(null);
   const [progress, setProgress] = useState<TopicProgress | null>(null);
   const [loading, setLoading] = useState(true);
+  const [levelHintSeen, setLevelHintSeen] = useState<boolean | null>(null);
   const [isLevelInfoVisible, setIsLevelInfoVisible] = useState(false);
   const [isLevelInfoMounted, setIsLevelInfoMounted] = useState(false);
+  const [hasAutoExpandedLevelHint, setHasAutoExpandedLevelHint] =
+    useState(false);
   const {
     animate: explainAnimate,
     transition: explainTransition,
@@ -67,6 +70,11 @@ export default function TopicDetailScreen() {
   const loadData = useCallback(
     async (activeLanguage: 'en' | 'de' = language) => {
       try {
+        setLevelHintSeen(null);
+        setIsLevelInfoVisible(false);
+        setIsLevelInfoMounted(false);
+        setHasAutoExpandedLevelHint(false);
+
         if (!resolvedTopicId) {
           setTopic(null);
           setProgress(null);
@@ -86,8 +94,10 @@ export default function TopicDetailScreen() {
         });
 
         const progressData = await storage.getProgress();
+        const seenLevelHint = await storage.hasSeenLevelHint();
         const compositeKey = `${languageId}:${resolvedTopicId}`;
         setProgress(progressData.topicProgress[compositeKey] || null);
+        setLevelHintSeen(seenLevelHint);
       } catch (error) {
         console.error('Error loading topic:', error);
       } finally {
@@ -127,6 +137,30 @@ export default function TopicDetailScreen() {
       };
     }, [refreshLanguage, loadData, language])
   );
+
+  useEffect(() => {
+    if (loading || levelHintSeen !== false || hasAutoExpandedLevelHint) {
+      return;
+    }
+
+    const hasProgress = (progress?.questionsAnswered || 0) > 0;
+    if (hasProgress) {
+      return;
+    }
+
+    setIsLevelInfoMounted(true);
+    setIsLevelInfoVisible(true);
+    setHasAutoExpandedLevelHint(true);
+
+    void storage.markLevelHintSeen().then(
+      () => {
+        setLevelHintSeen(true);
+      },
+      (error) => {
+        console.error('Error marking level hint as seen:', error);
+      }
+    );
+  }, [loading, levelHintSeen, hasAutoExpandedLevelHint, progress]);
 
   const handleStartQuiz = () => {
     if (!resolvedTopicId) return;

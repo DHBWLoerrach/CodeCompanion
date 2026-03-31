@@ -6,9 +6,8 @@ const mockPush = jest.fn();
 const mockGetProgress = jest.fn();
 const mockIsTopicDue = jest.fn();
 const mockRefreshLanguage = jest.fn();
-const mockJavascriptCategories = require('@/lib/topics').getCategoriesByLanguage(
-  'javascript'
-);
+const mockJavascriptCategories =
+  require('@/lib/topics').getCategoriesByLanguage('javascript');
 const fundamentalsTopicIds = (
   mockJavascriptCategories.find(
     (category: { id: string }) => category.id === 'fundamentals'

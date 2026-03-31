@@ -8,6 +8,7 @@ const STORAGE_KEYS = {
   STREAK: 'dhbw_streak',
   SETTINGS: 'dhbw_settings',
   WELCOME_SEEN: 'dhbw_welcome_seen',
+  LEVEL_HINT_SEEN: 'dhbw_level_hint_seen',
   SELECTED_LANGUAGE: 'dhbw_selected_language',
   PROGRESS_MIGRATED: 'dhbw_progress_migrated',
 };
@@ -287,6 +288,20 @@ export const storage = {
     await AsyncStorage.setItem(STORAGE_KEYS.WELCOME_SEEN, 'true');
   },
 
+  async hasSeenLevelHint(): Promise<boolean> {
+    try {
+      return (
+        (await AsyncStorage.getItem(STORAGE_KEYS.LEVEL_HINT_SEEN)) === 'true'
+      );
+    } catch {
+      return false;
+    }
+  },
+
+  async markLevelHintSeen(): Promise<void> {
+    await AsyncStorage.setItem(STORAGE_KEYS.LEVEL_HINT_SEEN, 'true');
+  },
+
   async getTopicSkillLevel(
     languageId: string,
     topicId: string
@@ -383,8 +398,9 @@ export const storage = {
   },
 
   async clearAllData(): Promise<void> {
-    // The device ID and welcome state stay intact so quota and first-run behavior
-    // cannot be reset through local progress clearing.
+    // The device ID, welcome state, and level hint state stay intact so quota,
+    // first-run behavior, and one-time guidance cannot be reset through local
+    // progress clearing.
     await AsyncStorage.multiRemove([
       STORAGE_KEYS.USER_PROFILE,
       STORAGE_KEYS.PROGRESS,

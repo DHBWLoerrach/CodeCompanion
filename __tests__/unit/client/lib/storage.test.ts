@@ -9,6 +9,7 @@ import {
 } from '@/lib/storage';
 
 const DEVICE_ID_STORAGE_KEY = 'dhbw_device_id';
+const LEVEL_HINT_KEY = 'dhbw_level_hint_seen';
 const STREAK_KEY = 'dhbw_streak';
 const SETTINGS_KEY = 'dhbw_settings';
 
@@ -277,10 +278,11 @@ describe('storage state updates', () => {
   });
 
   describe('clearAllData', () => {
-    it('keeps the device ID while removing other local app data', async () => {
+    it('keeps the device ID and one-time guidance flags while removing other local app data', async () => {
       await AsyncStorage.setItem(DEVICE_ID_STORAGE_KEY, 'device-uuid');
       await storage.setSelectedLanguage('python');
       await storage.markWelcomeSeen();
+      await storage.markLevelHintSeen();
 
       await storage.clearAllData();
 
@@ -288,6 +290,7 @@ describe('storage state updates', () => {
         'device-uuid'
       );
       expect(await storage.hasSeenWelcome()).toBe(true);
+      expect(await storage.hasSeenLevelHint()).toBe(true);
       expect(await storage.getSelectedLanguage()).toBeNull();
     });
   });
@@ -301,6 +304,26 @@ describe('storage state updates', () => {
       await storage.markWelcomeSeen();
 
       expect(await storage.hasSeenWelcome()).toBe(true);
+    });
+  });
+
+  describe('level hint state', () => {
+    it('returns false when the level hint has not been seen', async () => {
+      expect(await storage.hasSeenLevelHint()).toBe(false);
+    });
+
+    it('persists when the level hint has been seen', async () => {
+      await storage.markLevelHintSeen();
+
+      expect(await storage.hasSeenLevelHint()).toBe(true);
+    });
+
+    it('falls back to false when reading the level hint state fails', async () => {
+      const getItemSpy = jest.spyOn(AsyncStorage, 'getItem');
+      getItemSpy.mockRejectedValueOnce(new Error('storage unavailable'));
+
+      expect(await storage.hasSeenLevelHint()).toBe(false);
+      expect(await AsyncStorage.getItem(LEVEL_HINT_KEY)).toBeNull();
     });
   });
 });
