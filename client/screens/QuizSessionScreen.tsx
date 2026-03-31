@@ -265,12 +265,6 @@ function AnswerButton({
               : theme.codeBackground,
           }}
         />
-        {showResult && isCorrectAnswer ? (
-          <AppIcon name="check-circle" size={20} color={theme.onColor} />
-        ) : null}
-        {showResult && selected && !isCorrect ? (
-          <AppIcon name="x-circle" size={20} color={theme.onColor} />
-        ) : null}
       </Pressable>
     </EaseView>
   );
