@@ -77,12 +77,34 @@ jest.mock('@/contexts/ProgrammingLanguageContext', () => ({
       categories: [
         {
           id: 'fundamentals',
+          order: 1,
           topics: [
             {
               id: 'variables',
+              category: 'fundamentals',
+              order: 1,
+              prerequisites: [],
+              optional: false,
             },
             {
               id: 'data-types',
+              category: 'fundamentals',
+              order: 2,
+              prerequisites: ['variables'],
+              optional: false,
+            },
+          ],
+        },
+        {
+          id: 'control-flow',
+          order: 2,
+          topics: [
+            {
+              id: 'conditionals',
+              category: 'control-flow',
+              order: 7,
+              prerequisites: ['operators'],
+              optional: false,
             },
           ],
         },
@@ -93,8 +115,13 @@ jest.mock('@/contexts/ProgrammingLanguageContext', () => ({
 
 jest.mock('@/lib/topics', () => ({
   getTopicName: (topic: { id: string }) =>
-    topic.id === 'data-types' ? 'Data Types' : 'Variables',
-  getCategoryName: () => 'Fundamentals',
+    topic.id === 'data-types'
+      ? 'Data Types'
+      : topic.id === 'conditionals'
+        ? 'Conditionals'
+        : 'Variables',
+  getCategoryName: (category: { id: string }) =>
+    category.id === 'control-flow' ? 'Control Flow' : 'Fundamentals',
 }));
 
 describe('LearnScreen integration', () => {
@@ -113,6 +140,17 @@ describe('LearnScreen integration', () => {
     await waitFor(() => {
       expect(screen.getByText('learnScreenSubtitle')).toBeTruthy();
       expect(screen.getByText('Fundamentals')).toBeTruthy();
+      expect(screen.getByText('Control Flow')).toBeTruthy();
+    });
+  });
+
+  it('hides next-step cards for categories with unmet prerequisites', async () => {
+    const screen = render(<LearnScreen />);
+
+    await waitFor(() => {
+      expect(screen.getAllByText('nextStep')).toHaveLength(1);
+      expect(screen.getByText('Variables')).toBeTruthy();
+      expect(screen.getByText('Conditionals')).toBeTruthy();
     });
   });
 

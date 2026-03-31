@@ -12,6 +12,11 @@ import { useTheme } from '@/contexts/ThemeContext';
 import { useTranslation } from '@/hooks/useTranslation';
 import { usePressAnimation } from '@/hooks/usePressAnimation';
 import { useTopicProgress } from '@/hooks/useTopicProgress';
+import {
+  getRecommendedTopicId,
+  hasStartedTopic,
+  isTopicMastered,
+} from '@/lib/topic-recommendations';
 import { Spacing, BorderRadius, Shadows, withOpacity } from '@/constants/theme';
 import {
   type Topic,
@@ -31,59 +36,6 @@ interface TopicTileProps {
   topicName: string;
   testID?: string;
   isWide?: boolean;
-}
-
-function getLastPracticedTime(progress: TopicProgress | undefined) {
-  if (!progress?.lastPracticed) return 0;
-  const timestamp = new Date(progress.lastPracticed).getTime();
-  return Number.isNaN(timestamp) ? 0 : timestamp;
-}
-
-function hasStartedTopic(progress: TopicProgress | undefined) {
-  return Boolean(progress && progress.questionsAnswered > 0);
-}
-
-function isTopicMastered(progress: TopicProgress | undefined) {
-  return progress?.skillLevel === 5;
-}
-
-function getRecommendedTopicId(
-  category: Category,
-  topicProgress: Record<string, TopicProgress>
-): string {
-  const startedTopics = category.topics.filter((topic) => {
-    const progress = topicProgress[topic.id];
-    return hasStartedTopic(progress) && !isTopicMastered(progress);
-  });
-
-  const dueStartedTopics = startedTopics.filter((topic) =>
-    isTopicDue(topicProgress[topic.id])
-  );
-
-  const candidates =
-    dueStartedTopics.length > 0 ? dueStartedTopics : startedTopics;
-
-  if (candidates.length === 0) {
-    const nextUnmasteredTopic = category.topics.find(
-      (topic) => !isTopicMastered(topicProgress[topic.id])
-    );
-    return nextUnmasteredTopic?.id ?? category.topics[0]?.id ?? category.id;
-  }
-
-  const [selected] = [...candidates].sort((a, b) => {
-    const progressA = topicProgress[a.id];
-    const progressB = topicProgress[b.id];
-    const levelA = progressA?.skillLevel ?? 1;
-    const levelB = progressB?.skillLevel ?? 1;
-
-    if (levelA !== levelB) {
-      return levelA - levelB;
-    }
-
-    return getLastPracticedTime(progressA) - getLastPracticedTime(progressB);
-  });
-
-  return selected.id;
 }
 
 function getTopicCountLabel(topicCount: number, t: TranslateFn) {
@@ -211,8 +163,8 @@ function getCategoryStatus(
     return hasStartedTopic(progress);
   });
   const startedCount = startedTopics.length;
-  const masteredCount = startedTopics.filter(
-    (topic) => isTopicMastered(topicProgress[topic.id])
+  const masteredCount = startedTopics.filter((topic) =>
+    isTopicMastered(topicProgress[topic.id])
   ).length;
   const dueCount = startedTopics.filter((topic) =>
     isTopicDue(topicProgress[topic.id])
