@@ -3,6 +3,7 @@ import { render, waitFor } from '@testing-library/react-native';
 import LearnScreen from '@/screens/LearnScreen';
 
 const mockPush = jest.fn();
+const mockUseTopicProgress = jest.fn();
 
 jest.mock('expo-router', () => ({
   useRouter: () => ({
@@ -66,11 +67,7 @@ jest.mock('@/hooks/usePressAnimation', () => ({
 }));
 
 jest.mock('@/hooks/useTopicProgress', () => ({
-  useTopicProgress: () => ({
-    topicProgress: {},
-    loading: false,
-    dueTopics: [],
-  }),
+  useTopicProgress: () => mockUseTopicProgress(),
 }));
 
 jest.mock('@/contexts/ProgrammingLanguageContext', () => ({
@@ -84,6 +81,9 @@ jest.mock('@/contexts/ProgrammingLanguageContext', () => ({
             {
               id: 'variables',
             },
+            {
+              id: 'data-types',
+            },
           ],
         },
       ],
@@ -92,17 +92,50 @@ jest.mock('@/contexts/ProgrammingLanguageContext', () => ({
 }));
 
 jest.mock('@/lib/topics', () => ({
-  getTopicName: () => 'Variables',
+  getTopicName: (topic: { id: string }) =>
+    topic.id === 'data-types' ? 'Data Types' : 'Variables',
   getCategoryName: () => 'Fundamentals',
 }));
 
 describe('LearnScreen integration', () => {
+  beforeEach(() => {
+    mockUseTopicProgress.mockReset();
+    mockUseTopicProgress.mockReturnValue({
+      topicProgress: {},
+      loading: false,
+      dueTopics: [],
+    });
+  });
+
   it('renders the contextual subtitle in screen content', async () => {
     const screen = render(<LearnScreen />);
 
     await waitFor(() => {
       expect(screen.getByText('learnScreenSubtitle')).toBeTruthy();
       expect(screen.getByText('Fundamentals')).toBeTruthy();
+    });
+  });
+
+  it('recommends the next unmastered topic when the started topic is mastered', async () => {
+    mockUseTopicProgress.mockReturnValue({
+      topicProgress: {
+        variables: {
+          topicId: 'variables',
+          questionsAnswered: 10,
+          correctAnswers: 10,
+          skillLevel: 5,
+          lastPracticed: '2026-03-30T12:00:00.000Z',
+        },
+      },
+      loading: false,
+      dueTopics: [],
+    });
+
+    const screen = render(<LearnScreen />);
+
+    await waitFor(() => {
+      expect(screen.getByText('nextStep')).toBeTruthy();
+      expect(screen.getByText('Data Types')).toBeTruthy();
     });
   });
 });

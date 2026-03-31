@@ -39,13 +39,21 @@ function getLastPracticedTime(progress: TopicProgress | undefined) {
   return Number.isNaN(timestamp) ? 0 : timestamp;
 }
 
+function hasStartedTopic(progress: TopicProgress | undefined) {
+  return Boolean(progress && progress.questionsAnswered > 0);
+}
+
+function isTopicMastered(progress: TopicProgress | undefined) {
+  return progress?.skillLevel === 5;
+}
+
 function getRecommendedTopicId(
   category: Category,
   topicProgress: Record<string, TopicProgress>
 ): string {
   const startedTopics = category.topics.filter((topic) => {
     const progress = topicProgress[topic.id];
-    return progress && progress.questionsAnswered > 0;
+    return hasStartedTopic(progress) && !isTopicMastered(progress);
   });
 
   const dueStartedTopics = startedTopics.filter((topic) =>
@@ -56,7 +64,10 @@ function getRecommendedTopicId(
     dueStartedTopics.length > 0 ? dueStartedTopics : startedTopics;
 
   if (candidates.length === 0) {
-    return category.topics[0]?.id ?? category.id;
+    const nextUnmasteredTopic = category.topics.find(
+      (topic) => !isTopicMastered(topicProgress[topic.id])
+    );
+    return nextUnmasteredTopic?.id ?? category.topics[0]?.id ?? category.id;
   }
 
   const [selected] = [...candidates].sort((a, b) => {
@@ -86,9 +97,9 @@ function capitalizeLabel(label: string) {
 function getTopicVisualState(
   progress: TopicProgress | undefined
 ): TopicVisualState {
-  const hasStarted = Boolean(progress && progress.questionsAnswered > 0);
+  const hasStarted = hasStartedTopic(progress);
 
-  if (progress?.skillLevel === 5) {
+  if (isTopicMastered(progress)) {
     return 'mastered';
   }
 
@@ -197,11 +208,11 @@ function getCategoryStatus(
   const totalTopics = category.topics.length;
   const startedTopics = category.topics.filter((topic) => {
     const progress = topicProgress[topic.id];
-    return progress && progress.questionsAnswered > 0;
+    return hasStartedTopic(progress);
   });
   const startedCount = startedTopics.length;
   const masteredCount = startedTopics.filter(
-    (topic) => topicProgress[topic.id]?.skillLevel === 5
+    (topic) => isTopicMastered(topicProgress[topic.id])
   ).length;
   const dueCount = startedTopics.filter((topic) =>
     isTopicDue(topicProgress[topic.id])
