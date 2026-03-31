@@ -8,6 +8,7 @@ import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
 import { AppIcon } from '@/components/AppIcon';
 import { LoadingScreen } from '@/components/LoadingScreen';
+import { SkillLevelDots } from '@/components/SkillLevelDots';
 import { useTheme } from '@/contexts/ThemeContext';
 import { useTranslation } from '@/hooks/useTranslation';
 import { usePressAnimation } from '@/hooks/usePressAnimation';
@@ -251,12 +252,40 @@ function getStateAccentColor(
   }
 }
 
+function getTopicSkillLevel(
+  progress: TopicProgress | undefined
+): TopicProgress['skillLevel'] {
+  return progress?.skillLevel ?? 1;
+}
+
+function getStartedStatusAccessibilityLabel(
+  t: TranslateFn,
+  topicName: string,
+  statusLabel: string,
+  skillLevel: TopicProgress['skillLevel'],
+  options?: {
+    prefix?: string;
+    detail?: string;
+  }
+) {
+  return [
+    options?.prefix,
+    topicName,
+    options?.detail,
+    statusLabel,
+    `${capitalizeLabel(t('level'))} ${skillLevel} ${t('of')} 5`,
+  ]
+    .filter(Boolean)
+    .join(', ');
+}
+
 function TopicTile({ progress, onPress, topicName, testID }: TopicTileProps) {
   const { theme } = useTheme();
   const { t } = useTranslation();
   const { animate, transition, handlePressIn, handlePressOut } =
     usePressAnimation(0.97);
   const { state, label, iconName } = getTopicStateMeta(progress, t);
+  const skillLevel = getTopicSkillLevel(progress);
   const accentColor = getStateAccentColor(state, theme);
   const borderColor =
     state === 'new' ? theme.backgroundTertiary : withOpacity(accentColor, 0.25);
@@ -264,6 +293,10 @@ function TopicTile({ progress, onPress, topicName, testID }: TopicTileProps) {
     state === 'new' ? theme.backgroundRoot : withOpacity(accentColor, 0.04);
   const metaTextColor = state === 'new' ? theme.tabIconDefault : accentColor;
   const shouldShowMeta = state !== 'new';
+  const accessibilityLabel =
+    state === 'started'
+      ? getStartedStatusAccessibilityLabel(t, topicName, label, skillLevel)
+      : undefined;
 
   return (
     <EaseView
@@ -276,6 +309,7 @@ function TopicTile({ progress, onPress, topicName, testID }: TopicTileProps) {
         onPress={onPress}
         onPressIn={handlePressIn}
         onPressOut={handlePressOut}
+        accessibilityLabel={accessibilityLabel}
         style={[
           styles.topicTile,
           {
@@ -294,21 +328,36 @@ function TopicTile({ progress, onPress, topicName, testID }: TopicTileProps) {
         </ThemedText>
         {shouldShowMeta ? (
           <View style={styles.topicMetaRow}>
-            {iconName ? (
-              <AppIcon
-                name={iconName}
-                size={12}
-                color={metaTextColor}
-                style={styles.topicMetaIcon}
-              />
-            ) : null}
-            <ThemedText
-              type="caption"
-              style={[styles.topicMetaText, { color: metaTextColor }]}
-              numberOfLines={1}
-            >
-              {label}
-            </ThemedText>
+            <View style={styles.topicMetaStatus}>
+              {iconName ? (
+                <AppIcon
+                  name={iconName}
+                  size={12}
+                  color={metaTextColor}
+                  style={styles.topicMetaIcon}
+                />
+              ) : null}
+              <ThemedText
+                type="caption"
+                style={[
+                  styles.topicMetaText,
+                  state === 'started' && styles.statusMetaTextTight,
+                  { color: metaTextColor },
+                ]}
+                numberOfLines={1}
+              >
+                {label}
+              </ThemedText>
+              {state === 'started' ? (
+                <SkillLevelDots
+                  level={skillLevel}
+                  color={accentColor}
+                  size={5}
+                  gap={3}
+                  style={styles.topicMetaLevelDots}
+                />
+              ) : null}
+            </View>
           </View>
         ) : null}
       </Pressable>
@@ -338,6 +387,7 @@ function NextStepCard({
   const { animate, transition, handlePressIn, handlePressOut } =
     usePressAnimation(0.98);
   const { state, label, iconName } = getTopicStateMeta(progress, t);
+  const skillLevel = getTopicSkillLevel(progress);
   const accentColor =
     state === 'due'
       ? theme.accent
@@ -346,6 +396,13 @@ function NextStepCard({
         : theme.secondary;
   const isAndroid = process.env.EXPO_OS === 'android';
   const topicIndexLabel = getTopicPositionLabel(position, total, t);
+  const accessibilityLabel =
+    state === 'started'
+      ? getStartedStatusAccessibilityLabel(t, topicName, label, skillLevel, {
+          prefix: t('nextStep'),
+          detail: topicIndexLabel,
+        })
+      : undefined;
 
   return (
     <EaseView animate={animate} transition={transition}>
@@ -354,6 +411,7 @@ function NextStepCard({
         onPress={onPress}
         onPressIn={handlePressIn}
         onPressOut={handlePressOut}
+        accessibilityLabel={accessibilityLabel}
         style={[
           styles.nextStepCard,
           {
@@ -417,11 +475,24 @@ function NextStepCard({
               ) : null}
               <ThemedText
                 type="caption"
-                style={[styles.nextStepMetaText, { color: accentColor }]}
+                style={[
+                  styles.nextStepMetaText,
+                  state === 'started' && styles.statusMetaTextTight,
+                  { color: accentColor },
+                ]}
                 numberOfLines={1}
               >
                 {label}
               </ThemedText>
+              {state === 'started' ? (
+                <SkillLevelDots
+                  level={skillLevel}
+                  color={accentColor}
+                  size={5}
+                  gap={3}
+                  style={styles.nextStepMetaLevelDots}
+                />
+              ) : null}
             </View>
           </View>
         </View>
@@ -847,12 +918,16 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     flexShrink: 1,
+    minWidth: 0,
   },
   nextStepMetaIcon: {
     marginRight: Spacing.xs,
   },
   nextStepMetaText: {
     fontWeight: '600',
+  },
+  nextStepMetaLevelDots: {
+    marginLeft: Spacing.xs,
   },
   nextStepChevron: {
     opacity: 0.66,
@@ -889,14 +964,26 @@ const styles = StyleSheet.create({
   topicMetaRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    flexWrap: 'wrap',
-    gap: 6,
+    minWidth: 0,
+  },
+  topicMetaStatus: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    flexShrink: 1,
+    minWidth: 0,
   },
   topicMetaIcon: {
     marginRight: Spacing.xs,
   },
   topicMetaText: {
     fontWeight: '600',
+  },
+  topicMetaLevelDots: {
+    marginLeft: Spacing.xs,
+  },
+  statusMetaTextTight: {
+    flexShrink: 1,
+    minWidth: 0,
   },
   dueSection: {
     borderRadius: BorderRadius.lg,

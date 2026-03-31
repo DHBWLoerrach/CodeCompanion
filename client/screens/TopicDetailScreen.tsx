@@ -143,7 +143,7 @@ export default function TopicDetailScreen() {
       return;
     }
 
-    const hasProgress = (progress?.questionsAnswered || 0) > 0;
+    const hasProgress = (progress?.questionsAnswered ?? 0) > 0;
     if (hasProgress) {
       return;
     }
@@ -200,8 +200,8 @@ export default function TopicDetailScreen() {
     );
   }
 
-  const questionsAnswered = progress?.questionsAnswered || 0;
-  const correctAnswers = progress?.correctAnswers || 0;
+  const questionsAnswered = progress?.questionsAnswered ?? 0;
+  const correctAnswers = progress?.correctAnswers ?? 0;
   const accuracy =
     questionsAnswered > 0
       ? Math.round((correctAnswers / questionsAnswered) * 100)
