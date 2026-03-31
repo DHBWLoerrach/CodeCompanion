@@ -16,7 +16,6 @@ const SF_SYMBOLS: Record<string, string> = {
   zap: "bolt",
   globe: "globe",
   moon: "moon",
-  "external-link": "arrow.up.right.square",
   "chevron-right": "chevron.right",
   info: "info.circle",
   tag: "tag",
@@ -30,7 +29,6 @@ const SF_SYMBOLS: Record<string, string> = {
   star: "star",
   check: "checkmark",
   "refresh-cw": "arrow.clockwise",
-  "x-circle": "xmark.circle",
   "trending-up": "chart.line.uptrend.xyaxis",
   play: "play.fill",
 };
