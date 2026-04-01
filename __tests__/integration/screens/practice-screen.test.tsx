@@ -1,13 +1,20 @@
 import React from 'react';
+import * as ReactNative from 'react-native';
 import { fireEvent, render, waitFor } from '@testing-library/react-native';
+import { getCategoriesByLanguage } from '@/lib/topics';
 import PracticeScreen from '../../../app/(tabs)/practice/index';
 
 const mockPush = jest.fn();
 const mockGetProgress = jest.fn();
 const mockIsTopicDue = jest.fn();
 const mockRefreshLanguage = jest.fn();
-const mockJavascriptCategories =
-  require('@/lib/topics').getCategoriesByLanguage('javascript');
+const mockUseWindowDimensions = jest.fn(() => ({
+  width: 375,
+  height: 812,
+  scale: 3,
+  fontScale: 1,
+}));
+const mockJavascriptCategories = getCategoriesByLanguage('javascript');
 const fundamentalsTopicIds = (
   mockJavascriptCategories.find(
     (category: { id: string }) => category.id === 'fundamentals'
@@ -25,7 +32,7 @@ jest.mock('expo-router', () => ({
     canGoBack: () => true,
   }),
   useFocusEffect: (callback: () => void | (() => void)) => {
-    const React = require('react');
+    const React = jest.requireActual('react');
     React.useEffect(() => callback(), [callback]);
   },
 }));
@@ -112,10 +119,23 @@ jest.mock('@/contexts/ProgrammingLanguageContext', () => ({
 
 describe('PracticeScreen integration', () => {
   beforeEach(() => {
+    mockUseWindowDimensions.mockReturnValue({
+      width: 375,
+      height: 812,
+      scale: 3,
+      fontScale: 1,
+    });
+    jest
+      .spyOn(ReactNative, 'useWindowDimensions')
+      .mockImplementation(() => mockUseWindowDimensions());
     mockPush.mockReset();
     mockGetProgress.mockReset();
     mockIsTopicDue.mockReset();
     mockRefreshLanguage.mockReset();
+  });
+
+  afterEach(() => {
+    jest.restoreAllMocks();
   });
 
   it('shows due topics and starts review with due topic ids', async () => {

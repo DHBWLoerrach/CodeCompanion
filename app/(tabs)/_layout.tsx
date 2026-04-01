@@ -4,14 +4,19 @@ import { useFocusEffect } from 'expo-router';
 import Feather from '@expo/vector-icons/Feather';
 
 import { useTheme } from '@/contexts/ThemeContext';
+import { useAccessibilityLayout } from '@/hooks/useAccessibilityLayout';
 import { useTranslation } from '@/hooks/useTranslation';
+import { getTabLabel } from '@/lib/accessibility';
 
 export default function TabsLayout() {
   const { theme, isDark } = useTheme();
-  const { t, refreshLanguage } = useTranslation();
+  const { language, refreshLanguage } = useTranslation();
+  const { usesAccessibilityLayout } = useAccessibilityLayout();
   const activeIndicatorColor = isDark
     ? `${theme.primary}4D`
     : `${theme.primary}1A`;
+  const compactTabLabels = usesAccessibilityLayout;
+  const tabLabelStyle = compactTabLabels ? { fontSize: 10 } : {};
 
   useFocusEffect(
     useCallback(() => {
@@ -26,12 +31,14 @@ export default function TabsLayout() {
       indicatorColor={activeIndicatorColor}
       iconColor={{ default: theme.tabIconDefault, selected: theme.primary }}
       labelStyle={{
-        default: { color: theme.tabIconDefault },
-        selected: { color: theme.primary },
+        default: { color: theme.tabIconDefault, ...tabLabelStyle },
+        selected: { color: theme.primary, ...tabLabelStyle },
       }}
     >
       <NativeTabs.Trigger name="learn">
-        <NativeTabs.Trigger.Label>{t('topicsTab')}</NativeTabs.Trigger.Label>
+        <NativeTabs.Trigger.Label>
+          {getTabLabel('topicsTab', language, compactTabLabels)}
+        </NativeTabs.Trigger.Label>
         <NativeTabs.Trigger.Icon
           sf="book"
           src={
@@ -40,7 +47,9 @@ export default function TabsLayout() {
         />
       </NativeTabs.Trigger>
       <NativeTabs.Trigger name="practice">
-        <NativeTabs.Trigger.Label>{t('practice')}</NativeTabs.Trigger.Label>
+        <NativeTabs.Trigger.Label>
+          {getTabLabel('practice', language, compactTabLabels)}
+        </NativeTabs.Trigger.Label>
         <NativeTabs.Trigger.Icon
           sf="questionmark.circle"
           src={
@@ -52,7 +61,9 @@ export default function TabsLayout() {
         />
       </NativeTabs.Trigger>
       <NativeTabs.Trigger name="progress">
-        <NativeTabs.Trigger.Label>{t('progress')}</NativeTabs.Trigger.Label>
+        <NativeTabs.Trigger.Label>
+          {getTabLabel('progress', language, compactTabLabels)}
+        </NativeTabs.Trigger.Label>
         <NativeTabs.Trigger.Icon
           sf="chart.bar"
           src={

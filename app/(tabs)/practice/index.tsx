@@ -13,6 +13,7 @@ import { SkillLevelDots } from '@/components/SkillLevelDots';
 import { StatusBadge } from '@/components/StatusBadge';
 import { SurfaceCard } from '@/components/SurfaceCard';
 import { useTheme } from '@/contexts/ThemeContext';
+import { useAccessibilityLayout } from '@/hooks/useAccessibilityLayout';
 import { useTranslation } from '@/hooks/useTranslation';
 import { usePressAnimation } from '@/hooks/usePressAnimation';
 import {
@@ -58,6 +59,7 @@ interface QuizModeCardProps {
   disabled?: boolean;
   emphasized?: boolean;
   testID?: string;
+  usesLargeLayout?: boolean;
 }
 
 interface QuizModeConfig extends QuizModeCardProps {
@@ -73,6 +75,7 @@ function QuizModeCard({
   disabled,
   emphasized = false,
   testID,
+  usesLargeLayout = false,
 }: QuizModeCardProps) {
   const { theme } = useTheme();
   const { t } = useTranslation();
@@ -105,7 +108,10 @@ function QuizModeCard({
     <EaseView
       animate={animate}
       transition={transition}
-      style={styles.modeCardWrapper}
+      style={[
+        styles.modeCardWrapper,
+        usesLargeLayout && styles.modeCardWrapperFullWidth,
+      ]}
     >
       <SurfaceCard
         padding={0}
@@ -122,7 +128,14 @@ function QuizModeCard({
           style={styles.modeCardAction}
         >
           <View style={styles.modeCardMain}>
-            <View style={styles.modeCardTopRow}>
+            <View
+              style={[
+                styles.modeCardTopRow,
+                usesLargeLayout &&
+                  emphasized &&
+                  styles.modeCardTopRowStackedLarge,
+              ]}
+            >
               <View
                 style={[
                   styles.modeIconBubble,
@@ -136,12 +149,15 @@ function QuizModeCard({
                   color={color}
                   label={t('recommendedLabel')}
                   size="compact"
+                  style={
+                    usesLargeLayout ? styles.modeCardBadgeLarge : undefined
+                  }
                 />
               ) : null}
             </View>
             <ThemedText
               type="h4"
-              numberOfLines={2}
+              numberOfLines={usesLargeLayout ? 3 : 2}
               style={[styles.modeTitle, { color: titleColor }]}
             >
               {title}
@@ -150,7 +166,7 @@ function QuizModeCard({
           <ThemedText
             type="caption"
             style={[styles.modeDescription, { color: descriptionColor }]}
-            numberOfLines={2}
+            numberOfLines={usesLargeLayout ? 3 : 2}
           >
             {description}
           </ThemedText>
@@ -166,6 +182,7 @@ interface CategoryRowProps {
   topicProgress: Record<string, TopicProgress>;
   onPress: () => void;
   testID?: string;
+  usesLargeLayout?: boolean;
 }
 
 interface DueTopicRowProps {
@@ -181,6 +198,7 @@ function CategoryRow({
   topicProgress,
   onPress,
   testID,
+  usesLargeLayout = false,
 }: CategoryRowProps) {
   const { theme } = useTheme();
   const { t } = useTranslation();
@@ -208,7 +226,12 @@ function CategoryRow({
           onPressOut={handlePressOut}
           style={styles.categoryAction}
         >
-          <View style={styles.categoryRowContent}>
+          <View
+            style={[
+              styles.categoryRowContent,
+              usesLargeLayout && styles.categoryRowContentStacked,
+            ]}
+          >
             <View style={styles.categoryRowLeft}>
               <ThemedText type="h4">{categoryName}</ThemedText>
               <ThemedText
@@ -218,7 +241,12 @@ function CategoryRow({
                 {topicCount} {topicCount === 1 ? t('topic') : t('topics')}
               </ThemedText>
             </View>
-            <View style={styles.categoryRowRight}>
+            <View
+              style={[
+                styles.categoryRowRight,
+                usesLargeLayout && styles.categoryRowRightStacked,
+              ]}
+            >
               <View
                 style={[
                   styles.categoryProgressBar,
@@ -287,6 +315,7 @@ function DueTopicRow({ topic, skillLevel, onPress, testID }: DueTopicRowProps) {
 export default function PracticeScreen() {
   const { theme } = useTheme();
   const { t, language, refreshLanguage } = useTranslation();
+  const { usesLargeLayout } = useAccessibilityLayout();
   const { selectedLanguage } = useProgrammingLanguage();
   const categories = selectedLanguage?.categories ?? [];
   const languageId = selectedLanguage?.id ?? 'javascript';
@@ -461,6 +490,7 @@ export default function PracticeScreen() {
       >
         <ThemedText
           type="body"
+          maxFontSizeMultiplier={1.35}
           style={[styles.screenSubtitle, { color: theme.tabIconDefault }]}
         >
           {t('practiceScreenSubtitle')}
@@ -474,7 +504,12 @@ export default function PracticeScreen() {
             borderColor={withOpacity(theme.accent, 0.22)}
             topAccentColor={theme.accent}
           >
-            <View style={styles.dueSectionHeader}>
+            <View
+              style={[
+                styles.dueSectionHeader,
+                usesLargeLayout && styles.dueSectionHeaderStacked,
+              ]}
+            >
               <StatusBadge
                 color={theme.accent}
                 icon="clock"
@@ -516,7 +551,10 @@ export default function PracticeScreen() {
           </SurfaceCard>
         ) : (
           <SurfaceCard
-            style={styles.emptyState}
+            style={[
+              styles.emptyState,
+              usesLargeLayout && styles.emptyStateLarge,
+            ]}
             borderColor={theme.cardBorderSubtle}
           >
             <AppIcon
@@ -524,12 +562,19 @@ export default function PracticeScreen() {
               size={36}
               color={hasQuizHistory ? theme.success : theme.secondary}
             />
-            <ThemedText type="h4">
+            <ThemedText
+              type="h4"
+              numberOfLines={usesLargeLayout ? 2 : 1}
+              style={styles.emptyStateTitle}
+            >
               {t(hasQuizHistory ? 'noDueTopics' : 'noPracticeYet')}
             </ThemedText>
             <ThemedText
               type="caption"
-              style={{ color: theme.tabIconDefault, textAlign: 'center' }}
+              style={[
+                styles.emptyStateDescription,
+                { color: theme.tabIconDefault },
+              ]}
             >
               {t(hasQuizHistory ? 'noDueTopicsDesc' : 'noPracticeYetDesc')}
             </ThemedText>
@@ -542,7 +587,11 @@ export default function PracticeScreen() {
         </ThemedText>
         <View style={styles.modesGrid}>
           {quizModes.map(({ key, ...quizMode }) => (
-            <QuizModeCard key={key} {...quizMode} />
+            <QuizModeCard
+              key={key}
+              {...quizMode}
+              usesLargeLayout={usesLargeLayout}
+            />
           ))}
         </View>
 
@@ -566,6 +615,7 @@ export default function PracticeScreen() {
               topicProgress={topicProgress}
               testID={`practice-category-${category.id}`}
               onPress={() => handleCategoryPress(category)}
+              usesLargeLayout={usesLargeLayout}
             />
           ))}
         </View>
@@ -600,6 +650,11 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: Spacing.md,
   },
+  dueSectionHeaderStacked: {
+    alignItems: 'flex-start',
+    flexDirection: 'column',
+    justifyContent: 'flex-start',
+  },
   dueCount: {
     fontWeight: '600',
   },
@@ -620,6 +675,18 @@ const styles = StyleSheet.create({
     paddingHorizontal: Spacing.lg,
     paddingVertical: Spacing.lg,
   },
+  emptyStateLarge: {
+    gap: Spacing.sm,
+    paddingVertical: Spacing.xl,
+  },
+  emptyStateTitle: {
+    alignSelf: 'stretch',
+    textAlign: 'center',
+  },
+  emptyStateDescription: {
+    alignSelf: 'stretch',
+    textAlign: 'center',
+  },
   modesGrid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
@@ -627,6 +694,9 @@ const styles = StyleSheet.create({
   },
   modeCardWrapper: {
     width: '47.5%',
+  },
+  modeCardWrapperFullWidth: {
+    width: '100%',
   },
   modeCard: {
     width: '100%',
@@ -644,6 +714,14 @@ const styles = StyleSheet.create({
     alignItems: 'flex-start',
     justifyContent: 'space-between',
     gap: Spacing.sm,
+  },
+  modeCardTopRowStackedLarge: {
+    alignItems: 'flex-start',
+    flexDirection: 'column',
+    justifyContent: 'flex-start',
+  },
+  modeCardBadgeLarge: {
+    alignSelf: 'flex-start',
   },
   modeIconBubble: {
     width: 46,
@@ -681,6 +759,11 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
   },
+  categoryRowContentStacked: {
+    alignItems: 'flex-start',
+    flexDirection: 'column',
+    gap: Spacing.sm,
+  },
   categoryRowLeft: {
     flex: 1,
     gap: Spacing.xs,
@@ -689,6 +772,11 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: Spacing.md,
+  },
+  categoryRowRightStacked: {
+    alignSelf: 'stretch',
+    justifyContent: 'space-between',
+    width: '100%',
   },
   categoryProgressBar: {
     width: 80,

@@ -13,6 +13,7 @@ import { EaseView } from 'react-native-ease';
 
 import { AppIcon } from '@/components/AppIcon';
 import { ThemedText } from '@/components/ThemedText';
+import { getDenseControlTextCap } from '@/lib/accessibility';
 import {
   BorderRadius,
   Shadows,
@@ -58,6 +59,8 @@ function ButtonContent({
       {icon ? <AppIcon name={icon} size={18} color={iconColor} /> : null}
       <ThemedText
         type="body"
+        ellipsizeMode="tail"
+        maxFontSizeMultiplier={getDenseControlTextCap()}
         numberOfLines={1}
         style={[styles.label, textStyle, { color: labelColor }]}
       >
@@ -109,7 +112,7 @@ export function PrimaryButton({
           styles.primary,
           {
             backgroundColor: isDisabled ? theme.disabled : resolvedColor,
-            height: getButtonHeight(size),
+            minHeight: getButtonHeight(size),
           },
           style,
         ]}
@@ -171,7 +174,7 @@ export function SecondaryButton({
           {
             backgroundColor: withOpacity(resolvedColor, 0.05),
             borderColor: isDisabled ? theme.separator : resolvedColor,
-            height: getButtonHeight(size),
+            minHeight: getButtonHeight(size),
           },
           style,
         ]}
@@ -201,11 +204,15 @@ const styles = StyleSheet.create({
   content: {
     alignItems: 'center',
     flexDirection: 'row',
+    flexShrink: 1,
     gap: Spacing.sm,
     justifyContent: 'center',
+    minWidth: 0,
   },
   label: {
+    flexShrink: 1,
     fontWeight: '600',
+    minWidth: 0,
   },
   primary: {
     ...Shadows.floatingButton,

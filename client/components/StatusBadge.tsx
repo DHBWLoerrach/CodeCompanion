@@ -3,6 +3,7 @@ import { StyleSheet, View, type StyleProp, type ViewStyle } from 'react-native';
 
 import { AppIcon } from '@/components/AppIcon';
 import { ThemedText } from '@/components/ThemedText';
+import { getDenseControlTextCap } from '@/lib/accessibility';
 import { BorderRadius, Spacing, withOpacity } from '@/constants/theme';
 
 type StatusBadgeProps = {
@@ -36,6 +37,7 @@ export function StatusBadge({
       ) : null}
       <ThemedText
         type={isCompact ? 'small' : 'label'}
+        maxFontSizeMultiplier={getDenseControlTextCap()}
         numberOfLines={1}
         style={[styles.label, { color }]}
       >
@@ -56,14 +58,18 @@ const styles = StyleSheet.create({
     borderCurve: 'continuous',
     borderRadius: BorderRadius.full,
     flexDirection: 'row',
+    flexShrink: 1,
     gap: 6,
     maxWidth: '100%',
+    minWidth: 0,
   },
   default: {
     paddingHorizontal: Spacing.md,
     paddingVertical: 8,
   },
   label: {
+    flexShrink: 1,
     fontWeight: '600',
+    minWidth: 0,
   },
 });

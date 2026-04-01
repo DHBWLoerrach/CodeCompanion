@@ -1,4 +1,5 @@
 import React from 'react';
+import { StyleSheet } from 'react-native';
 import { fireEvent, render, waitFor } from '@testing-library/react-native';
 import SettingsScreen from '@/screens/SettingsScreen';
 
@@ -45,8 +46,8 @@ jest.mock('@/components/AppIcon', () => ({
 }));
 
 jest.mock('@react-native-segmented-control/segmented-control', () => {
-  const ReactModule = require('react');
-  const { View, Pressable, Text } = require('react-native');
+  const ReactModule = jest.requireActual('react');
+  const { View, Pressable, Text } = jest.requireActual('react-native');
 
   return ({
     values,
@@ -214,5 +215,19 @@ describe('SettingsScreen integration', () => {
     });
 
     expect(mockBack).not.toHaveBeenCalled();
+  });
+
+  it('configures the display name input for dynamic type without a fixed height', async () => {
+    const screen = render(<SettingsScreen />);
+
+    const input = await waitFor(() =>
+      screen.getByTestId('settings-display-name-input')
+    );
+    const style = StyleSheet.flatten(input.props.style);
+
+    expect(input.props.allowFontScaling).toBe(true);
+    expect(input.props.maxFontSizeMultiplier).toBe(1.6);
+    expect(style.minHeight).toBe(48);
+    expect(style.height).toBeUndefined();
   });
 });

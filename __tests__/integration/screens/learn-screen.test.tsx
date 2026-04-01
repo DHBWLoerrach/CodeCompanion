@@ -1,9 +1,16 @@
 import React from 'react';
+import * as ReactNative from 'react-native';
 import { render, waitFor } from '@testing-library/react-native';
 import LearnScreen from '@/screens/LearnScreen';
 
 const mockPush = jest.fn();
 const mockUseTopicProgress = jest.fn();
+const mockUseWindowDimensions = jest.fn(() => ({
+  width: 375,
+  height: 812,
+  scale: 3,
+  fontScale: 1,
+}));
 
 jest.mock('expo-router', () => ({
   useRouter: () => ({
@@ -126,12 +133,25 @@ jest.mock('@/lib/topics', () => ({
 
 describe('LearnScreen integration', () => {
   beforeEach(() => {
+    mockUseWindowDimensions.mockReturnValue({
+      width: 375,
+      height: 812,
+      scale: 3,
+      fontScale: 1,
+    });
+    jest
+      .spyOn(ReactNative, 'useWindowDimensions')
+      .mockImplementation(() => mockUseWindowDimensions());
     mockUseTopicProgress.mockReset();
     mockUseTopicProgress.mockReturnValue({
       topicProgress: {},
       loading: false,
       dueTopics: [],
     });
+  });
+
+  afterEach(() => {
+    jest.restoreAllMocks();
   });
 
   it('renders the contextual subtitle in screen content', async () => {
@@ -174,6 +194,83 @@ describe('LearnScreen integration', () => {
     await waitFor(() => {
       expect(screen.getByText('nextStep')).toBeTruthy();
       expect(screen.getByText('Data Types')).toBeTruthy();
+    });
+  });
+
+  it('renders due-topic rows in a single column on compact accessibility layouts', async () => {
+    mockUseWindowDimensions.mockReturnValue({
+      width: 375,
+      height: 812,
+      scale: 3,
+      fontScale: 1.35,
+    });
+    mockUseTopicProgress.mockReturnValue({
+      topicProgress: {},
+      loading: false,
+      dueTopics: [
+        {
+          id: 'variables',
+          category: 'fundamentals',
+          order: 1,
+          prerequisites: [],
+          optional: false,
+        },
+        {
+          id: 'data-types',
+          category: 'fundamentals',
+          order: 2,
+          prerequisites: ['variables'],
+          optional: false,
+        },
+      ],
+    });
+
+    const screen = render(<LearnScreen />);
+
+    await waitFor(() => {
+      expect(screen.getByTestId('learn-due-row-variables')).toBeTruthy();
+      expect(screen.getByTestId('learn-due-row-data-types')).toBeTruthy();
+      expect(
+        screen.queryByTestId('learn-due-row-variables-data-types')
+      ).toBeNull();
+    });
+  });
+
+  it('keeps multi-item due rows on wider portrait viewports', async () => {
+    mockUseWindowDimensions.mockReturnValue({
+      width: 768,
+      height: 1024,
+      scale: 2,
+      fontScale: 1.35,
+    });
+    mockUseTopicProgress.mockReturnValue({
+      topicProgress: {},
+      loading: false,
+      dueTopics: [
+        {
+          id: 'variables',
+          category: 'fundamentals',
+          order: 1,
+          prerequisites: [],
+          optional: false,
+        },
+        {
+          id: 'data-types',
+          category: 'fundamentals',
+          order: 2,
+          prerequisites: ['variables'],
+          optional: false,
+        },
+      ],
+    });
+
+    const screen = render(<LearnScreen />);
+
+    await waitFor(() => {
+      expect(
+        screen.getByTestId('learn-due-row-variables-data-types')
+      ).toBeTruthy();
+      expect(screen.queryByTestId('learn-due-row-variables')).toBeNull();
     });
   });
 });

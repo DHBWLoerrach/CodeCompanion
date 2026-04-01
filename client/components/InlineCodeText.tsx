@@ -4,6 +4,7 @@ import { Text, type StyleProp, type TextStyle } from 'react-native';
 import { BorderRadius, Fonts, Spacing } from '@/constants/theme';
 import { useTheme } from '@/contexts/ThemeContext';
 import { ThemedText } from '@/components/ThemedText';
+import { getDefaultTextCap } from '@/lib/accessibility';
 
 type InlineCodeTextProps = Omit<
   ComponentProps<typeof ThemedText>,
@@ -57,17 +58,26 @@ export function parseInlineCodeSegments(text: string): TextSegment[] {
 export function InlineCodeText({
   text,
   codeStyle,
+  type = 'body',
+  maxFontSizeMultiplier,
   ...props
 }: InlineCodeTextProps) {
   const { theme } = useTheme();
   const segments = useMemo(() => parseInlineCodeSegments(text), [text]);
+  const resolvedMaxFontSizeMultiplier =
+    maxFontSizeMultiplier ?? getDefaultTextCap(type);
 
   return (
-    <ThemedText {...props}>
+    <ThemedText
+      {...props}
+      type={type}
+      maxFontSizeMultiplier={resolvedMaxFontSizeMultiplier}
+    >
       {segments.map((segment, index) =>
         segment.kind === 'code' ? (
           <Text
             key={`code-${index}`}
+            maxFontSizeMultiplier={resolvedMaxFontSizeMultiplier}
             style={[
               {
                 fontFamily: Fonts?.mono || 'monospace',

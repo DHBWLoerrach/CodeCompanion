@@ -16,6 +16,7 @@ import { SurfaceCard } from '@/components/SurfaceCard';
 import { useTheme } from '@/contexts/ThemeContext';
 import { usePressAnimation } from '@/hooks/usePressAnimation';
 import { useTranslation } from '@/hooks/useTranslation';
+import { getDefaultTextCap } from '@/lib/accessibility';
 import { getLanguageDisplayName } from '@/lib/languages';
 import {
   Spacing,
@@ -353,6 +354,8 @@ export default function SettingsScreen() {
                 {t('displayName')}
               </ThemedText>
               <TextInput
+                allowFontScaling
+                maxFontSizeMultiplier={getDefaultTextCap('body')}
                 testID="settings-display-name-input"
                 style={[
                   styles.textInput,
@@ -576,11 +579,12 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   textInput: {
-    height: 48,
     borderRadius: BorderRadius.sm,
-    paddingHorizontal: Spacing.md,
-    fontSize: 16,
     borderWidth: 1,
+    fontSize: 16,
+    minHeight: 48,
+    paddingHorizontal: Spacing.md,
+    paddingVertical: Spacing.sm,
   },
   settingsGroup: {
     borderRadius: BorderRadius.md,

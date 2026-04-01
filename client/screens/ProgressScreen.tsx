@@ -11,6 +11,7 @@ import { LoadingScreen } from '@/components/LoadingScreen';
 import { StatusBadge } from '@/components/StatusBadge';
 import { SurfaceCard } from '@/components/SurfaceCard';
 import { useTheme } from '@/contexts/ThemeContext';
+import { useAccessibilityLayout } from '@/hooks/useAccessibilityLayout';
 import { usePressAnimation } from '@/hooks/usePressAnimation';
 import { useTranslation } from '@/hooks/useTranslation';
 import {
@@ -90,49 +91,48 @@ function AchievementBadge({ name, icon, unlocked }: AchievementBadgeProps) {
   const { theme } = useTheme();
 
   return (
-    <View style={styles.achievementContainer}>
-      <SurfaceCard
-        style={styles.achievementCard}
-        backgroundColor={
-          unlocked ? theme.backgroundDefault : theme.backgroundSecondary
-        }
-        borderColor={theme.cardBorderSubtle}
+    <SurfaceCard
+      style={styles.achievementCard}
+      backgroundColor={
+        unlocked ? theme.backgroundDefault : theme.backgroundSecondary
+      }
+      borderColor={theme.cardBorderSubtle}
+    >
+      <View
+        style={[
+          styles.achievementBadge,
+          {
+            backgroundColor: unlocked
+              ? withOpacity(theme.accent, 0.18)
+              : theme.cardBorder,
+            opacity: unlocked ? 1 : 0.72,
+          },
+        ]}
       >
-        <View
-          style={[
-            styles.achievementBadge,
-            {
-              backgroundColor: unlocked
-                ? withOpacity(theme.accent, 0.18)
-                : theme.cardBorder,
-              opacity: unlocked ? 1 : 0.72,
-            },
-          ]}
-        >
-          {unlocked ? (
-            <AppIcon name={icon} size={24} color={theme.accent} />
-          ) : (
-            <AppIcon name="lock" size={20} color={theme.tabIconDefault} />
-          )}
-        </View>
-        <ThemedText
-          type="small"
-          style={[
-            styles.achievementName,
-            { color: unlocked ? theme.text : theme.tabIconDefault },
-          ]}
-          numberOfLines={2}
-        >
-          {name}
-        </ThemedText>
-      </SurfaceCard>
-    </View>
+        {unlocked ? (
+          <AppIcon name={icon} size={24} color={theme.accent} />
+        ) : (
+          <AppIcon name="lock" size={20} color={theme.tabIconDefault} />
+        )}
+      </View>
+      <ThemedText
+        type="small"
+        style={[
+          styles.achievementName,
+          { color: unlocked ? theme.text : theme.tabIconDefault },
+        ]}
+        numberOfLines={2}
+      >
+        {name}
+      </ThemedText>
+    </SurfaceCard>
   );
 }
 
 export default function ProgressScreen() {
   const { theme } = useTheme();
   const { t, refreshLanguage } = useTranslation();
+  const { usesAccessibilityLayout } = useAccessibilityLayout();
   const { selectedLanguage } = useProgrammingLanguage();
   const languageId = selectedLanguage?.id ?? 'javascript';
   const insets = useSafeAreaInsets();
@@ -324,7 +324,12 @@ export default function ProgressScreen() {
           </View>
         </SurfaceCard>
 
-        <View style={styles.statsGrid}>
+        <View
+          style={[
+            styles.statsGrid,
+            usesAccessibilityLayout && styles.statsGridStacked,
+          ]}
+        >
           <StatCard
             title={t('totalQuestions')}
             value={progress.totalQuestions}
@@ -352,7 +357,12 @@ export default function ProgressScreen() {
         </View>
 
         <View style={styles.achievementsSection}>
-          <View style={styles.achievementsHeader}>
+          <View
+            style={[
+              styles.achievementsHeader,
+              usesAccessibilityLayout && styles.achievementsHeaderStacked,
+            ]}
+          >
             <ThemedText type="h4" style={styles.sectionTitle}>
               {t('achievements')}
             </ThemedText>
@@ -365,12 +375,20 @@ export default function ProgressScreen() {
           </View>
           <View style={styles.achievementsGrid}>
             {ACHIEVEMENTS.map((achievement) => (
-              <AchievementBadge
+              <View
                 key={achievement.id}
-                name={t(achievement.nameKey)}
-                icon={achievement.icon}
-                unlocked={unlockedAchievements.includes(achievement.id)}
-              />
+                style={[
+                  styles.achievementContainer,
+                  usesAccessibilityLayout &&
+                    styles.achievementContainerFullWidth,
+                ]}
+              >
+                <AchievementBadge
+                  name={t(achievement.nameKey)}
+                  icon={achievement.icon}
+                  unlocked={unlockedAchievements.includes(achievement.id)}
+                />
+              </View>
             ))}
           </View>
         </View>
@@ -433,6 +451,9 @@ const styles = StyleSheet.create({
     flexWrap: 'wrap',
     gap: Spacing.md,
   },
+  statsGridStacked: {
+    flexDirection: 'column',
+  },
   statCard: {
     flex: 1,
     minWidth: '45%',
@@ -461,6 +482,11 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     gap: Spacing.md,
   },
+  achievementsHeaderStacked: {
+    alignItems: 'flex-start',
+    flexDirection: 'column',
+    justifyContent: 'flex-start',
+  },
   sectionTitle: {
     marginBottom: 0,
   },
@@ -471,6 +497,9 @@ const styles = StyleSheet.create({
   },
   achievementContainer: {
     width: '47%',
+  },
+  achievementContainerFullWidth: {
+    width: '100%',
   },
   achievementCard: {
     alignItems: 'center',

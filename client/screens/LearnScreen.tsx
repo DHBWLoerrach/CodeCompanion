@@ -11,8 +11,10 @@ import { LoadingScreen } from '@/components/LoadingScreen';
 import { SkillLevelDots } from '@/components/SkillLevelDots';
 import { useTheme } from '@/contexts/ThemeContext';
 import { useTranslation } from '@/hooks/useTranslation';
+import { useAccessibilityLayout } from '@/hooks/useAccessibilityLayout';
 import { usePressAnimation } from '@/hooks/usePressAnimation';
 import { useTopicProgress } from '@/hooks/useTopicProgress';
+import { getDenseControlTextCap } from '@/lib/accessibility';
 import {
   getRecommendedTopicId,
   hasStartedTopic,
@@ -36,6 +38,7 @@ interface TopicTileProps {
   onPress: () => void;
   topicName: string;
   testID?: string;
+  usesLargeLayout?: boolean;
 }
 
 function getTopicCountLabel(topicCount: number, t: TranslateFn) {
@@ -279,7 +282,13 @@ function getStartedStatusAccessibilityLabel(
     .join(', ');
 }
 
-function TopicTile({ progress, onPress, topicName, testID }: TopicTileProps) {
+function TopicTile({
+  progress,
+  onPress,
+  topicName,
+  testID,
+  usesLargeLayout = false,
+}: TopicTileProps) {
   const { theme } = useTheme();
   const { t } = useTranslation();
   const { animate, transition, handlePressIn, handlePressOut } =
@@ -321,7 +330,7 @@ function TopicTile({ progress, onPress, topicName, testID }: TopicTileProps) {
         <ThemedText
           type="label"
           style={styles.topicTileTitle}
-          numberOfLines={2}
+          numberOfLines={usesLargeLayout ? 3 : 2}
           ellipsizeMode="tail"
         >
           {topicName}
@@ -339,12 +348,13 @@ function TopicTile({ progress, onPress, topicName, testID }: TopicTileProps) {
               ) : null}
               <ThemedText
                 type="caption"
+                maxFontSizeMultiplier={getDenseControlTextCap()}
                 style={[
                   styles.topicMetaText,
                   state === 'started' && styles.statusMetaTextTight,
                   { color: metaTextColor },
                 ]}
-                numberOfLines={1}
+                numberOfLines={usesLargeLayout ? 2 : 1}
               >
                 {label}
               </ThemedText>
@@ -373,6 +383,7 @@ interface NextStepCardProps {
   testID?: string;
   position: number;
   total: number;
+  usesLargeLayout: boolean;
 }
 
 function NextStepCard({
@@ -382,6 +393,7 @@ function NextStepCard({
   testID,
   position,
   total,
+  usesLargeLayout,
 }: NextStepCardProps) {
   const { theme } = useTheme();
   const { t } = useTranslation();
@@ -440,24 +452,31 @@ function NextStepCard({
           <ThemedText
             type="h4"
             style={styles.nextStepTitle}
-            numberOfLines={2}
+            numberOfLines={usesLargeLayout ? 3 : 2}
             ellipsizeMode="tail"
           >
             {topicName}
           </ThemedText>
-          <View style={styles.nextStepMeta}>
+          <View
+            style={[
+              styles.nextStepMeta,
+              usesLargeLayout && styles.nextStepMetaStacked,
+            ]}
+          >
             {topicIndexLabel ? (
               <ThemedText
                 type="caption"
+                maxFontSizeMultiplier={getDenseControlTextCap()}
                 style={[
                   styles.nextStepMetaText,
                   { color: theme.tabIconDefault },
                 ]}
+                numberOfLines={usesLargeLayout ? 2 : undefined}
               >
                 {topicIndexLabel}
               </ThemedText>
             ) : null}
-            {topicIndexLabel ? (
+            {topicIndexLabel && !usesLargeLayout ? (
               <View
                 style={[
                   styles.nextStepMetaDot,
@@ -465,26 +484,34 @@ function NextStepCard({
                 ]}
               />
             ) : null}
-            <View style={styles.nextStepMetaStatus}>
-              {iconName ? (
-                <AppIcon
-                  name={iconName}
-                  size={12}
-                  color={accentColor}
-                  style={styles.nextStepMetaIcon}
-                />
-              ) : null}
-              <ThemedText
-                type="caption"
-                style={[
-                  styles.nextStepMetaText,
-                  state === 'started' && styles.statusMetaTextTight,
-                  { color: accentColor },
-                ]}
-                numberOfLines={1}
-              >
-                {label}
-              </ThemedText>
+            <View
+              style={[
+                styles.nextStepMetaStatus,
+                usesLargeLayout && styles.nextStepMetaStatusStacked,
+              ]}
+            >
+              <View style={styles.nextStepMetaStatusLine}>
+                {iconName ? (
+                  <AppIcon
+                    name={iconName}
+                    size={12}
+                    color={accentColor}
+                    style={styles.nextStepMetaIcon}
+                  />
+                ) : null}
+                <ThemedText
+                  type="caption"
+                  maxFontSizeMultiplier={getDenseControlTextCap()}
+                  style={[
+                    styles.nextStepMetaText,
+                    state === 'started' && styles.statusMetaTextTight,
+                    { color: accentColor },
+                  ]}
+                  numberOfLines={usesLargeLayout ? 2 : 1}
+                >
+                  {label}
+                </ThemedText>
+              </View>
               {state === 'started' ? (
                 <SkillLevelDots
                   level={skillLevel}
@@ -492,7 +519,10 @@ function NextStepCard({
                   size={5}
                   gap={3}
                   inactiveOpacity={0.4}
-                  style={styles.nextStepMetaLevelDots}
+                  style={[
+                    styles.nextStepMetaLevelDots,
+                    usesLargeLayout && styles.nextStepMetaLevelDotsStacked,
+                  ]}
                 />
               ) : null}
             </View>
@@ -518,6 +548,7 @@ interface CategoryCardProps {
   getTopicTestId: (topic: Topic) => string;
   recommendedTopicId?: string;
   t: TranslateFn;
+  usesLargeLayout: boolean;
 }
 
 function CategoryCard({
@@ -529,6 +560,7 @@ function CategoryCard({
   getTopicTestId,
   recommendedTopicId,
   t,
+  usesLargeLayout,
 }: CategoryCardProps) {
   const { theme } = useTheme();
   const { primaryLabel, secondaryLabel, topicCountLabel } = getCategoryStatus(
@@ -550,10 +582,14 @@ function CategoryCard({
   const visibleTopics = recommendedTopic
     ? category.topics.filter((topic) => topic.id !== recommendedTopic.id)
     : category.topics;
-  const wideTileIndexes = getWideTileIndexes(
-    visibleTopics.map((topic) => getTopicDisplayName(topic))
-  );
-  const topicRows = getTopicRows(visibleTopics, wideTileIndexes);
+  const topicRows = usesLargeLayout
+    ? visibleTopics.map((topic) => [topic])
+    : getTopicRows(
+        visibleTopics,
+        getWideTileIndexes(
+          visibleTopics.map((topic) => getTopicDisplayName(topic))
+        )
+      );
 
   return (
     <View
@@ -565,18 +601,25 @@ function CategoryCard({
         },
       ]}
     >
-      <View style={styles.categoryHeader}>
+      <View
+        style={[
+          styles.categoryHeader,
+          usesLargeLayout && styles.categoryHeaderStacked,
+        ]}
+      >
         <ThemedText type="h4" style={styles.categoryName}>
           {categoryName}
         </ThemedText>
         <View
           style={[
             styles.categoryBadge,
+            usesLargeLayout && styles.categoryBadgeStacked,
             { backgroundColor: theme.backgroundSecondary },
           ]}
         >
           <ThemedText
             type="caption"
+            maxFontSizeMultiplier={getDenseControlTextCap()}
             style={[styles.categoryBadgeText, { color: theme.tabIconDefault }]}
           >
             {topicCountLabel}
@@ -637,22 +680,33 @@ function CategoryCard({
           {primaryLabel}
         </ThemedText>
         {secondaryLabel ? (
-          <View
-            style={[
-              styles.statusPill,
-              {
-                backgroundColor: theme.backgroundRoot,
-                borderColor: theme.cardBorder,
-              },
-            ]}
-          >
+          usesLargeLayout ? (
             <ThemedText
               type="caption"
+              maxFontSizeMultiplier={getDenseControlTextCap()}
               style={[styles.statusPillText, { color: theme.text }]}
             >
               {secondaryLabel}
             </ThemedText>
-          </View>
+          ) : (
+            <View
+              style={[
+                styles.statusPill,
+                {
+                  backgroundColor: theme.backgroundRoot,
+                  borderColor: theme.cardBorder,
+                },
+              ]}
+            >
+              <ThemedText
+                type="caption"
+                maxFontSizeMultiplier={getDenseControlTextCap()}
+                style={[styles.statusPillText, { color: theme.text }]}
+              >
+                {secondaryLabel}
+              </ThemedText>
+            </View>
+          )
         ) : null}
       </View>
 
@@ -665,6 +719,7 @@ function CategoryCard({
             onPress={() => onTopicPress(recommendedTopic)}
             position={recommendedTopicPosition}
             total={category.topics.length}
+            usesLargeLayout={usesLargeLayout}
           />
         </View>
       ) : null}
@@ -674,6 +729,7 @@ function CategoryCard({
           {topicRows.map((row) => (
             <View
               key={row.map((topic) => topic.id).join('-')}
+              testID={`learn-topic-row-${row.map((topic) => topic.id).join('-')}`}
               style={styles.topicRow}
             >
               {row.map((topic) => (
@@ -683,6 +739,7 @@ function CategoryCard({
                   progress={topicProgress[topic.id]}
                   testID={getTopicTestId(topic)}
                   onPress={() => onTopicPress(topic)}
+                  usesLargeLayout={usesLargeLayout}
                 />
               ))}
             </View>
@@ -696,6 +753,7 @@ function CategoryCard({
 export default function LearnScreen() {
   const { theme } = useTheme();
   const { t, language, refreshLanguage } = useTranslation();
+  const { usesLargeLayout } = useAccessibilityLayout();
   const { selectedLanguage } = useProgrammingLanguage();
   const categories = selectedLanguage?.categories ?? [];
   const languageId = selectedLanguage?.id ?? 'javascript';
@@ -708,8 +766,9 @@ export default function LearnScreen() {
     refreshLanguage,
   });
   const dueTopicNames = dueTopics.map((topic) => getTopicName(topic, language));
-  const wideDueTileIndexes = getWideTileIndexes(dueTopicNames);
-  const dueTopicRows = getTopicRows(dueTopics, wideDueTileIndexes);
+  const dueTopicRows = usesLargeLayout
+    ? dueTopics.map((topic) => [topic])
+    : getTopicRows(dueTopics, getWideTileIndexes(dueTopicNames));
 
   const handleTopicPress = (topic: Topic) => {
     router.push({
@@ -737,7 +796,12 @@ export default function LearnScreen() {
       >
         <ThemedText
           type="body"
-          style={[styles.screenSubtitle, { color: theme.tabIconDefault }]}
+          maxFontSizeMultiplier={1.35}
+          style={[
+            styles.screenSubtitle,
+            usesLargeLayout && styles.screenSubtitleLarge,
+            { color: theme.tabIconDefault },
+          ]}
         >
           {t('learnScreenSubtitle')}
         </ThemedText>
@@ -752,14 +816,23 @@ export default function LearnScreen() {
               },
             ]}
           >
-            <View style={styles.dueSectionHeader}>
+            <View
+              style={[
+                styles.dueSectionHeader,
+                usesLargeLayout && styles.dueSectionHeaderStacked,
+              ]}
+            >
               <View style={styles.dueSectionTitleRow}>
                 <AppIcon name="clock" size={20} color={theme.accent} />
                 <ThemedText type="h4" style={{ color: theme.accent }}>
                   {t('dueForReview')}
                 </ThemedText>
               </View>
-              <ThemedText type="caption" style={{ color: theme.accent }}>
+              <ThemedText
+                type="caption"
+                maxFontSizeMultiplier={getDenseControlTextCap()}
+                style={{ color: theme.accent }}
+              >
                 {getTopicCountLabel(dueTopics.length, t)}
               </ThemedText>
             </View>
@@ -767,6 +840,7 @@ export default function LearnScreen() {
               {dueTopicRows.map((row) => (
                 <View
                   key={row.map((topic) => topic.id).join('-')}
+                  testID={`learn-due-row-${row.map((topic) => topic.id).join('-')}`}
                   style={styles.topicRow}
                 >
                   {row.map((topic) => (
@@ -776,6 +850,7 @@ export default function LearnScreen() {
                       progress={topicProgress[topic.id]}
                       testID={`learn-due-topic-${topic.id}`}
                       onPress={() => handleTopicPress(topic)}
+                      usesLargeLayout={usesLargeLayout}
                     />
                   ))}
                 </View>
@@ -799,6 +874,7 @@ export default function LearnScreen() {
                 : undefined
             }
             t={t}
+            usesLargeLayout={usesLargeLayout}
           />
         ))}
       </ScrollView>
@@ -818,7 +894,11 @@ const styles = StyleSheet.create({
     gap: Spacing.lg,
   },
   screenSubtitle: {
+    alignSelf: 'stretch',
     marginTop: Spacing.sm,
+  },
+  screenSubtitleLarge: {
+    marginTop: Spacing.md,
   },
   categoryCard: {
     borderRadius: BorderRadius.lg,
@@ -833,6 +913,11 @@ const styles = StyleSheet.create({
     gap: Spacing.md,
     marginBottom: Spacing.md,
   },
+  categoryHeaderStacked: {
+    alignItems: 'flex-start',
+    flexDirection: 'column',
+    justifyContent: 'flex-start',
+  },
   categoryName: {
     flex: 1,
   },
@@ -840,6 +925,9 @@ const styles = StyleSheet.create({
     borderRadius: BorderRadius.full,
     paddingHorizontal: Spacing.sm,
     paddingVertical: Spacing.xs,
+  },
+  categoryBadgeStacked: {
+    alignSelf: 'flex-start',
   },
   categoryBadgeText: {
     fontWeight: '600',
@@ -872,6 +960,7 @@ const styles = StyleSheet.create({
     fontWeight: '500',
   },
   statusPill: {
+    alignSelf: 'flex-start',
     borderRadius: BorderRadius.full,
     borderWidth: 1,
     paddingHorizontal: Spacing.sm,
@@ -911,6 +1000,11 @@ const styles = StyleSheet.create({
     flexWrap: 'wrap',
     gap: Spacing.sm,
   },
+  nextStepMetaStacked: {
+    alignItems: 'flex-start',
+    flexDirection: 'column',
+    width: '100%',
+  },
   nextStepMetaDot: {
     width: 4,
     height: 4,
@@ -922,6 +1016,18 @@ const styles = StyleSheet.create({
     flexShrink: 1,
     minWidth: 0,
   },
+  nextStepMetaStatusStacked: {
+    alignItems: 'flex-start',
+    flexDirection: 'column',
+    gap: Spacing.xs,
+    width: '100%',
+  },
+  nextStepMetaStatusLine: {
+    alignItems: 'center',
+    flexDirection: 'row',
+    minWidth: 0,
+    width: '100%',
+  },
   nextStepMetaIcon: {
     marginRight: Spacing.xs,
   },
@@ -930,6 +1036,9 @@ const styles = StyleSheet.create({
   },
   nextStepMetaLevelDots: {
     marginLeft: Spacing.xs,
+  },
+  nextStepMetaLevelDotsStacked: {
+    marginLeft: 12 + Spacing.xs,
   },
   nextStepChevron: {
     opacity: 0.66,
@@ -998,6 +1107,11 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: Spacing.md,
     marginBottom: Spacing.md,
+  },
+  dueSectionHeaderStacked: {
+    alignItems: 'flex-start',
+    flexDirection: 'column',
+    justifyContent: 'flex-start',
   },
   dueSectionTitleRow: {
     flexDirection: 'row',

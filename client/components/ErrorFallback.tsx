@@ -1,7 +1,9 @@
 import React from 'react';
 import { reloadAppAsync } from 'expo';
-import { StyleSheet, View, Pressable, Text, Alert } from 'react-native';
+import { StyleSheet, View, Pressable, Alert } from 'react-native';
 import { AppIcon } from '@/components/AppIcon';
+import { ThemedText } from '@/components/ThemedText';
+import { getDenseControlTextCap } from '@/lib/accessibility';
 import { Spacing, BorderRadius, Colors } from '@/constants/theme';
 import { useTranslation } from '@/hooks/useTranslation';
 
@@ -62,13 +64,19 @@ export function ErrorFallback({ error, resetError }: ErrorFallbackProps) {
       ) : null}
 
       <View style={styles.content}>
-        <Text style={[styles.title, { color: fallbackTheme.text }]}>
+        <ThemedText
+          type="h1"
+          style={[styles.title, { color: fallbackTheme.text }]}
+        >
           {t('errorFallbackTitle')}
-        </Text>
+        </ThemedText>
 
-        <Text style={[styles.message, { color: fallbackTheme.text }]}>
+        <ThemedText
+          type="body"
+          style={[styles.message, { color: fallbackTheme.text }]}
+        >
           {t('errorMessage')}
-        </Text>
+        </ThemedText>
 
         <Pressable
           onPress={handleRestart}
@@ -81,11 +89,13 @@ export function ErrorFallback({ error, resetError }: ErrorFallbackProps) {
             },
           ]}
         >
-          <Text
+          <ThemedText
+            type="body"
+            maxFontSizeMultiplier={getDenseControlTextCap()}
             style={[styles.buttonText, { color: fallbackTheme.buttonText }]}
           >
             {t('backToLearning')}
-          </Text>
+          </ThemedText>
         </Pressable>
       </View>
     </View>
@@ -109,16 +119,13 @@ const styles = StyleSheet.create({
     maxWidth: 600,
   },
   title: {
-    textAlign: 'center',
     lineHeight: 40,
-    fontSize: 32,
-    fontWeight: '700',
+    textAlign: 'center',
   },
   message: {
-    textAlign: 'center',
-    opacity: 0.7,
     lineHeight: 24,
-    fontSize: 16,
+    opacity: 0.7,
+    textAlign: 'center',
   },
   topButton: {
     position: 'absolute',
@@ -151,8 +158,8 @@ const styles = StyleSheet.create({
     elevation: 3,
   },
   buttonText: {
+    fontSize: 16,
     fontWeight: '600',
     textAlign: 'center',
-    fontSize: 16,
   },
 });
