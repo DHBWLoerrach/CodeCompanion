@@ -1,10 +1,12 @@
-import React from 'react';
-import { Image, ScrollView, StyleSheet, View } from 'react-native';
+import React, { useEffect, useRef } from 'react';
+import { Animated, Easing, ScrollView, StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { EaseView } from 'react-native-ease';
 
 import { PrimaryButton } from '@/components/ActionButton';
+import { DhbwLogo } from '@/components/DhbwLogo';
+import { DhbwWordmark } from '@/components/DhbwWordmark';
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
 import { BorderRadius, Shadows, Spacing, withOpacity } from '@/constants/theme';
@@ -12,13 +14,80 @@ import { useTheme } from '@/contexts/ThemeContext';
 import { useTranslation } from '@/hooks/useTranslation';
 import { storage } from '@/lib/storage';
 
-const APP_LOGO = require('../../assets/images/icon.png');
+function getRandomRotationValue(range: number) {
+  return (Math.random() * 2 - 1) * range;
+}
+
+function getRandomRotationDuration() {
+  return 1400 + Math.floor(Math.random() * 1000);
+}
 
 export default function WelcomeScreen() {
   const { theme } = useTheme();
   const { t } = useTranslation();
   const insets = useSafeAreaInsets();
   const router = useRouter();
+  const logoRotateX = useRef(new Animated.Value(0)).current;
+  const logoRotateY = useRef(new Animated.Value(0)).current;
+  const logoRotateZ = useRef(new Animated.Value(0)).current;
+
+  useEffect(() => {
+    let isActive = true;
+    let currentAnimation: Animated.CompositeAnimation | null = null;
+
+    const animateLogo = () => {
+      const duration = getRandomRotationDuration();
+
+      currentAnimation = Animated.parallel([
+        Animated.timing(logoRotateX, {
+          toValue: getRandomRotationValue(1),
+          duration,
+          easing: Easing.inOut(Easing.sin),
+          useNativeDriver: true,
+        }),
+        Animated.timing(logoRotateY, {
+          toValue: getRandomRotationValue(1),
+          duration,
+          easing: Easing.inOut(Easing.sin),
+          useNativeDriver: true,
+        }),
+        Animated.timing(logoRotateZ, {
+          toValue: getRandomRotationValue(1),
+          duration,
+          easing: Easing.inOut(Easing.sin),
+          useNativeDriver: true,
+        }),
+      ]);
+
+      currentAnimation.start(({ finished }) => {
+        if (!finished || !isActive) {
+          return;
+        }
+
+        animateLogo();
+      });
+    };
+
+    animateLogo();
+
+    return () => {
+      isActive = false;
+      currentAnimation?.stop();
+    };
+  }, [logoRotateX, logoRotateY, logoRotateZ]);
+
+  const logoRotateXDeg = logoRotateX.interpolate({
+    inputRange: [-1, 1],
+    outputRange: ['-14deg', '14deg'],
+  });
+  const logoRotateYDeg = logoRotateY.interpolate({
+    inputRange: [-1, 1],
+    outputRange: ['-18deg', '18deg'],
+  });
+  const logoRotateZDeg = logoRotateZ.interpolate({
+    inputRange: [-1, 1],
+    outputRange: ['-8deg', '8deg'],
+  });
 
   const handleGetStarted = async () => {
     await storage.markWelcomeSeen();
@@ -66,20 +135,30 @@ export default function WelcomeScreen() {
           }}
           style={styles.heroSection}
         >
-          <View
-            style={[
-              styles.logoShell,
-              {
-                backgroundColor: withOpacity(theme.secondary, 0.08),
-                borderColor: withOpacity(theme.secondary, 0.14),
-              },
-            ]}
-          >
-            <Image
-              source={APP_LOGO}
-              style={styles.logoImage}
-              resizeMode="contain"
-            />
+          <View style={styles.brandLockup}>
+            <View
+              style={[
+                styles.logoShell,
+                {
+                  backgroundColor: withOpacity(theme.secondary, 0.08),
+                  borderColor: withOpacity(theme.secondary, 0.14),
+                },
+              ]}
+            >
+              <Animated.View
+                style={{
+                  transform: [
+                    { perspective: 900 },
+                    { rotateX: logoRotateXDeg },
+                    { rotateY: logoRotateYDeg },
+                    { rotate: logoRotateZDeg },
+                  ],
+                }}
+              >
+                <DhbwLogo size={92} />
+              </Animated.View>
+            </View>
+            <DhbwWordmark width={72} />
           </View>
 
           <View style={styles.textBlock}>
@@ -139,6 +218,10 @@ const styles = StyleSheet.create({
     gap: Spacing.xl,
     width: '100%',
   },
+  brandLockup: {
+    alignItems: 'center',
+    gap: Spacing.sm,
+  },
   logoShell: {
     width: 116,
     height: 116,
@@ -147,10 +230,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     ...Shadows.card,
-  },
-  logoImage: {
-    width: 92,
-    height: 92,
   },
   textBlock: {
     alignItems: 'center',
