@@ -583,7 +583,7 @@ export default function TopicDetailScreen() {
               />
             </View>
 
-            <View style={styles.statStrip}>
+            <View testID="topic-progress-stats" style={styles.statStrip}>
               <View
                 style={[
                   styles.statSegment,
@@ -622,26 +622,6 @@ export default function TopicDetailScreen() {
                   style={[styles.segmentLabel, { color: theme.tabIconDefault }]}
                 >
                   {t('correctShort')}
-                </ThemedText>
-              </View>
-              <View
-                style={[
-                  styles.statSegment,
-                  { backgroundColor: theme.backgroundSecondary },
-                ]}
-              >
-                <ThemedText
-                  type="h3"
-                  style={[styles.segmentValue, { color: theme.accent }]}
-                >
-                  {accuracy}%
-                </ThemedText>
-                <ThemedText
-                  type="small"
-                  numberOfLines={1}
-                  style={[styles.segmentLabel, { color: theme.tabIconDefault }]}
-                >
-                  {t('accuracyShort')}
                 </ThemedText>
               </View>
             </View>

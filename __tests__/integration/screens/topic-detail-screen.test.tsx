@@ -10,6 +10,8 @@ const mockHasTopicExplanation = jest.mocked(hasTopicExplanation);
 const mockRefreshLanguage = jest.fn().mockResolvedValue(undefined);
 const mockGetSettings = jest.fn().mockResolvedValue({ language: 'en' });
 const mockGetProgress = jest.fn().mockResolvedValue({ topicProgress: {} });
+const mockHasSeenLevelHint = jest.fn().mockResolvedValue(true);
+const mockMarkLevelHintSeen = jest.fn().mockResolvedValue(undefined);
 
 jest.mock('expo-router', () => ({
   useFocusEffect: (callback: () => void) => {
@@ -106,6 +108,8 @@ jest.mock('@/lib/storage', () => ({
   storage: {
     getSettings: (...args: unknown[]) => mockGetSettings(...args),
     getProgress: (...args: unknown[]) => mockGetProgress(...args),
+    hasSeenLevelHint: (...args: unknown[]) => mockHasSeenLevelHint(...args),
+    markLevelHintSeen: (...args: unknown[]) => mockMarkLevelHintSeen(...args),
   },
   isTopicDue: () => false,
 }));
@@ -137,7 +141,11 @@ describe('TopicDetailScreen integration', () => {
     mockRefreshLanguage.mockClear();
     mockGetSettings.mockClear();
     mockGetProgress.mockClear();
+    mockHasSeenLevelHint.mockClear();
+    mockMarkLevelHintSeen.mockClear();
     mockGetProgress.mockResolvedValue({ topicProgress: {} });
+    mockHasSeenLevelHint.mockResolvedValue(true);
+    mockMarkLevelHintSeen.mockResolvedValue(undefined);
   });
 
   afterEach(() => {
@@ -241,5 +249,32 @@ describe('TopicDetailScreen integration', () => {
     fireEvent.press(screen.getByTestId('topic-level-info-button'));
 
     expect(screen.getByText('levelInfoText')).toBeTruthy();
+  });
+
+  it('does not render a redundant accuracy stat card when progress exists', async () => {
+    mockHasTopicExplanation.mockReturnValue(true);
+    mockGetProgress.mockResolvedValue({
+      topicProgress: {
+        'javascript:variables': {
+          topicId: 'variables',
+          questionsAnswered: 10,
+          correctAnswers: 7,
+          skillLevel: 2,
+          lastPracticed: '2026-03-31T00:00:00.000Z',
+        },
+      },
+    });
+
+    const screen = render(<TopicDetailScreen />);
+
+    await waitFor(() => {
+      expect(screen.getByTestId('topic-progress-stats')).toBeTruthy();
+      expect(screen.getByText('questionsShort')).toBeTruthy();
+      expect(screen.getByText('correctShort')).toBeTruthy();
+    });
+
+    const statStrip = screen.getByTestId('topic-progress-stats');
+
+    expect(React.Children.count(statStrip.props.children)).toBe(2);
   });
 });
