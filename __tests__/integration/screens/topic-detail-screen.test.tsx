@@ -15,7 +15,7 @@ const mockMarkLevelHintSeen = jest.fn().mockResolvedValue(undefined);
 
 jest.mock('expo-router', () => ({
   useFocusEffect: (callback: () => void) => {
-    const ReactModule = require('react');
+    const ReactModule = jest.requireActual<typeof import('react')>('react');
     ReactModule.useEffect(() => {
       const cleanup = callback();
       return cleanup;

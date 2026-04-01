@@ -48,7 +48,7 @@ export default function TopicDetailScreen() {
   const router = useRouter();
   const { selectedLanguage } = useProgrammingLanguage();
   const languageId = selectedLanguage?.id ?? 'javascript';
-  const categories = selectedLanguage?.categories ?? [];
+  const categories = selectedLanguage?.categories;
   const { topicId } = useLocalSearchParams<{ topicId?: string }>();
   const resolvedTopicId = getParam(topicId);
 
@@ -82,9 +82,9 @@ export default function TopicDetailScreen() {
           return;
         }
 
-        const topicData = getTopicById(resolvedTopicId, categories);
+        const topicData = getTopicById(resolvedTopicId, categories ?? []);
         setTopic(topicData || null);
-        const parentCategory = categories.find(
+        const parentCategory = categories?.find(
           (c) => c.id === topicData?.category
         );
         navigation.setOptions({
@@ -223,7 +223,7 @@ export default function TopicDetailScreen() {
     const lastSpace = truncated.lastIndexOf(' ');
     return (lastSpace > 0 ? truncated.slice(0, lastSpace) : truncated) + '...';
   })();
-  const currentCategory = categories.find(
+  const currentCategory = categories?.find(
     (category) => category.id === topic.category
   );
   const categoryLabel = currentCategory
