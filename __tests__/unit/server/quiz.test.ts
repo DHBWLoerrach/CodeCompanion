@@ -830,6 +830,33 @@ describe('server/quiz', () => {
       );
     });
 
+    it('uses rust language context when generating rust quizzes', async () => {
+      fetchMock.mockResolvedValueOnce(
+        mockFetchResponse({
+          json: {
+            output_text:
+              '{"questions":[{"question":"Q?","code":null,"options":["A","B","C","D"],"correctIndex":0,"explanation":"Because","resultSentence":"Result: A","takeaway":"Remember A","commonMistake":""}]}',
+          },
+        })
+      );
+
+      await generateQuizQuestions('rust', 'ownership', 1, 'en', 1);
+
+      const fetchOptions = fetchMock.mock.calls[0][1] as RequestInit;
+      const payload = JSON.parse(String(fetchOptions.body)) as {
+        instructions: string;
+        input: string;
+      };
+
+      expect(payload.instructions).toContain('Rust programming tutor');
+      expect(payload.input).toContain(
+        'Rust ownership rules, stack vs heap memory, and move semantics'
+      );
+      expect(payload.input).toContain(
+        'Focus on Rust language fundamentals and idiomatic Rust. Avoid generic programming examples - always use Rust-specific patterns. Emphasize ownership, borrowing, and the borrow checker.'
+      );
+    });
+
     it('uses javascript language context when generating javascript quizzes', async () => {
       fetchMock.mockResolvedValueOnce(
         mockFetchResponse({

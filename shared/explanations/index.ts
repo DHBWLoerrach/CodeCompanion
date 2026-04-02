@@ -4,6 +4,8 @@ import javaDe from './java.de.json';
 import javaEn from './java.en.json';
 import pythonDe from './python.de.json';
 import pythonEn from './python.en.json';
+import rustDe from './rust.de.json';
+import rustEn from './rust.en.json';
 import type { ProgrammingLanguageId } from '@shared/programming-language';
 
 export type ExplanationLanguage = 'en' | 'de';
@@ -34,6 +36,10 @@ const TOPIC_EXPLANATIONS = {
   java: {
     en: toExplanationMap(javaEn),
     de: toExplanationMap(javaDe),
+  },
+  rust: {
+    en: toExplanationMap(rustEn),
+    de: toExplanationMap(rustDe),
   },
 } as const satisfies Record<
   ProgrammingLanguageId,

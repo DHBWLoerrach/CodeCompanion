@@ -1,6 +1,7 @@
 import javaCurriculumJson from './java.json';
 import javascriptCurriculumJson from './javascript.json';
 import pythonCurriculumJson from './python.json';
+import rustCurriculumJson from './rust.json';
 import type {
   CurriculumCategory,
   CurriculumLanguage,
@@ -19,6 +20,7 @@ const DEFAULT_LANGUAGE_METADATA: Record<
   javascript: { shortName: 'JS', color: '#F7DF1E' },
   python: { shortName: 'PY', color: '#3776AB' },
   java: { shortName: 'JA', color: '#F89820' },
+  rust: { shortName: 'RS', color: '#CB5500' },
 };
 
 const COLOR_PATTERN = /^#[0-9A-Fa-f]{6}$/;
@@ -242,6 +244,7 @@ function buildCurriculumRegistry(): Record<
     javascriptCurriculumJson,
     pythonCurriculumJson,
     javaCurriculumJson,
+    rustCurriculumJson,
   ] as CurriculumLanguage[];
 
   const registry = {} as Record<ProgrammingLanguageId, CurriculumLanguage>;

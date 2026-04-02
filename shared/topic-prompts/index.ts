@@ -9,6 +9,7 @@ import {
 import javascriptTopicPrompts from './javascript.json';
 import javaTopicPrompts from './java.json';
 import pythonTopicPrompts from './python.json';
+import rustTopicPrompts from './rust.json';
 
 const LANGUAGE_TOPIC_PROMPTS: Record<
   ProgrammingLanguageId,
@@ -17,6 +18,7 @@ const LANGUAGE_TOPIC_PROMPTS: Record<
   javascript: javascriptTopicPrompts,
   python: pythonTopicPrompts,
   java: javaTopicPrompts,
+  rust: rustTopicPrompts,
 };
 
 export const LANGUAGE_NAMES = Object.fromEntries(

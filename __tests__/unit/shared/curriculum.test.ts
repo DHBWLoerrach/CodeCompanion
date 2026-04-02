@@ -14,6 +14,7 @@ describe('shared/curriculum', () => {
       'javascript',
       'python',
       'java',
+      'rust',
     ]);
   });
 

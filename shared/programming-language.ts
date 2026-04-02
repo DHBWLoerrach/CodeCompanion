@@ -4,6 +4,7 @@ export const SUPPORTED_PROGRAMMING_LANGUAGE_IDS = [
   DEFAULT_PROGRAMMING_LANGUAGE_ID,
   'python',
   'java',
+  'rust',
 ] as const;
 
 export type ProgrammingLanguageId =

@@ -145,6 +145,7 @@ describe('server/validation', () => {
       expect(toProgrammingLanguage('javascript')).toBe('javascript');
       expect(toProgrammingLanguage('python')).toBe('python');
       expect(toProgrammingLanguage('java')).toBe('java');
+      expect(toProgrammingLanguage('rust')).toBe('rust');
     });
 
     it('uses javascript as the default when omitted', () => {
@@ -153,7 +154,7 @@ describe('server/validation', () => {
     });
 
     it('returns null for unsupported values', () => {
-      expect(toProgrammingLanguage('rust')).toBeNull();
+      expect(toProgrammingLanguage('php')).toBeNull();
       expect(toProgrammingLanguage('python ')).toBeNull();
     });
   });
@@ -168,6 +169,8 @@ describe('server/validation', () => {
       expect(validateTopicIdForLanguage('variables-constants', 'java')).toBe(
         true
       );
+      expect(validateTopicIdForLanguage('ownership', 'rust')).toBe(true);
+      expect(validateTopicIdForLanguage('variables', 'rust')).toBe(false);
     });
 
     it('rejects empty topic IDs', () => {

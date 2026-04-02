@@ -87,16 +87,52 @@ describe('POST /api/quiz/generate', () => {
     const response = await POST(
       createRequest({
         topicId: 'variables',
-        programmingLanguage: 'rust',
+        programmingLanguage: 'go',
       })
     );
     const data = await response.json();
 
     expect(response.status).toBe(400);
     expect(data).toEqual({
-      error: 'programmingLanguage must be one of: javascript, python, java',
+      error:
+        'programmingLanguage must be one of: javascript, python, java, rust',
     });
     expect(mockGenerateQuizQuestions).not.toHaveBeenCalled();
+  });
+
+  it('accepts rust programmingLanguage and forwards it to quiz generation', async () => {
+    mockGenerateQuizQuestions.mockResolvedValueOnce([
+      {
+        id: 'q1',
+        question: 'Q?',
+        options: ['A', 'B', 'C', 'D'],
+        correctIndex: 0,
+        explanation: 'Because',
+        resultSentence: 'Result: A',
+        takeaway: 'Remember A',
+      },
+    ]);
+
+    const response = await POST(
+      createRequest({
+        topicId: 'ownership',
+        programmingLanguage: 'rust',
+        count: 3,
+        language: 'de',
+        skillLevel: 2,
+      })
+    );
+    const data = await response.json();
+
+    expect(response.status).toBe(200);
+    expect(mockGenerateQuizQuestions).toHaveBeenCalledWith(
+      'rust',
+      'ownership',
+      3,
+      'de',
+      2
+    );
+    expect(data.questions).toHaveLength(1);
   });
 
   it('returns 400 when topicId is invalid for programmingLanguage', async () => {

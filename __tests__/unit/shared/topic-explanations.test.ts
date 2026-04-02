@@ -6,6 +6,8 @@ import javaEn from '@shared/explanations/java.en.json';
 import pythonDe from '@shared/explanations/python.de.json';
 import pythonEn from '@shared/explanations/python.en.json';
 import { getTopicIdsByLanguage } from '@shared/curriculum';
+import rustDe from '@shared/explanations/rust.de.json';
+import rustEn from '@shared/explanations/rust.en.json';
 import {
   SUPPORTED_PROGRAMMING_LANGUAGE_IDS,
   type ProgrammingLanguageId,
@@ -25,6 +27,10 @@ const EXPLANATION_FILES = {
   java: {
     en: javaEn,
     de: javaDe,
+  },
+  rust: {
+    en: rustEn,
+    de: rustDe,
   },
 } as const satisfies Record<
   ProgrammingLanguageId,

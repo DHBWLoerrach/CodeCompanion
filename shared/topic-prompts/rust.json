@@ -1,0 +1,23 @@
+{
+  "primitive-types": "Rust primitive types (integer, float, boolean, char) and type inference rules",
+  "variables-immutability": "Rust variable declarations, constants, mutability restrictions, and variable shadowing",
+  "data-structures": "Rust data structures: arrays, vectors, tuples, and hash maps usage",
+  "module-system": "Rust module system: use statements, pub visibility, and crate organization",
+  "ownership": "Rust ownership rules, stack vs heap memory, and move semantics",
+  "borrowing": "Rust borrowing system: immutable and mutable references with borrow checker",
+  "slices": "Rust slices, string slices, and slicing operations on arrays and vectors",
+  "lifetimes": "Rust lifetime annotations, borrow checker rules, and reference validity",
+  "results": "Rust Result<T, E> type, error variants, and error propagation patterns",
+  "options": "Rust Option<T> type, Some/None variants, and handling absent values",
+  "error-handling": "Rust error handling: question mark operator, unwrap(), match, and if let",
+  "custom-errors": "Rust custom error types, the Error trait, and error conversion",
+  "functions": "Rust function declarations, method signatures, associated functions, and self keyword",
+  "structs": "Rust struct definitions, instances, tuple structs, and unit structs",
+  "enums": "Rust enum definitions, variants, pattern matching, and if let expressions",
+  "traits": "Rust trait definitions, impl blocks, trait bounds, and default implementations",
+  "generics": "Rust generic types, functions, methods, and constraint syntax usage",
+  "lifetimes-advanced": "Rust lifetime elision rules, generic lifetimes, and lifetime annotations",
+  "concurrency": "Rust concurrency: threads, Send and Sync traits, and channel communication",
+  "smart-pointers": "Rust smart pointers: Box, Rc, Arc, Cell, and RefCell custom implementations",
+  "macros": "Rust declarative macros with macro_rules!, derive macros, and metaprogramming"
+}

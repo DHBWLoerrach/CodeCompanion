@@ -86,7 +86,8 @@ export async function POST(request: Request) {
       });
       return Response.json(
         {
-          error: 'programmingLanguage must be one of: javascript, python, java',
+          error:
+            'programmingLanguage must be one of: javascript, python, java, rust',
         },
         { status: 400 }
       );

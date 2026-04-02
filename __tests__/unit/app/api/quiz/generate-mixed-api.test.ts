@@ -129,16 +129,43 @@ describe('POST /api/quiz/generate-mixed', () => {
     const response = await POST(
       createRequest({
         topicIds: ['variables'],
-        programmingLanguage: 'rust',
+        programmingLanguage: 'go',
       })
     );
     const data = await response.json();
 
     expect(response.status).toBe(400);
     expect(data).toEqual({
-      error: 'programmingLanguage must be one of: javascript, python, java',
+      error:
+        'programmingLanguage must be one of: javascript, python, java, rust',
     });
     expect(mockGenerateMixedQuizQuestions).not.toHaveBeenCalled();
+  });
+
+  it('accepts rust programmingLanguage for explicit mixed-topic generation', async () => {
+    const response = await POST(
+      createRequest({
+        topicIds: ['ownership', 'borrowing'],
+        programmingLanguage: 'rust',
+        count: 5,
+        language: 'de',
+        skillLevel: 2,
+      })
+    );
+    const data = await response.json();
+
+    expect(response.status).toBe(200);
+    expect(mockGenerateMixedQuizQuestions).toHaveBeenCalledTimes(1);
+    expect(mockGenerateMixedQuizQuestions).toHaveBeenCalledWith(
+      'rust',
+      [
+        { topicId: 'ownership', questionCount: 3 },
+        { topicId: 'borrowing', questionCount: 2 },
+      ],
+      'de',
+      2
+    );
+    expect(data.questions).toHaveLength(5);
   });
 
   it('uses provided topicIds when all are valid and generates requested count', async () => {
