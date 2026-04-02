@@ -16,8 +16,8 @@
         "de": "Grundlagen"
       },
       "shortDescription": {
-        "en": "Intro to Rust types, variables, and module system.",
-        "de": "Einführung in Rust-Typen, Variablen und Modulsystem."
+        "en": "Rust scalar types, bindings, collections, and module basics.",
+        "de": "Rust-Typen, Bindings, Sammlungen und Modul-Grundlagen."
       },
       "topics": [
         {
@@ -28,8 +28,8 @@
             "de": "Primitive Typen"
           },
           "shortDescription": {
-            "en": "Integer, float, boolean, char types and type inference",
-            "de": "Ganzzahl-, Float-, Boolesche-Wert-Char-Typen und Typpräfung"
+            "en": "Integers, floats, booleans, chars, and type inference",
+            "de": "Ganzzahlen, Gleitkommazahlen, bool, char und Typinferenz"
           },
           "prerequisites": []
         },
@@ -38,11 +38,11 @@
           "id": "variables-immutability",
           "name": {
             "en": "Variables & Immutability",
-            "de": "Variablen & Immutability"
+            "de": "Variablen, Mutabilität & Shadowing"
           },
           "shortDescription": {
-            "en": "Variable declarations, mutability rules, and shadowing",
-            "de": "Deklarationen, Mutabilitätsregeln und Shadowing"
+            "en": "Bindings, mutability rules, constants, and shadowing",
+            "de": "Bindings, Mutabilitätsregeln, Konstanten und Shadowing"
           },
           "prerequisites": ["primitive-types"]
         },
@@ -51,11 +51,11 @@
           "id": "data-structures",
           "name": {
             "en": "Data Structures",
-            "de": "Datentypen"
+            "de": "Grundlegende Datenstrukturen"
           },
           "shortDescription": {
             "en": "Arrays, vectors, tuples, and hash maps",
-            "de": "Arrays, Vektoren, Tupeln und Hash-Karten"
+            "de": "Arrays, Vektoren, Tupel und HashMaps"
           },
           "prerequisites": ["variables-immutability"]
         },
@@ -67,147 +67,68 @@
             "de": "Modulsystem"
           },
           "shortDescription": {
-            "en": "Modules, use statements, pub visibility, and crate types",
-            "de": "Module, use-Anweisungen, pub-Sichtbarkeit, Crate-Typen"
+            "en": "Modules, paths, use statements, and pub visibility",
+            "de": "Module, Pfade, use-Anweisungen und pub-Sichtbarkeit"
           },
-          "prerequisites": ["data-structures"]
+          "prerequisites": ["variables-immutability"]
         }
       ]
     },
     {
       "order": 2,
-      "id": "ownership-memory",
+      "id": "control-flow",
       "name": {
-        "en": "Ownership & Memory",
-        "de": "Ownership & Speicher"
+        "en": "Control Flow",
+        "de": "Kontrollfluss"
       },
       "shortDescription": {
-        "en": "Ownership, borrowing, and lifetime management.",
-        "de": "Ownership, Borrowing und Lifetime-Management."
+        "en": "Branch, repeat, and pattern-match with Rust control-flow tools.",
+        "de": "Mit Rust-Kontrollstrukturen verzweigen, wiederholen und pattern-matchen."
       },
       "topics": [
         {
           "order": 1,
-          "id": "ownership",
+          "id": "conditionals",
           "name": {
-            "en": "Ownership",
-            "de": "Ownership"
+            "en": "Conditionals",
+            "de": "Bedingungen"
           },
           "shortDescription": {
-            "en": "Ownership rules, stack vs heap, move semantics",
-            "de": "Eigentumsregeln, Stack vs Heap, Move-Semantik"
+            "en": "if, else if, else, and expression-based branching",
+            "de": "if, else if, else und ausdrucksbasierte Verzweigung"
           },
-          "prerequisites": []
+          "prerequisites": ["variables-immutability"]
         },
         {
           "order": 2,
-          "id": "borrowing",
+          "id": "loops",
           "name": {
-            "en": "Borrowing & References",
-            "de": "Borrowing & References"
+            "en": "Loops",
+            "de": "Schleifen"
           },
           "shortDescription": {
-            "en": "Immutable and mutable references, borrowing rules",
-            "de": "Unveränderliche und veränderliche Referenzen, Borrowing-Regeln"
+            "en": "loop, while, for, break, continue, and iteration basics",
+            "de": "loop, while, for, break, continue und Iterations-Grundlagen"
           },
-          "prerequisites": ["ownership"]
+          "prerequisites": ["conditionals"]
         },
         {
           "order": 3,
-          "id": "slices",
+          "id": "match",
           "name": {
-            "en": "Slices",
-            "de": "Slices"
+            "en": "Match",
+            "de": "Match"
           },
           "shortDescription": {
-            "en": "String slices, slice notation, slicing arrays/vectors",
-            "de": "String-Parts, Slice-Notation, Array-Vektor-Slicing"
+            "en": "Exhaustive branching with match, patterns, and wildcards",
+            "de": "Erschöpfende Verzweigung mit match, Mustern und Wildcards"
           },
-          "prerequisites": ["borrowing"]
-        },
-        {
-          "order": 4,
-          "id": "lifetimes",
-          "name": {
-            "en": "Lifetimes",
-            "de": "Lifetimes"
-          },
-          "shortDescription": {
-            "en": "Lifetime annotations, borrow checker, reference validity",
-            "de": "Lifetime-Annotationen, Borrow-Checker, Referenz-Gültigkeit"
-          },
-          "prerequisites": ["borrowing"]
+          "prerequisites": ["conditionals"]
         }
       ]
     },
     {
       "order": 3,
-      "id": "error-handling",
-      "name": {
-        "en": "Error Handling",
-        "de": "Fehlerbehandlung"
-      },
-      "shortDescription": {
-        "en": "Result, Option, and error propagation patterns.",
-        "de": "Result, Option und Fehlerweitergabe-Muster."
-      },
-      "topics": [
-        {
-          "order": 1,
-          "id": "results",
-          "name": {
-            "en": "Result Type",
-            "de": "Result-Typ"
-          },
-          "shortDescription": {
-            "en": "Result<T,E>, error variants, error propagation",
-            "de": "Result<T,E>, Fehler-Varianten, Fehlerweitergabe"
-          },
-          "prerequisites": []
-        },
-        {
-          "order": 2,
-          "id": "options",
-          "name": {
-            "en": "Option Type",
-            "de": "Option-Typ"
-          },
-          "shortDescription": {
-            "en": "Option<T>, Some/None, handling absence",
-            "de": "Option<T>, Some/None, Umgang mit fehlenden Werten"
-          },
-          "prerequisites": []
-        },
-        {
-          "order": 3,
-          "id": "error-handling",
-          "name": {
-            "en": "Error Handling",
-            "de": "Fehlerbehandlung"
-          },
-          "shortDescription": {
-            "en": "Question mark ?, unwrap(), match, if let patterns",
-            "de": "Fragezeichen-Operator ?, unwrap(), match, if let-Muster"
-          },
-          "prerequisites": ["results", "options"]
-        },
-        {
-          "order": 4,
-          "id": "custom-errors",
-          "name": {
-            "en": "Custom Errors",
-            "de": "Benutzerdefinierte Fehler"
-          },
-          "shortDescription": {
-            "en": "Defining custom error types, the Error trait",
-            "de": "Benutzerdefinierte Fehlertypen, der Error-Trait"
-          },
-          "prerequisites": ["error-handling"]
-        }
-      ]
-    },
-    {
-      "order": 4,
       "id": "abstraction",
       "name": {
         "en": "Abstraction",
@@ -226,10 +147,10 @@
             "de": "Funktionen & Methoden"
           },
           "shortDescription": {
-            "en": "Function signatures, methods, associated functions, self",
-            "de": "Funktions-Signaturen, Methoden, zugehörige Funktionen, self"
+            "en": "Function signatures, methods, associated functions, and self",
+            "de": "Funktionssignaturen, Methoden, assoziierte Funktionen und self"
           },
-          "prerequisites": []
+          "prerequisites": ["variables-immutability"]
         },
         {
           "order": 2,
@@ -252,10 +173,10 @@
             "de": "Enumerationen & Pattern-Matching"
           },
           "shortDescription": {
-            "en": "Enum definitions, variants, match expressions, if let",
-            "de": "Enum-Definitionen, Varianten, match-Ausdrücke, if let"
+            "en": "Enum definitions, variants, match expressions, and if let",
+            "de": "Enum-Definitionen, Varianten, match-Ausdrücke und if let"
           },
-          "prerequisites": ["structs"]
+          "prerequisites": ["functions", "match"]
         },
         {
           "order": 4,
@@ -265,23 +186,168 @@
             "de": "Traits"
           },
           "shortDescription": {
-            "en": "Trait definitions, impl blocks, trait bounds, defaults",
-            "de": "Trait-Definitionen, impl-Blöcke, Trait-Bounds, Standard-Werte"
+            "en": "Trait definitions, impl blocks, bounds, and default methods",
+            "de": "Trait-Definitionen, impl-Blöcke, Bounds und Default-Methoden"
           },
-          "prerequisites": ["enums"]
+          "prerequisites": ["functions", "structs"]
+        }
+      ]
+    },
+    {
+      "order": 4,
+      "id": "ownership-memory",
+      "name": {
+        "en": "Ownership & Memory",
+        "de": "Ownership & Speicherverwaltung"
+      },
+      "shortDescription": {
+        "en": "Ownership, borrowing, strings, slices, and lifetime basics.",
+        "de": "Ownership, Borrowing, Strings, Slices und Lifetime-Grundlagen."
+      },
+      "topics": [
+        {
+          "order": 1,
+          "id": "ownership",
+          "name": {
+            "en": "Ownership",
+            "de": "Ownership"
+          },
+          "shortDescription": {
+            "en": "Ownership rules, stack vs heap, move semantics",
+            "de": "Eigentumsregeln, Stack vs Heap, Move-Semantik"
+          },
+          "prerequisites": ["variables-immutability"]
+        },
+        {
+          "order": 2,
+          "id": "borrowing",
+          "name": {
+            "en": "Borrowing & References",
+            "de": "Borrowing & Referenzen"
+          },
+          "shortDescription": {
+            "en": "Immutable and mutable references and borrowing rules",
+            "de": "Unveränderliche und veränderliche Referenzen sowie Borrowing-Regeln"
+          },
+          "prerequisites": ["ownership"]
+        },
+        {
+          "order": 3,
+          "id": "slices",
+          "name": {
+            "en": "Slices",
+            "de": "Slices"
+          },
+          "shortDescription": {
+            "en": "String slices, slice notation, and slices of arrays or vectors",
+            "de": "String-Slices, Slice-Syntax und Slices für Arrays oder Vektoren"
+          },
+          "prerequisites": ["borrowing"]
+        },
+        {
+          "order": 4,
+          "id": "string-vs-str",
+          "name": {
+            "en": "String vs. &str",
+            "de": "String vs. &str"
+          },
+          "shortDescription": {
+            "en": "Owned strings, borrowed string slices, literals, and API choices",
+            "de": "Eigene Strings, geborgte String-Slices, Literale und API-Entscheidungen"
+          },
+          "prerequisites": ["slices"]
+        },
+        {
+          "order": 5,
+          "id": "lifetimes",
+          "name": {
+            "en": "Lifetimes",
+            "de": "Lifetimes"
+          },
+          "shortDescription": {
+            "en": "Lifetime annotations, borrow checker, and reference validity",
+            "de": "Lifetime-Annotationen, Borrow Checker und Gültigkeit von Referenzen"
+          },
+          "prerequisites": ["borrowing", "functions", "string-vs-str"]
         }
       ]
     },
     {
       "order": 5,
+      "id": "error-handling",
+      "name": {
+        "en": "Error Handling",
+        "de": "Fehlerbehandlung"
+      },
+      "shortDescription": {
+        "en": "Result, Option, and error propagation patterns.",
+        "de": "Result, Option und Muster zur Fehlerweitergabe."
+      },
+      "topics": [
+        {
+          "order": 1,
+          "id": "results",
+          "name": {
+            "en": "Result Type",
+            "de": "Result-Typ"
+          },
+          "shortDescription": {
+            "en": "Result<T,E>, error variants, error propagation",
+            "de": "Result<T,E>, Fehler-Varianten, Fehlerweitergabe"
+          },
+          "prerequisites": ["functions", "enums"]
+        },
+        {
+          "order": 2,
+          "id": "options",
+          "name": {
+            "en": "Option Type",
+            "de": "Option-Typ"
+          },
+          "shortDescription": {
+            "en": "Option<T>, Some/None, handling absence",
+            "de": "Option<T>, Some/None, Umgang mit fehlenden Werten"
+          },
+          "prerequisites": ["enums"]
+        },
+        {
+          "order": 3,
+          "id": "error-handling",
+          "name": {
+            "en": "Error Handling",
+            "de": "Fehlerbehandlung"
+          },
+          "shortDescription": {
+            "en": "Question mark ?, match, if let, and targeted use of unwrap",
+            "de": "Fragezeichen-Operator ?, match, if let und gezielter Einsatz von unwrap"
+          },
+          "prerequisites": ["results", "options", "match"]
+        },
+        {
+          "order": 4,
+          "id": "custom-errors",
+          "name": {
+            "en": "Custom Errors",
+            "de": "Benutzerdefinierte Fehler"
+          },
+          "shortDescription": {
+            "en": "Custom error enums, the Error trait, and conversions",
+            "de": "Eigene Fehlertypen, der Error-Trait und Konvertierungen"
+          },
+          "prerequisites": ["error-handling", "traits", "enums"]
+        }
+      ]
+    },
+    {
+      "order": 6,
       "id": "advanced",
       "name": {
         "en": "Advanced Rust",
         "de": "Fortgeschrittenes Rust"
       },
       "shortDescription": {
-        "en": "Generics, lifetimes, concurrency, smart pointers, macros.",
-        "de": "Generics, Lifetimes, Concurrency, Smart-Pointer, Makros."
+        "en": "Generics, closures, iterators, smart pointers, concurrency, and macros.",
+        "de": "Generics, Closures, Iteratoren, Smart Pointer, Nebenläufigkeit und Makros."
       },
       "topics": [
         {
@@ -292,61 +358,95 @@
             "de": "Generics"
           },
           "shortDescription": {
-            "en": "Generic types, functions, methods, constraint syntax",
-            "de": "Generische Typen, Funktionen, Methoden, Constraint-Syntax"
+            "en": "Generic types, functions, methods, and trait bounds",
+            "de": "Generische Typen, Funktionen, Methoden und Trait-Bounds"
           },
           "prerequisites": ["traits"]
         },
         {
           "order": 2,
+          "id": "closures",
+          "name": {
+            "en": "Closures",
+            "de": "Closures"
+          },
+          "shortDescription": {
+            "en": "Anonymous functions, captured environment, and Fn/FnMut/FnOnce",
+            "de": "Anonyme Funktionen, Umgebungscapture und Fn/FnMut/FnOnce"
+          },
+          "prerequisites": ["functions", "ownership"]
+        },
+        {
+          "order": 3,
+          "id": "iterators",
+          "name": {
+            "en": "Iterators",
+            "de": "Iteratoren"
+          },
+          "shortDescription": {
+            "en": "Iterator trait, lazy adapters, and collect-based pipelines",
+            "de": "Iterator-Trait, faule Adapter und Pipelines mit collect"
+          },
+          "prerequisites": ["loops", "closures", "traits"]
+        },
+        {
+          "order": 4,
           "id": "lifetimes-advanced",
           "name": {
             "en": "Advanced Lifetimes",
             "de": "Fortgeschrittene Lifetimes"
           },
           "shortDescription": {
-            "en": "Lifetime elision, generic lifetimes, multiple lifetimes",
-            "de": "Lifetime-Elimination, Generische Lifetimes, Mehrere Lifetimes"
+            "en": "Lifetime elision, generic lifetimes, and multiple borrows",
+            "de": "Lifetime-Elision, generische Lifetimes und mehrere Borrows"
           },
-          "prerequisites": ["lifetimes"]
+          "optional": true,
+          "prerequisites": ["lifetimes", "generics"]
         },
         {
-          "order": 3,
+          "order": 5,
+          "id": "smart-pointers",
+          "name": {
+            "en": "Smart Pointers",
+            "de": "Smart Pointer"
+          },
+          "shortDescription": {
+            "en": "Box, Rc, Arc, Cell, and RefCell in context",
+            "de": "Box, Rc, Arc, Cell und RefCell im richtigen Kontext"
+          },
+          "prerequisites": ["ownership", "borrowing"]
+        },
+        {
+          "order": 6,
           "id": "concurrency",
           "name": {
             "en": "Concurrency",
             "de": "Nebenläufigkeit"
           },
           "shortDescription": {
-            "en": "Threads, send and sync traits, thread channels",
-            "de": "Threads, Send- und Sync-Traits, Thread-Kanäle"
+            "en": "Threads, channels, Send/Sync, and shared state",
+            "de": "Threads, Channels, Send/Sync und gemeinsam genutzter Zustand"
           },
-          "prerequisites": []
+          "optional": true,
+          "prerequisites": [
+            "ownership",
+            "borrowing",
+            "smart-pointers",
+            "closures"
+          ]
         },
         {
-          "order": 4,
-          "id": "smart-pointers",
-          "name": {
-            "en": "Smart Pointers",
-            "de": "Smart-Pointer"
-          },
-          "shortDescription": {
-            "en": "Box, Rc, Arc, Cell, RefCell smart pointers",
-            "de": "Box, Rc, Arc, Cell, RefCell Smart-Pointer"
-          },
-          "prerequisites": ["ownership"]
-        },
-        {
-          "order": 5,
+          "order": 7,
           "id": "macros",
           "name": {
             "en": "Macros",
             "de": "Makros"
           },
           "shortDescription": {
-            "en": "Macro_rules, declarative macros, derive macros",
-            "de": "Makro_rules, deklarative Makros, Ableitungsmakros"
+            "en": "macro_rules!, derive macros, and macro use cases",
+            "de": "macro_rules!, derive-Makros und sinnvolle Makro-Einsätze"
           },
+          "optional": true,
           "prerequisites": ["module-system", "functions"]
         }
       ]

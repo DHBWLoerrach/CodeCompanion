@@ -850,7 +850,7 @@ describe('server/quiz', () => {
 
       expect(payload.instructions).toContain('Rust programming tutor');
       expect(payload.input).toContain(
-        'Rust ownership rules, stack vs heap memory, and move semantics'
+        'Rust ownership rules, stack vs heap memory, moves, Copy types, and ownership transfer'
       );
       expect(payload.input).toContain(
         'Focus on Rust language fundamentals and idiomatic Rust. Avoid generic programming examples - always use Rust-specific patterns. Emphasize ownership, borrowing, and the borrow checker.'
