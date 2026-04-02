@@ -2,6 +2,8 @@
 
 Hier sammeln wir Todos für später.
 
+Sie auch die Specs/Plans unter `docs`.
+
 ## Rate Limit: Spätere Erweiterungspfade (aufbauend auf v4, siehe [Spec](./docs/specs/rate-limits/rate-limiting-plan-v4.md))
 
 - brauchen DHBW-Nutzer überhaupt mehr Quota? siehe [DHBW-Quota-Extension-Path](./docs/specs/rate-limits/dhbw-quota-extension-path.md)
@@ -17,10 +19,10 @@ Hier sammeln wir Todos für später.
 - Brauchen wir das: https://docs.expo.dev/versions/latest/sdk/build-properties/ ?
 - Inhalte:
   - „pures“ JavaScript von JavaScript im Browser abgrenzen (weiteres Thema)
-  - Weitere Sprachen: Java, Python, HTML, CSS, C#, Go, Rust, ...
+  - Weitere Sprachen: Java, Python, HTML, CSS, C#, Go, ...
   - TypeScript? Frameworks (React, …) ? Konzepte (HTTPS)
 - Chat für Lernsessions einbauen? https://github.com/vercel/aix
-- prerequisites bei den Themen berücksichtigen
+- prerequisites bei den Themen/Lernpfaden stärker berücksichtigen?
 
 ## Frontend (App)
 
