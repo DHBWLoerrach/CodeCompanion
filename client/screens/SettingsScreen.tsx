@@ -7,7 +7,6 @@ import Constants from 'expo-constants';
 import { EaseView } from 'react-native-ease';
 
 import { SecondaryButton } from '@/components/ActionButton';
-import { StatusBadge } from '@/components/StatusBadge';
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
 import { KeyboardAwareScrollViewCompat } from '@/components/KeyboardAwareScrollViewCompat';
@@ -100,11 +99,13 @@ interface SettingsActionRowProps {
     icon: string;
     onPress: () => void;
     testID?: string;
+    variant?: 'default' | 'subtle';
   };
   icon: string;
   label: string;
   onPress: () => void;
   rightContent?: React.ReactNode;
+  showChevron?: boolean;
   isLast?: boolean;
   testID?: string;
 }
@@ -115,12 +116,16 @@ function SettingsActionRow({
   label,
   onPress,
   rightContent,
+  showChevron = false,
   isLast = false,
   testID,
 }: SettingsActionRowProps) {
   const { theme } = useTheme();
   const { animate, transition, handlePressIn, handlePressOut } =
     usePressAnimation(0.985);
+  const accessoryVariant = accessoryAction?.variant ?? 'default';
+  const accessoryIconColor =
+    accessoryVariant === 'subtle' ? theme.tabIconDefault : theme.secondary;
 
   return (
     <EaseView animate={animate} transition={transition}>
@@ -156,15 +161,24 @@ function SettingsActionRow({
               }}
               style={[
                 styles.settingsAccessoryButton,
-                { backgroundColor: theme.backgroundSecondary },
+                accessoryVariant === 'subtle'
+                  ? null
+                  : { backgroundColor: theme.backgroundSecondary },
               ]}
             >
               <AppIcon
                 name={accessoryAction.icon}
                 size={18}
-                color={theme.secondary}
+                color={accessoryIconColor}
               />
             </Pressable>
+          ) : null}
+          {showChevron ? (
+            <AppIcon
+              name="chevron-right"
+              size={20}
+              color={theme.tabIconDefault}
+            />
           ) : null}
         </View>
       </Pressable>
@@ -467,37 +481,31 @@ export default function SettingsScreen() {
                                   },
                                 }),
                               testID: 'settings-current-focus-info-button',
+                              variant: 'subtle',
                             }
                           : undefined
                       }
                       icon="code"
                       label={t('changeTechnology')}
+                      showChevron
                       testID="settings-change-technology-button"
                       onPress={() =>
                         router.push({
-                          pathname: '../language-select',
+                          pathname: '/language-select',
                           params: { origin: 'settings' },
                         })
                       }
                       rightContent={
-                        <View
-                          style={{
-                            flexDirection: 'row',
-                            alignItems: 'center',
-                            gap: Spacing.sm,
-                          }}
-                        >
+                        <View style={styles.languageValueGroup}>
                           <ThemedText
                             type="body"
-                            style={{ color: theme.tabIconDefault }}
+                            style={[
+                              styles.languageValueText,
+                              { color: theme.text },
+                            ]}
                           >
                             {selectedLanguageName}
                           </ThemedText>
-                          <StatusBadge
-                            color={theme.secondary}
-                            label={t('currentFocusLabel')}
-                            size="compact"
-                          />
                         </View>
                       }
                     />
@@ -551,35 +559,23 @@ export default function SettingsScreen() {
               <SettingsActionRow
                 icon="info"
                 label={t('aboutThisApp')}
+                showChevron
                 onPress={() =>
                   router.push({
                     pathname: '/info-modal',
                     params: { type: 'about' },
                   })
                 }
-                rightContent={
-                  <AppIcon
-                    name="chevron-right"
-                    size={20}
-                    color={theme.tabIconDefault}
-                  />
-                }
               />
               <SettingsActionRow
                 icon="file-text"
                 label={t('imprint')}
+                showChevron
                 onPress={() =>
                   router.push({
                     pathname: '/info-modal',
                     params: { type: 'imprint' },
                   })
-                }
-                rightContent={
-                  <AppIcon
-                    name="chevron-right"
-                    size={20}
-                    color={theme.tabIconDefault}
-                  />
                 }
                 isLast
               />
@@ -692,6 +688,14 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     flexDirection: 'row',
     gap: Spacing.sm,
+  },
+  languageValueGroup: {
+    alignItems: 'center',
+    flexDirection: 'row',
+    gap: Spacing.xs,
+  },
+  languageValueText: {
+    flexShrink: 1,
   },
   settingLeft: {
     flexDirection: 'row',

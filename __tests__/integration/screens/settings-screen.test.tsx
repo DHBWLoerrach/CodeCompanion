@@ -173,7 +173,7 @@ describe('SettingsScreen integration', () => {
     fireEvent.press(screen.getByText('changeTechnology'));
 
     expect(mockPush).toHaveBeenCalledWith({
-      pathname: '../language-select',
+      pathname: '/language-select',
       params: { origin: 'settings' },
     });
   });
