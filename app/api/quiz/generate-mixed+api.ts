@@ -3,6 +3,10 @@ import { getTopicIdsByLanguage } from '@shared/curriculum';
 import { enforceQuizQuota, quotaUnavailableResponse } from '@server/quota';
 import { generateMixedQuizQuestions } from '@server/quiz';
 import {
+  isQuizValidationError,
+  quizValidationErrorResponse,
+} from '@server/quiz/errors';
+import {
   buildApiRequestTimingFields,
   logApiError,
   logApiRequestOutcome,
@@ -237,6 +241,20 @@ export async function POST(request: Request) {
         }),
       });
       return invalidJsonBodyResponse();
+    }
+    if (isQuizValidationError(error)) {
+      logApiRequestOutcome({
+        endpoint: QUIZ_GENERATE_MIXED_QUOTA_ENDPOINT,
+        status: 422,
+        deviceIdHash,
+        ...buildApiRequestTimingFields({
+          requestStartedAt,
+          quotaDurationMs,
+          upstreamStartedAt,
+        }),
+      });
+      logApiError('Mixed quiz validation error', error);
+      return quizValidationErrorResponse();
     }
     logApiRequestOutcome({
       endpoint: QUIZ_GENERATE_MIXED_QUOTA_ENDPOINT,

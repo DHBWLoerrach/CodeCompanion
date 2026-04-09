@@ -780,6 +780,38 @@ describe('QuizSessionScreen integration', () => {
     });
   });
 
+  it('shows a user-friendly validation error on structured 422 errors', async () => {
+    mockApiRequest.mockRejectedValueOnce(
+      new MockApiRequestError(422, {
+        error: 'quiz_validation_failed',
+      })
+    );
+
+    const screen = render(<QuizSessionScreen />);
+
+    await waitFor(() => {
+      expect(screen.getByText('quizValidationFailedTitle')).toBeTruthy();
+      expect(screen.getByText('quizValidationFailedMessage')).toBeTruthy();
+    });
+  });
+
+  it('falls back to the generic load error on non-typed 500 errors', async () => {
+    const errorSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
+    mockApiRequest.mockRejectedValueOnce(
+      new MockApiRequestError(500, {
+        error: 'Failed to generate quiz questions',
+      })
+    );
+
+    const screen = render(<QuizSessionScreen />);
+
+    await waitFor(() => {
+      expect(screen.getAllByText('unableToLoadQuiz')).toHaveLength(2);
+    });
+
+    errorSpy.mockRestore();
+  });
+
   it('closes immediately when no quiz progress exists yet', async () => {
     render(<QuizSessionScreen />);
 

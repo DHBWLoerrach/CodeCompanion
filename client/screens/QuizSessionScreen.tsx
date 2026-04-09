@@ -55,6 +55,7 @@ import { getParam, getParamWithDefault } from '@/lib/router-utils';
 import { storage, type ProgressData } from '@/lib/storage';
 import { getCategoryName, getTopicById, getTopicName } from '@/lib/topics';
 import { isRateLimitedErrorBody } from '@shared/api-quota';
+import { isQuizValidationErrorBody } from '@shared/api-quiz-validation';
 import type { QuizQuestion } from '@shared/quiz-question';
 import {
   averageMasteryToQuizDifficulty,
@@ -72,6 +73,11 @@ interface TopicQuizResult {
   questionsAnswered: number;
   correctAnswers: number;
 }
+
+type QuizLoadError =
+  | { kind: 'generic' }
+  | { kind: 'validation' }
+  | { kind: 'quota'; scope: 'global' | 'device' };
 
 const EXPLANATION_REVEAL_DELAY_MS = 300;
 const EXPLANATION_FADE_DURATION_MS = 300;
@@ -395,7 +401,7 @@ export default function QuizSessionScreen() {
   const [showExplanation, setShowExplanation] = useState(false);
   const [answers, setAnswers] = useState<QuizAnswerResult[]>([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const [error, setError] = useState<QuizLoadError | null>(null);
   const [isAdvancing, setIsAdvancing] = useState(false);
   const nextInFlightRef = useRef(false);
   const scrollViewRef = useRef<ScrollView | null>(null);
@@ -410,7 +416,8 @@ export default function QuizSessionScreen() {
   );
   const scrollOffsetYRef = useRef(0);
   const scrollViewportHeightRef = useRef(0);
-  const unableToLoadQuizText = t('unableToLoadQuiz');
+  const quizValidationFailedTitle = t('quizValidationFailedTitle');
+  const quizValidationFailedMessage = t('quizValidationFailedMessage');
   const quizRateLimitDeviceText = t('quizRateLimitDevice');
   const quizRateLimitGlobalText = t('quizRateLimitGlobal');
 
@@ -526,7 +533,7 @@ export default function QuizSessionScreen() {
           (data.questions as QuizQuestion[]).map(shuffleOptionsForQuestion)
         );
       } else {
-        setError(unableToLoadQuizText);
+        setError({ kind: 'generic' });
       }
     } catch (err) {
       if (
@@ -534,26 +541,25 @@ export default function QuizSessionScreen() {
         err.status === 429 &&
         isRateLimitedErrorBody(err.body)
       ) {
-        setError(
-          err.body.scope === 'global'
-            ? quizRateLimitGlobalText
-            : quizRateLimitDeviceText
-        );
+        setError({ kind: 'quota', scope: err.body.scope });
+      } else if (
+        isApiRequestError(err) &&
+        err.status === 422 &&
+        isQuizValidationErrorBody(err.body)
+      ) {
+        setError({ kind: 'validation' });
       } else {
         console.error('Error loading questions:', err);
-        setError(unableToLoadQuizText);
+        setError({ kind: 'generic' });
       }
     } finally {
       setLoading(false);
     }
   }, [
     isQuickQuiz,
-    quizRateLimitDeviceText,
-    quizRateLimitGlobalText,
     requestedQuestionCount,
     resolvedTopicId,
     resolvedTopicIds,
-    unableToLoadQuizText,
     resolvedProgrammingLanguage,
   ]);
 
@@ -811,6 +817,19 @@ export default function QuizSessionScreen() {
     );
   }
 
+  const errorTitle =
+    error?.kind === 'validation'
+      ? quizValidationFailedTitle
+      : t('unableToLoadQuiz');
+  const errorMessage =
+    error?.kind === 'validation'
+      ? quizValidationFailedMessage
+      : error?.kind === 'quota'
+        ? error.scope === 'global'
+          ? quizRateLimitGlobalText
+          : quizRateLimitDeviceText
+        : t('unableToLoadQuiz');
+
   if (error || !currentQuestion) {
     return (
       <>
@@ -818,10 +837,10 @@ export default function QuizSessionScreen() {
         <ThemedView style={styles.errorContainer}>
           <AppIcon name="alert-circle" size={48} color={theme.error} />
           <ThemedText type="h4" style={styles.errorTitle}>
-            {t('unableToLoadQuiz')}
+            {errorTitle}
           </ThemedText>
           <ThemedText type="body" style={styles.errorText}>
-            {error || t('unableToLoadQuiz')}
+            {errorMessage}
           </ThemedText>
           <PrimaryButton
             testID="quiz-retry-button"

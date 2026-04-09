@@ -1,5 +1,9 @@
 import { QUIZ_GENERATE_QUOTA_ENDPOINT } from '@shared/api-quota';
 import { enforceQuizQuota, quotaUnavailableResponse } from '@server/quota';
+import {
+  isQuizValidationError,
+  quizValidationErrorResponse,
+} from '@server/quiz/errors';
 import { generateQuizQuestions } from '@server/quiz';
 import {
   buildApiRequestTimingFields,
@@ -177,6 +181,20 @@ export async function POST(request: Request) {
         }),
       });
       return invalidJsonBodyResponse();
+    }
+    if (isQuizValidationError(error)) {
+      logApiRequestOutcome({
+        endpoint: QUIZ_GENERATE_QUOTA_ENDPOINT,
+        status: 422,
+        deviceIdHash,
+        ...buildApiRequestTimingFields({
+          requestStartedAt,
+          quotaDurationMs,
+          upstreamStartedAt,
+        }),
+      });
+      logApiError('Quiz validation error', error);
+      return quizValidationErrorResponse();
     }
     logApiRequestOutcome({
       endpoint: QUIZ_GENERATE_QUOTA_ENDPOINT,

@@ -1,4 +1,5 @@
 import { generateMixedQuizQuestions } from '@server/quiz';
+import { QuizValidationError } from '@server/quiz/errors';
 import { enforceQuizQuota } from '@server/quota';
 import { POST } from '../../../../../app/api/quiz/generate-mixed+api';
 
@@ -407,6 +408,27 @@ describe('POST /api/quiz/generate-mixed', () => {
       'Mixed quiz generation error: upstream error'
     );
     process.env = { ...process.env, NODE_ENV: originalEnv };
+  });
+
+  it('returns 422 when mixed quiz validation fails', async () => {
+    const errorSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
+    mockGenerateMixedQuizQuestions.mockRejectedValueOnce(
+      new QuizValidationError('correctAnswer "Z" must match exactly one option')
+    );
+
+    const response = await POST(createRequest({ topicIds: ['variables'] }));
+    const data = await response.json();
+
+    expect(response.status).toBe(422);
+    expect(data).toEqual({ error: 'quiz_validation_failed' });
+    expect(infoSpy).toHaveBeenCalledWith(
+      'API request outcome:',
+      expect.objectContaining({
+        endpoint: 'quiz/generate-mixed',
+        status: 422,
+      })
+    );
+    expect(errorSpy).toHaveBeenCalled();
   });
 
   it('returns 429 when quota rejects the request', async () => {

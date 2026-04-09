@@ -1,4 +1,5 @@
 import { generateQuizQuestions } from '@server/quiz';
+import { QuizValidationError } from '@server/quiz/errors';
 import { enforceQuizQuota } from '@server/quota';
 import { POST } from '../../../../../app/api/quiz/generate+api';
 
@@ -305,6 +306,27 @@ describe('POST /api/quiz/generate', () => {
       'Quiz generation error: network down'
     );
     process.env = { ...process.env, NODE_ENV: originalEnv };
+  });
+
+  it('returns 422 when quiz validation fails', async () => {
+    const errorSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
+    mockGenerateQuizQuestions.mockRejectedValueOnce(
+      new QuizValidationError('correctAnswer "Z" must match exactly one option')
+    );
+
+    const response = await POST(createRequest({ topicId: 'variables' }));
+    const data = await response.json();
+
+    expect(response.status).toBe(422);
+    expect(data).toEqual({ error: 'quiz_validation_failed' });
+    expect(infoSpy).toHaveBeenCalledWith(
+      'API request outcome:',
+      expect.objectContaining({
+        endpoint: 'quiz/generate',
+        status: 422,
+      })
+    );
+    expect(errorSpy).toHaveBeenCalled();
   });
 
   it('returns 429 when quota rejects the request', async () => {

@@ -2,6 +2,7 @@ import {
   generateMixedQuizQuestions,
   generateQuizQuestions,
 } from '@server/quiz';
+import { QuizValidationError } from '@server/quiz/errors';
 
 type MockResponseInit = {
   ok?: boolean;
@@ -674,6 +675,26 @@ describe('server/quiz', () => {
       ).rejects.toThrow(
         'Invalid quiz question at index 0: answer options contain duplicates'
       );
+    });
+
+    it('classifies local quiz validation failures as QuizValidationError', async () => {
+      fetchMock.mockResolvedValueOnce(
+        mockFetchResponse({
+          json: {
+            output_text: JSON.stringify({
+              questions: [
+                buildStructuredQuizQuestion({
+                  correctAnswer: 'Z',
+                }),
+              ],
+            }),
+          },
+        })
+      );
+
+      await expect(
+        generateQuizQuestions('javascript', 'variables', 1)
+      ).rejects.toBeInstanceOf(QuizValidationError);
     });
 
     it('maps correctAnswer to correctIndex after trimming', async () => {
