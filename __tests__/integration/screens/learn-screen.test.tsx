@@ -217,6 +217,35 @@ describe('LearnScreen integration', () => {
     });
   });
 
+  it('does not force the next-step status line to full width on compact cards', async () => {
+    mockUseTopicProgress.mockReturnValue({
+      topicProgress: {
+        variables: {
+          topicId: 'variables',
+          questionsAnswered: 4,
+          correctAnswers: 3,
+          skillLevel: 2,
+          lastPracticed: '2026-04-09T12:00:00.000Z',
+        },
+      },
+      loading: false,
+      dueTopics: [],
+    });
+
+    const screen = render(<LearnScreen />);
+
+    await waitFor(() => {
+      expect(screen.getByText('Variables')).toBeTruthy();
+    });
+
+    const statusLineStyle = ReactNative.StyleSheet.flatten(
+      screen.getByTestId('next-step-status-line').props.style
+    );
+
+    expect(statusLineStyle.width).toBeUndefined();
+    expect(statusLineStyle.flexShrink).toBe(1);
+  });
+
   it('keeps the settings header action on the learn screen', async () => {
     render(<LearnScreen />);
 

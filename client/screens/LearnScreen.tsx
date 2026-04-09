@@ -493,7 +493,13 @@ function NextStepCard({
                 usesLargeLayout && styles.nextStepMetaStatusStacked,
               ]}
             >
-              <View style={styles.nextStepMetaStatusLine}>
+              <View
+                testID="next-step-status-line"
+                style={[
+                  styles.nextStepMetaStatusLine,
+                  usesLargeLayout && styles.nextStepMetaStatusLineStacked,
+                ]}
+              >
                 {iconName ? (
                   <AppIcon
                     name={iconName}
@@ -1039,7 +1045,10 @@ const styles = StyleSheet.create({
   nextStepMetaStatusLine: {
     alignItems: 'center',
     flexDirection: 'row',
+    flexShrink: 1,
     minWidth: 0,
+  },
+  nextStepMetaStatusLineStacked: {
     width: '100%',
   },
   nextStepMetaIcon: {
