@@ -159,6 +159,10 @@ function normalizeStructuredQuizQuestions<
   });
 }
 
+function normalizeOptionMatchText(value: string): string {
+  return value.trim();
+}
+
 function validateStructuredQuizQuestionFields(
   rawQuestion: unknown,
   index: number
@@ -300,17 +304,37 @@ function validateStructuredQuizQuestionFields(
     );
   }
 
-  const correctIndex = question.correctIndex;
-  if (
-    typeof correctIndex !== 'number' ||
-    !Number.isInteger(correctIndex) ||
-    correctIndex < 0 ||
-    correctIndex >= question.options.length
-  ) {
+  if (typeof question.correctAnswer !== 'string') {
     throw new Error(
-      `Invalid quiz question at index ${index}: correctIndex is out of bounds`
+      `Invalid quiz question at index ${index}: correctAnswer must be a string`
     );
   }
+
+  const normalizedCorrectAnswer = normalizeOptionMatchText(
+    question.correctAnswer
+  );
+  if (!normalizedCorrectAnswer) {
+    throw new Error(
+      `Invalid quiz question at index ${index}: correctAnswer is empty`
+    );
+  }
+
+  const matchingOptions = question.options
+    .map((option, optionIndex) => ({
+      optionIndex,
+      normalizedOption: normalizeOptionMatchText(option as string),
+    }))
+    .filter(
+      ({ normalizedOption }) => normalizedOption === normalizedCorrectAnswer
+    );
+
+  if (matchingOptions.length !== 1) {
+    throw new Error(
+      `Invalid quiz question at index ${index}: correctAnswer ${JSON.stringify(question.correctAnswer)} must match exactly one option`
+    );
+  }
+
+  const correctIndex = matchingOptions[0].optionIndex;
 
   return {
     question: question.question,

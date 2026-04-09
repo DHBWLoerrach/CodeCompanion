@@ -29,7 +29,7 @@ export type StructuredQuizQuestionWireCandidate = {
   question?: unknown;
   code?: unknown;
   options?: unknown;
-  correctIndex?: unknown;
+  correctAnswer?: unknown;
   explanation?: unknown;
   resultSentence?: unknown;
   takeaway?: unknown;

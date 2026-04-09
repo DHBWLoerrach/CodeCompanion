@@ -4,6 +4,7 @@ import type { MixedQuizTopicPlanItem } from './types';
 function getSingleChoiceQualityRequirements(): string {
   return `- Have exactly 4 answer options
 - Have exactly one objectively correct option and three objectively incorrect distractors
+- Set correctAnswer to an exact copy of the single correct option; do not paraphrase it, reword it, or change letter case
 - For syntax questions, the three wrong options must contain actual syntax errors; never use alternative valid syntax as a distractor
 - Never generate questions where more than one option could be syntactically valid, partially true, or context-dependent
 - Avoid ambiguous or multi-select stems unless the other three options are unambiguously wrong
@@ -91,7 +92,7 @@ Important:
 - Use realistic code examples students would encounter
 - The response schema already defines the JSON shape, so focus on the question content
 ${contextExclusion ? `- ${contextExclusion}` : ''}
-- Do not include any keys other than question, code, options, correctIndex, explanation, resultSentence, takeaway, and commonMistake`;
+- Do not include any keys other than question, code, options, correctAnswer, explanation, resultSentence, takeaway, and commonMistake`;
 }
 
 export function buildMixedQuizInstructions(
@@ -164,5 +165,5 @@ Important:
 - Use realistic code examples students would encounter
 - The response schema already defines the JSON shape, so focus on the question content
 ${contextExclusion ? `- ${contextExclusion}` : ''}
-- Do not include any keys other than topicId, question, code, options, correctIndex, explanation, resultSentence, takeaway, and commonMistake`;
+- Do not include any keys other than topicId, question, code, options, correctAnswer, explanation, resultSentence, takeaway, and commonMistake`;
 }

@@ -49,7 +49,7 @@ function buildStructuredQuizQuestions(count: number) {
     question: `Q${index + 1}?`,
     code: null,
     options: ['A', 'B', 'C', 'D'],
-    correctIndex: 0,
+    correctAnswer: 'A',
     explanation: `Because ${index + 1}`,
     resultSentence: 'Result: A',
     takeaway: `Remember ${index + 1}`,
@@ -66,7 +66,7 @@ function buildStructuredMixedQuizQuestions(
       question: `${topicId} Q${index + 1}?`,
       code: null,
       options: ['A', 'B', 'C', 'D'],
-      correctIndex: 0,
+      correctAnswer: 'A',
       explanation: `Because ${topicId} ${index + 1}`,
       resultSentence: 'Result: A',
       takeaway: `Remember ${topicId} ${index + 1}`,
@@ -79,7 +79,7 @@ type StructuredQuizQuestionOverrides = {
   question?: unknown;
   code?: unknown;
   options?: unknown;
-  correctIndex?: unknown;
+  correctAnswer?: unknown;
   explanation?: unknown;
   resultSentence?: unknown;
   takeaway?: unknown;
@@ -93,7 +93,7 @@ function buildStructuredQuizQuestion(
     question: 'Q?',
     code: null,
     options: ['A', 'B', 'C', 'D'],
-    correctIndex: 0,
+    correctAnswer: 'A',
     explanation: 'Because',
     resultSentence: 'Result: A',
     takeaway: 'Remember A',
@@ -149,7 +149,7 @@ describe('server/quiz', () => {
         mockFetchResponse({
           json: {
             output_text:
-              '{"questions":[{"question":"Q?","code":null,"options":["A","B","C","D"],"correctIndex":0,"explanation":"Because","resultSentence":"Result: A","takeaway":"Remember A","commonMistake":""}]}',
+              '{"questions":[{"question":"Q?","code":null,"options":["A","B","C","D"],"correctAnswer":"A","explanation":"Because","resultSentence":"Result: A","takeaway":"Remember A","commonMistake":""}]}',
           },
         })
       );
@@ -224,7 +224,7 @@ describe('server/quiz', () => {
         mockFetchResponse({
           json: {
             output_text:
-              '{"questions":[{"question":"What is const?","code":null,"options":["A","B","C","D"],"correctIndex":1,"explanation":"Because","resultSentence":"Result: B","takeaway":"Remember const","commonMistake":""}]}',
+              '{"questions":[{"question":"What is const?","code":null,"options":["A","B","C","D"],"correctAnswer":"B","explanation":"Because","resultSentence":"Result: B","takeaway":"Remember const","commonMistake":""}]}',
           },
         })
       );
@@ -247,7 +247,7 @@ describe('server/quiz', () => {
         mockFetchResponse({
           json: {
             output_text:
-              '{"questions":[{"question":"Q?","code":null,"options":["A","B","C","D"],"correctIndex":0,"explanation":"Because","resultSentence":"Result: A","takeaway":"Remember A","commonMistake":""}]}',
+              '{"questions":[{"question":"Q?","code":null,"options":["A","B","C","D"],"correctAnswer":"A","explanation":"Because","resultSentence":"Result: A","takeaway":"Remember A","commonMistake":""}]}',
           },
         })
       );
@@ -275,7 +275,7 @@ describe('server/quiz', () => {
                 content: [
                   {
                     type: 'output_text',
-                    text: '{"questions":[{"question":"Q?","code":"for (let i = 0; i < 1; i += 1) {}","options":["A","B","C","D"],"correctIndex":2,"explanation":"E","resultSentence":"Result: C","takeaway":"Remember loops","commonMistake":""}]}',
+                    text: '{"questions":[{"question":"Q?","code":"for (let i = 0; i < 1; i += 1) {}","options":["A","B","C","D"],"correctAnswer":"C","explanation":"E","resultSentence":"Result: C","takeaway":"Remember loops","commonMistake":""}]}',
                   },
                 ],
               },
@@ -309,7 +309,7 @@ describe('server/quiz', () => {
                     'Was gibt dieser Code aus?\n\n```javascript\nfunction greet(name, callback) {\n  console.log("Hallo " + name);\n  callback();\n}\n\ngreet("Mia", function() {\n  console.log("Willkommen!");\n});\n```',
                   code: null,
                   options: ['A', 'B', 'C', 'D'],
-                  correctIndex: 0,
+                  correctAnswer: 'A',
                   explanation: 'Because',
                   resultSentence: 'Result: A',
                   takeaway: 'Remember A',
@@ -368,7 +368,7 @@ describe('server/quiz', () => {
                   question: `Was gibt dieser Code aus?\n\n\`\`\`javascript\n${code}\n\`\`\``,
                   code,
                   options: ['A', 'B', 'C', 'D'],
-                  correctIndex: 0,
+                  correctAnswer: 'A',
                   explanation: 'Because',
                   resultSentence: 'Result: A',
                   takeaway: 'Remember A',
@@ -404,7 +404,7 @@ describe('server/quiz', () => {
                   question: `Welche Aussage trifft auf den Operator == im folgenden Code zu?\n\n${code}`,
                   code,
                   options: ['A', 'B', 'C', 'D'],
-                  correctIndex: 0,
+                  correctAnswer: 'A',
                   explanation: 'Because',
                   resultSentence: 'Result: A',
                   takeaway: 'Remember A',
@@ -440,7 +440,7 @@ describe('server/quiz', () => {
                   question: 'What does `\\n` represent in a string literal?',
                   code: "const value = 'line1';",
                   options: ['A', 'B', 'C', 'D'],
-                  correctIndex: 0,
+                  correctAnswer: 'A',
                   explanation: 'Because',
                   resultSentence: 'Result: A',
                   takeaway: 'Remember A',
@@ -479,7 +479,7 @@ describe('server/quiz', () => {
                     'What does this print?\\n\\nlet total = 0;\\nconsole.log(total);',
                   code,
                   options: ['A', 'B', 'C', 'D'],
-                  correctIndex: 0,
+                  correctAnswer: 'A',
                   explanation: 'Because',
                   resultSentence: 'Result: A',
                   takeaway: 'Remember A',
@@ -514,7 +514,7 @@ describe('server/quiz', () => {
                     question: 'Q?',
                     code: "console.log('js');",
                     options: ['A', 'B', 'C', 'D'],
-                    correctIndex: 0,
+                    correctAnswer: 'A',
                     explanation: 'JavaScript explanation',
                     resultSentence: 'Result: A',
                     takeaway: 'Remember JS',
@@ -534,7 +534,7 @@ describe('server/quiz', () => {
                     question: 'Q?',
                     code: "print('py')",
                     options: ['A', 'B', 'C', 'D'],
-                    correctIndex: 0,
+                    correctAnswer: 'A',
                     explanation: 'Python explanation',
                     resultSentence: 'Result: A',
                     takeaway: 'Remember Py',
@@ -676,6 +676,99 @@ describe('server/quiz', () => {
       );
     });
 
+    it('maps correctAnswer to correctIndex after trimming', async () => {
+      fetchMock.mockResolvedValueOnce(
+        mockFetchResponse({
+          json: {
+            output_text: JSON.stringify({
+              questions: [
+                buildStructuredQuizQuestion({
+                  options: ['A', 'B', 'C', 'D'],
+                  correctAnswer: '  C  ',
+                  resultSentence: 'Result: C',
+                }),
+              ],
+            }),
+          },
+        })
+      );
+
+      const [question] = await generateQuizQuestions(
+        'javascript',
+        'variables',
+        1
+      );
+
+      expect(question.correctIndex).toBe(2);
+    });
+
+    it('throws when correctAnswer is empty', async () => {
+      fetchMock.mockResolvedValueOnce(
+        mockFetchResponse({
+          json: {
+            output_text: JSON.stringify({
+              questions: [
+                buildStructuredQuizQuestion({
+                  correctAnswer: '   ',
+                }),
+              ],
+            }),
+          },
+        })
+      );
+
+      await expect(
+        generateQuizQuestions('javascript', 'variables', 1)
+      ).rejects.toThrow(
+        'Invalid quiz question at index 0: correctAnswer is empty'
+      );
+    });
+
+    it('throws when correctAnswer does not match any option exactly', async () => {
+      fetchMock.mockResolvedValueOnce(
+        mockFetchResponse({
+          json: {
+            output_text: JSON.stringify({
+              questions: [
+                buildStructuredQuizQuestion({
+                  correctAnswer: 'Z',
+                }),
+              ],
+            }),
+          },
+        })
+      );
+
+      await expect(
+        generateQuizQuestions('javascript', 'variables', 1)
+      ).rejects.toThrow(
+        'Invalid quiz question at index 0: correctAnswer "Z" must match exactly one option'
+      );
+    });
+
+    it('throws when correctAnswer only differs by case from the matching option', async () => {
+      fetchMock.mockResolvedValueOnce(
+        mockFetchResponse({
+          json: {
+            output_text: JSON.stringify({
+              questions: [
+                buildStructuredQuizQuestion({
+                  options: ['true', 'false', '0', '1'],
+                  correctAnswer: 'True',
+                }),
+              ],
+            }),
+          },
+        })
+      );
+
+      await expect(
+        generateQuizQuestions('javascript', 'variables', 1)
+      ).rejects.toThrow(
+        'Invalid quiz question at index 0: correctAnswer "True" must match exactly one option'
+      );
+    });
+
     it('throws when explanation is empty', async () => {
       fetchMock.mockResolvedValueOnce(
         mockFetchResponse({
@@ -801,7 +894,7 @@ describe('server/quiz', () => {
         mockFetchResponse({
           json: {
             output_text:
-              '{"questions":[{"question":"Q?","code":null,"options":["A","B","C","D"],"correctIndex":0,"explanation":"Because","resultSentence":"Result: A","takeaway":"Remember A","commonMistake":""}]}',
+              '{"questions":[{"question":"Q?","code":null,"options":["A","B","C","D"],"correctAnswer":"A","explanation":"Because","resultSentence":"Result: A","takeaway":"Remember A","commonMistake":""}]}',
           },
         })
       );
@@ -828,6 +921,9 @@ describe('server/quiz', () => {
       expect(payload.input).toContain(
         'In the takeaway, provide one memorable rule the learner should remember'
       );
+      expect(payload.input).toContain(
+        'Set correctAnswer to an exact copy of the single correct option'
+      );
     });
 
     it('uses rust language context when generating rust quizzes', async () => {
@@ -835,7 +931,7 @@ describe('server/quiz', () => {
         mockFetchResponse({
           json: {
             output_text:
-              '{"questions":[{"question":"Q?","code":null,"options":["A","B","C","D"],"correctIndex":0,"explanation":"Because","resultSentence":"Result: A","takeaway":"Remember A","commonMistake":""}]}',
+              '{"questions":[{"question":"Q?","code":null,"options":["A","B","C","D"],"correctAnswer":"A","explanation":"Because","resultSentence":"Result: A","takeaway":"Remember A","commonMistake":""}]}',
           },
         })
       );
@@ -862,7 +958,7 @@ describe('server/quiz', () => {
         mockFetchResponse({
           json: {
             output_text:
-              '{"questions":[{"question":"Q?","code":null,"options":["A","B","C","D"],"correctIndex":0,"explanation":"Because","resultSentence":"Result: A","takeaway":"Remember A","commonMistake":""}]}',
+              '{"questions":[{"question":"Q?","code":null,"options":["A","B","C","D"],"correctAnswer":"A","explanation":"Because","resultSentence":"Result: A","takeaway":"Remember A","commonMistake":""}]}',
           },
         })
       );
