@@ -21,6 +21,7 @@ import { useTheme } from '@/contexts/ThemeContext';
 import { useTranslation } from '@/hooks/useTranslation';
 import {
   getLanguageFlowOrigin,
+  getLanguageFlowReturnTarget,
   getLanguageOverviewMode,
 } from '@/lib/language-flow';
 import { getLanguageById, getLanguageDisplayName } from '@/lib/languages';
@@ -83,14 +84,17 @@ export default function LanguageOverviewScreen() {
     languageId: languageIdParam,
     mode: modeParam,
     origin: originParam,
+    returnTo: returnToParam,
   } = useLocalSearchParams<{
     languageId?: string;
     mode?: string;
     origin?: string;
+    returnTo?: string;
   }>();
 
   const origin = getLanguageFlowOrigin(originParam);
   const mode = getLanguageOverviewMode(modeParam);
+  const returnTo = getLanguageFlowReturnTarget(returnToParam);
   const isViewMode = mode === 'view';
   const languageId = getParam(languageIdParam);
   const programmingLanguage = getLanguageById(languageId);
@@ -101,10 +105,13 @@ export default function LanguageOverviewScreen() {
       return;
     }
 
-    if (origin === 'settings') {
+    if (origin) {
       router.replace({
         pathname: '/language-select',
-        params: { origin },
+        params: {
+          origin,
+          ...(returnTo ? { returnTo } : {}),
+        },
       });
       return;
     }
@@ -149,10 +156,13 @@ export default function LanguageOverviewScreen() {
       return;
     }
 
-    if (origin === 'settings') {
+    if (origin) {
       router.replace({
         pathname: '/language-select',
-        params: { origin },
+        params: {
+          origin,
+          ...(returnTo ? { returnTo } : {}),
+        },
       });
       return;
     }
@@ -171,6 +181,11 @@ export default function LanguageOverviewScreen() {
       return;
     }
 
+    if (origin === 'header' && returnTo) {
+      router.dismissTo(returnTo);
+      return;
+    }
+
     router.replace('/learn');
   };
 
@@ -185,6 +200,11 @@ export default function LanguageOverviewScreen() {
 
     if (origin === 'settings') {
       router.dismissTo('/settings');
+      return;
+    }
+
+    if (origin === 'header' && returnTo) {
+      router.dismissTo(returnTo);
       return;
     }
 

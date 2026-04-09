@@ -11,7 +11,10 @@ import { useProgrammingLanguage } from '@/contexts/ProgrammingLanguageContext';
 import { useTheme } from '@/contexts/ThemeContext';
 import { usePressAnimation } from '@/hooks/usePressAnimation';
 import { useTranslation } from '@/hooks/useTranslation';
-import { getLanguageFlowOrigin } from '@/lib/language-flow';
+import {
+  getLanguageFlowOrigin,
+  getLanguageFlowReturnTarget,
+} from '@/lib/language-flow';
 import {
   LANGUAGES,
   getLanguageDisplayName,
@@ -166,9 +169,11 @@ export default function LanguageSelectScreen() {
   const { t, language: appLanguage } = useTranslation();
   const { selectedLanguageId } = useProgrammingLanguage();
   const router = useRouter();
-  const { origin: originParam } = useLocalSearchParams<{ origin?: string }>();
+  const { origin: originParam, returnTo: returnToParam } =
+    useLocalSearchParams<{ origin?: string; returnTo?: string }>();
   const origin = getLanguageFlowOrigin(originParam);
-  const canNavigateBack = origin === 'settings';
+  const returnTo = getLanguageFlowReturnTarget(returnToParam);
+  const canNavigateBack = origin !== undefined;
 
   const handleSelectLanguage = async (language: ProgrammingLanguage) => {
     if (process.env.EXPO_OS === 'ios') {
@@ -177,9 +182,11 @@ export default function LanguageSelectScreen() {
 
     router.push({
       pathname: './language-overview',
-      params: origin
-        ? { languageId: language.id, origin }
-        : { languageId: language.id },
+      params: {
+        languageId: language.id,
+        ...(origin ? { origin } : {}),
+        ...(returnTo ? { returnTo } : {}),
+      },
     });
   };
 
@@ -188,10 +195,12 @@ export default function LanguageSelectScreen() {
       <Stack.Screen
         options={{
           gestureEnabled: canNavigateBack,
+          headerBackVisible: canNavigateBack,
+          headerBackTitle: '',
+          headerBackButtonDisplayMode: 'minimal',
         }}
       />
       <Stack.Screen.Title>{t('selectTechnology')}</Stack.Screen.Title>
-      <Stack.Screen.BackButton hidden={!canNavigateBack} />
       <ScrollView
         contentInsetAdjustmentBehavior="automatic"
         style={{ flex: 1, backgroundColor: theme.backgroundRoot }}
@@ -214,9 +223,7 @@ export default function LanguageSelectScreen() {
             (sum, cat) => sum + cat.topics.length,
             0
           );
-          const isCurrentLanguage =
-            origin === 'settings' &&
-            selectedLanguageId === programmingLanguage.id;
+          const isCurrentLanguage = selectedLanguageId === programmingLanguage.id;
           return (
             <LanguageCard
               key={programmingLanguage.id}

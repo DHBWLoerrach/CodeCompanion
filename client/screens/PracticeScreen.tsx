@@ -4,7 +4,6 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Stack, useRouter } from 'expo-router';
 import { EaseView } from 'react-native-ease';
 
-import { SettingsHeaderButton } from '@/components/SettingsHeaderButton';
 import { ThemedView } from '@/components/ThemedView';
 import { ThemedText } from '@/components/ThemedText';
 import { AppIcon } from '@/components/AppIcon';
@@ -17,6 +16,7 @@ import { useTheme } from '@/contexts/ThemeContext';
 import { useAccessibilityLayout } from '@/hooks/useAccessibilityLayout';
 import { useTranslation } from '@/hooks/useTranslation';
 import { usePressAnimation } from '@/hooks/usePressAnimation';
+import { getProgrammingLanguageHeaderOptions } from '@/lib/getProgrammingLanguageHeaderOptions';
 import {
   useTopicProgress,
   getCategoryProgress,
@@ -54,6 +54,8 @@ interface QuizModeCardProps {
 interface QuizModeConfig extends QuizModeCardProps {
   key: string;
 }
+
+const EMPTY_CATEGORIES: Category[] = [];
 
 function QuizModeCard({
   icon,
@@ -305,8 +307,9 @@ export default function PracticeScreen() {
   const { theme } = useTheme();
   const { t, language, refreshLanguage } = useTranslation();
   const { usesLargeLayout } = useAccessibilityLayout();
+  const headerOptions = getProgrammingLanguageHeaderOptions('/practice');
   const { selectedLanguage } = useProgrammingLanguage();
-  const categories = selectedLanguage?.categories ?? [];
+  const categories = selectedLanguage?.categories ?? EMPTY_CATEGORIES;
   const languageId = selectedLanguage?.id ?? 'javascript';
   const router = useRouter();
   const insets = useSafeAreaInsets();
@@ -488,12 +491,7 @@ export default function PracticeScreen() {
 
   return (
     <ThemedView style={styles.container}>
-      <Stack.Screen
-        options={{
-          headerRight: () => <SettingsHeaderButton />,
-        }}
-      />
-      <Stack.Screen.Title>{t('practice')}</Stack.Screen.Title>
+      <Stack.Screen options={headerOptions} />
       <ScrollView
         ref={scrollViewRef}
         style={styles.scrollView}

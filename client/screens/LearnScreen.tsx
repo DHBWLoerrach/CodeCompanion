@@ -4,8 +4,6 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Stack, useRouter } from 'expo-router';
 import { EaseView } from 'react-native-ease';
 
-import { ProgrammingLanguageHeaderBadge } from '@/components/ProgrammingLanguageHeaderBadge';
-import { SettingsHeaderButton } from '@/components/SettingsHeaderButton';
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
 import { AppIcon } from '@/components/AppIcon';
@@ -15,6 +13,7 @@ import { useTheme } from '@/contexts/ThemeContext';
 import { useTranslation } from '@/hooks/useTranslation';
 import { useAccessibilityLayout } from '@/hooks/useAccessibilityLayout';
 import { usePressAnimation } from '@/hooks/usePressAnimation';
+import { getProgrammingLanguageHeaderOptions } from '@/lib/getProgrammingLanguageHeaderOptions';
 import { useTopicProgress } from '@/hooks/useTopicProgress';
 import { getDenseControlTextCap } from '@/lib/accessibility';
 import {
@@ -29,7 +28,6 @@ import {
   getTopicName,
   getCategoryName,
 } from '@/lib/topics';
-import { getLanguageDisplayName } from '@/lib/languages';
 import { type TopicProgress, isTopicDue } from '@/lib/storage';
 import { useProgrammingLanguage } from '@/contexts/ProgrammingLanguageContext';
 
@@ -763,6 +761,7 @@ export default function LearnScreen() {
   const { theme } = useTheme();
   const { t, language, refreshLanguage } = useTranslation();
   const { usesLargeLayout } = useAccessibilityLayout();
+  const headerOptions = getProgrammingLanguageHeaderOptions('/learn');
   const { selectedLanguage } = useProgrammingLanguage();
   const categories = selectedLanguage?.categories ?? [];
   const languageId = selectedLanguage?.id ?? 'javascript';
@@ -794,17 +793,7 @@ export default function LearnScreen() {
 
   return (
     <ThemedView style={styles.container}>
-      <Stack.Screen
-        options={{
-          headerLeft: () => <ProgrammingLanguageHeaderBadge />,
-          headerRight: () => <SettingsHeaderButton iconSize={17} />,
-        }}
-      />
-      <Stack.Screen.Title>
-        {selectedLanguage
-          ? getLanguageDisplayName(selectedLanguage, language)
-          : t('topicsTab')}
-      </Stack.Screen.Title>
+      <Stack.Screen options={headerOptions} />
       <ScrollView
         style={styles.scrollView}
         contentInsetAdjustmentBehavior="automatic"

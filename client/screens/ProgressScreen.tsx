@@ -4,7 +4,6 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Stack, useFocusEffect, useRouter } from 'expo-router';
 import { EaseView } from 'react-native-ease';
 
-import { SettingsHeaderButton } from '@/components/SettingsHeaderButton';
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
 import { AppIcon } from '@/components/AppIcon';
@@ -15,6 +14,7 @@ import { useTheme } from '@/contexts/ThemeContext';
 import { useAccessibilityLayout } from '@/hooks/useAccessibilityLayout';
 import { usePressAnimation } from '@/hooks/usePressAnimation';
 import { useTranslation } from '@/hooks/useTranslation';
+import { getProgrammingLanguageHeaderOptions } from '@/lib/getProgrammingLanguageHeaderOptions';
 import {
   Spacing,
   BorderRadius,
@@ -134,6 +134,7 @@ export default function ProgressScreen() {
   const { theme } = useTheme();
   const { t, refreshLanguage } = useTranslation();
   const { usesAccessibilityLayout } = useAccessibilityLayout();
+  const headerOptions = getProgrammingLanguageHeaderOptions('/progress');
   const { selectedLanguage } = useProgrammingLanguage();
   const languageId = selectedLanguage?.id ?? 'javascript';
   const insets = useSafeAreaInsets();
@@ -249,12 +250,7 @@ export default function ProgressScreen() {
 
   return (
     <ThemedView style={styles.container}>
-      <Stack.Screen
-        options={{
-          headerRight: () => <SettingsHeaderButton />,
-        }}
-      />
-      <Stack.Screen.Title>{t('yourProgress')}</Stack.Screen.Title>
+      <Stack.Screen options={headerOptions} />
       <ScrollView
         style={styles.scrollView}
         contentInsetAdjustmentBehavior="automatic"
