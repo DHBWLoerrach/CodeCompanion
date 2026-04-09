@@ -27,5 +27,7 @@ Sie auch die Specs/Plans unter `docs`.
 ## Frontend (App)
 
 - UI-Patterns von Apps übernehmen? https://factory.strongdm.ai/techniques/gene-transfusion
+- Expo-Router-v55-iOS-Features im Blick behalten: `Link.AppleZoom`, `Stack.Toolbar`, `SplitView`. Aktuell bewusst nicht einsetzen, weil die APIs alpha bzw. iOS-only sind und `SplitView` einen größeren Layout-/Navigator-Umbau erfordern würde. Nach Release von Expo SDK 56 erneut prüfen, ob die APIs stabiler sind und ob sich ein Pilot für `LanguageSelect -> LanguageOverview` oder `Learn -> TopicDetail` lohnt.
+- Expo UI im Blick behalten. Expo schreibt im Blogpost vom 17.03.2026, dass sie auf universelle Komponenten hinarbeiten: eine gemeinsame API für SwiftUI und Jetpack Compose, perspektivisch eventuell auch Web. Wenn sich das in oder nach Expo SDK 56 konkretisiert, prüfen, ob wir gezielt native UI-Bausteine für Android/iOS übernehmen wollen, statt sie rein in React Native nachzubauen. Siehe: [Expo UI in SDK 55](https://expo.dev/blog/expo-ui-in-sdk-55-jetpack-compose-now-available-for-react-native-apps).
 
 ## Backend (API-Routes)
