@@ -14,7 +14,7 @@ import { ThemedView } from '@/components/ThemedView';
 import { AppIcon } from '@/components/AppIcon';
 import { useTheme } from '@/contexts/ThemeContext';
 import { useTranslation } from '@/hooks/useTranslation';
-import { QUICK_QUIZ_MODE } from '@/constants/quiz';
+import { EXPLORE_QUIZ_MODE } from '@/constants/quiz';
 import {
   Spacing,
   getBottomActionBarScrollPadding,
@@ -176,18 +176,21 @@ export default function SessionSummaryScreen() {
   const selectedTopicCount = topicIdsParam
     ? topicIdsParam.split(',').filter(Boolean).length
     : 0;
-  const summaryBadgeLabel =
-    quizModeParam === QUICK_QUIZ_MODE
-      ? t('quickQuiz')
-      : topic
-        ? t('topic')
-        : t('mixedQuiz');
-  const summaryBadgeIcon =
-    quizModeParam === QUICK_QUIZ_MODE ? 'zap' : topic ? 'book-open' : 'edit-3';
+  const isExploreQuiz = quizModeParam === EXPLORE_QUIZ_MODE;
+  const summaryBadgeLabel = topic
+    ? t('topic')
+    : isExploreQuiz
+      ? t('exploreQuiz')
+      : t('mixedQuiz');
+  const summaryBadgeIcon = topic
+    ? 'book-open'
+    : isExploreQuiz
+      ? 'compass'
+      : 'edit-3';
   const summaryTitle = topic
     ? getTopicName(topic, language)
-    : quizModeParam === QUICK_QUIZ_MODE
-      ? t('quickQuiz')
+    : isExploreQuiz
+      ? t('exploreQuiz')
       : t('mixedQuiz');
   const summarySubtitle =
     selectedTopicCount > 0

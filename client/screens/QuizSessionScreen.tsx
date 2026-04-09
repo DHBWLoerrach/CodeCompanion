@@ -38,9 +38,8 @@ import { useCloseHandler } from '@/hooks/useCloseHandler';
 import { usePressAnimation } from '@/hooks/usePressAnimation';
 import {
   DEFAULT_QUIZ_QUESTION_COUNT,
-  QUICK_QUIZ_MAX_DIFFICULTY,
-  QUICK_QUIZ_MODE,
-  QUICK_QUIZ_QUESTION_COUNT,
+  EXPLORE_QUIZ_MODE,
+  MIXED_QUIZ_MODE,
 } from '@/constants/quiz';
 import {
   Spacing,
@@ -51,6 +50,7 @@ import {
 } from '@/constants/theme';
 import { getLanguageById, getLanguageDisplayName } from '@/lib/languages';
 import { apiRequest, isApiRequestError } from '@/lib/query-client';
+import { resolveMultiTopicQuizTopicIds } from '@/lib/quiz-topic-pools';
 import { getParam, getParamWithDefault } from '@/lib/router-utils';
 import { storage, type ProgressData } from '@/lib/storage';
 import { getCategoryName, getTopicById, getTopicName } from '@/lib/topics';
@@ -313,7 +313,7 @@ export default function QuizSessionScreen() {
     programmingLanguage,
     'javascript'
   );
-  const isQuickQuiz = getParam(quizMode) === QUICK_QUIZ_MODE;
+  const quizModeParam = getParam(quizMode);
   const resolvedTopicIds = useMemo(() => {
     const rawTopicIds = getParam(topicIds);
 
@@ -324,6 +324,17 @@ export default function QuizSessionScreen() {
           .filter((id: string) => id.length > 0)
       : [];
   }, [topicIds]);
+  const isExploreQuiz = quizModeParam === EXPLORE_QUIZ_MODE;
+  const needsResolvedMultiTopicPool =
+    !resolvedTopicId && resolvedTopicIds.length === 0;
+  const isMixedQuiz =
+    quizModeParam === MIXED_QUIZ_MODE ||
+    (!resolvedTopicId && !isExploreQuiz && needsResolvedMultiTopicPool);
+  const sessionQuizMode = isExploreQuiz
+    ? EXPLORE_QUIZ_MODE
+    : isMixedQuiz
+      ? MIXED_QUIZ_MODE
+      : null;
   const requestedQuestionCount = useMemo(() => {
     const parsedCount = count ? Number.parseInt(count, 10) : Number.NaN;
 
@@ -331,23 +342,24 @@ export default function QuizSessionScreen() {
       return parsedCount;
     }
 
-    return isQuickQuiz
-      ? QUICK_QUIZ_QUESTION_COUNT
-      : DEFAULT_QUIZ_QUESTION_COUNT;
-  }, [count, isQuickQuiz]);
+    return DEFAULT_QUIZ_QUESTION_COUNT;
+  }, [count]);
   const currentLanguage = getLanguageById(resolvedProgrammingLanguage);
   const currentProgrammingLanguageId = currentLanguage?.id ?? 'javascript';
   const currentTopic = resolvedTopicId
     ? getTopicById(resolvedTopicId, currentLanguage?.categories)
     : null;
+  const [sessionTopicIds, setSessionTopicIds] = useState<string[]>([]);
+  const effectiveTopicIds =
+    sessionTopicIds.length > 0 ? sessionTopicIds : resolvedTopicIds;
   const currentCategory = useMemo(() => {
     if (currentTopic) {
       return currentLanguage?.categories.find(
         (category) => category.id === currentTopic.category
       );
     }
-    if (resolvedTopicIds.length > 0 && currentLanguage?.categories) {
-      const topics = resolvedTopicIds
+    if (effectiveTopicIds.length > 0 && currentLanguage?.categories) {
+      const topics = effectiveTopicIds
         .map((id) => getTopicById(id, currentLanguage.categories))
         .filter(Boolean);
       if (topics.length > 0) {
@@ -361,20 +373,22 @@ export default function QuizSessionScreen() {
       }
     }
     return undefined;
-  }, [currentTopic, currentLanguage, resolvedTopicIds]);
-  const isCategoryQuiz = !currentTopic && !isQuickQuiz && !!currentCategory;
-  const contextBadgeLabel = isQuickQuiz
-    ? t('quickQuiz')
-    : currentTopic
-      ? getTopicName(currentTopic, language)
-      : isCategoryQuiz
-        ? getCategoryName(currentCategory!, language)
+  }, [currentTopic, currentLanguage, effectiveTopicIds]);
+  const isCategoryQuiz =
+    !currentTopic && !isMixedQuiz && !isExploreQuiz && !!currentCategory;
+  const contextBadgeLabel = currentTopic
+    ? getTopicName(currentTopic, language)
+    : isCategoryQuiz
+      ? getCategoryName(currentCategory!, language)
+      : isExploreQuiz
+        ? t('exploreQuiz')
         : t('mixedQuiz');
-  const contextBadgeIcon = isQuickQuiz
-    ? 'zap'
-    : currentTopic || isCategoryQuiz
+  const contextBadgeIcon =
+    currentTopic || isCategoryQuiz
       ? 'book-open'
-      : 'edit-3';
+      : isExploreQuiz
+        ? 'compass'
+        : 'edit-3';
   const contextColor = theme.secondary;
   const contextDescription = currentTopic
     ? currentCategory
@@ -383,12 +397,12 @@ export default function QuizSessionScreen() {
         ? getLanguageDisplayName(currentLanguage, language)
         : resolvedProgrammingLanguage
     : isCategoryQuiz
-      ? `${resolvedTopicIds.length} ${
-          resolvedTopicIds.length === 1 ? t('topic') : t('topics')
+      ? `${effectiveTopicIds.length} ${
+          effectiveTopicIds.length === 1 ? t('topic') : t('topics')
         }`
-      : resolvedTopicIds.length > 0
-        ? `${resolvedTopicIds.length} ${
-            resolvedTopicIds.length === 1 ? t('topic') : t('topics')
+      : effectiveTopicIds.length > 0
+        ? `${effectiveTopicIds.length} ${
+            effectiveTopicIds.length === 1 ? t('topic') : t('topics')
           }`
         : currentLanguage
           ? getLanguageDisplayName(currentLanguage, language)
@@ -495,6 +509,7 @@ export default function QuizSessionScreen() {
       let body: Record<string, unknown>;
 
       if (resolvedTopicId) {
+        setSessionTopicIds([]);
         endpoint = '/api/quiz/generate';
         body = {
           topicId: resolvedTopicId,
@@ -505,23 +520,33 @@ export default function QuizSessionScreen() {
         };
       } else {
         const progress = await storage.getProgress();
+        const topicProgress = storage.getTopicProgressForLanguage(
+          progress.topicProgress,
+          resolvedProgrammingLanguage
+        );
+        const selectedTopicIds =
+          resolvedTopicIds.length > 0
+            ? resolvedTopicIds
+            : resolveMultiTopicQuizTopicIds(
+                currentLanguage?.categories ?? [],
+                topicProgress,
+                isExploreQuiz ? 'explore' : 'mixed'
+              );
+        setSessionTopicIds(selectedTopicIds);
         const mixedQuizDifficulty = resolveMixedQuizDifficulty(
           progress,
           resolvedProgrammingLanguage,
-          resolvedTopicIds.length > 0 ? resolvedTopicIds : undefined
+          selectedTopicIds.length > 0 ? selectedTopicIds : undefined
         );
-        const effectiveSkillLevel = isQuickQuiz
-          ? Math.min(mixedQuizDifficulty, QUICK_QUIZ_MAX_DIFFICULTY)
-          : mixedQuizDifficulty;
         endpoint = '/api/quiz/generate-mixed';
         body = {
           count: requestedQuestionCount,
           language: settings.language,
-          skillLevel: effectiveSkillLevel,
+          skillLevel: mixedQuizDifficulty,
           programmingLanguage: resolvedProgrammingLanguage,
         };
-        if (resolvedTopicIds.length > 0) {
-          body.topicIds = resolvedTopicIds;
+        if (selectedTopicIds.length > 0) {
+          body.topicIds = selectedTopicIds;
         }
       }
 
@@ -556,7 +581,8 @@ export default function QuizSessionScreen() {
       setLoading(false);
     }
   }, [
-    isQuickQuiz,
+    currentLanguage?.categories,
+    isExploreQuiz,
     requestedQuestionCount,
     resolvedTopicId,
     resolvedTopicIds,
@@ -732,11 +758,11 @@ export default function QuizSessionScreen() {
       if (resolvedTopicId) {
         params.topicId = resolvedTopicId;
       }
-      if (!resolvedTopicId && resolvedTopicIds.length > 0) {
-        params.topicIds = resolvedTopicIds.join(',');
+      if (!resolvedTopicId && sessionTopicIds.length > 0) {
+        params.topicIds = sessionTopicIds.join(',');
       }
-      if (isQuickQuiz) {
-        params.quizMode = QUICK_QUIZ_MODE;
+      if (sessionQuizMode) {
+        params.quizMode = sessionQuizMode;
       }
 
       router.replace({

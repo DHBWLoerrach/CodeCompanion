@@ -525,12 +525,12 @@ describe('QuizSessionScreen integration', () => {
     );
   });
 
-  it('caps quick quiz difficulty and preserves quick params for replay', async () => {
+  it('preserves explore params for replay', async () => {
     mockSearchParams = {
-      topicIds: 'variables,loops',
-      count: '3',
+      topicIds: 'operators,null-undefined,strings-template-literals',
+      count: '5',
       programmingLanguage: 'javascript',
-      quizMode: 'quick',
+      quizMode: 'explore',
     };
     mockStorage.getProgress.mockResolvedValue({
       totalQuestions: 0,
@@ -542,8 +542,8 @@ describe('QuizSessionScreen integration', () => {
           correctAnswers: 10,
           skillLevel: 5,
         },
-        'javascript:loops': {
-          topicId: 'loops',
+        'javascript:data-types': {
+          topicId: 'data-types',
           questionsAnswered: 9,
           correctAnswers: 8,
           skillLevel: 4,
@@ -556,7 +556,7 @@ describe('QuizSessionScreen integration', () => {
         questions: [
           {
             id: 'q1',
-            topicId: 'variables',
+            topicId: 'operators',
             question: 'Question 1',
             options: ['Option A', 'Option B', 'Option C', 'Option D'],
             correctIndex: 1,
@@ -567,7 +567,7 @@ describe('QuizSessionScreen integration', () => {
           },
           {
             id: 'q2',
-            topicId: 'loops',
+            topicId: 'null-undefined',
             question: 'Question 2',
             options: ['Option A', 'Option B', 'Option C', 'Option D'],
             correctIndex: 0,
@@ -578,7 +578,7 @@ describe('QuizSessionScreen integration', () => {
           },
           {
             id: 'q3',
-            topicId: 'variables',
+            topicId: 'strings-template-literals',
             question: 'Question 3',
             options: ['Option A', 'Option B', 'Option C', 'Option D'],
             correctIndex: 1,
@@ -601,10 +601,10 @@ describe('QuizSessionScreen integration', () => {
       'POST',
       '/api/quiz/generate-mixed',
       {
-        topicIds: ['variables', 'loops'],
-        count: 3,
+        topicIds: ['operators', 'null-undefined', 'strings-template-literals'],
+        count: 5,
         language: 'en',
-        skillLevel: 2,
+        skillLevel: 1,
         programmingLanguage: 'javascript',
       }
     );
@@ -640,25 +640,36 @@ describe('QuizSessionScreen integration', () => {
       expect(mockReplace).toHaveBeenCalled();
       expect(mockStorage.updateTopicProgress).toHaveBeenCalledWith(
         'javascript',
-        'variables',
-        2,
+        'operators',
+        1,
         0
       );
       expect(mockStorage.updateTopicProgress).toHaveBeenCalledWith(
         'javascript',
-        'loops',
+        'null-undefined',
         1,
         1
       );
-      expect(mockStorage.updateTopicSkillLevel).toHaveBeenCalledWith(
+      expect(mockStorage.updateTopicProgress).toHaveBeenCalledWith(
         'javascript',
-        'variables',
+        'strings-template-literals',
+        1,
         0
       );
       expect(mockStorage.updateTopicSkillLevel).toHaveBeenCalledWith(
         'javascript',
-        'loops',
+        'operators',
+        0
+      );
+      expect(mockStorage.updateTopicSkillLevel).toHaveBeenCalledWith(
+        'javascript',
+        'null-undefined',
         100
+      );
+      expect(mockStorage.updateTopicSkillLevel).toHaveBeenCalledWith(
+        'javascript',
+        'strings-template-literals',
+        0
       );
     });
 
@@ -667,13 +678,15 @@ describe('QuizSessionScreen integration', () => {
       params: Record<string, string>;
     };
     expect(replaceArgs.pathname).toBe('/session-summary');
-    expect(replaceArgs.params.topicIds).toBe('variables,loops');
-    expect(replaceArgs.params.quizMode).toBe('quick');
-    expect(replaceArgs.params.count).toBe('3');
+    expect(replaceArgs.params.topicIds).toBe(
+      'operators,null-undefined,strings-template-literals'
+    );
+    expect(replaceArgs.params.quizMode).toBe('explore');
+    expect(replaceArgs.params.count).toBe('5');
     expect(replaceArgs.params.total).toBe('3');
   });
 
-  it('sends mapped mixed skillLevel from global progress for random mix', async () => {
+  it('resolves a mixed topic pool client-side when no topicIds are provided', async () => {
     mockSearchParams = { programmingLanguage: 'javascript' };
     mockStorage.getProgress.mockResolvedValue({
       totalQuestions: 0,
@@ -711,6 +724,7 @@ describe('QuizSessionScreen integration', () => {
       'POST',
       '/api/quiz/generate-mixed',
       {
+        topicIds: ['variables', 'loops'],
         count: 5,
         language: 'en',
         skillLevel: 1,
@@ -738,6 +752,7 @@ describe('QuizSessionScreen integration', () => {
       'POST',
       '/api/quiz/generate-mixed',
       {
+        topicIds: ['variables', 'data-types', 'operators'],
         count: 5,
         language: 'en',
         skillLevel: 1,

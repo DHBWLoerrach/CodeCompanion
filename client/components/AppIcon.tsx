@@ -14,6 +14,7 @@ const SF_SYMBOLS: Record<string, string> = {
   monitor: 'desktopcomputer',
   code: 'chevron.left.slash.chevron.right',
   zap: 'bolt',
+  compass: 'safari',
   globe: 'globe',
   moon: 'moon',
   'chevron-right': 'chevron.right',
@@ -55,6 +56,7 @@ const SYMBOL_STYLES: Record<
   rosette: { weight: 'regular', scale: 'medium' },
   clock: { weight: 'regular', scale: 'medium' },
   bolt: { weight: 'semibold', scale: 'medium' },
+  safari: { weight: 'regular', scale: 'medium' },
   'arrow.clockwise': { weight: 'semibold', scale: 'medium' },
   'play.fill': { weight: 'semibold', scale: 'medium' },
 };

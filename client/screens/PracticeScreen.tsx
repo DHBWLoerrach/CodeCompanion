@@ -1,4 +1,4 @@
-import React, { useRef } from 'react';
+import React, { useMemo, useRef } from 'react';
 import { View, ScrollView, StyleSheet, Pressable } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Stack, useRouter } from 'expo-router';
@@ -22,11 +22,12 @@ import {
   getCategoryProgress,
 } from '@/hooks/useTopicProgress';
 import {
-  QUICK_QUIZ_MODE,
-  QUICK_QUIZ_QUESTION_COUNT,
-  QUICK_QUIZ_TOPIC_LIMIT,
+  DEFAULT_QUIZ_QUESTION_COUNT,
+  EXPLORE_QUIZ_MODE,
+  MIXED_QUIZ_MODE,
 } from '@/constants/quiz';
 import { Spacing, BorderRadius, withOpacity } from '@/constants/theme';
+import { buildQuizTopicPools } from '@/lib/quiz-topic-pools';
 import {
   type Topic,
   type Category,
@@ -36,20 +37,6 @@ import {
 import { type TopicProgress } from '@/lib/storage';
 import { type MasteryLevel } from '@shared/skill-level';
 import { useProgrammingLanguage } from '@/contexts/ProgrammingLanguageContext';
-
-function pickRandomTopicIds(categories: Category[], limit: number): string[] {
-  const topicIds = categories.flatMap((category) =>
-    category.topics.map((topic) => topic.id)
-  );
-  const shuffled = [...topicIds];
-
-  for (let i = shuffled.length - 1; i > 0; i -= 1) {
-    const randomIndex = Math.floor(Math.random() * (i + 1));
-    [shuffled[i], shuffled[randomIndex]] = [shuffled[randomIndex], shuffled[i]];
-  }
-
-  return shuffled.slice(0, Math.min(limit, shuffled.length));
-}
 
 interface QuizModeCardProps {
   icon: string;
@@ -167,7 +154,7 @@ function QuizModeCard({
           <ThemedText
             type="caption"
             style={[styles.modeDescription, { color: descriptionColor }]}
-            numberOfLines={usesLargeLayout ? 3 : 2}
+            numberOfLines={usesLargeLayout ? 4 : 3}
           >
             {description}
           </ThemedText>
@@ -335,6 +322,10 @@ export default function PracticeScreen() {
 
   const hasDueTopics = dueTopics.length > 0;
   const dueTopicIds = dueTopics.map((t) => t.id).join(',');
+  const { mixedTopicIds, exploreTopicIds } = useMemo(
+    () => buildQuizTopicPools(categories, topicProgress),
+    [categories, topicProgress]
+  );
 
   const handleStartReview = () => {
     router.push({
@@ -365,21 +356,30 @@ export default function PracticeScreen() {
     });
   };
 
-  const handleQuickQuiz = () => {
-    const quickTopicIds = pickRandomTopicIds(
-      categories,
-      QUICK_QUIZ_TOPIC_LIMIT
-    );
+  const handleMixedQuiz = () => {
+    router.push({
+      pathname: '/quiz-session',
+      params: {
+        count: String(DEFAULT_QUIZ_QUESTION_COUNT),
+        programmingLanguage: languageId,
+        quizMode: MIXED_QUIZ_MODE,
+        topicIds: mixedTopicIds.join(','),
+      },
+    });
+  };
+
+  const handleExploreQuiz = () => {
+    if (exploreTopicIds.length === 0) {
+      return;
+    }
 
     router.push({
       pathname: '/quiz-session',
       params: {
-        count: String(QUICK_QUIZ_QUESTION_COUNT),
+        count: String(DEFAULT_QUIZ_QUESTION_COUNT),
         programmingLanguage: languageId,
-        quizMode: QUICK_QUIZ_MODE,
-        ...(quickTopicIds.length > 0
-          ? { topicIds: quickTopicIds.join(',') }
-          : {}),
+        quizMode: EXPLORE_QUIZ_MODE,
+        topicIds: exploreTopicIds.join(','),
       },
     });
   };
@@ -403,20 +403,17 @@ export default function PracticeScreen() {
           title: t('mixedQuiz'),
           description: t('mixedQuizDesc'),
           testID: 'practice-mode-mixed',
-          onPress: () =>
-            router.push({
-              pathname: '/quiz-session',
-              params: { programmingLanguage: languageId },
-            }),
+          onPress: handleMixedQuiz,
         },
         {
-          key: 'quick',
-          icon: 'zap',
+          key: 'explore',
+          icon: 'compass',
           color: theme.secondary,
-          title: t('quickQuiz'),
-          description: t('quickQuizDesc'),
-          testID: 'practice-mode-quick',
-          onPress: handleQuickQuiz,
+          title: t('exploreQuiz'),
+          description: t('exploreQuizDesc'),
+          testID: 'practice-mode-explore',
+          onPress: handleExploreQuiz,
+          disabled: exploreTopicIds.length === 0,
         },
         {
           key: 'category',
@@ -437,11 +434,7 @@ export default function PracticeScreen() {
           description: t('mixedQuizDesc'),
           emphasized: true,
           testID: 'practice-mode-mixed',
-          onPress: () =>
-            router.push({
-              pathname: '/quiz-session',
-              params: { programmingLanguage: languageId },
-            }),
+          onPress: handleMixedQuiz,
         },
         {
           key: 'due',
@@ -454,13 +447,14 @@ export default function PracticeScreen() {
           disabled: true,
         },
         {
-          key: 'quick',
-          icon: 'zap',
+          key: 'explore',
+          icon: 'compass',
           color: theme.secondary,
-          title: t('quickQuiz'),
-          description: t('quickQuizDesc'),
-          testID: 'practice-mode-quick',
-          onPress: handleQuickQuiz,
+          title: t('exploreQuiz'),
+          description: t('exploreQuizDesc'),
+          testID: 'practice-mode-explore',
+          onPress: handleExploreQuiz,
+          disabled: exploreTopicIds.length === 0,
         },
         {
           key: 'category',
@@ -710,7 +704,7 @@ const styles = StyleSheet.create({
   },
   modeCardAction: {
     justifyContent: 'space-between',
-    minHeight: 156,
+    minHeight: 172,
     padding: Spacing.md,
   },
   modeCardMain: {
@@ -744,7 +738,7 @@ const styles = StyleSheet.create({
   },
   modeDescription: {
     lineHeight: 17,
-    minHeight: 32,
+    minHeight: 48,
   },
   categoriesList: {
     gap: Spacing.md,

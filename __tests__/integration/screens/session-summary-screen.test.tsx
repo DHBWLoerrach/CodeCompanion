@@ -131,4 +131,32 @@ describe('SessionSummaryScreen integration', () => {
     expect(mockReplace).toHaveBeenCalledWith('/learn');
     expect(mockDismissTo).not.toHaveBeenCalled();
   });
+
+  it('replays explore quizzes with the same topic pool', () => {
+    mockSearchParams = {
+      score: '3',
+      total: '5',
+      answers: '[]',
+      count: '5',
+      programmingLanguage: 'javascript',
+      quizMode: 'explore',
+      topicIds: 'operators,null-undefined,strings-template-literals',
+    };
+
+    const screen = render(<SessionSummaryScreen />);
+
+    expect(screen.getAllByText('exploreQuiz')).toHaveLength(2);
+
+    fireEvent.press(screen.getByTestId('summary-practice-again-button'));
+
+    expect(mockReplace).toHaveBeenCalledWith({
+      pathname: '/quiz-session',
+      params: {
+        count: '5',
+        programmingLanguage: 'javascript',
+        quizMode: 'explore',
+        topicIds: 'operators,null-undefined,strings-template-literals',
+      },
+    });
+  });
 });

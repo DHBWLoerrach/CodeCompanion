@@ -203,7 +203,7 @@ describe('PracticeScreen integration', () => {
     });
   });
 
-  it('navigates via mixed, quick, and category quiz actions', async () => {
+  it('navigates via mixed, explore, and category quiz actions', async () => {
     mockGetProgress.mockResolvedValue({
       totalQuestions: 0,
       correctAnswers: 0,
@@ -220,44 +220,69 @@ describe('PracticeScreen integration', () => {
     });
 
     fireEvent.press(screen.getByText('mixedQuiz'));
-    fireEvent.press(screen.getByText('quickQuiz'));
+    fireEvent.press(screen.getByText('exploreQuiz'));
     fireEvent.press(screen.getByText('Fundamentals'));
 
-    expect(mockPush).toHaveBeenCalledWith({
-      pathname: '/quiz-session',
-      params: { programmingLanguage: 'javascript' },
-    });
-
-    const quickCall = mockPush.mock.calls.find(([call]) => {
+    const mixedCall = mockPush.mock.calls.find(([call]) => {
       const route = call as {
         pathname?: string;
         params?: { quizMode?: string };
       };
       return (
-        route.pathname === '/quiz-session' && route.params?.quizMode === 'quick'
+        route.pathname === '/quiz-session' && route.params?.quizMode === 'mixed'
       );
     });
-    expect(quickCall).toBeDefined();
+    expect(mixedCall).toBeDefined();
 
-    const quickRoute = quickCall?.[0] as {
+    const mixedRoute = mixedCall?.[0] as {
       pathname: string;
       params: {
         count: string;
         programmingLanguage: string;
         quizMode: string;
-        topicIds?: string;
+        topicIds: string;
       };
     };
-    expect(quickRoute).toEqual({
+    expect(mixedRoute).toEqual({
       pathname: '/quiz-session',
-      params: expect.objectContaining({
-        count: '3',
+      params: {
+        count: '5',
         programmingLanguage: 'javascript',
-        quizMode: 'quick',
-      }),
+        quizMode: 'mixed',
+        topicIds: 'variables,data-types,operators',
+      },
     });
-    expect(quickRoute.params.topicIds).toBeDefined();
-    expect(new Set(quickRoute.params.topicIds?.split(',')).size).toBe(2);
+
+    const exploreCall = mockPush.mock.calls.find(([call]) => {
+      const route = call as {
+        pathname?: string;
+        params?: { quizMode?: string };
+      };
+      return (
+        route.pathname === '/quiz-session' &&
+        route.params?.quizMode === 'explore'
+      );
+    });
+    expect(exploreCall).toBeDefined();
+
+    const exploreRoute = exploreCall?.[0] as {
+      pathname: string;
+      params: {
+        count: string;
+        programmingLanguage: string;
+        quizMode: string;
+        topicIds: string;
+      };
+    };
+    expect(exploreRoute).toEqual({
+      pathname: '/quiz-session',
+      params: {
+        count: '5',
+        programmingLanguage: 'javascript',
+        quizMode: 'explore',
+        topicIds: 'variables',
+      },
+    });
 
     const categoryCall = mockPush.mock.calls.find(([call]) => {
       const route = call as {
@@ -267,7 +292,7 @@ describe('PracticeScreen integration', () => {
       return (
         route.pathname === '/quiz-session' &&
         typeof route.params?.topicIds === 'string' &&
-        route.params.quizMode !== 'quick'
+        !route.params.quizMode
       );
     });
     expect(categoryCall).toBeDefined();
@@ -281,6 +306,40 @@ describe('PracticeScreen integration', () => {
         programmingLanguage: 'javascript',
       },
     });
+  });
+
+  it('disables explore quiz when no eligible topics remain', async () => {
+    const allProgressEntries = Object.fromEntries(
+      mockJavascriptCategories.flatMap((category) =>
+        category.topics.map((topic: { id: string }) => [
+          `javascript:${topic.id}`,
+          {
+            topicId: topic.id,
+            questionsAnswered: 3,
+            correctAnswers: 2,
+            skillLevel: 2,
+            lastPracticed: '2026-03-24T00:00:00.000Z',
+          },
+        ])
+      )
+    );
+    mockGetProgress.mockResolvedValue({
+      totalQuestions: 99,
+      correctAnswers: 70,
+      achievements: [],
+      topicProgress: allProgressEntries,
+    });
+    mockIsTopicDue.mockReturnValue(false);
+
+    const screen = render(<PracticeScreen />);
+
+    await waitFor(() => {
+      expect(screen.getByText('exploreQuiz')).toBeTruthy();
+    });
+
+    fireEvent.press(screen.getByTestId('practice-mode-explore'));
+
+    expect(mockPush).not.toHaveBeenCalled();
   });
 
   it('shows a first-time empty state when no quiz history exists', async () => {
