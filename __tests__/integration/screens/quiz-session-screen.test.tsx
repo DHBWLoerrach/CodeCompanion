@@ -49,6 +49,7 @@ let mockSearchParams: {
   count?: string;
   programmingLanguage?: string;
   quizMode?: string;
+  returnTo?: string;
 } = {};
 
 jest.mock('expo-router', () => ({
@@ -285,6 +286,43 @@ describe('QuizSessionScreen integration', () => {
     expect(replaceArgs.params.score).toBe('0');
     expect(replaceArgs.params.count).toBe('1');
     expect(replaceArgs.params.answers).toContain('"questionId":"q1"');
+  });
+
+  it('preserves the practice return target in summary params', async () => {
+    mockSearchParams = {
+      topicId: 'variables',
+      count: '1',
+      programmingLanguage: 'javascript',
+      returnTo: 'practice',
+    };
+
+    const screen = render(<QuizSessionScreen />);
+
+    await waitFor(() => {
+      expect(screen.getByText('What is const?')).toBeTruthy();
+    });
+
+    fireEvent.press(screen.getByText('Option A'));
+    fireEvent.press(screen.getByText('submitAnswer'));
+
+    await waitFor(() => {
+      expect(
+        screen.getByText('Because const creates block-scoped bindings.')
+      ).toBeTruthy();
+    });
+
+    fireEvent.press(screen.getByText('viewResults'));
+
+    await waitFor(() => {
+      expect(mockReplace).toHaveBeenCalledTimes(1);
+    });
+
+    const replaceArgs = mockReplace.mock.calls[0][0] as {
+      pathname: string;
+      params: Record<string, string>;
+    };
+    expect(replaceArgs.pathname).toBe('/session-summary');
+    expect(replaceArgs.params.returnTo).toBe('practice');
   });
 
   it('opens the topic explanation from the quiz result when available', async () => {

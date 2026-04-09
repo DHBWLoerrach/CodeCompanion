@@ -191,7 +191,11 @@ describe('PracticeScreen integration', () => {
 
     expect(mockPush).toHaveBeenCalledWith({
       pathname: '/quiz-session',
-      params: { topicIds: 'variables', programmingLanguage: 'javascript' },
+      params: {
+        topicIds: 'variables',
+        programmingLanguage: 'javascript',
+        returnTo: 'practice',
+      },
     });
 
     mockPush.mockClear();
@@ -199,7 +203,11 @@ describe('PracticeScreen integration', () => {
 
     expect(mockPush).toHaveBeenCalledWith({
       pathname: '/quiz-session',
-      params: { topicIds: 'variables', programmingLanguage: 'javascript' },
+      params: {
+        topicIds: 'variables',
+        programmingLanguage: 'javascript',
+        returnTo: 'practice',
+      },
     });
   });
 
@@ -249,6 +257,7 @@ describe('PracticeScreen integration', () => {
         count: '5',
         programmingLanguage: 'javascript',
         quizMode: 'mixed',
+        returnTo: 'practice',
         topicIds: 'variables,data-types,operators',
       },
     });
@@ -280,6 +289,7 @@ describe('PracticeScreen integration', () => {
         count: '5',
         programmingLanguage: 'javascript',
         quizMode: 'explore',
+        returnTo: 'practice',
         topicIds: 'variables',
       },
     });
@@ -304,6 +314,7 @@ describe('PracticeScreen integration', () => {
       params: {
         topicIds: route.params.topicIds,
         programmingLanguage: 'javascript',
+        returnTo: 'practice',
       },
     });
   });

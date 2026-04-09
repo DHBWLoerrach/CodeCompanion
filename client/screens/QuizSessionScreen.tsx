@@ -40,6 +40,9 @@ import {
   DEFAULT_QUIZ_QUESTION_COUNT,
   EXPLORE_QUIZ_MODE,
   MIXED_QUIZ_MODE,
+  PRACTICE_QUIZ_RETURN_TARGET,
+  getQuizReturnPath,
+  resolveQuizReturnTarget,
 } from '@/constants/quiz';
 import {
   Spacing,
@@ -300,13 +303,14 @@ export default function QuizSessionScreen() {
   const { t, language } = useTranslation();
   const insets = useSafeAreaInsets();
   const router = useRouter();
-  const { topicId, topicIds, count, programmingLanguage, quizMode } =
+  const { topicId, topicIds, count, programmingLanguage, quizMode, returnTo } =
     useLocalSearchParams<{
       topicId?: string;
       topicIds?: string;
       count?: string;
       programmingLanguage?: string;
       quizMode?: string;
+      returnTo?: string;
     }>();
   const resolvedTopicId = getParam(topicId);
   const resolvedProgrammingLanguage = getParamWithDefault(
@@ -314,6 +318,7 @@ export default function QuizSessionScreen() {
     'javascript'
   );
   const quizModeParam = getParam(quizMode);
+  const quizReturnTarget = resolveQuizReturnTarget(getParam(returnTo));
   const resolvedTopicIds = useMemo(() => {
     const rawTopicIds = getParam(topicIds);
 
@@ -764,6 +769,9 @@ export default function QuizSessionScreen() {
       if (sessionQuizMode) {
         params.quizMode = sessionQuizMode;
       }
+      if (quizReturnTarget === PRACTICE_QUIZ_RETURN_TARGET) {
+        params.returnTo = quizReturnTarget;
+      }
 
       router.replace({
         pathname: '/session-summary',
@@ -775,7 +783,7 @@ export default function QuizSessionScreen() {
     }
   };
 
-  const handleClose = useCloseHandler();
+  const handleClose = useCloseHandler(getQuizReturnPath(quizReturnTarget));
   const hasUnsavedQuizProgress =
     currentIndex > 0 ||
     answers.length > 0 ||

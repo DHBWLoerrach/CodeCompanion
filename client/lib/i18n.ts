@@ -79,6 +79,7 @@ export const translations = {
     keepLearning: 'Keep learning! Practice makes perfect!',
     questionBreakdown: 'Question Breakdown',
     backToTopics: 'Back to Topics',
+    backToPractice: 'Back to Practice',
     practiceAgain: 'Practice Again',
 
     yourProgress: 'Your Progress',
@@ -242,6 +243,7 @@ export const translations = {
     keepLearning: 'Weiter lernen! Übung macht den Meister!',
     questionBreakdown: 'Fragenübersicht',
     backToTopics: 'Zurück zu den Themen',
+    backToPractice: 'Zurück zum Üben',
     practiceAgain: 'Nochmal üben',
 
     yourProgress: 'Dein Fortschritt',

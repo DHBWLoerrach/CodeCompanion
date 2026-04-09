@@ -16,6 +16,7 @@ let mockSearchParams: {
   count?: string;
   quizMode?: string;
   programmingLanguage?: string;
+  returnTo?: string;
 } = {
   score: '3',
   total: '5',
@@ -121,6 +122,26 @@ describe('SessionSummaryScreen integration', () => {
     expect(mockReplace).not.toHaveBeenCalled();
   });
 
+  it('returns to practice when the quiz started from the practice tab', () => {
+    mockSearchParams = {
+      score: '3',
+      total: '5',
+      answers: '[]',
+      count: '5',
+      programmingLanguage: 'javascript',
+      returnTo: 'practice',
+    };
+
+    const screen = render(<SessionSummaryScreen />);
+
+    expect(screen.getByText('backToPractice')).toBeTruthy();
+
+    fireEvent.press(screen.getByTestId('summary-back-to-topics-button'));
+
+    expect(mockDismissTo).toHaveBeenCalledWith('/practice');
+    expect(mockReplace).not.toHaveBeenCalled();
+  });
+
   it('replaces to learn when no dismiss context exists', () => {
     mockCanDismiss = false;
 
@@ -140,6 +161,7 @@ describe('SessionSummaryScreen integration', () => {
       count: '5',
       programmingLanguage: 'javascript',
       quizMode: 'explore',
+      returnTo: 'practice',
       topicIds: 'operators,null-undefined,strings-template-literals',
     };
 
@@ -155,6 +177,7 @@ describe('SessionSummaryScreen integration', () => {
         count: '5',
         programmingLanguage: 'javascript',
         quizMode: 'explore',
+        returnTo: 'practice',
         topicIds: 'operators,null-undefined,strings-template-literals',
       },
     });

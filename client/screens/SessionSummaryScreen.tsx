@@ -14,7 +14,12 @@ import { ThemedView } from '@/components/ThemedView';
 import { AppIcon } from '@/components/AppIcon';
 import { useTheme } from '@/contexts/ThemeContext';
 import { useTranslation } from '@/hooks/useTranslation';
-import { EXPLORE_QUIZ_MODE } from '@/constants/quiz';
+import {
+  EXPLORE_QUIZ_MODE,
+  PRACTICE_QUIZ_RETURN_TARGET,
+  getQuizReturnPath,
+  resolveQuizReturnTarget,
+} from '@/constants/quiz';
 import {
   Spacing,
   getBottomActionBarScrollPadding,
@@ -141,6 +146,7 @@ export default function SessionSummaryScreen() {
     count?: string;
     quizMode?: string;
     programmingLanguage?: string;
+    returnTo?: string;
   }>();
 
   const scoreParam = getParam(params.score);
@@ -150,6 +156,8 @@ export default function SessionSummaryScreen() {
   const answersParam = getParam(params.answers);
   const countParam = getParam(params.count);
   const quizModeParam = getParam(params.quizMode);
+  const quizReturnTarget = resolveQuizReturnTarget(getParam(params.returnTo));
+  const backRoute = getQuizReturnPath(quizReturnTarget);
   const programmingLanguageParam = getParamWithDefault(
     params.programmingLanguage,
     'javascript'
@@ -224,16 +232,19 @@ export default function SessionSummaryScreen() {
     if (quizModeParam) {
       nextParams.quizMode = quizModeParam;
     }
+    if (quizReturnTarget === PRACTICE_QUIZ_RETURN_TARGET) {
+      nextParams.returnTo = quizReturnTarget;
+    }
     router.replace({ pathname: '/quiz-session', params: nextParams });
   };
 
   const handleBackToTopics = () => {
     if (router.canDismiss()) {
-      router.dismissTo('/learn');
+      router.dismissTo(backRoute);
       return;
     }
 
-    router.replace('/learn');
+    router.replace(backRoute);
   };
 
   return (
@@ -305,7 +316,11 @@ export default function SessionSummaryScreen() {
           <SecondaryButton
             testID="summary-back-to-topics-button"
             color={theme.secondary}
-            label={t('backToTopics')}
+            label={
+              quizReturnTarget === PRACTICE_QUIZ_RETURN_TARGET
+                ? t('backToPractice')
+                : t('backToTopics')
+            }
             onPress={handleBackToTopics}
           />
         </BottomActionBar>

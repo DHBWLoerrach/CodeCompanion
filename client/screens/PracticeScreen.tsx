@@ -25,6 +25,7 @@ import {
   DEFAULT_QUIZ_QUESTION_COUNT,
   EXPLORE_QUIZ_MODE,
   MIXED_QUIZ_MODE,
+  PRACTICE_QUIZ_RETURN_TARGET,
 } from '@/constants/quiz';
 import { Spacing, BorderRadius, withOpacity } from '@/constants/theme';
 import { buildQuizTopicPools } from '@/lib/quiz-topic-pools';
@@ -330,14 +331,22 @@ export default function PracticeScreen() {
   const handleStartReview = () => {
     router.push({
       pathname: '/quiz-session',
-      params: { topicIds: dueTopicIds, programmingLanguage: languageId },
+      params: {
+        topicIds: dueTopicIds,
+        programmingLanguage: languageId,
+        returnTo: PRACTICE_QUIZ_RETURN_TARGET,
+      },
     });
   };
 
   const handleTopicQuiz = (topic: Topic) => {
     router.push({
       pathname: '/quiz-session',
-      params: { topicId: topic.id, programmingLanguage: languageId },
+      params: {
+        topicId: topic.id,
+        programmingLanguage: languageId,
+        returnTo: PRACTICE_QUIZ_RETURN_TARGET,
+      },
     });
   };
 
@@ -352,7 +361,11 @@ export default function PracticeScreen() {
     const ids = category.topics.map((t) => t.id).join(',');
     router.push({
       pathname: '/quiz-session',
-      params: { topicIds: ids, programmingLanguage: languageId },
+      params: {
+        topicIds: ids,
+        programmingLanguage: languageId,
+        returnTo: PRACTICE_QUIZ_RETURN_TARGET,
+      },
     });
   };
 
@@ -363,6 +376,7 @@ export default function PracticeScreen() {
         count: String(DEFAULT_QUIZ_QUESTION_COUNT),
         programmingLanguage: languageId,
         quizMode: MIXED_QUIZ_MODE,
+        returnTo: PRACTICE_QUIZ_RETURN_TARGET,
         topicIds: mixedTopicIds.join(','),
       },
     });
@@ -379,6 +393,7 @@ export default function PracticeScreen() {
         count: String(DEFAULT_QUIZ_QUESTION_COUNT),
         programmingLanguage: languageId,
         quizMode: EXPLORE_QUIZ_MODE,
+        returnTo: PRACTICE_QUIZ_RETURN_TARGET,
         topicIds: exploreTopicIds.join(','),
       },
     });
