@@ -225,7 +225,12 @@ export default function SessionSummaryScreen() {
   };
 
   const handleBackToTopics = () => {
-    router.dismissAll();
+    if (router.canDismiss()) {
+      router.dismissTo('/learn');
+      return;
+    }
+
+    router.replace('/learn');
   };
 
   return (
