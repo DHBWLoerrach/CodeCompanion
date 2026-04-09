@@ -5,6 +5,16 @@ tags:
 ---
 - launchApp:
     clearState: true
+- tapOn:
+    id: welcome-get-started-button
+- assertVisible:
+    id: language-select-option-javascript
+- tapOn:
+    id: language-select-option-javascript
+- assertVisible:
+    id: language-overview-confirm-button
+- tapOn:
+    id: language-overview-confirm-button
 - assertVisible:
     id: learn-topic-variables
 - tapOn: Practice

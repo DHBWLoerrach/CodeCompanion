@@ -7,6 +7,7 @@ import Constants from 'expo-constants';
 import { EaseView } from 'react-native-ease';
 
 import { SecondaryButton } from '@/components/ActionButton';
+import { StatusBadge } from '@/components/StatusBadge';
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
 import { KeyboardAwareScrollViewCompat } from '@/components/KeyboardAwareScrollViewCompat';
@@ -94,19 +95,28 @@ interface SettingRowProps {
 }
 
 interface SettingsActionRowProps {
+  accessoryAction?: {
+    accessibilityLabel?: string;
+    icon: string;
+    onPress: () => void;
+    testID?: string;
+  };
   icon: string;
   label: string;
   onPress: () => void;
   rightContent?: React.ReactNode;
   isLast?: boolean;
+  testID?: string;
 }
 
 function SettingsActionRow({
+  accessoryAction,
   icon,
   label,
   onPress,
   rightContent,
   isLast = false,
+  testID,
 }: SettingsActionRowProps) {
   const { theme } = useTheme();
   const { animate, transition, handlePressIn, handlePressOut } =
@@ -115,6 +125,7 @@ function SettingsActionRow({
   return (
     <EaseView animate={animate} transition={transition}>
       <Pressable
+        testID={testID}
         style={[
           styles.aboutActionButton,
           isLast ? styles.aboutActionButtonLast : null,
@@ -131,7 +142,31 @@ function SettingsActionRow({
           <AppIcon name={icon} size={20} color={theme.tabIconDefault} />
           <ThemedText type="body">{label}</ThemedText>
         </View>
-        {rightContent}
+        <View style={styles.settingsActionRight}>
+          {rightContent}
+          {accessoryAction ? (
+            <Pressable
+              testID={accessoryAction.testID}
+              accessibilityRole="button"
+              accessibilityLabel={accessoryAction.accessibilityLabel}
+              hitSlop={8}
+              onPress={(event) => {
+                event?.stopPropagation?.();
+                accessoryAction.onPress();
+              }}
+              style={[
+                styles.settingsAccessoryButton,
+                { backgroundColor: theme.backgroundSecondary },
+              ]}
+            >
+              <AppIcon
+                name={accessoryAction.icon}
+                size={18}
+                color={theme.secondary}
+              />
+            </Pressable>
+          ) : null}
+        </View>
       </Pressable>
     </EaseView>
   );
@@ -176,6 +211,7 @@ export default function SettingsScreen() {
   const settingsRef = useRef<SettingsData | null>(null);
   const settingsUpdateInFlightRef = useRef(false);
   const skipNextProfilePersistRef = useRef(true);
+  const pendingProfilePersistRef = useRef<UserProfile | null>(null);
 
   const loadData = useCallback(async () => {
     try {
@@ -222,7 +258,10 @@ export default function SettingsScreen() {
       return;
     }
 
+    pendingProfilePersistRef.current = profile;
+
     const timeoutId = setTimeout(() => {
+      pendingProfilePersistRef.current = null;
       void persistProfile(profile);
     }, 300);
 
@@ -230,6 +269,19 @@ export default function SettingsScreen() {
       clearTimeout(timeoutId);
     };
   }, [persistProfile, profile]);
+
+  useEffect(() => {
+    return () => {
+      const pendingProfile = pendingProfilePersistRef.current;
+
+      if (!pendingProfile) {
+        return;
+      }
+
+      pendingProfilePersistRef.current = null;
+      void persistProfile(pendingProfile);
+    };
+  }, [persistProfile]);
 
   const handleResetProgress = () => {
     Alert.alert(t('resetProgress'), t('resetProgressMessage'), [
@@ -305,6 +357,10 @@ export default function SettingsScreen() {
       settingsUpdateInFlightRef.current = false;
     }
   };
+
+  const selectedLanguageName = selectedLanguage
+    ? getLanguageDisplayName(selectedLanguage, language)
+    : t('javascript');
 
   if (loading || !profile || !settings) {
     return (
@@ -394,12 +450,33 @@ export default function SettingsScreen() {
                 return (
                   <>
                     <SettingsActionRow
+                      accessoryAction={
+                        selectedLanguage
+                          ? {
+                              accessibilityLabel: t(
+                                'viewCurrentFocusInfo'
+                              ).replace('{name}', selectedLanguageName),
+                              icon: 'info',
+                              onPress: () =>
+                                router.push({
+                                  pathname: '/language-overview',
+                                  params: {
+                                    languageId: selectedLanguage.id,
+                                    mode: 'view',
+                                    origin: 'settings',
+                                  },
+                                }),
+                              testID: 'settings-current-focus-info-button',
+                            }
+                          : undefined
+                      }
                       icon="code"
                       label={t('changeTechnology')}
+                      testID="settings-change-technology-button"
                       onPress={() =>
                         router.push({
                           pathname: '../language-select',
-                          params: { allowBack: '1' },
+                          params: { origin: 'settings' },
                         })
                       }
                       rightContent={
@@ -414,17 +491,12 @@ export default function SettingsScreen() {
                             type="body"
                             style={{ color: theme.tabIconDefault }}
                           >
-                            {selectedLanguage
-                              ? getLanguageDisplayName(
-                                  selectedLanguage,
-                                  language
-                                )
-                              : t('javascript')}
+                            {selectedLanguageName}
                           </ThemedText>
-                          <AppIcon
-                            name="chevron-right"
-                            size={20}
-                            color={theme.tabIconDefault}
+                          <StatusBadge
+                            color={theme.secondary}
+                            label={t('currentFocusLabel')}
+                            size="compact"
                           />
                         </View>
                       }
@@ -607,6 +679,19 @@ const styles = StyleSheet.create({
   },
   aboutActionButtonLast: {
     borderBottomWidth: 0,
+  },
+  settingsAccessoryButton: {
+    alignItems: 'center',
+    borderCurve: 'continuous',
+    borderRadius: BorderRadius.full,
+    height: 32,
+    justifyContent: 'center',
+    width: 32,
+  },
+  settingsActionRight: {
+    alignItems: 'center',
+    flexDirection: 'row',
+    gap: Spacing.sm,
   },
   settingLeft: {
     flexDirection: 'row',

@@ -174,7 +174,44 @@ describe('SettingsScreen integration', () => {
 
     expect(mockPush).toHaveBeenCalledWith({
       pathname: '../language-select',
-      params: { allowBack: '1' },
+      params: { origin: 'settings' },
+    });
+  });
+
+  it('opens the current focus overview in read-only mode', async () => {
+    const screen = render(<SettingsScreen />);
+
+    const infoButton = await waitFor(() =>
+      screen.getByTestId('settings-current-focus-info-button')
+    );
+
+    fireEvent.press(infoButton);
+
+    expect(mockPush).toHaveBeenCalledWith({
+      pathname: '/language-overview',
+      params: {
+        languageId: 'javascript',
+        mode: 'view',
+        origin: 'settings',
+      },
+    });
+  });
+
+  it('flushes a pending profile save when leaving the screen before the debounce finishes', async () => {
+    const screen = render(<SettingsScreen />);
+
+    const input = await waitFor(() =>
+      screen.getByTestId('settings-display-name-input')
+    );
+
+    fireEvent.changeText(input, 'Erik');
+    screen.unmount();
+
+    await waitFor(() => {
+      expect(mockStorage.setProfile).toHaveBeenCalledWith({
+        displayName: 'Erik',
+        avatarIndex: 0,
+      });
     });
   });
 

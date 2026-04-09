@@ -14,6 +14,7 @@ import { ProgrammingLanguageProvider } from '@/contexts/ProgrammingLanguageConte
 import { ThemedStatusBar } from '@/components/ThemedStatusBar';
 import { useScreenOptions } from '@/hooks/useScreenOptions';
 import { useTranslation } from '@/hooks/useTranslation';
+import { getLanguageFlowOrigin } from '@/lib/language-flow';
 
 function RootStack() {
   const screenOptions = useScreenOptions();
@@ -27,8 +28,9 @@ function RootStack() {
         name="language-select"
         options={({ route }) => {
           const canNavigateBack =
-            (route.params as { allowBack?: string } | undefined)?.allowBack ===
-            '1';
+            getLanguageFlowOrigin(
+              (route.params as { origin?: string } | undefined)?.origin
+            ) === 'settings';
 
           return {
             title: t('selectTechnology'),
@@ -37,6 +39,7 @@ function RootStack() {
           };
         }}
       />
+      <Stack.Screen name="language-overview" options={{ title: '' }} />
       <Stack.Screen name="(tabs)" options={{ headerShown: false, title: '' }} />
       <Stack.Screen
         name="quiz-session"

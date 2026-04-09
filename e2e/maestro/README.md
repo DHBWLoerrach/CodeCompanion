@@ -11,6 +11,7 @@
 - `smoke_navigation.yaml`: Tab-Navigation Learn/Practice/Progress
 - `smoke_settings_persistence.yaml`: Einstellungen speichern und Persistenz pruefen
 - `smoke_quiz_open_close.yaml`: Quiz-Modal oeffnen und sauber schliessen (ohne AI-Abhaengigkeit)
+- `smoke_language_overview_flow.yaml`: Fokus-Info aus den Einstellungen und Sprachwechsel-Flow
 - `ai_quiz_happy_path.yaml`: Quiz erfolgreich bis Session-Summary (benoetigt AI-Backend)
 
 ## Ausfuehrung

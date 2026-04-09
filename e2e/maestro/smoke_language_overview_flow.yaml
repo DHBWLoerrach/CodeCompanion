@@ -20,14 +20,22 @@ tags:
 - tapOn:
     id: open-settings-button
 - tapOn:
+    id: settings-current-focus-info-button
+- assertVisible:
+    id: language-overview-close-button
+- tapOn:
+    id: language-overview-close-button
+- assertVisible:
     id: settings-display-name-input
-- eraseText
-- inputText: E2E User
-- assertVisible: E2E User
-- hideKeyboard
+- tapOn:
+    id: settings-change-technology-button
+- tapOn:
+    id: language-select-option-python
+- assertVisible:
+    id: language-overview-hero
 - back
 - assertVisible:
-    id: learn-topic-variables
-- tapOn:
-    id: open-settings-button
-- assertVisible: E2E User
+    id: language-select-option-javascript
+- back
+- assertVisible:
+    id: settings-display-name-input

@@ -5,12 +5,13 @@ import { EaseView } from 'react-native-ease';
 import * as Haptics from 'expo-haptics';
 
 import { AppIcon } from '@/components/AppIcon';
+import { StatusBadge } from '@/components/StatusBadge';
 import { ThemedText } from '@/components/ThemedText';
+import { useProgrammingLanguage } from '@/contexts/ProgrammingLanguageContext';
 import { useTheme } from '@/contexts/ThemeContext';
 import { usePressAnimation } from '@/hooks/usePressAnimation';
 import { useTranslation } from '@/hooks/useTranslation';
-import { getParam } from '@/lib/router-utils';
-import { useProgrammingLanguage } from '@/contexts/ProgrammingLanguageContext';
+import { getLanguageFlowOrigin } from '@/lib/language-flow';
 import {
   LANGUAGES,
   getLanguageDisplayName,
@@ -19,19 +20,23 @@ import {
 import { Spacing, BorderRadius, Shadows, withOpacity } from '@/constants/theme';
 
 interface LanguageCardProps {
+  disabled?: boolean;
   language: ProgrammingLanguage;
   languageName: string;
   index: number;
   onPress: () => void;
+  statusLabel?: string;
   topicCount: number;
   topicLabel: string;
 }
 
 function LanguageCard({
+  disabled = false,
   language,
   languageName,
   index,
   onPress,
+  statusLabel,
   topicCount,
   topicLabel,
 }: LanguageCardProps) {
@@ -51,10 +56,9 @@ function LanguageCard({
     () => withOpacity(theme.primary, 0.2),
     [theme.primary]
   );
-  const accessibilityHint = t('selectFocusHint').replace(
-    '{name}',
-    languageName
-  );
+  const accessibilityHint = disabled
+    ? t('currentFocusDisabledHint').replace('{name}', languageName)
+    : t('openFocusOverviewHint').replace('{name}', languageName);
 
   return (
     <EaseView
@@ -69,22 +73,34 @@ function LanguageCard({
     >
       <EaseView animate={animate} transition={transition}>
         <Pressable
-          onPress={onPress}
-          onPressIn={handlePressIn}
-          onPressOut={handlePressOut}
+          testID={`language-select-option-${language.id}`}
+          disabled={disabled}
+          onPress={disabled ? undefined : onPress}
+          onPressIn={disabled ? undefined : handlePressIn}
+          onPressOut={disabled ? undefined : handlePressOut}
           accessibilityRole="button"
           accessibilityLabel={languageName}
           accessibilityHint={accessibilityHint}
+          accessibilityState={{ disabled }}
           style={({ pressed }) => ({
             flexDirection: 'row',
             alignItems: 'center',
             gap: Spacing.lg,
             padding: Spacing.lg,
-            backgroundColor: pressed ? pressedOverlay : theme.backgroundDefault,
+            opacity: disabled ? 0.7 : 1,
+            backgroundColor: disabled
+              ? theme.backgroundSecondary
+              : pressed
+                ? pressedOverlay
+                : theme.backgroundDefault,
             borderRadius: BorderRadius.lg,
             borderCurve: 'continuous',
             borderWidth: 1,
-            borderColor: pressed ? pressedBorderColor : theme.cardBorder,
+            borderColor: disabled
+              ? theme.separator
+              : pressed
+                ? pressedBorderColor
+                : theme.cardBorder,
             ...Shadows.card,
           })}
         >
@@ -114,23 +130,31 @@ function LanguageCard({
               {topicCount} {topicLabel}
             </ThemedText>
           </View>
-          <View
-            style={{
-              width: 36,
-              height: 36,
-              borderRadius: BorderRadius.full,
-              alignItems: 'center',
-              justifyContent: 'center',
-              backgroundColor: chevronTint,
-            }}
-          >
-            <AppIcon
-              name="chevron-right"
-              size={18}
-              color={theme.primary}
-              weight="semibold"
+          {disabled && statusLabel ? (
+            <StatusBadge
+              color={theme.secondary}
+              label={statusLabel}
+              size="compact"
             />
-          </View>
+          ) : (
+            <View
+              style={{
+                width: 36,
+                height: 36,
+                borderRadius: BorderRadius.full,
+                alignItems: 'center',
+                justifyContent: 'center',
+                backgroundColor: chevronTint,
+              }}
+            >
+              <AppIcon
+                name="chevron-right"
+                size={18}
+                color={theme.primary}
+                weight="semibold"
+              />
+            </View>
+          )}
         </Pressable>
       </EaseView>
     </EaseView>
@@ -140,21 +164,22 @@ function LanguageCard({
 export default function LanguageSelectScreen() {
   const { theme } = useTheme();
   const { t, language: appLanguage } = useTranslation();
+  const { selectedLanguageId } = useProgrammingLanguage();
   const router = useRouter();
-  const { allowBack } = useLocalSearchParams<{ allowBack?: string }>();
-  const { setSelectedLanguage } = useProgrammingLanguage();
-  const canReturnToPreviousScreen = getParam(allowBack) === '1';
+  const { origin: originParam } = useLocalSearchParams<{ origin?: string }>();
+  const origin = getLanguageFlowOrigin(originParam);
 
   const handleSelectLanguage = async (language: ProgrammingLanguage) => {
     if (process.env.EXPO_OS === 'ios') {
-      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+      await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     }
-    await setSelectedLanguage(language.id);
-    if (canReturnToPreviousScreen && router.canGoBack()) {
-      router.back();
-      return;
-    }
-    router.replace('/learn');
+
+    router.push({
+      pathname: '/language-overview',
+      params: origin
+        ? { languageId: language.id, origin }
+        : { languageId: language.id },
+    });
   };
 
   return (
@@ -180,15 +205,20 @@ export default function LanguageSelectScreen() {
           (sum, cat) => sum + cat.topics.length,
           0
         );
+        const isCurrentLanguage =
+          origin === 'settings' &&
+          selectedLanguageId === programmingLanguage.id;
         return (
           <LanguageCard
             key={programmingLanguage.id}
+            disabled={isCurrentLanguage}
             language={programmingLanguage}
             languageName={getLanguageDisplayName(
               programmingLanguage,
               appLanguage
             )}
             index={index}
+            statusLabel={isCurrentLanguage ? t('currentFocusLabel') : undefined}
             topicCount={topicCount}
             topicLabel={topicCount === 1 ? t('topic') : t('topics')}
             onPress={() => handleSelectLanguage(programmingLanguage)}
