@@ -7,6 +7,8 @@ import { hasTopicExplanation } from '@shared/explanations';
 const mockReplace = jest.fn();
 const mockPush = jest.fn();
 const mockStackScreen = jest.fn();
+const mockStackTitle = jest.fn();
+const mockStackBackButton = jest.fn();
 let mockHeaderOptions: { headerLeft?: () => React.ReactElement } | undefined;
 const mockApiRequest = jest.fn();
 const mockHasTopicExplanation = jest.mocked(hasTopicExplanation);
@@ -50,15 +52,20 @@ let mockSearchParams: {
 } = {};
 
 jest.mock('expo-router', () => ({
-  Stack: {
-    Screen: (props: {
-      options?: { headerLeft?: () => React.ReactElement };
-    }) => {
-      mockStackScreen(props);
-      mockHeaderOptions = props.options;
-      return null;
-    },
-  },
+  Stack: jest
+    .requireActual<
+      typeof import('../../../test/expo-router-stack')
+    >('../../../test/expo-router-stack')
+    .createMockExpoRouterStack({
+      onScreen: (props) => {
+        mockStackScreen(props);
+        mockHeaderOptions = props.options as
+          | { headerLeft?: () => React.ReactElement }
+          | undefined;
+      },
+      onTitle: (props) => mockStackTitle(props),
+      onBackButton: (props) => mockStackBackButton(props),
+    }),
   useLocalSearchParams: () => mockSearchParams,
   useRouter: () => ({
     replace: mockReplace,
@@ -152,6 +159,8 @@ describe('QuizSessionScreen integration', () => {
     mockReplace.mockReset();
     mockPush.mockReset();
     mockStackScreen.mockReset();
+    mockStackTitle.mockReset();
+    mockStackBackButton.mockReset();
     mockHeaderOptions = undefined;
     mockApiRequest.mockReset();
     mockHasTopicExplanation.mockReset();
@@ -224,6 +233,12 @@ describe('QuizSessionScreen integration', () => {
     await waitFor(() => {
       expect(screen.getByText('What is const?')).toBeTruthy();
     });
+    expect(mockStackTitle).toHaveBeenCalledWith(
+      expect.objectContaining({ children: 'question 1 of 1' })
+    );
+    expect(mockStackBackButton).toHaveBeenCalledWith(
+      expect.objectContaining({ hidden: true })
+    );
 
     expect(mockApiRequest).toHaveBeenCalledWith('POST', '/api/quiz/generate', {
       topicId: 'variables',

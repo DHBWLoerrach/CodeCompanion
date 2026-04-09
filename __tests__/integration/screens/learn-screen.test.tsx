@@ -1,9 +1,11 @@
 import React from 'react';
 import * as ReactNative from 'react-native';
-import { render, waitFor } from '@testing-library/react-native';
+import { fireEvent, render, waitFor } from '@testing-library/react-native';
 import LearnScreen from '@/screens/LearnScreen';
 
 const mockPush = jest.fn();
+const mockStackScreen = jest.fn();
+const mockStackTitle = jest.fn();
 const mockUseTopicProgress = jest.fn();
 const mockUseWindowDimensions = jest.fn(() => ({
   width: 375,
@@ -13,6 +15,14 @@ const mockUseWindowDimensions = jest.fn(() => ({
 }));
 
 jest.mock('expo-router', () => ({
+  Stack: jest
+    .requireActual<
+      typeof import('../../../test/expo-router-stack')
+    >('../../../test/expo-router-stack')
+    .createMockExpoRouterStack({
+      onScreen: (props) => mockStackScreen(props),
+      onTitle: (props) => mockStackTitle(props),
+    }),
   useRouter: () => ({
     push: mockPush,
   }),
@@ -81,6 +91,9 @@ jest.mock('@/contexts/ProgrammingLanguageContext', () => ({
   useProgrammingLanguage: () => ({
     selectedLanguage: {
       id: 'javascript',
+      name: { en: 'JavaScript', de: 'JavaScript' },
+      shortName: 'JS',
+      color: '#F7DF1E',
       categories: [
         {
           id: 'fundamentals',
@@ -121,6 +134,7 @@ jest.mock('@/contexts/ProgrammingLanguageContext', () => ({
 }));
 
 jest.mock('@/lib/topics', () => ({
+  getCategoriesByLanguage: () => [],
   getTopicName: (topic: { id: string }) =>
     topic.id === 'data-types'
       ? 'Data Types'
@@ -133,6 +147,9 @@ jest.mock('@/lib/topics', () => ({
 
 describe('LearnScreen integration', () => {
   beforeEach(() => {
+    mockPush.mockReset();
+    mockStackScreen.mockReset();
+    mockStackTitle.mockReset();
     mockUseWindowDimensions.mockReturnValue({
       width: 375,
       height: 812,
@@ -162,6 +179,9 @@ describe('LearnScreen integration', () => {
       expect(screen.getByText('Fundamentals')).toBeTruthy();
       expect(screen.getByText('Control Flow')).toBeTruthy();
     });
+    expect(mockStackTitle).toHaveBeenCalledWith(
+      expect.objectContaining({ children: 'JavaScript' })
+    );
   });
 
   it('hides next-step cards for categories with unmet prerequisites', async () => {
@@ -195,6 +215,29 @@ describe('LearnScreen integration', () => {
       expect(screen.getByText('nextStep')).toBeTruthy();
       expect(screen.getByText('Data Types')).toBeTruthy();
     });
+  });
+
+  it('keeps the settings header action on the learn screen', async () => {
+    render(<LearnScreen />);
+
+    await waitFor(() => {
+      expect(mockStackScreen).toHaveBeenCalledWith(
+        expect.objectContaining({
+          options: expect.objectContaining({
+            headerRight: expect.any(Function),
+          }),
+        })
+      );
+    });
+
+    const headerRight =
+      mockStackScreen.mock.calls.at(-1)?.[0]?.options?.headerRight;
+    expect(headerRight).toBeDefined();
+
+    const headerButton = render(headerRight!());
+    fireEvent.press(headerButton.getByTestId('open-settings-button'));
+
+    expect(mockPush).toHaveBeenCalledWith('/settings');
   });
 
   it('renders due-topic rows in a single column on compact accessibility layouts', async () => {

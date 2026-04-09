@@ -5,15 +5,21 @@ import { hasTopicExplanation } from '@shared/explanations';
 
 let consoleErrorSpy: jest.SpyInstance;
 const mockPush = jest.fn();
-const mockSetOptions = jest.fn();
+const mockStackTitle = jest.fn();
 const mockHasTopicExplanation = jest.mocked(hasTopicExplanation);
 const mockRefreshLanguage = jest.fn().mockResolvedValue(undefined);
-const mockGetSettings = jest.fn().mockResolvedValue({ language: 'en' });
 const mockGetProgress = jest.fn().mockResolvedValue({ topicProgress: {} });
 const mockHasSeenLevelHint = jest.fn().mockResolvedValue(true);
 const mockMarkLevelHintSeen = jest.fn().mockResolvedValue(undefined);
 
 jest.mock('expo-router', () => ({
+  Stack: jest
+    .requireActual<
+      typeof import('../../../test/expo-router-stack')
+    >('../../../test/expo-router-stack')
+    .createMockExpoRouterStack({
+      onTitle: (props) => mockStackTitle(props),
+    }),
   useFocusEffect: (callback: () => void) => {
     const ReactModule = jest.requireActual<typeof import('react')>('react');
     ReactModule.useEffect(() => {
@@ -21,9 +27,6 @@ jest.mock('expo-router', () => ({
       return cleanup;
     }, [callback]);
   },
-  useNavigation: () => ({
-    setOptions: mockSetOptions,
-  }),
   useLocalSearchParams: () => ({
     topicId: 'variables',
   }),
@@ -100,13 +103,13 @@ jest.mock('@/lib/topics', () => ({
       de: 'let, const Deklarationen',
     },
   }),
+  getCategoryName: () => 'Fundamentals',
   getTopicName: () => 'Variables',
   getTopicDescription: () => 'let, const declarations',
 }));
 
 jest.mock('@/lib/storage', () => ({
   storage: {
-    getSettings: (...args: unknown[]) => mockGetSettings(...args),
     getProgress: (...args: unknown[]) => mockGetProgress(...args),
     hasSeenLevelHint: (...args: unknown[]) => mockHasSeenLevelHint(...args),
     markLevelHintSeen: (...args: unknown[]) => mockMarkLevelHintSeen(...args),
@@ -118,7 +121,11 @@ jest.mock('@/contexts/ProgrammingLanguageContext', () => ({
   useProgrammingLanguage: () => ({
     selectedLanguage: {
       id: 'javascript',
-      categories: [],
+      categories: [
+        {
+          id: 'fundamentals',
+        },
+      ],
     },
   }),
 }));
@@ -136,10 +143,9 @@ describe('TopicDetailScreen integration', () => {
   beforeEach(() => {
     consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
     mockPush.mockReset();
-    mockSetOptions.mockReset();
+    mockStackTitle.mockReset();
     mockHasTopicExplanation.mockReset();
     mockRefreshLanguage.mockClear();
-    mockGetSettings.mockClear();
     mockGetProgress.mockClear();
     mockHasSeenLevelHint.mockClear();
     mockMarkLevelHintSeen.mockClear();
@@ -160,6 +166,9 @@ describe('TopicDetailScreen integration', () => {
     await waitFor(() => {
       expect(screen.getByText('Variables')).toBeTruthy();
     });
+    expect(mockStackTitle).toHaveBeenCalledWith(
+      expect.objectContaining({ children: 'Fundamentals' })
+    );
 
     const explainButton = screen.getByTestId('topic-explain-button');
 

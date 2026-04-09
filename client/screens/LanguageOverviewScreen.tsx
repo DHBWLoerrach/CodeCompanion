@@ -202,7 +202,7 @@ export default function LanguageOverviewScreen() {
 
   return (
     <>
-      <Stack.Screen options={{ title: languageName }} />
+      <Stack.Screen.Title>{languageName}</Stack.Screen.Title>
       <ThemedView style={styles.container}>
         <ScrollView
           style={styles.scrollView}

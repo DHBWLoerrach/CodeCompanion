@@ -1,14 +1,12 @@
 import React, { useCallback } from 'react';
-import { Stack, useFocusEffect, useRouter } from 'expo-router';
+import { Stack, useFocusEffect } from 'expo-router';
 
-import { HeaderIconButton } from '@/components/HeaderIconButton';
 import { useTheme } from '@/contexts/ThemeContext';
 import { useTranslation } from '@/hooks/useTranslation';
 
 export default function PracticeStack() {
   const { theme } = useTheme();
-  const { t, refreshLanguage } = useTranslation();
-  const router = useRouter();
+  const { refreshLanguage } = useTranslation();
 
   useFocusEffect(
     useCallback(() => {
@@ -25,21 +23,7 @@ export default function PracticeStack() {
         headerStyle: { backgroundColor: theme.backgroundRoot },
       }}
     >
-      <Stack.Screen
-        name="index"
-        options={{
-          title: t('practice'),
-          headerRight: () => (
-            <HeaderIconButton
-              icon="settings"
-              testID="open-settings-button"
-              onPress={() => router.push('/settings')}
-              hitSlop={8}
-              color={theme.tabIconDefault}
-            />
-          ),
-        }}
-      />
+      <Stack.Screen name="index" />
     </Stack>
   );
 }

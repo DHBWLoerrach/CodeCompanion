@@ -177,11 +177,11 @@ export default function InfoModalScreen() {
     <>
       <Stack.Screen
         options={{
-          title,
           headerLeft: () => <HeaderIconButton icon="x" onPress={handleClose} />,
-          headerBackVisible: false,
         }}
       />
+      <Stack.Screen.Title>{title}</Stack.Screen.Title>
+      <Stack.Screen.BackButton hidden />
       <ThemedView style={styles.container}>
         <ScrollView
           style={styles.scrollView}

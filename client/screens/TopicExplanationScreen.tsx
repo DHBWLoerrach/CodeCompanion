@@ -164,12 +164,13 @@ export default function TopicExplanationScreen() {
     <>
       <Stack.Screen
         options={{
-          title,
           headerLeft: router.canGoBack()
             ? undefined
             : () => <HeaderIconButton icon="x" onPress={handleClose} />,
         }}
       />
+      <Stack.Screen.Title>{title}</Stack.Screen.Title>
+      <Stack.Screen.BackButton hidden={!router.canGoBack()} />
       <ThemedView style={styles.container}>
         <ScrollView
           style={styles.scrollView}

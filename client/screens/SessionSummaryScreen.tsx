@@ -230,7 +230,8 @@ export default function SessionSummaryScreen() {
 
   return (
     <>
-      <Stack.Screen options={{ title: t('sessionComplete') }} />
+      <Stack.Screen.Title>{t('sessionComplete')}</Stack.Screen.Title>
+      <Stack.Screen.BackButton hidden />
       <ThemedView style={styles.container}>
         <ScrollView
           style={styles.scrollView}

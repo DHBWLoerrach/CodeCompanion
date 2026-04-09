@@ -7,6 +7,7 @@ const mockBack = jest.fn();
 const mockPush = jest.fn();
 const mockRefreshTheme = jest.fn();
 const mockRefreshLanguage = jest.fn();
+const mockStackTitle = jest.fn();
 const mockStorage = {
   getProfile: jest.fn(),
   getSettings: jest.fn(),
@@ -16,7 +17,13 @@ const mockStorage = {
 };
 
 jest.mock('expo-router', () => ({
-  Stack: { Screen: () => null },
+  Stack: jest
+    .requireActual<
+      typeof import('../../../test/expo-router-stack')
+    >('../../../test/expo-router-stack')
+    .createMockExpoRouterStack({
+      onTitle: (props) => mockStackTitle(props),
+    }),
   useRouter: () => ({
     back: mockBack,
     push: mockPush,
@@ -143,6 +150,7 @@ describe('SettingsScreen integration', () => {
     mockPush.mockReset();
     mockRefreshTheme.mockReset();
     mockRefreshLanguage.mockReset();
+    mockStackTitle.mockReset();
     mockStorage.getProfile.mockReset();
     mockStorage.getSettings.mockReset();
     mockStorage.setProfile.mockReset();
@@ -169,6 +177,9 @@ describe('SettingsScreen integration', () => {
     await waitFor(() => {
       expect(screen.getByText('changeTechnology')).toBeTruthy();
     });
+    expect(mockStackTitle).toHaveBeenCalledWith(
+      expect.objectContaining({ children: 'settings' })
+    );
 
     fireEvent.press(screen.getByText('changeTechnology'));
 
@@ -188,7 +199,7 @@ describe('SettingsScreen integration', () => {
     fireEvent.press(infoButton);
 
     expect(mockPush).toHaveBeenCalledWith({
-      pathname: '/language-overview',
+      pathname: './language-overview',
       params: {
         languageId: 'javascript',
         mode: 'view',

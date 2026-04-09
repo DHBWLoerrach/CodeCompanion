@@ -13,34 +13,17 @@ import { LanguageProvider } from '@/contexts/LanguageContext';
 import { ProgrammingLanguageProvider } from '@/contexts/ProgrammingLanguageContext';
 import { ThemedStatusBar } from '@/components/ThemedStatusBar';
 import { useScreenOptions } from '@/hooks/useScreenOptions';
-import { useTranslation } from '@/hooks/useTranslation';
-import { getLanguageFlowOrigin } from '@/lib/language-flow';
 
 function RootStack() {
   const screenOptions = useScreenOptions();
-  const { t } = useTranslation();
 
   return (
     <Stack screenOptions={screenOptions}>
       <Stack.Screen name="index" options={{ headerShown: false }} />
       <Stack.Screen name="welcome" options={{ headerShown: false }} />
-      <Stack.Screen
-        name="language-select"
-        options={({ route }) => {
-          const canNavigateBack =
-            getLanguageFlowOrigin(
-              (route.params as { origin?: string } | undefined)?.origin
-            ) === 'settings';
-
-          return {
-            title: t('selectTechnology'),
-            headerBackVisible: canNavigateBack,
-            gestureEnabled: canNavigateBack,
-          };
-        }}
-      />
-      <Stack.Screen name="language-overview" options={{ title: '' }} />
-      <Stack.Screen name="(tabs)" options={{ headerShown: false, title: '' }} />
+      <Stack.Screen name="language-select" />
+      <Stack.Screen name="language-overview" />
+      <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
       <Stack.Screen
         name="quiz-session"
         options={{
@@ -53,7 +36,6 @@ function RootStack() {
         options={{
           presentation: 'modal',
           gestureEnabled: false,
-          headerBackVisible: false,
         }}
       />
       <Stack.Screen
@@ -63,7 +45,7 @@ function RootStack() {
         }}
       />
       <Stack.Screen name="settings" />
-      <Stack.Screen name="topic/[topicId]" options={{ title: '' }} />
+      <Stack.Screen name="topic/[topicId]" />
     </Stack>
   );
 }

@@ -2,8 +2,8 @@ import React, { useState, useCallback, useEffect } from 'react';
 import { View, ScrollView, StyleSheet, Pressable } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import {
+  Stack,
   useFocusEffect,
-  useNavigation,
   useLocalSearchParams,
   useRouter,
 } from 'expo-router';
@@ -34,7 +34,6 @@ import {
   getTopicById,
   getTopicName,
   getTopicDescription,
-  type Topic,
 } from '@/lib/topics';
 import { getParam } from '@/lib/router-utils';
 import { storage, type TopicProgress, isTopicDue } from '@/lib/storage';
@@ -44,15 +43,22 @@ export default function TopicDetailScreen() {
   const { theme } = useTheme();
   const { t, language, refreshLanguage } = useTranslation();
   const insets = useSafeAreaInsets();
-  const navigation = useNavigation();
   const router = useRouter();
   const { selectedLanguage } = useProgrammingLanguage();
   const languageId = selectedLanguage?.id ?? 'javascript';
   const categories = selectedLanguage?.categories;
   const { topicId } = useLocalSearchParams<{ topicId?: string }>();
   const resolvedTopicId = getParam(topicId);
+  const topic = resolvedTopicId
+    ? getTopicById(resolvedTopicId, categories ?? [])
+    : null;
+  const currentCategory = categories?.find(
+    (category) => category.id === topic?.category
+  );
+  const headerTitle = currentCategory
+    ? getCategoryName(currentCategory, language)
+    : '';
 
-  const [topic, setTopic] = useState<Topic | null>(null);
   const [progress, setProgress] = useState<TopicProgress | null>(null);
   const [loading, setLoading] = useState(true);
   const [levelHintSeen, setLevelHintSeen] = useState<boolean | null>(null);
@@ -67,67 +73,42 @@ export default function TopicDetailScreen() {
     handlePressOut: handleExplainPressOut,
   } = usePressAnimation(0.98);
 
-  const loadData = useCallback(
-    async (activeLanguage: 'en' | 'de' = language) => {
-      try {
-        setLevelHintSeen(null);
-        setIsLevelInfoVisible(false);
-        setIsLevelInfoMounted(false);
-        setHasAutoExpandedLevelHint(false);
+  const loadData = useCallback(async () => {
+    try {
+      setLevelHintSeen(null);
+      setIsLevelInfoVisible(false);
+      setIsLevelInfoMounted(false);
+      setHasAutoExpandedLevelHint(false);
 
-        if (!resolvedTopicId) {
-          setTopic(null);
-          setProgress(null);
-          navigation.setOptions({ headerTitle: '' });
-          return;
-        }
-
-        const topicData = getTopicById(resolvedTopicId, categories ?? []);
-        setTopic(topicData || null);
-        const parentCategory = categories?.find(
-          (c) => c.id === topicData?.category
-        );
-        navigation.setOptions({
-          headerTitle: parentCategory
-            ? getCategoryName(parentCategory, activeLanguage)
-            : '',
-        });
-
-        const progressData = await storage.getProgress();
-        const seenLevelHint = await storage.hasSeenLevelHint();
-        const compositeKey = `${languageId}:${resolvedTopicId}`;
-        setProgress(progressData.topicProgress[compositeKey] || null);
-        setLevelHintSeen(seenLevelHint);
-      } catch (error) {
-        console.error('Error loading topic:', error);
-      } finally {
-        setLoading(false);
+      if (!resolvedTopicId) {
+        setProgress(null);
+        return;
       }
-    },
-    [resolvedTopicId, navigation, language, categories, languageId]
-  );
+
+      const progressData = await storage.getProgress();
+      const seenLevelHint = await storage.hasSeenLevelHint();
+      const compositeKey = `${languageId}:${resolvedTopicId}`;
+      setProgress(progressData.topicProgress[compositeKey] || null);
+      setLevelHintSeen(seenLevelHint);
+    } catch (error) {
+      console.error('Error loading topic:', error);
+    } finally {
+      setLoading(false);
+    }
+  }, [resolvedTopicId, languageId]);
 
   useFocusEffect(
     useCallback(() => {
       let isActive = true;
 
       const refreshAndLoad = async () => {
-        let resolvedLanguage = language;
-
-        try {
-          const settings = await storage.getSettings();
-          resolvedLanguage = settings.language;
-        } catch {
-          resolvedLanguage = language;
-        }
-
         try {
           await refreshLanguage();
         } catch (error) {
           console.error('Error refreshing language:', error);
         }
         if (!isActive) return;
-        await loadData(resolvedLanguage);
+        await loadData();
       };
 
       refreshAndLoad();
@@ -135,7 +116,7 @@ export default function TopicDetailScreen() {
       return () => {
         isActive = false;
       };
-    }, [refreshLanguage, loadData, language])
+    }, [refreshLanguage, loadData])
   );
 
   useEffect(() => {
@@ -188,15 +169,23 @@ export default function TopicDetailScreen() {
   };
 
   if (loading) {
-    return <LoadingScreen />;
+    return (
+      <>
+        <Stack.Screen.Title>{headerTitle}</Stack.Screen.Title>
+        <LoadingScreen />
+      </>
+    );
   }
 
   if (!topic) {
     return (
-      <ThemedView style={styles.errorContainer}>
-        <AppIcon name="alert-circle" size={48} color={theme.error} />
-        <ThemedText type="body">{t('topicNotFound')}</ThemedText>
-      </ThemedView>
+      <>
+        <Stack.Screen.Title>{headerTitle}</Stack.Screen.Title>
+        <ThemedView style={styles.errorContainer}>
+          <AppIcon name="alert-circle" size={48} color={theme.error} />
+          <ThemedText type="body">{t('topicNotFound')}</ThemedText>
+        </ThemedView>
+      </>
     );
   }
 
@@ -223,9 +212,6 @@ export default function TopicDetailScreen() {
     const lastSpace = truncated.lastIndexOf(' ');
     return (lastSpace > 0 ? truncated.slice(0, lastSpace) : truncated) + '...';
   })();
-  const currentCategory = categories?.find(
-    (category) => category.id === topic.category
-  );
   const categoryLabel = currentCategory
     ? getCategoryName(currentCategory, language)
     : t('topic');
@@ -254,382 +240,415 @@ export default function TopicDetailScreen() {
   const heroAccent = selectedLanguage?.color ?? theme.primary;
 
   return (
-    <ThemedView style={styles.container}>
-      <ScrollView
-        style={styles.scrollView}
-        contentInsetAdjustmentBehavior="automatic"
-        contentContainerStyle={[
-          styles.scrollContent,
-          {
-            paddingTop: Spacing.sm,
-            paddingBottom: usesFloatingActionBar
-              ? getBottomActionBarScrollPadding({
-                  safeAreaBottom: insets.bottom,
-                })
-              : Spacing['2xl'],
-          },
-        ]}
-        showsVerticalScrollIndicator={false}
-      >
-        <SurfaceCard
-          style={styles.heroCard}
-          borderColor={theme.cardBorderSubtle}
-          topAccentColor={heroAccent}
+    <>
+      <Stack.Screen.Title>{headerTitle}</Stack.Screen.Title>
+      <ThemedView style={styles.container}>
+        <ScrollView
+          style={styles.scrollView}
+          contentInsetAdjustmentBehavior="automatic"
+          contentContainerStyle={[
+            styles.scrollContent,
+            {
+              paddingTop: Spacing.sm,
+              paddingBottom: usesFloatingActionBar
+                ? getBottomActionBarScrollPadding({
+                    safeAreaBottom: insets.bottom,
+                  })
+                : Spacing['2xl'],
+            },
+          ]}
+          showsVerticalScrollIndicator={false}
         >
-          <View style={styles.heroTopRow}>
-            <StatusBadge
-              color={topicStatus.color}
-              icon={topicStatus.icon}
-              label={topicStatus.label}
-            />
-          </View>
-
-          <View style={styles.heroBody}>
-            <View
-              style={[
-                styles.topicIconCompact,
-                { backgroundColor: withOpacity(heroAccent, 0.125) },
-              ]}
-            >
-              <AppIcon name="code" size={28} color={heroAccent} />
+          <SurfaceCard
+            style={styles.heroCard}
+            borderColor={theme.cardBorderSubtle}
+            topAccentColor={heroAccent}
+          >
+            <View style={styles.heroTopRow}>
+              <StatusBadge
+                color={topicStatus.color}
+                icon={topicStatus.icon}
+                label={topicStatus.label}
+              />
             </View>
-            <View style={styles.heroTextColumn}>
-              <ThemedText
-                type="small"
-                numberOfLines={1}
-                style={{ color: theme.tabIconDefault, fontWeight: '600' }}
-              >
-                {categoryLabel}
-              </ThemedText>
-              <ThemedText type="h2" style={styles.heroTitle}>
-                {displayName}
-              </ThemedText>
-              <ThemedText
-                type="body"
-                numberOfLines={3}
-                ellipsizeMode="tail"
-                style={[
-                  styles.heroDescription,
-                  { color: theme.tabIconDefault },
-                ]}
-              >
-                {displayDescription}
-              </ThemedText>
-            </View>
-          </View>
 
-          {!hasProgress ? (
-            <View style={styles.metaGrid}>
+            <View style={styles.heroBody}>
               <View
                 style={[
-                  styles.metaCard,
-                  { backgroundColor: theme.backgroundSecondary },
+                  styles.topicIconCompact,
+                  { backgroundColor: withOpacity(heroAccent, 0.125) },
                 ]}
               >
-                <ThemedText
-                  type="h4"
-                  style={[styles.metaValue, { color: theme.text }]}
-                >
-                  {quizQuestionCount}
-                </ThemedText>
+                <AppIcon name="code" size={28} color={heroAccent} />
+              </View>
+              <View style={styles.heroTextColumn}>
                 <ThemedText
                   type="small"
-                  style={[styles.metaLabel, { color: theme.tabIconDefault }]}
+                  numberOfLines={1}
+                  style={{ color: theme.tabIconDefault, fontWeight: '600' }}
                 >
-                  {t('questionsShort')}
+                  {categoryLabel}
+                </ThemedText>
+                <ThemedText type="h2" style={styles.heroTitle}>
+                  {displayName}
+                </ThemedText>
+                <ThemedText
+                  type="body"
+                  numberOfLines={3}
+                  ellipsizeMode="tail"
+                  style={[
+                    styles.heroDescription,
+                    { color: theme.tabIconDefault },
+                  ]}
+                >
+                  {displayDescription}
                 </ThemedText>
               </View>
-              <View
-                style={[
-                  styles.metaCard,
-                  { backgroundColor: theme.backgroundSecondary },
-                ]}
-              >
-                <ThemedText
-                  type="h4"
-                  style={[styles.metaValue, { color: theme.text }]}
+            </View>
+
+            {!hasProgress ? (
+              <View style={styles.metaGrid}>
+                <View
+                  style={[
+                    styles.metaCard,
+                    { backgroundColor: theme.backgroundSecondary },
+                  ]}
                 >
-                  {currentSkillLevel}/5
-                </ThemedText>
-                <SkillLevelDots
-                  level={currentSkillLevel as 1 | 2 | 3 | 4 | 5}
-                  color={topicStatus.color}
-                />
-                <View style={styles.levelLabelRow}>
+                  <ThemedText
+                    type="h4"
+                    style={[styles.metaValue, { color: theme.text }]}
+                  >
+                    {quizQuestionCount}
+                  </ThemedText>
                   <ThemedText
                     type="small"
                     style={[styles.metaLabel, { color: theme.tabIconDefault }]}
                   >
-                    {t('level')}
+                    {t('questionsShort')}
                   </ThemedText>
-                  <Pressable
-                    testID="topic-level-info-button"
-                    accessibilityRole="button"
-                    accessibilityLabel={t('levelInfoButtonLabel')}
-                    hitSlop={8}
-                    onPress={handleToggleLevelInfo}
-                    style={styles.levelInfoButton}
-                  >
-                    <AppIcon
-                      name="info"
-                      size={14}
-                      color={theme.tabIconDefault}
-                    />
-                  </Pressable>
                 </View>
-                {isLevelInfoMounted ? (
-                  <EaseView
-                    initialAnimate={{ opacity: 0 }}
-                    animate={{ opacity: isLevelInfoVisible ? 1 : 0 }}
-                    transition={{
-                      type: 'timing',
-                      duration: isLevelInfoVisible ? 160 : 140,
-                      easing: [0.455, 0.03, 0.515, 0.955],
-                    }}
-                    onTransitionEnd={({ finished }: { finished: boolean }) => {
-                      if (finished && !isLevelInfoVisible) {
-                        setIsLevelInfoMounted(false);
-                      }
-                    }}
+                <View
+                  style={[
+                    styles.metaCard,
+                    { backgroundColor: theme.backgroundSecondary },
+                  ]}
+                >
+                  <ThemedText
+                    type="h4"
+                    style={[styles.metaValue, { color: theme.text }]}
                   >
+                    {currentSkillLevel}/5
+                  </ThemedText>
+                  <SkillLevelDots
+                    level={currentSkillLevel as 1 | 2 | 3 | 4 | 5}
+                    color={topicStatus.color}
+                  />
+                  <View style={styles.levelLabelRow}>
                     <ThemedText
-                      testID="topic-level-info-text"
-                      type="caption"
+                      type="small"
                       style={[
-                        styles.levelInfoText,
+                        styles.metaLabel,
                         { color: theme.tabIconDefault },
                       ]}
                     >
-                      {t('levelInfoText')}
+                      {t('level')}
                     </ThemedText>
-                  </EaseView>
-                ) : null}
-              </View>
-            </View>
-          ) : null}
-        </SurfaceCard>
-
-        <EaseView
-          animate={canExplainTopic ? explainAnimate : undefined}
-          transition={canExplainTopic ? explainTransition : undefined}
-        >
-          <SurfaceCard
-            style={styles.explanationCard}
-            borderColor={theme.cardBorderSubtle}
-          >
-            <Pressable
-              testID="topic-explain-button"
-              accessibilityState={{ disabled: !canExplainTopic }}
-              disabled={!canExplainTopic}
-              onPress={canExplainTopic ? handleExplainTopic : undefined}
-              onPressIn={canExplainTopic ? handleExplainPressIn : undefined}
-              onPressOut={canExplainTopic ? handleExplainPressOut : undefined}
-              style={styles.explanationAction}
-            >
-              <View style={styles.secondaryActionContent}>
-                <View
-                  style={[
-                    styles.secondaryActionIconWrap,
-                    {
-                      backgroundColor: canExplainTopic
-                        ? withOpacity(theme.secondary, 0.12)
-                        : theme.backgroundSecondary,
-                    },
-                  ]}
-                >
-                  <AppIcon
-                    name="book-open"
-                    size={18}
-                    color={
-                      canExplainTopic ? theme.secondary : theme.tabIconDefault
-                    }
-                  />
-                </View>
-                <View style={styles.secondaryActionText}>
-                  <ThemedText
-                    type="label"
-                    style={{
-                      color: canExplainTopic
-                        ? theme.text
-                        : theme.tabIconDefault,
-                    }}
-                  >
-                    {t('topicExplanation')}
-                  </ThemedText>
-                  <ThemedText
-                    type="small"
-                    numberOfLines={5}
-                    style={{ color: theme.tabIconDefault }}
-                  >
-                    {explanationPreview ?? t('explanationUnavailable')}
-                  </ThemedText>
+                    <Pressable
+                      testID="topic-level-info-button"
+                      accessibilityRole="button"
+                      accessibilityLabel={t('levelInfoButtonLabel')}
+                      hitSlop={8}
+                      onPress={handleToggleLevelInfo}
+                      style={styles.levelInfoButton}
+                    >
+                      <AppIcon
+                        name="info"
+                        size={14}
+                        color={theme.tabIconDefault}
+                      />
+                    </Pressable>
+                  </View>
+                  {isLevelInfoMounted ? (
+                    <EaseView
+                      initialAnimate={{ opacity: 0 }}
+                      animate={{ opacity: isLevelInfoVisible ? 1 : 0 }}
+                      transition={{
+                        type: 'timing',
+                        duration: isLevelInfoVisible ? 160 : 140,
+                        easing: [0.455, 0.03, 0.515, 0.955],
+                      }}
+                      onTransitionEnd={({
+                        finished,
+                      }: {
+                        finished: boolean;
+                      }) => {
+                        if (finished && !isLevelInfoVisible) {
+                          setIsLevelInfoMounted(false);
+                        }
+                      }}
+                    >
+                      <ThemedText
+                        testID="topic-level-info-text"
+                        type="caption"
+                        style={[
+                          styles.levelInfoText,
+                          { color: theme.tabIconDefault },
+                        ]}
+                      >
+                        {t('levelInfoText')}
+                      </ThemedText>
+                    </EaseView>
+                  ) : null}
                 </View>
               </View>
-              <AppIcon
-                name={canExplainTopic ? 'chevron-right' : 'lock'}
-                size={16}
-                color={canExplainTopic ? theme.secondary : theme.tabIconDefault}
-              />
-            </Pressable>
+            ) : null}
           </SurfaceCard>
-        </EaseView>
 
-        {hasProgress ? (
-          <SurfaceCard
-            style={styles.stateCard}
-            borderColor={theme.cardBorderSubtle}
+          <EaseView
+            animate={canExplainTopic ? explainAnimate : undefined}
+            transition={canExplainTopic ? explainTransition : undefined}
           >
-            <View style={styles.stateHeader}>
-              <View style={styles.stateHeaderText}>
-                <ThemedText type="label">{t('yourProgress')}</ThemedText>
-                <ThemedText
-                  type="small"
-                  style={{ color: theme.tabIconDefault }}
-                >
-                  {t('lastActivity')}: {lastActivityLabel}
-                </ThemedText>
-              </View>
-            </View>
-
-            <View style={styles.progressHeroRow}>
-              <View style={styles.progressMetricBlock}>
-                <ThemedText
-                  type="h1"
-                  style={[styles.progressMetricValue, { color: theme.accent }]}
-                >
-                  {accuracy}%
-                </ThemedText>
-                <ThemedText
-                  type="small"
-                  style={{ color: theme.tabIconDefault }}
-                >
-                  {t('accuracy')}
-                </ThemedText>
-              </View>
-              <View style={styles.progressLevelBlock}>
-                <ThemedText
-                  type="h3"
-                  style={{ color: theme.text, fontWeight: '700' }}
-                >
-                  {currentSkillLevel}/5
-                </ThemedText>
-                <View style={styles.levelLabelRow}>
-                  <ThemedText
-                    type="small"
-                    style={{ color: theme.tabIconDefault }}
-                  >
-                    {t('level')}
-                  </ThemedText>
-                  <Pressable
-                    testID="topic-level-info-button"
-                    accessibilityRole="button"
-                    accessibilityLabel={t('levelInfoButtonLabel')}
-                    hitSlop={8}
-                    onPress={handleToggleLevelInfo}
-                    style={styles.levelInfoButton}
+            <SurfaceCard
+              style={styles.explanationCard}
+              borderColor={theme.cardBorderSubtle}
+            >
+              <Pressable
+                testID="topic-explain-button"
+                accessibilityState={{ disabled: !canExplainTopic }}
+                disabled={!canExplainTopic}
+                onPress={canExplainTopic ? handleExplainTopic : undefined}
+                onPressIn={canExplainTopic ? handleExplainPressIn : undefined}
+                onPressOut={canExplainTopic ? handleExplainPressOut : undefined}
+                style={styles.explanationAction}
+              >
+                <View style={styles.secondaryActionContent}>
+                  <View
+                    style={[
+                      styles.secondaryActionIconWrap,
+                      {
+                        backgroundColor: canExplainTopic
+                          ? withOpacity(theme.secondary, 0.12)
+                          : theme.backgroundSecondary,
+                      },
+                    ]}
                   >
                     <AppIcon
-                      name="info"
-                      size={14}
-                      color={theme.tabIconDefault}
+                      name="book-open"
+                      size={18}
+                      color={
+                        canExplainTopic ? theme.secondary : theme.tabIconDefault
+                      }
                     />
-                  </Pressable>
+                  </View>
+                  <View style={styles.secondaryActionText}>
+                    <ThemedText
+                      type="label"
+                      style={{
+                        color: canExplainTopic
+                          ? theme.text
+                          : theme.tabIconDefault,
+                      }}
+                    >
+                      {t('topicExplanation')}
+                    </ThemedText>
+                    <ThemedText
+                      type="small"
+                      numberOfLines={5}
+                      style={{ color: theme.tabIconDefault }}
+                    >
+                      {explanationPreview ?? t('explanationUnavailable')}
+                    </ThemedText>
+                  </View>
+                </View>
+                <AppIcon
+                  name={canExplainTopic ? 'chevron-right' : 'lock'}
+                  size={16}
+                  color={
+                    canExplainTopic ? theme.secondary : theme.tabIconDefault
+                  }
+                />
+              </Pressable>
+            </SurfaceCard>
+          </EaseView>
+
+          {hasProgress ? (
+            <SurfaceCard
+              style={styles.stateCard}
+              borderColor={theme.cardBorderSubtle}
+            >
+              <View style={styles.stateHeader}>
+                <View style={styles.stateHeaderText}>
+                  <ThemedText type="label">{t('yourProgress')}</ThemedText>
+                  <ThemedText
+                    type="small"
+                    style={{ color: theme.tabIconDefault }}
+                  >
+                    {t('lastActivity')}: {lastActivityLabel}
+                  </ThemedText>
                 </View>
               </View>
-            </View>
 
-            {isLevelInfoMounted ? (
-              <EaseView
-                initialAnimate={{ opacity: 0 }}
-                animate={{ opacity: isLevelInfoVisible ? 1 : 0 }}
-                transition={{
-                  type: 'timing',
-                  duration: isLevelInfoVisible ? 160 : 140,
-                  easing: [0.455, 0.03, 0.515, 0.955],
-                }}
-                onTransitionEnd={({ finished }: { finished: boolean }) => {
-                  if (finished && !isLevelInfoVisible) {
-                    setIsLevelInfoMounted(false);
-                  }
-                }}
+              <View style={styles.progressHeroRow}>
+                <View style={styles.progressMetricBlock}>
+                  <ThemedText
+                    type="h1"
+                    style={[
+                      styles.progressMetricValue,
+                      { color: theme.accent },
+                    ]}
+                  >
+                    {accuracy}%
+                  </ThemedText>
+                  <ThemedText
+                    type="small"
+                    style={{ color: theme.tabIconDefault }}
+                  >
+                    {t('accuracy')}
+                  </ThemedText>
+                </View>
+                <View style={styles.progressLevelBlock}>
+                  <ThemedText
+                    type="h3"
+                    style={{ color: theme.text, fontWeight: '700' }}
+                  >
+                    {currentSkillLevel}/5
+                  </ThemedText>
+                  <View style={styles.levelLabelRow}>
+                    <ThemedText
+                      type="small"
+                      style={{ color: theme.tabIconDefault }}
+                    >
+                      {t('level')}
+                    </ThemedText>
+                    <Pressable
+                      testID="topic-level-info-button"
+                      accessibilityRole="button"
+                      accessibilityLabel={t('levelInfoButtonLabel')}
+                      hitSlop={8}
+                      onPress={handleToggleLevelInfo}
+                      style={styles.levelInfoButton}
+                    >
+                      <AppIcon
+                        name="info"
+                        size={14}
+                        color={theme.tabIconDefault}
+                      />
+                    </Pressable>
+                  </View>
+                </View>
+              </View>
+
+              {isLevelInfoMounted ? (
+                <EaseView
+                  initialAnimate={{ opacity: 0 }}
+                  animate={{ opacity: isLevelInfoVisible ? 1 : 0 }}
+                  transition={{
+                    type: 'timing',
+                    duration: isLevelInfoVisible ? 160 : 140,
+                    easing: [0.455, 0.03, 0.515, 0.955],
+                  }}
+                  onTransitionEnd={({ finished }: { finished: boolean }) => {
+                    if (finished && !isLevelInfoVisible) {
+                      setIsLevelInfoMounted(false);
+                    }
+                  }}
+                >
+                  <ThemedText
+                    testID="topic-level-info-text"
+                    type="caption"
+                    style={[
+                      styles.levelInfoText,
+                      { color: theme.tabIconDefault },
+                    ]}
+                  >
+                    {t('levelInfoText')}
+                  </ThemedText>
+                </EaseView>
+              ) : null}
+
+              <View
+                style={[
+                  styles.skillTrack,
+                  { backgroundColor: theme.backgroundSecondary },
+                ]}
               >
-                <ThemedText
-                  testID="topic-level-info-text"
-                  type="caption"
+                <View
                   style={[
-                    styles.levelInfoText,
-                    { color: theme.tabIconDefault },
+                    styles.skillFill,
+                    {
+                      backgroundColor: topicStatus.color,
+                      width: `${skillProgress}%`,
+                    },
+                  ]}
+                />
+              </View>
+
+              <View testID="topic-progress-stats" style={styles.statStrip}>
+                <View
+                  style={[
+                    styles.statSegment,
+                    { backgroundColor: theme.backgroundSecondary },
                   ]}
                 >
-                  {t('levelInfoText')}
-                </ThemedText>
-              </EaseView>
-            ) : null}
+                  <ThemedText
+                    type="h3"
+                    style={[styles.segmentValue, { color: theme.secondary }]}
+                  >
+                    {questionsAnswered}
+                  </ThemedText>
+                  <ThemedText
+                    type="small"
+                    numberOfLines={1}
+                    style={[
+                      styles.segmentLabel,
+                      { color: theme.tabIconDefault },
+                    ]}
+                  >
+                    {t('questionsShort')}
+                  </ThemedText>
+                </View>
+                <View
+                  style={[
+                    styles.statSegment,
+                    { backgroundColor: theme.backgroundSecondary },
+                  ]}
+                >
+                  <ThemedText
+                    type="h3"
+                    style={[styles.segmentValue, { color: theme.success }]}
+                  >
+                    {correctAnswers}
+                  </ThemedText>
+                  <ThemedText
+                    type="small"
+                    numberOfLines={1}
+                    style={[
+                      styles.segmentLabel,
+                      { color: theme.tabIconDefault },
+                    ]}
+                  >
+                    {t('correctShort')}
+                  </ThemedText>
+                </View>
+              </View>
+            </SurfaceCard>
+          ) : null}
 
-            <View
-              style={[
-                styles.skillTrack,
-                { backgroundColor: theme.backgroundSecondary },
-              ]}
-            >
-              <View
-                style={[
-                  styles.skillFill,
-                  {
-                    backgroundColor: topicStatus.color,
-                    width: `${skillProgress}%`,
-                  },
-                ]}
+          {!usesFloatingActionBar ? (
+            <View style={styles.inlineActionWrap}>
+              <PrimaryButton
+                testID="topic-start-quiz-button"
+                color={theme.secondary}
+                icon="play"
+                label={t('startQuiz')}
+                onPress={handleStartQuiz}
               />
             </View>
+          ) : null}
+        </ScrollView>
 
-            <View testID="topic-progress-stats" style={styles.statStrip}>
-              <View
-                style={[
-                  styles.statSegment,
-                  { backgroundColor: theme.backgroundSecondary },
-                ]}
-              >
-                <ThemedText
-                  type="h3"
-                  style={[styles.segmentValue, { color: theme.secondary }]}
-                >
-                  {questionsAnswered}
-                </ThemedText>
-                <ThemedText
-                  type="small"
-                  numberOfLines={1}
-                  style={[styles.segmentLabel, { color: theme.tabIconDefault }]}
-                >
-                  {t('questionsShort')}
-                </ThemedText>
-              </View>
-              <View
-                style={[
-                  styles.statSegment,
-                  { backgroundColor: theme.backgroundSecondary },
-                ]}
-              >
-                <ThemedText
-                  type="h3"
-                  style={[styles.segmentValue, { color: theme.success }]}
-                >
-                  {correctAnswers}
-                </ThemedText>
-                <ThemedText
-                  type="small"
-                  numberOfLines={1}
-                  style={[styles.segmentLabel, { color: theme.tabIconDefault }]}
-                >
-                  {t('correctShort')}
-                </ThemedText>
-              </View>
-            </View>
-          </SurfaceCard>
-        ) : null}
-
-        {!usesFloatingActionBar ? (
-          <View style={styles.inlineActionWrap}>
+        {usesFloatingActionBar ? (
+          <BottomActionBar>
             <PrimaryButton
               testID="topic-start-quiz-button"
               color={theme.secondary}
@@ -637,22 +656,10 @@ export default function TopicDetailScreen() {
               label={t('startQuiz')}
               onPress={handleStartQuiz}
             />
-          </View>
+          </BottomActionBar>
         ) : null}
-      </ScrollView>
-
-      {usesFloatingActionBar ? (
-        <BottomActionBar>
-          <PrimaryButton
-            testID="topic-start-quiz-button"
-            color={theme.secondary}
-            icon="play"
-            label={t('startQuiz')}
-            onPress={handleStartQuiz}
-          />
-        </BottomActionBar>
-      ) : null}
-    </ThemedView>
+      </ThemedView>
+    </>
   );
 }
 

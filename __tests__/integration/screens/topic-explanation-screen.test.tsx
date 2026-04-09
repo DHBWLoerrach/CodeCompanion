@@ -4,10 +4,19 @@ import TopicExplanationScreen from '@/screens/TopicExplanationScreen';
 import { getTopicExplanation } from '@shared/explanations';
 
 const mockTranslate = (key: string) => key;
+const mockStackTitle = jest.fn();
+const mockStackBackButton = jest.fn();
 let mockSearchParams: { topicId?: string; programmingLanguage?: string } = {};
 
 jest.mock('expo-router', () => ({
-  Stack: { Screen: () => null },
+  Stack: jest
+    .requireActual<
+      typeof import('../../../test/expo-router-stack')
+    >('../../../test/expo-router-stack')
+    .createMockExpoRouterStack({
+      onTitle: (props) => mockStackTitle(props),
+      onBackButton: (props) => mockStackBackButton(props),
+    }),
   useLocalSearchParams: () => mockSearchParams,
   useRouter: () => ({
     replace: jest.fn(),
@@ -80,6 +89,8 @@ const mockGetTopicExplanation = jest.mocked(getTopicExplanation);
 describe('TopicExplanationScreen integration', () => {
   beforeEach(() => {
     mockGetTopicExplanation.mockReset();
+    mockStackTitle.mockReset();
+    mockStackBackButton.mockReset();
     mockSearchParams = {
       topicId: 'variables',
       programmingLanguage: 'javascript',
@@ -94,6 +105,9 @@ describe('TopicExplanationScreen integration', () => {
     await waitFor(() => {
       expect(screen.getByText('## Static explanation')).toBeTruthy();
     });
+    expect(mockStackBackButton).toHaveBeenCalledWith(
+      expect.objectContaining({ hidden: true })
+    );
   });
 
   it('shows a static unavailable message when no explanation exists', async () => {
@@ -104,5 +118,6 @@ describe('TopicExplanationScreen integration', () => {
     await waitFor(() => {
       expect(screen.getByText('explanationUnavailable')).toBeTruthy();
     });
+    expect(mockStackTitle).toHaveBeenCalled();
   });
 });

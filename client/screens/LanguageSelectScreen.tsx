@@ -1,6 +1,6 @@
 import React, { useMemo } from 'react';
 import { View, ScrollView, Pressable } from 'react-native';
-import { useLocalSearchParams, useRouter } from 'expo-router';
+import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
 import { EaseView } from 'react-native-ease';
 import * as Haptics from 'expo-haptics';
 
@@ -168,6 +168,7 @@ export default function LanguageSelectScreen() {
   const router = useRouter();
   const { origin: originParam } = useLocalSearchParams<{ origin?: string }>();
   const origin = getLanguageFlowOrigin(originParam);
+  const canNavigateBack = origin === 'settings';
 
   const handleSelectLanguage = async (language: ProgrammingLanguage) => {
     if (process.env.EXPO_OS === 'ios') {
@@ -175,7 +176,7 @@ export default function LanguageSelectScreen() {
     }
 
     router.push({
-      pathname: '/language-overview',
+      pathname: './language-overview',
       params: origin
         ? { languageId: language.id, origin }
         : { languageId: language.id },
@@ -183,48 +184,59 @@ export default function LanguageSelectScreen() {
   };
 
   return (
-    <ScrollView
-      contentInsetAdjustmentBehavior="automatic"
-      style={{ flex: 1, backgroundColor: theme.backgroundRoot }}
-      contentContainerStyle={{
-        padding: Spacing.lg,
-        gap: Spacing.md,
-      }}
-    >
-      <ThemedText
-        type="body"
-        style={{
-          color: theme.tabIconDefault,
-          marginBottom: Spacing.sm,
+    <>
+      <Stack.Screen
+        options={{
+          gestureEnabled: canNavigateBack,
+        }}
+      />
+      <Stack.Screen.Title>{t('selectTechnology')}</Stack.Screen.Title>
+      <Stack.Screen.BackButton hidden={!canNavigateBack} />
+      <ScrollView
+        contentInsetAdjustmentBehavior="automatic"
+        style={{ flex: 1, backgroundColor: theme.backgroundRoot }}
+        contentContainerStyle={{
+          padding: Spacing.lg,
+          gap: Spacing.md,
         }}
       >
-        {t('chooseTechnology')}
-      </ThemedText>
-      {LANGUAGES.map((programmingLanguage, index) => {
-        const topicCount = programmingLanguage.categories.reduce(
-          (sum, cat) => sum + cat.topics.length,
-          0
-        );
-        const isCurrentLanguage =
-          origin === 'settings' &&
-          selectedLanguageId === programmingLanguage.id;
-        return (
-          <LanguageCard
-            key={programmingLanguage.id}
-            disabled={isCurrentLanguage}
-            language={programmingLanguage}
-            languageName={getLanguageDisplayName(
-              programmingLanguage,
-              appLanguage
-            )}
-            index={index}
-            statusLabel={isCurrentLanguage ? t('currentFocusLabel') : undefined}
-            topicCount={topicCount}
-            topicLabel={topicCount === 1 ? t('topic') : t('topics')}
-            onPress={() => handleSelectLanguage(programmingLanguage)}
-          />
-        );
-      })}
-    </ScrollView>
+        <ThemedText
+          type="body"
+          style={{
+            color: theme.tabIconDefault,
+            marginBottom: Spacing.sm,
+          }}
+        >
+          {t('chooseTechnology')}
+        </ThemedText>
+        {LANGUAGES.map((programmingLanguage, index) => {
+          const topicCount = programmingLanguage.categories.reduce(
+            (sum, cat) => sum + cat.topics.length,
+            0
+          );
+          const isCurrentLanguage =
+            origin === 'settings' &&
+            selectedLanguageId === programmingLanguage.id;
+          return (
+            <LanguageCard
+              key={programmingLanguage.id}
+              disabled={isCurrentLanguage}
+              language={programmingLanguage}
+              languageName={getLanguageDisplayName(
+                programmingLanguage,
+                appLanguage
+              )}
+              index={index}
+              statusLabel={
+                isCurrentLanguage ? t('currentFocusLabel') : undefined
+              }
+              topicCount={topicCount}
+              topicLabel={topicCount === 1 ? t('topic') : t('topics')}
+              onPress={() => handleSelectLanguage(programmingLanguage)}
+            />
+          );
+        })}
+      </ScrollView>
+    </>
   );
 }

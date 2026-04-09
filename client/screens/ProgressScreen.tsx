@@ -1,9 +1,10 @@
 import React, { useState, useCallback } from 'react';
 import { View, ScrollView, StyleSheet, Pressable } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { useFocusEffect, useRouter } from 'expo-router';
+import { Stack, useFocusEffect, useRouter } from 'expo-router';
 import { EaseView } from 'react-native-ease';
 
+import { SettingsHeaderButton } from '@/components/SettingsHeaderButton';
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
 import { AppIcon } from '@/components/AppIcon';
@@ -248,6 +249,12 @@ export default function ProgressScreen() {
 
   return (
     <ThemedView style={styles.container}>
+      <Stack.Screen
+        options={{
+          headerRight: () => <SettingsHeaderButton />,
+        }}
+      />
+      <Stack.Screen.Title>{t('yourProgress')}</Stack.Screen.Title>
       <ScrollView
         style={styles.scrollView}
         contentInsetAdjustmentBehavior="automatic"

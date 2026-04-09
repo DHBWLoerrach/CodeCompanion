@@ -7,6 +7,7 @@ const mockReplace = jest.fn();
 const mockBack = jest.fn();
 const mockDismissTo = jest.fn();
 const mockSetSelectedLanguage = jest.fn();
+const mockStackTitle = jest.fn();
 
 let mockCanGoBack = true;
 let mockSelectedLanguageId: string | null = null;
@@ -16,7 +17,13 @@ let mockSearchParams: { languageId?: string; mode?: string; origin?: string } =
   };
 
 jest.mock('expo-router', () => ({
-  Stack: { Screen: () => null },
+  Stack: jest
+    .requireActual<
+      typeof import('../../../test/expo-router-stack')
+    >('../../../test/expo-router-stack')
+    .createMockExpoRouterStack({
+      onTitle: (props) => mockStackTitle(props),
+    }),
   useLocalSearchParams: () => mockSearchParams,
   useRouter: () => ({
     push: jest.fn(),
@@ -90,6 +97,7 @@ describe('LanguageOverviewScreen integration', () => {
     mockBack.mockReset();
     mockDismissTo.mockReset();
     mockSetSelectedLanguage.mockReset();
+    mockStackTitle.mockReset();
     mockSetSelectedLanguage.mockResolvedValue(undefined);
     mockCanGoBack = true;
     mockSelectedLanguageId = null;
@@ -114,6 +122,9 @@ describe('LanguageOverviewScreen integration', () => {
         screen.getByTestId('language-overview-topics-value').props.children
       ).toBe(topicCount);
     });
+    expect(mockStackTitle).toHaveBeenCalledWith(
+      expect.objectContaining({ children: 'JavaScript' })
+    );
   });
 
   it('saves a new language and replaces to learn during onboarding', async () => {

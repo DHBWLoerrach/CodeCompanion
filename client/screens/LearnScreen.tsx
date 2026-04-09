@@ -1,9 +1,11 @@
 import React from 'react';
 import { View, ScrollView, StyleSheet, Pressable } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { useRouter } from 'expo-router';
+import { Stack, useRouter } from 'expo-router';
 import { EaseView } from 'react-native-ease';
 
+import { ProgrammingLanguageHeaderBadge } from '@/components/ProgrammingLanguageHeaderBadge';
+import { SettingsHeaderButton } from '@/components/SettingsHeaderButton';
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
 import { AppIcon } from '@/components/AppIcon';
@@ -27,6 +29,7 @@ import {
   getTopicName,
   getCategoryName,
 } from '@/lib/topics';
+import { getLanguageDisplayName } from '@/lib/languages';
 import { type TopicProgress, isTopicDue } from '@/lib/storage';
 import { useProgrammingLanguage } from '@/contexts/ProgrammingLanguageContext';
 
@@ -785,6 +788,17 @@ export default function LearnScreen() {
 
   return (
     <ThemedView style={styles.container}>
+      <Stack.Screen
+        options={{
+          headerLeft: () => <ProgrammingLanguageHeaderBadge />,
+          headerRight: () => <SettingsHeaderButton iconSize={17} />,
+        }}
+      />
+      <Stack.Screen.Title>
+        {selectedLanguage
+          ? getLanguageDisplayName(selectedLanguage, language)
+          : t('topicsTab')}
+      </Stack.Screen.Title>
       <ScrollView
         style={styles.scrollView}
         contentInsetAdjustmentBehavior="automatic"

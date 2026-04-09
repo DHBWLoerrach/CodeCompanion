@@ -2,9 +2,11 @@ import React from 'react';
 import * as ReactNative from 'react-native';
 import { fireEvent, render, waitFor } from '@testing-library/react-native';
 import { getCategoriesByLanguage } from '@/lib/topics';
-import PracticeScreen from '../../../app/(tabs)/practice/index';
+import PracticeScreen from '@/screens/PracticeScreen';
 
 const mockPush = jest.fn();
+const mockStackScreen = jest.fn();
+const mockStackTitle = jest.fn();
 const mockGetProgress = jest.fn();
 const mockIsTopicDue = jest.fn();
 const mockRefreshLanguage = jest.fn();
@@ -22,6 +24,14 @@ const fundamentalsTopicIds = (
 ).map((topic: { id: string }) => topic.id);
 
 jest.mock('expo-router', () => ({
+  Stack: jest
+    .requireActual<
+      typeof import('../../../test/expo-router-stack')
+    >('../../../test/expo-router-stack')
+    .createMockExpoRouterStack({
+      onScreen: (props) => mockStackScreen(props),
+      onTitle: (props) => mockStackTitle(props),
+    }),
   useRouter: () => ({
     push: mockPush,
     replace: jest.fn(),
@@ -119,6 +129,8 @@ jest.mock('@/contexts/ProgrammingLanguageContext', () => ({
 
 describe('PracticeScreen integration', () => {
   beforeEach(() => {
+    mockStackScreen.mockReset();
+    mockStackTitle.mockReset();
     mockUseWindowDimensions.mockReturnValue({
       width: 375,
       height: 812,
@@ -171,6 +183,9 @@ describe('PracticeScreen integration', () => {
       expect(screen.getByText('dueForReview')).toBeTruthy();
       expect(screen.getByText('Variables')).toBeTruthy();
     });
+    expect(mockStackTitle).toHaveBeenCalledWith(
+      expect.objectContaining({ children: 'practice' })
+    );
 
     fireEvent.press(screen.getByTestId('practice-mode-due'));
 
@@ -308,5 +323,36 @@ describe('PracticeScreen integration', () => {
       expect(screen.getByText('noDueTopics')).toBeTruthy();
       expect(screen.getByText('noDueTopicsDesc')).toBeTruthy();
     });
+  });
+
+  it('keeps the settings header action on the practice screen', async () => {
+    mockGetProgress.mockResolvedValue({
+      totalQuestions: 0,
+      correctAnswers: 0,
+      achievements: [],
+      topicProgress: {},
+    });
+    mockIsTopicDue.mockReturnValue(false);
+
+    render(<PracticeScreen />);
+
+    await waitFor(() => {
+      expect(mockStackScreen).toHaveBeenCalledWith(
+        expect.objectContaining({
+          options: expect.objectContaining({
+            headerRight: expect.any(Function),
+          }),
+        })
+      );
+    });
+
+    const headerRight =
+      mockStackScreen.mock.calls.at(-1)?.[0]?.options?.headerRight;
+    expect(headerRight).toBeDefined();
+
+    const headerButton = render(headerRight!());
+    fireEvent.press(headerButton.getByTestId('open-settings-button'));
+
+    expect(mockPush).toHaveBeenCalledWith('/settings');
   });
 });

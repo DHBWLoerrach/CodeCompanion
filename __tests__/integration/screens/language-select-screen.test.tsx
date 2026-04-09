@@ -3,10 +3,22 @@ import { fireEvent, render, waitFor } from '@testing-library/react-native';
 import LanguageSelectScreen from '@/screens/LanguageSelectScreen';
 
 const mockPush = jest.fn();
+const mockStackScreen = jest.fn();
+const mockStackTitle = jest.fn();
+const mockStackBackButton = jest.fn();
 let mockSelectedLanguageId: string | null = null;
 let mockSearchParams: { origin?: string } = {};
 
 jest.mock('expo-router', () => ({
+  Stack: jest
+    .requireActual<
+      typeof import('../../../test/expo-router-stack')
+    >('../../../test/expo-router-stack')
+    .createMockExpoRouterStack({
+      onScreen: (props) => mockStackScreen(props),
+      onTitle: (props) => mockStackTitle(props),
+      onBackButton: (props) => mockStackBackButton(props),
+    }),
   useLocalSearchParams: () => mockSearchParams,
   useRouter: () => ({
     push: mockPush,
@@ -76,6 +88,9 @@ jest.mock('@/contexts/ProgrammingLanguageContext', () => ({
 describe('LanguageSelectScreen integration', () => {
   beforeEach(() => {
     mockPush.mockReset();
+    mockStackScreen.mockReset();
+    mockStackTitle.mockReset();
+    mockStackBackButton.mockReset();
     mockSelectedLanguageId = null;
     mockSearchParams = {};
   });
@@ -88,7 +103,7 @@ describe('LanguageSelectScreen integration', () => {
     await waitFor(() => {
       expect(mockPush).toHaveBeenCalledWith(
         expect.objectContaining({
-          pathname: '/language-overview',
+          pathname: './language-overview',
           params: expect.objectContaining({ languageId: 'javascript' }),
         })
       );
@@ -106,7 +121,7 @@ describe('LanguageSelectScreen integration', () => {
     await waitFor(() => {
       expect(mockPush).toHaveBeenCalledWith(
         expect.objectContaining({
-          pathname: '/language-overview',
+          pathname: './language-overview',
           params: expect.objectContaining({
             languageId: 'python',
             origin: 'settings',
@@ -114,6 +129,24 @@ describe('LanguageSelectScreen integration', () => {
         })
       );
     });
+  });
+
+  it('shows the back button and enables gestures only in settings mode', () => {
+    mockSearchParams = { origin: 'settings' };
+
+    render(<LanguageSelectScreen />);
+
+    expect(mockStackScreen).toHaveBeenCalledWith(
+      expect.objectContaining({
+        options: expect.objectContaining({ gestureEnabled: true }),
+      })
+    );
+    expect(mockStackTitle).toHaveBeenCalledWith(
+      expect.objectContaining({ children: 'selectTechnology' })
+    );
+    expect(mockStackBackButton).toHaveBeenCalledWith(
+      expect.objectContaining({ hidden: false })
+    );
   });
 
   it('disables the current language in settings mode', () => {
@@ -129,5 +162,18 @@ describe('LanguageSelectScreen integration', () => {
 
     expect(currentOption.props.accessibilityState).toEqual({ disabled: true });
     expect(mockPush).not.toHaveBeenCalled();
+  });
+
+  it('hides the back button outside the settings flow', () => {
+    render(<LanguageSelectScreen />);
+
+    expect(mockStackScreen).toHaveBeenCalledWith(
+      expect.objectContaining({
+        options: expect.objectContaining({ gestureEnabled: false }),
+      })
+    );
+    expect(mockStackBackButton).toHaveBeenCalledWith(
+      expect.objectContaining({ hidden: true })
+    );
   });
 });

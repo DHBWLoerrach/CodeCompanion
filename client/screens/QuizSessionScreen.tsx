@@ -780,17 +780,22 @@ export default function QuizSessionScreen() {
       onPress={handleRequestClose}
     />
   );
+  const screenHeader = (
+    <>
+      <Stack.Screen
+        options={{
+          headerLeft: renderCloseButton,
+        }}
+      />
+      <Stack.Screen.Title>{headerTitle}</Stack.Screen.Title>
+      <Stack.Screen.BackButton hidden />
+    </>
+  );
 
   if (loading) {
     return (
       <>
-        <Stack.Screen
-          options={{
-            title: headerTitle,
-            headerLeft: renderCloseButton,
-            headerBackVisible: false,
-          }}
-        />
+        {screenHeader}
         <ThemedView style={styles.loadingContainer}>
           <ActivityIndicator size="large" color={theme.secondary} />
           <ThemedText type="body" style={styles.loadingText}>
@@ -809,13 +814,7 @@ export default function QuizSessionScreen() {
   if (error || !currentQuestion) {
     return (
       <>
-        <Stack.Screen
-          options={{
-            title: headerTitle,
-            headerLeft: renderCloseButton,
-            headerBackVisible: false,
-          }}
-        />
+        {screenHeader}
         <ThemedView style={styles.errorContainer}>
           <AppIcon name="alert-circle" size={48} color={theme.error} />
           <ThemedText type="h4" style={styles.errorTitle}>
@@ -846,13 +845,7 @@ export default function QuizSessionScreen() {
 
   return (
     <>
-      <Stack.Screen
-        options={{
-          title: headerTitle,
-          headerLeft: renderCloseButton,
-          headerBackVisible: false,
-        }}
-      />
+      {screenHeader}
       <ThemedView style={styles.container}>
         <View
           style={[styles.progressBar, { backgroundColor: theme.cardBorder }]}
