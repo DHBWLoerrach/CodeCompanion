@@ -286,13 +286,13 @@
       "order": 4,
       "id": "objects-arrays",
       "name": {
-        "en": "Objects & Arrays",
-        "de": "Objekte & Arrays"
+        "en": "Data Structures & Built-ins",
+        "de": "Datenstrukturen & Built-ins"
       },
       "legacyNameKey": "objectsArrays",
       "shortDescription": {
-        "en": "Work with object and array data structures.",
-        "de": "Arbeite mit Objekt- und Array-Datenstrukturen."
+        "en": "Work with object, array, collection, and built-in API patterns.",
+        "de": "Arbeite mit Objekt-, Array-, Collection- und Built-in-API-Mustern."
       },
       "topics": [
         {
@@ -348,8 +348,8 @@
             "de": "Map & Set"
           },
           "shortDescription": {
-            "en": "Choose Map/Set over plain objects/arrays when appropriate.",
-            "de": "Map/Set sinnvoll statt plain Objects/Arrays einsetzen."
+            "en": "Choose Map/Set and modern Set operations when appropriate.",
+            "de": "Map/Set und moderne Set-Operationen sinnvoll einsetzen."
           },
           "prerequisites": ["objects", "arrays"]
         },
@@ -365,6 +365,19 @@
             "de": "Verschachtelte Werte mit ?. sicher lesen und mit ?? sinnvolle Defaults setzen."
           },
           "prerequisites": ["objects", "null-undefined"]
+        },
+        {
+          "order": 22,
+          "id": "temporal-date-time",
+          "name": {
+            "en": "Temporal Date & Time",
+            "de": "Temporal Date & Time"
+          },
+          "shortDescription": {
+            "en": "Use Temporal for clearer dates, times, durations, and time zones.",
+            "de": "Temporal für klarere Datums-, Zeit-, Dauer- und Zeitzonenlogik nutzen."
+          },
+          "prerequisites": ["objects", "strings-template-literals"]
         }
       ]
     },
@@ -382,7 +395,7 @@
       },
       "topics": [
         {
-          "order": 22,
+          "order": 23,
           "id": "promises",
           "name": {
             "en": "Promises",
@@ -397,7 +410,7 @@
           "prerequisites": ["callbacks"]
         },
         {
-          "order": 23,
+          "order": 24,
           "id": "async-await",
           "name": {
             "en": "Async/Await",
@@ -412,7 +425,7 @@
           "prerequisites": ["promises"]
         },
         {
-          "order": 24,
+          "order": 25,
           "id": "event-loop-microtasks",
           "name": {
             "en": "Event Loop & Microtasks",
@@ -440,7 +453,7 @@
       },
       "topics": [
         {
-          "order": 25,
+          "order": 26,
           "id": "closures",
           "name": {
             "en": "Closures",
@@ -455,7 +468,7 @@
           "prerequisites": ["declarations", "scope-hoisting-tdz"]
         },
         {
-          "order": 26,
+          "order": 27,
           "id": "prototypes",
           "name": {
             "en": "Prototypes",
@@ -470,7 +483,7 @@
           "prerequisites": ["objects"]
         },
         {
-          "order": 27,
+          "order": 28,
           "id": "classes",
           "name": {
             "en": "Classes",
@@ -485,7 +498,7 @@
           "prerequisites": ["objects", "prototypes"]
         },
         {
-          "order": 28,
+          "order": 29,
           "id": "modules",
           "name": {
             "en": "Modules",
@@ -498,6 +511,19 @@
           },
           "legacyDescKey": "modulesDesc",
           "prerequisites": ["declarations"]
+        },
+        {
+          "order": 30,
+          "id": "iterators-generators",
+          "name": {
+            "en": "Iterators & Generators",
+            "de": "Iteratoren & Generatoren"
+          },
+          "shortDescription": {
+            "en": "Use iterables, iterator protocol, generator functions, and lazy iteration.",
+            "de": "Iterables, Iterator-Protokoll, Generatorfunktionen und Lazy Iteration nutzen."
+          },
+          "prerequisites": ["loops", "declarations", "arrays"]
         }
       ]
     }

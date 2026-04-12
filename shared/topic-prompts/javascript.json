@@ -17,8 +17,9 @@
   "objects": "JavaScript object literals, properties, and methods",
   "arrays": "JavaScript array methods like map, filter, reduce, find, forEach",
   "destructuring": "JavaScript object and array destructuring syntax",
-  "map-set": "JavaScript Map and Set usage, differences from objects/arrays, and iteration patterns",
+  "map-set": "JavaScript Map and Set usage, differences from objects/arrays, iteration patterns, and modern Set methods such as union, intersection, difference, and isSubsetOf",
   "optional-chaining-nullish": "JavaScript optional chaining (?.) and nullish coalescing (??) for safe property access and defaults",
+  "temporal-date-time": "JavaScript Temporal API for dates, times, durations, time zones, and safer date/time calculations compared with Date",
   "promises": "JavaScript Promises, then/catch chaining, and Promise.all",
   "async-await": "JavaScript async/await syntax for handling asynchronous code",
   "error-handling": "JavaScript try/catch blocks and error management",
@@ -26,5 +27,6 @@
   "closures": "JavaScript closures and lexical scope",
   "prototypes": "JavaScript prototype chain and prototype-based inheritance",
   "classes": "JavaScript ES6 class syntax, constructors, and methods",
-  "modules": "JavaScript ES6 import/export and module patterns"
+  "modules": "JavaScript ES6 import/export and module patterns",
+  "iterators-generators": "JavaScript iterables, iterator protocol, generator functions with yield, lazy iteration, and iterator helper concepts"
 }

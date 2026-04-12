@@ -53,7 +53,9 @@ describe('shared/curriculum', () => {
   it('returns deterministic topic IDs by language', () => {
     const javascriptTopicIds = getTopicIdsByLanguage('javascript');
     expect(javascriptTopicIds[0]).toBe('variables');
-    expect(javascriptTopicIds[javascriptTopicIds.length - 1]).toBe('modules');
+    expect(javascriptTopicIds[javascriptTopicIds.length - 1]).toBe(
+      'iterators-generators'
+    );
 
     const javaTopicIds = getTopicIdsByLanguage('java');
     expect(javaTopicIds[0]).toBe('variables-constants');
