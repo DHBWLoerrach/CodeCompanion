@@ -6,7 +6,6 @@ import ProgressScreen from '@/screens/ProgressScreen';
 const mockPush = jest.fn();
 const mockRefreshLanguage = jest.fn();
 const mockStackScreen = jest.fn();
-const mockStackTitle = jest.fn();
 const mockGetProfile = jest.fn();
 const mockGetProgress = jest.fn();
 const mockGetStreak = jest.fn();
@@ -18,7 +17,6 @@ jest.mock('expo-router', () => ({
     >('../../../test/expo-router-stack')
     .createMockExpoRouterStack({
       onScreen: (props) => mockStackScreen(props),
-      onTitle: (props) => mockStackTitle(props),
     }),
   useFocusEffect: (callback: () => void | (() => void)) => {
     const ReactModule = jest.requireActual<typeof import('react')>('react');
@@ -77,7 +75,7 @@ jest.mock('@/hooks/useTranslation', () => ({
 
 jest.mock('@/hooks/useAccessibilityLayout', () => ({
   useAccessibilityLayout: () => ({
-    usesAccessibilityLayout: false,
+    usesLargeLayout: false,
   }),
 }));
 
@@ -112,7 +110,6 @@ describe('ProgressScreen integration', () => {
     mockPush.mockReset();
     mockRefreshLanguage.mockReset();
     mockStackScreen.mockReset();
-    mockStackTitle.mockReset();
     mockGetProfile.mockReset();
     mockGetProgress.mockReset();
     mockGetStreak.mockReset();
@@ -133,7 +130,7 @@ describe('ProgressScreen integration', () => {
     });
   });
 
-  it('configures the progress header title and renders loaded content', async () => {
+  it('configures the progress header options and renders loaded content', async () => {
     const screen = render(<ProgressScreen />);
 
     await waitFor(() => {
@@ -142,8 +139,13 @@ describe('ProgressScreen integration', () => {
       expect(screen.getByText('dayStreak')).toBeTruthy();
     });
 
-    expect(mockStackTitle).toHaveBeenCalledWith(
-      expect.objectContaining({ children: 'yourProgress' })
+    expect(mockStackScreen).toHaveBeenCalledWith(
+      expect.objectContaining({
+        options: expect.objectContaining({
+          headerLeft: expect.any(Function),
+          headerTitle: '',
+        }),
+      })
     );
   });
 

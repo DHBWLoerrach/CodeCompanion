@@ -30,33 +30,49 @@ import {
 } from '@/lib/storage';
 import { useProgrammingLanguage } from '@/contexts/ProgrammingLanguageContext';
 
+const TWO_COLUMN_PROGRESS_CARD_WIDTH = '47.5%';
+
 interface StatCardProps {
   title: string;
   value: string | number;
   icon: string;
   color: string;
+  usesLargeLayout?: boolean;
 }
 
-function StatCard({ title, value, icon, color }: StatCardProps) {
+function StatCard({
+  title,
+  value,
+  icon,
+  color,
+  usesLargeLayout = false,
+}: StatCardProps) {
   const { theme } = useTheme();
 
   return (
-    <SurfaceCard style={styles.statCard} borderColor={theme.cardBorderSubtle}>
-      <View
-        style={[
-          styles.statIconContainer,
-          { backgroundColor: withOpacity(color, 0.14) },
-        ]}
-      >
-        <AppIcon name={icon} size={20} color={color} />
-      </View>
-      <ThemedText type="h3" style={styles.statValue}>
-        {value}
-      </ThemedText>
-      <ThemedText type="caption" style={{ color: theme.tabIconDefault }}>
-        {title}
-      </ThemedText>
-    </SurfaceCard>
+    <View
+      style={[
+        styles.statCardWrapper,
+        usesLargeLayout && styles.statCardWrapperFullWidth,
+      ]}
+    >
+      <SurfaceCard style={styles.statCard} borderColor={theme.cardBorderSubtle}>
+        <View
+          style={[
+            styles.statIconContainer,
+            { backgroundColor: withOpacity(color, 0.14) },
+          ]}
+        >
+          <AppIcon name={icon} size={20} color={color} />
+        </View>
+        <ThemedText type="h3" style={styles.statValue}>
+          {value}
+        </ThemedText>
+        <ThemedText type="caption" style={{ color: theme.tabIconDefault }}>
+          {title}
+        </ThemedText>
+      </SurfaceCard>
+    </View>
   );
 }
 
@@ -133,7 +149,7 @@ function AchievementBadge({ name, icon, unlocked }: AchievementBadgeProps) {
 export default function ProgressScreen() {
   const { theme } = useTheme();
   const { t, refreshLanguage } = useTranslation();
-  const { usesAccessibilityLayout } = useAccessibilityLayout();
+  const { usesLargeLayout } = useAccessibilityLayout();
   const headerOptions = getProgrammingLanguageHeaderOptions('/progress');
   const { selectedLanguage } = useProgrammingLanguage();
   const languageId = selectedLanguage?.id ?? 'javascript';
@@ -327,35 +343,34 @@ export default function ProgressScreen() {
           </View>
         </SurfaceCard>
 
-        <View
-          style={[
-            styles.statsGrid,
-            usesAccessibilityLayout && styles.statsGridStacked,
-          ]}
-        >
+        <View style={styles.statsGrid}>
           <StatCard
             title={t('totalQuestions')}
             value={progress.totalQuestions}
             icon="help-circle"
             color={theme.secondary}
+            usesLargeLayout={usesLargeLayout}
           />
           <StatCard
             title={t('topicsMastered')}
             value={getTopicsMastered()}
             icon="check-square"
             color={theme.success}
+            usesLargeLayout={usesLargeLayout}
           />
           <StatCard
             title={t('currentStreak')}
             value={streak.currentStreak}
             icon="zap"
             color={theme.accent}
+            usesLargeLayout={usesLargeLayout}
           />
           <StatCard
             title={t('bestStreak')}
             value={streak.bestStreak}
             icon="award"
             color={theme.primary}
+            usesLargeLayout={usesLargeLayout}
           />
         </View>
 
@@ -363,7 +378,7 @@ export default function ProgressScreen() {
           <View
             style={[
               styles.achievementsHeader,
-              usesAccessibilityLayout && styles.achievementsHeaderStacked,
+              usesLargeLayout && styles.achievementsHeaderStacked,
             ]}
           >
             <ThemedText type="h4" style={styles.sectionTitle}>
@@ -382,8 +397,7 @@ export default function ProgressScreen() {
                 key={achievement.id}
                 style={[
                   styles.achievementContainer,
-                  usesAccessibilityLayout &&
-                    styles.achievementContainerFullWidth,
+                  usesLargeLayout && styles.achievementContainerFullWidth,
                 ]}
               >
                 <AchievementBadge
@@ -454,12 +468,14 @@ const styles = StyleSheet.create({
     flexWrap: 'wrap',
     gap: Spacing.md,
   },
-  statsGridStacked: {
-    flexDirection: 'column',
+  statCardWrapper: {
+    width: TWO_COLUMN_PROGRESS_CARD_WIDTH,
+  },
+  statCardWrapperFullWidth: {
+    width: '100%',
   },
   statCard: {
-    flex: 1,
-    minWidth: '45%',
+    width: '100%',
     alignItems: 'center',
     gap: Spacing.xs,
   },
@@ -499,7 +515,7 @@ const styles = StyleSheet.create({
     gap: Spacing.md,
   },
   achievementContainer: {
-    width: '47%',
+    width: TWO_COLUMN_PROGRESS_CARD_WIDTH,
   },
   achievementContainerFullWidth: {
     width: '100%',

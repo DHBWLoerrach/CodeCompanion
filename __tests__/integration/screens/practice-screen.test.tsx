@@ -6,7 +6,6 @@ import PracticeScreen from '@/screens/PracticeScreen';
 
 const mockPush = jest.fn();
 const mockStackScreen = jest.fn();
-const mockStackTitle = jest.fn();
 const mockGetProgress = jest.fn();
 const mockIsTopicDue = jest.fn();
 const mockRefreshLanguage = jest.fn();
@@ -30,7 +29,6 @@ jest.mock('expo-router', () => ({
     >('../../../test/expo-router-stack')
     .createMockExpoRouterStack({
       onScreen: (props) => mockStackScreen(props),
-      onTitle: (props) => mockStackTitle(props),
     }),
   useRouter: () => ({
     push: mockPush,
@@ -130,7 +128,6 @@ jest.mock('@/contexts/ProgrammingLanguageContext', () => ({
 describe('PracticeScreen integration', () => {
   beforeEach(() => {
     mockStackScreen.mockReset();
-    mockStackTitle.mockReset();
     mockUseWindowDimensions.mockReturnValue({
       width: 375,
       height: 812,
@@ -183,8 +180,13 @@ describe('PracticeScreen integration', () => {
       expect(screen.getByText('dueForReview')).toBeTruthy();
       expect(screen.getByText('Variables')).toBeTruthy();
     });
-    expect(mockStackTitle).toHaveBeenCalledWith(
-      expect.objectContaining({ children: 'practice' })
+    expect(mockStackScreen).toHaveBeenCalledWith(
+      expect.objectContaining({
+        options: expect.objectContaining({
+          headerLeft: expect.any(Function),
+          headerTitle: '',
+        }),
+      })
     );
 
     fireEvent.press(screen.getByTestId('practice-mode-due'));

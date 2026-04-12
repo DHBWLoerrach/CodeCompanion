@@ -716,26 +716,32 @@ const styles = StyleSheet.create({
     width: '100%',
   },
   modeCardAction: {
+    alignItems: 'center',
     justifyContent: 'space-between',
     minHeight: 172,
     padding: Spacing.md,
+    width: '100%',
   },
   modeCardMain: {
+    alignItems: 'center',
+    alignSelf: 'stretch',
     gap: Spacing.xs,
+    width: '100%',
   },
   modeCardTopRow: {
     flexDirection: 'row',
-    alignItems: 'flex-start',
-    justifyContent: 'space-between',
+    alignItems: 'center',
+    justifyContent: 'center',
+    flexWrap: 'wrap',
     gap: Spacing.sm,
   },
   modeCardTopRowStackedLarge: {
-    alignItems: 'flex-start',
+    alignItems: 'center',
     flexDirection: 'column',
-    justifyContent: 'flex-start',
+    justifyContent: 'center',
   },
   modeCardBadgeLarge: {
-    alignSelf: 'flex-start',
+    alignSelf: 'center',
   },
   modeIconBubble: {
     width: 46,
@@ -748,10 +754,13 @@ const styles = StyleSheet.create({
     fontSize: 15,
     lineHeight: 19,
     minHeight: 36,
+    textAlign: 'center',
   },
   modeDescription: {
+    alignSelf: 'stretch',
     lineHeight: 17,
     minHeight: 48,
+    textAlign: 'center',
   },
   categoriesList: {
     gap: Spacing.md,
