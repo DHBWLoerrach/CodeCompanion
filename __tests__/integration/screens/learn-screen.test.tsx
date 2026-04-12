@@ -179,8 +179,13 @@ describe('LearnScreen integration', () => {
       expect(screen.getByText('Fundamentals')).toBeTruthy();
       expect(screen.getByText('Control Flow')).toBeTruthy();
     });
-    expect(mockStackTitle).toHaveBeenCalledWith(
-      expect.objectContaining({ children: 'JavaScript' })
+    expect(mockStackScreen).toHaveBeenCalledWith(
+      expect.objectContaining({
+        options: expect.objectContaining({
+          headerLeft: expect.any(Function),
+          headerTitle: '',
+        }),
+      })
     );
   });
 
@@ -244,6 +249,68 @@ describe('LearnScreen integration', () => {
 
     expect(statusLineStyle.width).toBeUndefined();
     expect(statusLineStyle.flexShrink).toBe(1);
+  });
+
+  it('keeps category titles full width on compact large-text layouts', async () => {
+    mockUseWindowDimensions.mockReturnValue({
+      width: 375,
+      height: 812,
+      scale: 3,
+      fontScale: 1.35,
+    });
+
+    const screen = render(<LearnScreen />);
+
+    await waitFor(() => {
+      expect(screen.getByText('Fundamentals')).toBeTruthy();
+    });
+
+    const titleStyle = ReactNative.StyleSheet.flatten(
+      screen.getByText('Fundamentals').props.style
+    );
+
+    expect(titleStyle.alignSelf).toBe('stretch');
+    expect(titleStyle.flex).toBe(0);
+    expect(titleStyle.width).toBe('100%');
+  });
+
+  it('keeps next-step level dots inline on compact large-text layouts', async () => {
+    mockUseWindowDimensions.mockReturnValue({
+      width: 375,
+      height: 812,
+      scale: 3,
+      fontScale: 1.35,
+    });
+    mockUseTopicProgress.mockReturnValue({
+      topicProgress: {
+        variables: {
+          topicId: 'variables',
+          questionsAnswered: 4,
+          correctAnswers: 3,
+          skillLevel: 2,
+          lastPracticed: '2026-04-09T12:00:00.000Z',
+        },
+      },
+      loading: false,
+      dueTopics: [],
+    });
+
+    const screen = render(<LearnScreen />);
+
+    await waitFor(() => {
+      expect(screen.getByText('Variables')).toBeTruthy();
+    });
+
+    const statusStyle = ReactNative.StyleSheet.flatten(
+      screen.getByTestId('next-step-meta-status').props.style
+    );
+    const statusLineStyle = ReactNative.StyleSheet.flatten(
+      screen.getByTestId('next-step-status-line').props.style
+    );
+
+    expect(statusStyle.flexDirection).toBe('row');
+    expect(statusStyle.flexWrap).toBe('wrap');
+    expect(statusLineStyle.width).toBeUndefined();
   });
 
   it('keeps the settings header action on the learn screen', async () => {

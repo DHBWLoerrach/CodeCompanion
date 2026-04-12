@@ -355,6 +355,35 @@ describe('PracticeScreen integration', () => {
     expect(mockPush).not.toHaveBeenCalled();
   });
 
+  it('keeps category titles full width on compact large-text layouts', async () => {
+    mockUseWindowDimensions.mockReturnValue({
+      width: 375,
+      height: 812,
+      scale: 3,
+      fontScale: 1.35,
+    });
+    mockGetProgress.mockResolvedValue({
+      totalQuestions: 0,
+      correctAnswers: 0,
+      achievements: [],
+      topicProgress: {},
+    });
+    mockIsTopicDue.mockReturnValue(false);
+
+    const screen = render(<PracticeScreen />);
+
+    await waitFor(() => {
+      expect(screen.getByText('Fundamentals')).toBeTruthy();
+    });
+
+    const titleStyle = ReactNative.StyleSheet.flatten(
+      screen.getByText('Fundamentals').props.style
+    );
+
+    expect(titleStyle.alignSelf).toBe('stretch');
+    expect(titleStyle.width).toBe('100%');
+  });
+
   it('shows a first-time empty state when no quiz history exists', async () => {
     mockGetProgress.mockResolvedValue({
       totalQuestions: 0,

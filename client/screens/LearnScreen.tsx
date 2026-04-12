@@ -486,6 +486,7 @@ function NextStepCard({
               />
             ) : null}
             <View
+              testID="next-step-meta-status"
               style={[
                 styles.nextStepMetaStatus,
                 usesLargeLayout && styles.nextStepMetaStatusStacked,
@@ -614,7 +615,13 @@ function CategoryCard({
           usesLargeLayout && styles.categoryHeaderStacked,
         ]}
       >
-        <ThemedText type="h4" style={styles.categoryName}>
+        <ThemedText
+          type="h4"
+          style={[
+            styles.categoryName,
+            usesLargeLayout && styles.categoryNameStacked,
+          ]}
+        >
           {categoryName}
         </ThemedText>
         <View
@@ -929,6 +936,12 @@ const styles = StyleSheet.create({
   },
   categoryName: {
     flex: 1,
+    minWidth: 0,
+  },
+  categoryNameStacked: {
+    alignSelf: 'stretch',
+    flex: 0,
+    width: '100%',
   },
   categoryBadge: {
     borderRadius: BorderRadius.full,
@@ -1026,8 +1039,9 @@ const styles = StyleSheet.create({
     minWidth: 0,
   },
   nextStepMetaStatusStacked: {
-    alignItems: 'flex-start',
-    flexDirection: 'column',
+    alignItems: 'center',
+    flexDirection: 'row',
+    flexWrap: 'wrap',
     gap: Spacing.xs,
     width: '100%',
   },
@@ -1038,7 +1052,8 @@ const styles = StyleSheet.create({
     minWidth: 0,
   },
   nextStepMetaStatusLineStacked: {
-    width: '100%',
+    flexShrink: 1,
+    minWidth: 0,
   },
   nextStepMetaIcon: {
     marginRight: Spacing.xs,
@@ -1050,7 +1065,7 @@ const styles = StyleSheet.create({
     marginLeft: Spacing.xs,
   },
   nextStepMetaLevelDotsStacked: {
-    marginLeft: 12 + Spacing.xs,
+    marginLeft: 0,
   },
   nextStepChevron: {
     opacity: 0.66,

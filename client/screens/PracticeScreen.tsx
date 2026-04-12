@@ -223,8 +223,21 @@ function CategoryRow({
               usesLargeLayout && styles.categoryRowContentStacked,
             ]}
           >
-            <View style={styles.categoryRowLeft}>
-              <ThemedText type="h4">{categoryName}</ThemedText>
+            <View
+              style={[
+                styles.categoryRowLeft,
+                usesLargeLayout && styles.categoryRowLeftStacked,
+              ]}
+            >
+              <ThemedText
+                type="h4"
+                style={[
+                  styles.categoryRowTitle,
+                  usesLargeLayout && styles.categoryRowTitleStacked,
+                ]}
+              >
+                {categoryName}
+              </ThemedText>
               <ThemedText
                 type="caption"
                 style={{ color: theme.tabIconDefault }}
@@ -790,6 +803,19 @@ const styles = StyleSheet.create({
   categoryRowLeft: {
     flex: 1,
     gap: Spacing.xs,
+    minWidth: 0,
+  },
+  categoryRowLeftStacked: {
+    alignSelf: 'stretch',
+    flex: 0,
+    width: '100%',
+  },
+  categoryRowTitle: {
+    minWidth: 0,
+  },
+  categoryRowTitleStacked: {
+    alignSelf: 'stretch',
+    width: '100%',
   },
   categoryRowRight: {
     flexDirection: 'row',
