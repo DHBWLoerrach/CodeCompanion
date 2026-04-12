@@ -9,6 +9,27 @@ const mockStackScreen = jest.fn();
 const mockGetProfile = jest.fn();
 const mockGetProgress = jest.fn();
 const mockGetStreak = jest.fn();
+let mockLanguage: 'en' | 'de' = 'en';
+const mockTranslations: Record<'en' | 'de', Record<string, string>> = {
+  en: {
+    sunday: 'Sun',
+    monday: 'Mon',
+    tuesday: 'Tue',
+    wednesday: 'Wed',
+    thursday: 'Thu',
+    friday: 'Fri',
+    saturday: 'Sat',
+  },
+  de: {
+    sunday: 'So',
+    monday: 'Mo',
+    tuesday: 'Di',
+    wednesday: 'Mi',
+    thursday: 'Do',
+    friday: 'Fr',
+    saturday: 'Sa',
+  },
+};
 
 jest.mock('expo-router', () => ({
   Stack: jest
@@ -67,8 +88,8 @@ jest.mock('@/contexts/ThemeContext', () => ({
 
 jest.mock('@/hooks/useTranslation', () => ({
   useTranslation: () => ({
-    t: (key: string) => key,
-    language: 'en',
+    t: (key: string) => mockTranslations[mockLanguage][key] ?? key,
+    language: mockLanguage,
     refreshLanguage: mockRefreshLanguage,
   }),
 }));
@@ -113,6 +134,7 @@ describe('ProgressScreen integration', () => {
     mockGetProfile.mockReset();
     mockGetProgress.mockReset();
     mockGetStreak.mockReset();
+    mockLanguage = 'en';
 
     mockGetProfile.mockResolvedValue({
       displayName: 'Student',
@@ -170,5 +192,43 @@ describe('ProgressScreen integration', () => {
     fireEvent.press(headerButton.getByTestId('open-settings-button'));
 
     expect(mockPush).toHaveBeenCalledWith('/settings');
+  });
+
+  it('starts the week display with Sunday in English', async () => {
+    const screen = render(<ProgressScreen />);
+
+    await waitFor(() => {
+      expect(screen.getByText('Student')).toBeTruthy();
+    });
+
+    const weekdayLabels = screen
+      .getAllByText(/^(Sun|Mon|Tue|Wed|Thu|Fri|Sat)$/)
+      .map((item) => item.props.children);
+
+    expect(weekdayLabels).toEqual([
+      'Sun',
+      'Mon',
+      'Tue',
+      'Wed',
+      'Thu',
+      'Fri',
+      'Sat',
+    ]);
+  });
+
+  it('starts the week display with Monday in German', async () => {
+    mockLanguage = 'de';
+
+    const screen = render(<ProgressScreen />);
+
+    await waitFor(() => {
+      expect(screen.getByText('Student')).toBeTruthy();
+    });
+
+    const weekdayLabels = screen
+      .getAllByText(/^(So|Mo|Di|Mi|Do|Fr|Sa)$/)
+      .map((item) => item.props.children);
+
+    expect(weekdayLabels).toEqual(['Mo', 'Di', 'Mi', 'Do', 'Fr', 'Sa', 'So']);
   });
 });

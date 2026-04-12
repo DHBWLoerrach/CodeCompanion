@@ -14,6 +14,7 @@ import { useTheme } from '@/contexts/ThemeContext';
 import { useAccessibilityLayout } from '@/hooks/useAccessibilityLayout';
 import { usePressAnimation } from '@/hooks/usePressAnimation';
 import { useTranslation } from '@/hooks/useTranslation';
+import { type Language, type TranslationKey } from '@/lib/i18n';
 import { getProgrammingLanguageHeaderOptions } from '@/lib/getProgrammingLanguageHeaderOptions';
 import {
   Spacing,
@@ -31,6 +32,23 @@ import {
 import { useProgrammingLanguage } from '@/contexts/ProgrammingLanguageContext';
 
 const TWO_COLUMN_PROGRESS_CARD_WIDTH = '47.5%';
+const WEEKDAY_LABEL_KEYS = [
+  'sunday',
+  'monday',
+  'tuesday',
+  'wednesday',
+  'thursday',
+  'friday',
+  'saturday',
+] as const satisfies readonly TranslationKey[];
+const SUNDAY_FIRST_WEEKDAY_INDEXES = [0, 1, 2, 3, 4, 5, 6] as const;
+const MONDAY_FIRST_WEEKDAY_INDEXES = [1, 2, 3, 4, 5, 6, 0] as const;
+
+function getWeekdayDisplayIndexes(language: Language) {
+  return language === 'de'
+    ? MONDAY_FIRST_WEEKDAY_INDEXES
+    : SUNDAY_FIRST_WEEKDAY_INDEXES;
+}
 
 interface StatCardProps {
   title: string;
@@ -148,7 +166,7 @@ function AchievementBadge({ name, icon, unlocked }: AchievementBadgeProps) {
 
 export default function ProgressScreen() {
   const { theme } = useTheme();
-  const { t, refreshLanguage } = useTranslation();
+  const { t, language, refreshLanguage } = useTranslation();
   const { usesLargeLayout } = useAccessibilityLayout();
   const headerOptions = getProgrammingLanguageHeaderOptions('/progress');
   const { selectedLanguage } = useProgrammingLanguage();
@@ -254,15 +272,7 @@ export default function ProgressScreen() {
 
   const unlockedAchievements = getUnlockedAchievements();
   const today = new Date().getDay();
-  const dayLabels = [
-    t('sunday'),
-    t('monday'),
-    t('tuesday'),
-    t('wednesday'),
-    t('thursday'),
-    t('friday'),
-    t('saturday'),
-  ];
+  const weekdayDisplayIndexes = getWeekdayDisplayIndexes(language);
 
   return (
     <ThemedView style={styles.container}>
@@ -326,17 +336,17 @@ export default function ProgressScreen() {
           </View>
 
           <View style={styles.weekRow}>
-            {dayLabels.map((label, index) => (
-              <View key={index} style={styles.dayColumn}>
+            {weekdayDisplayIndexes.map((dayIndex) => (
+              <View key={dayIndex} style={styles.dayColumn}>
                 <ThemedText
                   type="caption"
                   style={{ color: theme.tabIconDefault }}
                 >
-                  {label}
+                  {t(WEEKDAY_LABEL_KEYS[dayIndex])}
                 </ThemedText>
                 <DayIndicator
-                  practiced={streak.weekHistory[index]}
-                  isToday={index === today}
+                  practiced={streak.weekHistory[dayIndex]}
+                  isToday={dayIndex === today}
                 />
               </View>
             ))}
