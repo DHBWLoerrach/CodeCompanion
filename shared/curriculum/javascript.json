@@ -286,13 +286,13 @@
       "order": 4,
       "id": "objects-arrays",
       "name": {
-        "en": "Objects & Arrays",
-        "de": "Objekte & Arrays"
+        "en": "Data Structures & Built-ins",
+        "de": "Datenstrukturen & Built-ins"
       },
       "legacyNameKey": "objectsArrays",
       "shortDescription": {
-        "en": "Work with object and array data structures.",
-        "de": "Arbeite mit Objekt- und Array-Datenstrukturen."
+        "en": "Work with object, array, collection, and built-in API patterns.",
+        "de": "Arbeite mit Objekt-, Array-, Collection- und Built-in-API-Mustern."
       },
       "topics": [
         {
