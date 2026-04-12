@@ -101,6 +101,7 @@ interface SettingsActionRowProps {
     testID?: string;
     variant?: 'default' | 'subtle';
   };
+  accessibilityLabel?: string;
   icon: string;
   label: string;
   onPress: () => void;
@@ -112,6 +113,7 @@ interface SettingsActionRowProps {
 
 function SettingsActionRow({
   accessoryAction,
+  accessibilityLabel,
   icon,
   label,
   onPress,
@@ -131,6 +133,8 @@ function SettingsActionRow({
     <EaseView animate={animate} transition={transition}>
       <Pressable
         testID={testID}
+        accessibilityLabel={accessibilityLabel}
+        accessibilityRole="button"
         style={[
           styles.aboutActionButton,
           isLast ? styles.aboutActionButtonLast : null,
@@ -460,6 +464,7 @@ export default function SettingsScreen() {
                 return (
                   <>
                     <SettingsActionRow
+                      accessibilityLabel={`${t('changeTechnology')}: ${selectedLanguageName}`}
                       accessoryAction={
                         selectedLanguage
                           ? {
@@ -482,7 +487,7 @@ export default function SettingsScreen() {
                           : undefined
                       }
                       icon="code"
-                      label={t('changeTechnology')}
+                      label={selectedLanguageName}
                       showChevron
                       testID="settings-change-technology-button"
                       onPress={() =>
@@ -490,19 +495,6 @@ export default function SettingsScreen() {
                           pathname: '/language-select',
                           params: { origin: 'settings' },
                         })
-                      }
-                      rightContent={
-                        <View style={styles.languageValueGroup}>
-                          <ThemedText
-                            type="body"
-                            style={[
-                              styles.languageValueText,
-                              { color: theme.text },
-                            ]}
-                          >
-                            {selectedLanguageName}
-                          </ThemedText>
-                        </View>
                       }
                     />
                     <SettingRow icon="globe" label={t('appLanguage')}>
@@ -684,14 +676,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     flexDirection: 'row',
     gap: Spacing.sm,
-  },
-  languageValueGroup: {
-    alignItems: 'center',
-    flexDirection: 'row',
-    gap: Spacing.xs,
-  },
-  languageValueText: {
-    flexShrink: 1,
   },
   settingLeft: {
     flexDirection: 'row',
