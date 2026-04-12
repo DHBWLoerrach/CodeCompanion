@@ -2,6 +2,7 @@ import React from 'react';
 import { fireEvent, render, waitFor } from '@testing-library/react-native';
 import LanguageOverviewScreen from '@/screens/LanguageOverviewScreen';
 import { getLanguageById } from '@/lib/languages';
+import { storage } from '@/lib/storage';
 
 const mockReplace = jest.fn();
 const mockBack = jest.fn();
@@ -133,11 +134,49 @@ describe('LanguageOverviewScreen integration', () => {
 
     const screen = render(<LanguageOverviewScreen />);
 
+    expect(screen.getByText('startWithLanguage')).toBeTruthy();
+
     fireEvent.press(screen.getByTestId('language-overview-confirm-button'));
 
     await waitFor(() => {
       expect(mockSetSelectedLanguage).toHaveBeenCalledWith('python');
       expect(mockReplace).toHaveBeenCalledWith('/learn');
+    });
+  });
+
+  it('uses continue copy for a language with quiz progress', async () => {
+    mockSelectedLanguageId = 'javascript';
+    mockSearchParams = { languageId: 'python', origin: 'header' };
+    await storage.setProgress({
+      totalQuestions: 3,
+      correctAnswers: 2,
+      achievements: [],
+      topicProgress: {
+        'python:variables': {
+          topicId: 'variables',
+          questionsAnswered: 3,
+          correctAnswers: 2,
+          skillLevel: 2,
+          lastPracticed: '2026-04-09T12:00:00.000Z',
+        },
+      },
+    });
+
+    const screen = render(<LanguageOverviewScreen />);
+
+    await waitFor(() => {
+      expect(screen.getByText('continueWithLanguage')).toBeTruthy();
+    });
+  });
+
+  it('uses switch copy from the header when the language has no quiz progress', async () => {
+    mockSelectedLanguageId = 'javascript';
+    mockSearchParams = { languageId: 'python', origin: 'header' };
+
+    const screen = render(<LanguageOverviewScreen />);
+
+    await waitFor(() => {
+      expect(screen.getByText('switchToLanguage')).toBeTruthy();
     });
   });
 

@@ -223,7 +223,8 @@ export default function LanguageSelectScreen() {
             (sum, cat) => sum + cat.topics.length,
             0
           );
-          const isCurrentLanguage = selectedLanguageId === programmingLanguage.id;
+          const isCurrentLanguage =
+            selectedLanguageId === programmingLanguage.id;
           return (
             <LanguageCard
               key={programmingLanguage.id}

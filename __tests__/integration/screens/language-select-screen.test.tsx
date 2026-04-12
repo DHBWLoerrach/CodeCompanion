@@ -138,14 +138,14 @@ describe('LanguageSelectScreen integration', () => {
 
     expect(mockStackScreen).toHaveBeenCalledWith(
       expect.objectContaining({
-        options: expect.objectContaining({ gestureEnabled: true }),
+        options: expect.objectContaining({
+          gestureEnabled: true,
+          headerBackVisible: true,
+        }),
       })
     );
     expect(mockStackTitle).toHaveBeenCalledWith(
       expect.objectContaining({ children: 'selectTechnology' })
-    );
-    expect(mockStackBackButton).toHaveBeenCalledWith(
-      expect.objectContaining({ hidden: false })
     );
   });
 
@@ -169,11 +169,11 @@ describe('LanguageSelectScreen integration', () => {
 
     expect(mockStackScreen).toHaveBeenCalledWith(
       expect.objectContaining({
-        options: expect.objectContaining({ gestureEnabled: false }),
+        options: expect.objectContaining({
+          gestureEnabled: false,
+          headerBackVisible: false,
+        }),
       })
-    );
-    expect(mockStackBackButton).toHaveBeenCalledWith(
-      expect.objectContaining({ hidden: true })
     );
   });
 });

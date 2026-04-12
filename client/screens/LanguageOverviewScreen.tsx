@@ -1,4 +1,4 @@
-import React, { useEffect, useEffectEvent, useMemo } from 'react';
+import React, { useEffect, useEffectEvent, useMemo, useState } from 'react';
 import { ScrollView, StyleSheet, View } from 'react-native';
 import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -26,6 +26,7 @@ import {
 } from '@/lib/language-flow';
 import { getLanguageById, getLanguageDisplayName } from '@/lib/languages';
 import { getParam } from '@/lib/router-utils';
+import { storage } from '@/lib/storage';
 import { getLanguageOverviewById } from '@shared/language-overview';
 
 type SectionProps = {
@@ -99,6 +100,7 @@ export default function LanguageOverviewScreen() {
   const languageId = getParam(languageIdParam);
   const programmingLanguage = getLanguageById(languageId);
   const overview = getLanguageOverviewById(languageId);
+  const [languageHasQuizProgress, setLanguageHasQuizProgress] = useState(false);
   const redirectInvalidRoute = useEffectEvent(() => {
     if (isViewMode && origin === 'settings') {
       router.dismissTo('/settings');
@@ -126,6 +128,37 @@ export default function LanguageOverviewScreen() {
 
     redirectInvalidRoute();
   }, [overview, programmingLanguage, redirectInvalidRoute]);
+
+  useEffect(() => {
+    let isMounted = true;
+
+    const loadLanguageProgress = async () => {
+      if (!programmingLanguage) {
+        setLanguageHasQuizProgress(false);
+        return;
+      }
+
+      const progress = await storage.getProgress();
+      const languageTopicProgress = storage.getTopicProgressForLanguage(
+        progress.topicProgress,
+        programmingLanguage.id
+      );
+      const hasQuizProgress = Object.values(languageTopicProgress).some(
+        (topicProgress) => topicProgress.questionsAnswered > 0
+      );
+
+      if (isMounted) {
+        setLanguageHasQuizProgress(hasQuizProgress);
+      }
+    };
+
+    setLanguageHasQuizProgress(false);
+    loadLanguageProgress();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [programmingLanguage]);
 
   const languageName = programmingLanguage
     ? getLanguageDisplayName(programmingLanguage, language)
@@ -216,7 +249,11 @@ export default function LanguageOverviewScreen() {
   }
 
   const confirmLabel = (
-    origin === 'settings' ? t('switchToLanguage') : t('startWithLanguage')
+    languageHasQuizProgress
+      ? t('continueWithLanguage')
+      : origin
+        ? t('switchToLanguage')
+        : t('startWithLanguage')
   ).replace('{name}', languageName);
   const actionButtonCount = isViewMode ? 1 : 2;
 
