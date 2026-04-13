@@ -174,14 +174,15 @@ describe('SettingsScreen integration', () => {
   it('opens language select with back navigation enabled', async () => {
     const screen = render(<SettingsScreen />);
 
-    await waitFor(() => {
-      expect(screen.getByText('changeTechnology')).toBeTruthy();
-    });
+    const changeTechnologyButton = await waitFor(() =>
+      screen.getByTestId('settings-change-technology-button')
+    );
+    expect(screen.getByText('JavaScript')).toBeTruthy();
     expect(mockStackTitle).toHaveBeenCalledWith(
       expect.objectContaining({ children: 'settings' })
     );
 
-    fireEvent.press(screen.getByText('changeTechnology'));
+    fireEvent.press(changeTechnologyButton);
 
     expect(mockPush).toHaveBeenCalledWith({
       pathname: '/language-select',
