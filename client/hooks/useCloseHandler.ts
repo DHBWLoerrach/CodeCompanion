@@ -1,6 +1,14 @@
 import { useRouter } from 'expo-router';
 
-export function useCloseHandler(fallbackRoute = '/learn') {
+const FALLBACK_ROUTES = [
+  '/learn',
+  '/practice',
+  '/progress',
+  '/settings',
+] as const;
+type FallbackRoute = (typeof FALLBACK_ROUTES)[number];
+
+export function useCloseHandler(fallbackRoute: FallbackRoute = '/learn') {
   const router = useRouter();
 
   return () => {
@@ -12,6 +20,6 @@ export function useCloseHandler(fallbackRoute = '/learn') {
       router.back();
       return;
     }
-    router.replace(fallbackRoute as any);
+    router.replace(fallbackRoute);
   };
 }
