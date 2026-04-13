@@ -2,7 +2,7 @@
   "expo": {
     "name": "CodeComp",
     "slug": "dhbw-code-companion",
-    "version": "1.0.3",
+    "version": "1.0.4",
     "orientation": "portrait",
     "scheme": "dhbwcodecompanion",
     "userInterfaceStyle": "automatic",
