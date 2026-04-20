@@ -167,7 +167,7 @@ function QuizModeCard({
   );
 }
 
-interface CategoryRowProps {
+interface CategoryTileProps {
   category: Category;
   categoryName: string;
   topicProgress: Record<string, TopicProgress>;
@@ -183,31 +183,37 @@ interface DueTopicRowProps {
   testID?: string;
 }
 
-function CategoryRow({
+function CategoryTile({
   category,
   categoryName,
   topicProgress,
   onPress,
   testID,
   usesLargeLayout = false,
-}: CategoryRowProps) {
+}: CategoryTileProps) {
   const { theme } = useTheme();
   const { t } = useTranslation();
   const { animate, transition, handlePressIn, handlePressOut } =
-    usePressAnimation(0.98);
+    usePressAnimation(0.95);
 
   const { progressPercent } = getCategoryProgress(category, topicProgress);
   const topicCount = category.topics.length;
+  const progressColor =
+    progressPercent >= 100 ? theme.success : theme.secondary;
+  const progressLabel = `${Math.round(progressPercent)}%`;
 
   return (
     <EaseView
       animate={animate}
       transition={transition}
-      style={styles.categoryRowWrapper}
+      style={[
+        styles.categoryTileWrapper,
+        usesLargeLayout && styles.categoryTileWrapperFullWidth,
+      ]}
     >
       <SurfaceCard
         padding={0}
-        style={styles.categoryRow}
+        style={styles.categoryTile}
         borderColor={theme.cardBorderSubtle}
       >
         <Pressable
@@ -215,62 +221,58 @@ function CategoryRow({
           onPress={onPress}
           onPressIn={handlePressIn}
           onPressOut={handlePressOut}
-          style={styles.categoryAction}
+          style={styles.categoryTileAction}
         >
-          <View
-            style={[
-              styles.categoryRowContent,
-              usesLargeLayout && styles.categoryRowContentStacked,
-            ]}
-          >
-            <View
-              style={[
-                styles.categoryRowLeft,
-                usesLargeLayout && styles.categoryRowLeftStacked,
-              ]}
-            >
-              <ThemedText
-                type="h4"
+          <View style={styles.categoryTileMain}>
+            <View style={styles.categoryTileTopRow}>
+              <View
                 style={[
-                  styles.categoryRowTitle,
-                  usesLargeLayout && styles.categoryRowTitleStacked,
+                  styles.categoryIconBubble,
+                  { backgroundColor: withOpacity(theme.secondary, 0.12) },
                 ]}
               >
-                {categoryName}
-              </ThemedText>
-              <ThemedText
-                type="caption"
-                style={{ color: theme.tabIconDefault }}
-              >
-                {topicCount} {topicCount === 1 ? t('topic') : t('topics')}
-              </ThemedText>
+                <AppIcon name="book-open" size={22} color={theme.secondary} />
+              </View>
+              <StatusBadge
+                color={progressColor}
+                label={progressLabel}
+                size="compact"
+                style={styles.categoryProgressBadge}
+              />
             </View>
+            <ThemedText
+              type="h4"
+              numberOfLines={usesLargeLayout ? 3 : 2}
+              style={[
+                styles.categoryTileTitle,
+                usesLargeLayout && styles.categoryTileTitleLarge,
+              ]}
+            >
+              {categoryName}
+            </ThemedText>
+          </View>
+          <View style={styles.categoryTileFooter}>
+            <ThemedText
+              type="caption"
+              style={[styles.categoryTileMeta, { color: theme.tabIconDefault }]}
+              numberOfLines={1}
+            >
+              {topicCount} {topicCount === 1 ? t('topic') : t('topics')}
+            </ThemedText>
             <View
               style={[
-                styles.categoryRowRight,
-                usesLargeLayout && styles.categoryRowRightStacked,
+                styles.categoryProgressBar,
+                { backgroundColor: theme.cardBorder },
               ]}
             >
               <View
                 style={[
-                  styles.categoryProgressBar,
-                  { backgroundColor: theme.cardBorder },
+                  styles.categoryProgressFill,
+                  {
+                    width: `${progressPercent}%`,
+                    backgroundColor: progressColor,
+                  },
                 ]}
-              >
-                <View
-                  style={[
-                    styles.categoryProgressFill,
-                    {
-                      width: `${progressPercent}%`,
-                      backgroundColor: theme.secondary,
-                    },
-                  ]}
-                />
-              </View>
-              <AppIcon
-                name="chevron-right"
-                size={18}
-                color={theme.tabIconDefault}
               />
             </View>
           </View>
@@ -633,9 +635,9 @@ export default function PracticeScreen() {
             {t('selectCategory')}
           </ThemedText>
         </View>
-        <View style={styles.categoriesList}>
+        <View style={styles.categoriesGrid}>
           {categories.map((category) => (
-            <CategoryRow
+            <CategoryTile
               key={category.id}
               category={category}
               categoryName={getCategoryName(category, language)}
@@ -775,60 +777,72 @@ const styles = StyleSheet.create({
     minHeight: 48,
     textAlign: 'center',
   },
-  categoriesList: {
+  categoriesGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
     gap: Spacing.md,
   },
-  categoryRowWrapper: {
+  categoryTileWrapper: {
+    width: '47.5%',
+  },
+  categoryTileWrapperFullWidth: {
     width: '100%',
   },
-  categoryRow: {
+  categoryTile: {
     width: '100%',
   },
-  categoryAction: {
-    justifyContent: 'center',
-    minHeight: 76,
-    paddingHorizontal: Spacing.lg,
-    paddingVertical: Spacing.sm,
-  },
-  categoryRowContent: {
-    flexDirection: 'row',
+  categoryTileAction: {
     alignItems: 'center',
     justifyContent: 'space-between',
+    minHeight: 156,
+    padding: Spacing.md,
+    width: '100%',
   },
-  categoryRowContentStacked: {
-    alignItems: 'flex-start',
-    flexDirection: 'column',
+  categoryTileMain: {
+    alignItems: 'center',
+    alignSelf: 'stretch',
+    gap: Spacing.xs,
+    width: '100%',
+  },
+  categoryTileTopRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    flexWrap: 'wrap',
     gap: Spacing.sm,
   },
-  categoryRowLeft: {
-    flex: 1,
-    gap: Spacing.xs,
-    minWidth: 0,
-  },
-  categoryRowLeftStacked: {
-    alignSelf: 'stretch',
-    flex: 0,
-    width: '100%',
-  },
-  categoryRowTitle: {
-    minWidth: 0,
-  },
-  categoryRowTitleStacked: {
-    alignSelf: 'stretch',
-    width: '100%',
-  },
-  categoryRowRight: {
-    flexDirection: 'row',
+  categoryIconBubble: {
+    width: 46,
+    height: 46,
+    borderRadius: 23,
     alignItems: 'center',
-    gap: Spacing.md,
+    justifyContent: 'center',
   },
-  categoryRowRightStacked: {
+  categoryProgressBadge: {
+    alignSelf: 'center',
+  },
+  categoryTileTitle: {
     alignSelf: 'stretch',
-    justifyContent: 'space-between',
+    fontSize: 15,
+    lineHeight: 19,
+    minHeight: 38,
+    textAlign: 'center',
     width: '100%',
+  },
+  categoryTileTitleLarge: {
+    minHeight: 0,
+  },
+  categoryTileFooter: {
+    alignSelf: 'stretch',
+    gap: Spacing.md,
+    width: '100%',
+  },
+  categoryTileMeta: {
+    alignSelf: 'stretch',
+    textAlign: 'center',
   },
   categoryProgressBar: {
-    width: 80,
+    alignSelf: 'stretch',
     height: 6,
     borderRadius: 3,
     overflow: 'hidden',
