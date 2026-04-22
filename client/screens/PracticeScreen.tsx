@@ -16,6 +16,7 @@ import { useTheme } from '@/contexts/ThemeContext';
 import { useAccessibilityLayout } from '@/hooks/useAccessibilityLayout';
 import { useTranslation } from '@/hooks/useTranslation';
 import { usePressAnimation } from '@/hooks/usePressAnimation';
+import { type TranslationKey } from '@/lib/i18n';
 import { getProgrammingLanguageHeaderOptions } from '@/lib/getProgrammingLanguageHeaderOptions';
 import {
   useTopicProgress,
@@ -57,6 +58,33 @@ interface QuizModeConfig extends QuizModeCardProps {
 
 const EMPTY_CATEGORIES: Category[] = [];
 
+type Translate = (key: TranslationKey) => string;
+
+function formatTopicCount(count: number, t: Translate) {
+  return `${count} ${count === 1 ? t('topic') : t('topics')}`;
+}
+
+function getCategoryTileAccessibilityLabel(
+  categoryName: string,
+  progressLabel: string,
+  topicCountLabel: string,
+  t: Translate
+) {
+  return [
+    categoryName,
+    `${progressLabel} ${t('completedLabel')}`,
+    topicCountLabel,
+  ].join(', ');
+}
+
+function getDueTopicAccessibilityLabel(
+  topicName: string,
+  skillLevel: MasteryLevel,
+  t: Translate
+) {
+  return [topicName, `${t('level')} ${skillLevel} ${t('of')} 5`].join(', ');
+}
+
 function QuizModeCard({
   icon,
   color,
@@ -89,6 +117,7 @@ function QuizModeCard({
     ? withOpacity(theme.tabIconDefault, 0.9)
     : theme.tabIconDefault;
   const cardBackgroundColor = theme.backgroundDefault;
+  const accessibilityLabel = [title, description].filter(Boolean).join(', ');
   const cardBorderColor = disabled
     ? theme.cardBorder
     : emphasized
@@ -111,6 +140,10 @@ function QuizModeCard({
         borderColor={cardBorderColor}
       >
         <Pressable
+          accessibilityLabel={accessibilityLabel}
+          accessibilityRole="button"
+          accessibilityState={{ disabled: !!disabled }}
+          accessible
           testID={testID}
           onPress={onPress}
           onPressIn={handlePressIn}
@@ -201,6 +234,13 @@ function CategoryTile({
   const progressColor =
     progressPercent >= 100 ? theme.success : theme.secondary;
   const progressLabel = `${Math.round(progressPercent)}%`;
+  const topicCountLabel = formatTopicCount(topicCount, t);
+  const accessibilityLabel = getCategoryTileAccessibilityLabel(
+    categoryName,
+    progressLabel,
+    topicCountLabel,
+    t
+  );
 
   return (
     <EaseView
@@ -217,6 +257,9 @@ function CategoryTile({
         borderColor={theme.cardBorderSubtle}
       >
         <Pressable
+          accessibilityLabel={accessibilityLabel}
+          accessibilityRole="button"
+          accessible
           testID={testID}
           onPress={onPress}
           onPressIn={handlePressIn}
@@ -246,7 +289,7 @@ function CategoryTile({
               style={[styles.categoryTileMeta, { color: theme.tabIconDefault }]}
               numberOfLines={1}
             >
-              {topicCount} {topicCount === 1 ? t('topic') : t('topics')}
+              {topicCountLabel}
             </ThemedText>
             <View
               style={[
@@ -273,13 +316,22 @@ function CategoryTile({
 
 function DueTopicRow({ topic, skillLevel, onPress, testID }: DueTopicRowProps) {
   const { theme } = useTheme();
-  const { language } = useTranslation();
+  const { language, t } = useTranslation();
   const { animate, transition, handlePressIn, handlePressOut } =
     usePressAnimation(0.98);
+  const topicName = getTopicName(topic, language);
+  const accessibilityLabel = getDueTopicAccessibilityLabel(
+    topicName,
+    skillLevel,
+    t
+  );
 
   return (
     <EaseView animate={animate} transition={transition}>
       <Pressable
+        accessibilityLabel={accessibilityLabel}
+        accessibilityRole="button"
+        accessible
         testID={testID}
         style={[
           styles.dueTopicRow,
@@ -292,16 +344,22 @@ function DueTopicRow({ topic, skillLevel, onPress, testID }: DueTopicRowProps) {
         onPressIn={handlePressIn}
         onPressOut={handlePressOut}
       >
-        <ThemedText type="body" style={{ flex: 1 }}>
-          {getTopicName(topic, language)}
+        <ThemedText type="body" style={styles.dueTopicTitle}>
+          {topicName}
         </ThemedText>
-        <SkillLevelDots level={skillLevel} color={theme.accent} />
-        <AppIcon
-          name="play-circle"
-          size={22}
-          color={theme.accent}
-          style={{ marginLeft: Spacing.md }}
-        />
+        <View
+          accessibilityElementsHidden
+          importantForAccessibility="no-hide-descendants"
+        >
+          <SkillLevelDots level={skillLevel} color={theme.accent} />
+        </View>
+        <View
+          accessibilityElementsHidden
+          importantForAccessibility="no-hide-descendants"
+          style={styles.dueTopicIcon}
+        >
+          <AppIcon name="play-circle" size={22} color={theme.accent} />
+        </View>
       </Pressable>
     </EaseView>
   );
@@ -317,7 +375,6 @@ export default function PracticeScreen() {
   const languageId = selectedLanguage?.id ?? 'javascript';
   const router = useRouter();
   const insets = useSafeAreaInsets();
-  const categorySectionRef = useRef<View>(null);
   const scrollViewRef = useRef<ScrollView>(null);
   const categorySectionY = useRef(0);
 
@@ -537,8 +594,7 @@ export default function PracticeScreen() {
                 type="caption"
                 style={[styles.dueCount, { color: theme.accent }]}
               >
-                {dueTopics.length}{' '}
-                {dueTopics.length === 1 ? t('topic') : t('topics')}
+                {formatTopicCount(dueTopics.length, t)}
               </ThemedText>
             </View>
 
@@ -615,7 +671,6 @@ export default function PracticeScreen() {
 
         {/* Section 3: Categories */}
         <View
-          ref={categorySectionRef}
           onLayout={(e) => {
             categorySectionY.current = e.nativeEvent.layout.y;
           }}
@@ -686,6 +741,12 @@ const styles = StyleSheet.create({
     borderWidth: StyleSheet.hairlineWidth,
     paddingHorizontal: Spacing.md,
     paddingVertical: Spacing.sm,
+  },
+  dueTopicTitle: {
+    flex: 1,
+  },
+  dueTopicIcon: {
+    marginLeft: Spacing.md,
   },
   emptyState: {
     alignItems: 'center',

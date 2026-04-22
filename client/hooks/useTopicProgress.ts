@@ -55,6 +55,10 @@ export function getCategoryProgress(
   category: Category,
   topicProgress: Record<string, TopicProgress>
 ) {
+  if (category.topics.length === 0) {
+    return { avgSkillLevel: 0, progressPercent: 0 };
+  }
+
   const avgSkillLevel =
     category.topics.reduce((sum, topic) => {
       return sum + (topicProgress[topic.id]?.skillLevel ?? 0);

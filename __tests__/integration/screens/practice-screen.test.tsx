@@ -15,6 +15,11 @@ const mockUseWindowDimensions = jest.fn(() => ({
   scale: 3,
   fontScale: 1,
 }));
+const mockTranslationOverrides: Record<string, string> = {
+  completedLabel: 'completed',
+  level: 'Level',
+  of: 'of',
+};
 const mockJavascriptCategories = getCategoriesByLanguage('javascript');
 const fundamentalsTopicIds = (
   mockJavascriptCategories.find(
@@ -83,7 +88,7 @@ jest.mock('@/contexts/ThemeContext', () => ({
 
 jest.mock('@/hooks/useTranslation', () => ({
   useTranslation: () => ({
-    t: (key: string) => key,
+    t: (key: string) => mockTranslationOverrides[key] ?? key,
     language: 'en',
     refreshLanguage: mockRefreshLanguage,
   }),
@@ -180,6 +185,12 @@ describe('PracticeScreen integration', () => {
       expect(screen.getByText('dueForReview')).toBeTruthy();
       expect(screen.getByText('Variables')).toBeTruthy();
     });
+    expect(screen.getByTestId('practice-due-topic-variables').props).toEqual(
+      expect.objectContaining({
+        accessibilityLabel: 'Variables, Level 2 of 5',
+        accessibilityRole: 'button',
+      })
+    );
     expect(mockStackScreen).toHaveBeenCalledWith(
       expect.objectContaining({
         options: expect.objectContaining({
@@ -319,6 +330,43 @@ describe('PracticeScreen integration', () => {
         returnTo: 'practice',
       },
     });
+  });
+
+  it('adds accessibility metadata to quiz modes and category tiles', async () => {
+    mockGetProgress.mockResolvedValue({
+      totalQuestions: 0,
+      correctAnswers: 0,
+      achievements: [],
+      topicProgress: {},
+    });
+    mockIsTopicDue.mockReturnValue(false);
+
+    const screen = render(<PracticeScreen />);
+
+    await waitFor(() => {
+      expect(screen.getByText('mixedQuiz')).toBeTruthy();
+      expect(screen.getByText('Fundamentals')).toBeTruthy();
+    });
+
+    expect(screen.getByTestId('practice-mode-mixed').props).toEqual(
+      expect.objectContaining({
+        accessibilityLabel: 'mixedQuiz, mixedQuizDesc',
+        accessibilityRole: 'button',
+        accessibilityState: { disabled: false },
+      })
+    );
+    expect(screen.getByTestId('practice-mode-due').props).toEqual(
+      expect.objectContaining({
+        accessibilityRole: 'button',
+        accessibilityState: { disabled: true },
+      })
+    );
+    expect(screen.getByTestId('practice-category-fundamentals').props).toEqual(
+      expect.objectContaining({
+        accessibilityLabel: `Fundamentals, 0% completed, ${fundamentalsTopicIds.length} topics`,
+        accessibilityRole: 'button',
+      })
+    );
   });
 
   it('disables explore quiz when no eligible topics remain', async () => {
