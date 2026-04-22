@@ -224,22 +224,11 @@ function CategoryTile({
           style={styles.categoryTileAction}
         >
           <View style={styles.categoryTileMain}>
-            <View style={styles.categoryTileTopRow}>
-              <View
-                style={[
-                  styles.categoryIconBubble,
-                  { backgroundColor: withOpacity(theme.secondary, 0.12) },
-                ]}
-              >
-                <AppIcon name="book-open" size={22} color={theme.secondary} />
-              </View>
-              <StatusBadge
-                color={progressColor}
-                label={progressLabel}
-                size="compact"
-                style={styles.categoryProgressBadge}
-              />
-            </View>
+            <StatusBadge
+              color={progressColor}
+              label={progressLabel}
+              size="compact"
+            />
             <ThemedText
               type="h4"
               numberOfLines={usesLargeLayout ? 3 : 2}
@@ -803,23 +792,6 @@ const styles = StyleSheet.create({
     alignSelf: 'stretch',
     gap: Spacing.xs,
     width: '100%',
-  },
-  categoryTileTopRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    flexWrap: 'wrap',
-    gap: Spacing.sm,
-  },
-  categoryIconBubble: {
-    width: 46,
-    height: 46,
-    borderRadius: 23,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  categoryProgressBadge: {
-    alignSelf: 'center',
   },
   categoryTileTitle: {
     alignSelf: 'stretch',
