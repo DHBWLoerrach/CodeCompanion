@@ -42,7 +42,8 @@
       ],
       "expo-router",
       "react-native-enriched-markdown",
-      "expo-font"
+      "expo-font",
+      "expo-localization"
     ],
     "experiments": {
       "reactCompiler": true,
