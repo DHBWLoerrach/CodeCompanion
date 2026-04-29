@@ -48,14 +48,19 @@ export const translations = {
 
     generatingQuiz: 'Generating quiz questions...',
     unableToLoadQuiz: 'Unable to Load Quiz',
+    unableToLoadQuizMessage:
+      'Check your connection and try loading the quiz again.',
     quizValidationFailedTitle: "Quiz couldn't be generated",
     quizValidationFailedMessage:
-      'This quiz could not be generated reliably this time. Please try again.',
+      'No reliable questions could be generated right now. Please try again or start a different quiz.',
+    quizRateLimitDeviceTitle: 'Daily limit reached',
     quizRateLimitDevice:
-      'Daily quiz limit reached on this device. Please try again tomorrow.',
+      "You have reached today's limit for AI-generated quiz questions on this device. You can generate new questions again tomorrow.",
+    quizRateLimitGlobalTitle: 'Quiz generator paused',
     quizRateLimitGlobal:
-      'Quiz generation is temporarily unavailable because the daily limit has been reached. Please try again tomorrow.',
+      'The daily limit for AI-generated quiz questions has been reached. Please try again tomorrow.',
     tryAgain: 'Try Again',
+    understood: 'Understood',
     cancel: 'Cancel',
     close: 'Close',
     submitAnswer: 'Submit Answer',
@@ -213,14 +218,19 @@ export const translations = {
 
     generatingQuiz: 'Quiz-Fragen werden generiert...',
     unableToLoadQuiz: 'Quiz konnte nicht geladen werden',
+    unableToLoadQuizMessage:
+      'Prüfe deine Verbindung und lade das Quiz noch einmal.',
     quizValidationFailedTitle: 'Quiz konnte nicht erzeugt werden',
     quizValidationFailedMessage:
-      'Dieses Quiz konnte diesmal nicht zuverlässig generiert werden. Bitte versuche es erneut.',
+      'Gerade konnten keine zuverlässigen Fragen erzeugt werden. Bitte versuche es erneut oder starte ein anderes Quiz.',
+    quizRateLimitDeviceTitle: 'Tageslimit erreicht',
     quizRateLimitDevice:
-      'Das tägliche Quiz-Limit auf diesem Gerät ist erreicht. Bitte versuche es morgen erneut.',
+      'Du hast das heutige Limit für KI-Quizfragen auf diesem Gerät erreicht. Morgen kannst du wieder neue Fragen generieren.',
+    quizRateLimitGlobalTitle: 'Quiz-Generator vorübergehend pausiert',
     quizRateLimitGlobal:
-      'Die Quiz-Generierung ist vorübergehend nicht verfügbar, weil das Tageslimit erreicht wurde. Bitte versuche es morgen erneut.',
+      'Das Tageslimit für KI-generierte Quizfragen ist erreicht. Bitte versuche es morgen erneut.',
     tryAgain: 'Erneut versuchen',
+    understood: 'Verstanden',
     cancel: 'Abbrechen',
     close: 'Schließen',
     submitAnswer: 'Antwort absenden',

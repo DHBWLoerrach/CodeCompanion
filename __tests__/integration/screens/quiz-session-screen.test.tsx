@@ -799,7 +799,7 @@ describe('QuizSessionScreen integration', () => {
     );
   });
 
-  it('shows the device quota message on structured 429 errors', async () => {
+  it('shows a close action for device quota errors', async () => {
     mockApiRequest.mockRejectedValueOnce(
       new MockApiRequestError(429, {
         error: 'rate_limited',
@@ -812,11 +812,18 @@ describe('QuizSessionScreen integration', () => {
     const screen = render(<QuizSessionScreen />);
 
     await waitFor(() => {
+      expect(screen.getByText('quizRateLimitDeviceTitle')).toBeTruthy();
       expect(screen.getByText('quizRateLimitDevice')).toBeTruthy();
     });
+
+    expect(screen.queryByTestId('quiz-retry-button')).toBeNull();
+    expect(screen.queryByTestId('quiz-cancel-button')).toBeNull();
+    fireEvent.press(screen.getByTestId('quiz-close-primary-button'));
+
+    expect(mockReplace).toHaveBeenCalledWith('/learn');
   });
 
-  it('shows the global quota message on structured 429 errors', async () => {
+  it('shows a close action for global quota errors', async () => {
     mockApiRequest.mockRejectedValueOnce(
       new MockApiRequestError(429, {
         error: 'rate_limited',
@@ -829,8 +836,16 @@ describe('QuizSessionScreen integration', () => {
     const screen = render(<QuizSessionScreen />);
 
     await waitFor(() => {
+      expect(screen.getByText('quizRateLimitGlobalTitle')).toBeTruthy();
       expect(screen.getByText('quizRateLimitGlobal')).toBeTruthy();
     });
+
+    expect(screen.queryByTestId('quiz-retry-button')).toBeNull();
+    expect(screen.queryByTestId('quiz-cancel-button')).toBeNull();
+    expect(screen.getByText('understood')).toBeTruthy();
+    fireEvent.press(screen.getByTestId('quiz-close-primary-button'));
+
+    expect(mockReplace).toHaveBeenCalledWith('/learn');
   });
 
   it('shows a user-friendly validation error on structured 422 errors', async () => {
@@ -859,7 +874,8 @@ describe('QuizSessionScreen integration', () => {
     const screen = render(<QuizSessionScreen />);
 
     await waitFor(() => {
-      expect(screen.getAllByText('unableToLoadQuiz')).toHaveLength(2);
+      expect(screen.getByText('unableToLoadQuiz')).toBeTruthy();
+      expect(screen.getByText('unableToLoadQuizMessage')).toBeTruthy();
     });
 
     errorSpy.mockRestore();

@@ -435,10 +435,6 @@ export default function QuizSessionScreen() {
   );
   const scrollOffsetYRef = useRef(0);
   const scrollViewportHeightRef = useRef(0);
-  const quizValidationFailedTitle = t('quizValidationFailedTitle');
-  const quizValidationFailedMessage = t('quizValidationFailedMessage');
-  const quizRateLimitDeviceText = t('quizRateLimitDevice');
-  const quizRateLimitGlobalText = t('quizRateLimitGlobal');
 
   const clearExplanationTimeout = useCallback(() => {
     if (explanationTimeoutRef.current !== null) {
@@ -832,6 +828,53 @@ export default function QuizSessionScreen() {
     </>
   );
 
+  const errorViewProps = useMemo(() => {
+    switch (error?.kind) {
+      case 'quota':
+        return {
+          title:
+            error.scope === 'global'
+              ? t('quizRateLimitGlobalTitle')
+              : t('quizRateLimitDeviceTitle'),
+          message:
+            error.scope === 'global'
+              ? t('quizRateLimitGlobal')
+              : t('quizRateLimitDevice'),
+          icon: 'clock',
+          iconColor: theme.accent,
+          primaryActionIcon: 'check',
+          primaryActionLabel: t('understood'),
+          primaryActionTestID: 'quiz-close-primary-button',
+          onPrimaryAction: handleClose,
+          showCancelAction: false,
+        };
+      case 'validation':
+        return {
+          title: t('quizValidationFailedTitle'),
+          message: t('quizValidationFailedMessage'),
+          icon: 'help-circle',
+          iconColor: theme.accent,
+          primaryActionIcon: 'refresh-cw',
+          primaryActionLabel: t('tryAgain'),
+          primaryActionTestID: 'quiz-retry-button',
+          onPrimaryAction: loadQuestions,
+          showCancelAction: true,
+        };
+      default:
+        return {
+          title: t('unableToLoadQuiz'),
+          message: t('unableToLoadQuizMessage'),
+          icon: 'alert-circle',
+          iconColor: theme.error,
+          primaryActionIcon: 'refresh-cw',
+          primaryActionLabel: t('tryAgain'),
+          primaryActionTestID: 'quiz-retry-button',
+          onPrimaryAction: loadQuestions,
+          showCancelAction: true,
+        };
+    }
+  }, [error, handleClose, loadQuestions, t, theme.accent, theme.error]);
+
   if (loading) {
     return (
       <>
@@ -851,44 +894,37 @@ export default function QuizSessionScreen() {
     );
   }
 
-  const errorTitle =
-    error?.kind === 'validation'
-      ? quizValidationFailedTitle
-      : t('unableToLoadQuiz');
-  const errorMessage =
-    error?.kind === 'validation'
-      ? quizValidationFailedMessage
-      : error?.kind === 'quota'
-        ? error.scope === 'global'
-          ? quizRateLimitGlobalText
-          : quizRateLimitDeviceText
-        : t('unableToLoadQuiz');
-
   if (error || !currentQuestion) {
     return (
       <>
         {screenHeader}
         <ThemedView style={styles.errorContainer}>
-          <AppIcon name="alert-circle" size={48} color={theme.error} />
+          <AppIcon
+            name={errorViewProps.icon}
+            size={48}
+            color={errorViewProps.iconColor}
+          />
           <ThemedText type="h4" style={styles.errorTitle}>
-            {errorTitle}
+            {errorViewProps.title}
           </ThemedText>
           <ThemedText type="body" style={styles.errorText}>
-            {errorMessage}
+            {errorViewProps.message}
           </ThemedText>
           <PrimaryButton
-            testID="quiz-retry-button"
+            testID={errorViewProps.primaryActionTestID}
             color={theme.secondary}
-            icon="refresh-cw"
-            label={t('tryAgain')}
-            onPress={loadQuestions}
+            icon={errorViewProps.primaryActionIcon}
+            label={errorViewProps.primaryActionLabel}
+            onPress={errorViewProps.onPrimaryAction}
           />
-          <SecondaryButton
-            testID="quiz-cancel-button"
-            color={theme.tabIconDefault}
-            label={t('cancel')}
-            onPress={handleClose}
-          />
+          {errorViewProps.showCancelAction ? (
+            <SecondaryButton
+              testID="quiz-cancel-button"
+              color={theme.tabIconDefault}
+              label={t('cancel')}
+              onPress={handleClose}
+            />
+          ) : null}
         </ThemedView>
       </>
     );
