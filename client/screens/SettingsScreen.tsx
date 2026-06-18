@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { View, StyleSheet, Pressable, TextInput, Alert } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Stack, useRouter } from 'expo-router';
-import SegmentedControl from '@react-native-segmented-control/segmented-control';
+import SegmentedControl from '@expo/ui/community/segmented-control';
 import Constants from 'expo-constants';
 import { EaseView } from 'react-native-ease';
 

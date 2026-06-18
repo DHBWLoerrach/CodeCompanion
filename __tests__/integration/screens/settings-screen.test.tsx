@@ -52,7 +52,7 @@ jest.mock('@/components/AppIcon', () => ({
   AppIcon: () => null,
 }));
 
-jest.mock('@react-native-segmented-control/segmented-control', () => {
+jest.mock('@expo/ui/community/segmented-control', () => {
   const ReactModule = jest.requireActual('react');
   const { View, Pressable, Text } = jest.requireActual('react-native');
 
