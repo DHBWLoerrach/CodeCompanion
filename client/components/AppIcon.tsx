@@ -1,5 +1,5 @@
 import { SymbolView, type SymbolScale, type SymbolWeight } from 'expo-symbols';
-import { Feather } from '@expo/vector-icons';
+import { Feather } from '@react-native-vector-icons/feather';
 import { StyleProp, ImageStyle } from 'react-native';
 
 const SF_SYMBOLS: Record<string, string> = {
