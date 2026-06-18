@@ -1,6 +1,6 @@
 import React, {
   createContext,
-  useContext,
+  use,
   useState,
   useEffect,
   useCallback,
@@ -61,15 +61,11 @@ export function LanguageProvider({ children }: { children: React.ReactNode }) {
     [language, isLoading, refreshLanguage]
   );
 
-  return (
-    <LanguageContext.Provider value={value}>
-      {children}
-    </LanguageContext.Provider>
-  );
+  return <LanguageContext value={value}>{children}</LanguageContext>;
 }
 
 export function useLanguage() {
-  const context = useContext(LanguageContext);
+  const context = use(LanguageContext);
   if (!context) {
     return {
       language: getInitialLanguage(),

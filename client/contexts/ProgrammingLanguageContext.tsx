@@ -1,6 +1,6 @@
 import React, {
   createContext,
-  useContext,
+  use,
   useState,
   useEffect,
   useCallback,
@@ -78,14 +78,14 @@ export function ProgrammingLanguageProvider({
   );
 
   return (
-    <ProgrammingLanguageContext.Provider value={value}>
+    <ProgrammingLanguageContext value={value}>
       {children}
-    </ProgrammingLanguageContext.Provider>
+    </ProgrammingLanguageContext>
   );
 }
 
 export function useProgrammingLanguage(): ProgrammingLanguageContextType {
-  const context = useContext(ProgrammingLanguageContext);
+  const context = use(ProgrammingLanguageContext);
   if (!context) {
     throw new Error(
       'useProgrammingLanguage must be used within ProgrammingLanguageProvider'
