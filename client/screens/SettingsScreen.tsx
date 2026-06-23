@@ -1,5 +1,12 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { View, StyleSheet, Pressable, TextInput, Alert } from 'react-native';
+import {
+  View,
+  StyleSheet,
+  Pressable,
+  TextInput,
+  Alert,
+  Platform,
+} from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Stack, useRouter } from 'expo-router';
 import SegmentedControl from '@expo/ui/community/segmented-control';
@@ -91,6 +98,7 @@ interface SettingRowProps {
   icon: string;
   label: string;
   children?: React.ReactNode;
+  stackOnAndroid?: boolean;
 }
 
 interface SettingsActionRowProps {
@@ -190,13 +198,20 @@ function SettingsActionRow({
   );
 }
 
-function SettingRow({ icon, label, children }: SettingRowProps) {
+function SettingRow({
+  icon,
+  label,
+  children,
+  stackOnAndroid = false,
+}: SettingRowProps) {
   const { theme } = useTheme();
+  const isStacked = stackOnAndroid && Platform.OS === 'android';
 
   return (
     <View
       style={[
         styles.settingRow,
+        isStacked ? styles.settingRowStacked : null,
         {
           backgroundColor: theme.backgroundDefault,
           borderBottomColor: theme.separator,
@@ -497,7 +512,11 @@ export default function SettingsScreen() {
                         })
                       }
                     />
-                    <SettingRow icon="globe" label={t('appLanguage')}>
+                    <SettingRow
+                      icon="globe"
+                      label={t('appLanguage')}
+                      stackOnAndroid
+                    >
                       <SegmentedControl
                         values={['English', 'Deutsch']}
                         selectedIndex={languageIndex}
@@ -509,10 +528,15 @@ export default function SettingsScreen() {
                               : 'de';
                           applyLanguage(nextLanguage);
                         }}
-                        style={styles.segmentedControl}
+                        style={[
+                          styles.segmentedControl,
+                          Platform.OS === 'android'
+                            ? styles.segmentedControlAndroid
+                            : null,
+                        ]}
                       />
                     </SettingRow>
-                    <SettingRow icon="moon" label={t('theme')}>
+                    <SettingRow icon="moon" label={t('theme')} stackOnAndroid>
                       <SegmentedControl
                         values={[
                           getThemeModeLabel('auto'),
@@ -527,7 +551,12 @@ export default function SettingsScreen() {
                             'auto';
                           applyThemeMode(nextMode);
                         }}
-                        style={styles.segmentedControlWide}
+                        style={[
+                          styles.segmentedControlWide,
+                          Platform.OS === 'android'
+                            ? styles.segmentedControlAndroid
+                            : null,
+                        ]}
                       />
                     </SettingRow>
                   </>
@@ -654,6 +683,11 @@ const styles = StyleSheet.create({
     padding: Spacing.lg,
     borderBottomWidth: StyleSheet.hairlineWidth,
   },
+  settingRowStacked: {
+    alignItems: 'stretch',
+    flexDirection: 'column',
+    gap: Spacing.md,
+  },
   aboutActionButton: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -693,6 +727,12 @@ const styles = StyleSheet.create({
     maxWidth: 240,
     alignSelf: 'flex-end',
     flexShrink: 1,
+  },
+  segmentedControlAndroid: {
+    alignSelf: 'stretch',
+    maxWidth: undefined,
+    minWidth: undefined,
+    width: '100%',
   },
   dangerButton: {
     marginTop: Spacing.sm,

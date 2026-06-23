@@ -1,5 +1,5 @@
 import React from 'react';
-import { StyleSheet } from 'react-native';
+import { Platform, StyleSheet } from 'react-native';
 import { fireEvent, render, waitFor } from '@testing-library/react-native';
 import SettingsScreen from '@/screens/SettingsScreen';
 
@@ -59,15 +59,20 @@ jest.mock('@expo/ui/community/segmented-control', () => {
   return ({
     values,
     onChange,
+    style,
   }: {
     values: string[];
     onChange: (event: {
       nativeEvent: { selectedSegmentIndex: number };
     }) => void;
+    style?: unknown;
   }) =>
     ReactModule.createElement(
       View,
-      null,
+      {
+        accessibilityLabel: `segmented-control:${values.join('|')}`,
+        style,
+      },
       values.map((value, index) =>
         ReactModule.createElement(
           Pressable,
@@ -264,6 +269,41 @@ describe('SettingsScreen integration', () => {
     });
 
     expect(mockBack).not.toHaveBeenCalled();
+  });
+
+  it('gives segmented controls a full-width Android layout', async () => {
+    const originalPlatform = Platform.OS;
+    Object.defineProperty(Platform, 'OS', {
+      configurable: true,
+      value: 'android',
+    });
+
+    try {
+      const screen = render(<SettingsScreen />);
+
+      await waitFor(() => {
+        expect(screen.getByText('preferences')).toBeTruthy();
+      });
+
+      const languageControl = screen.getByLabelText(
+        'segmented-control:English|Deutsch'
+      );
+      const themeControl = screen.getByLabelText(
+        'segmented-control:themeAuto|themeLight|themeDark'
+      );
+
+      expect(StyleSheet.flatten(languageControl.props.style)).toEqual(
+        expect.objectContaining({ width: '100%' })
+      );
+      expect(StyleSheet.flatten(themeControl.props.style)).toEqual(
+        expect.objectContaining({ width: '100%' })
+      );
+    } finally {
+      Object.defineProperty(Platform, 'OS', {
+        configurable: true,
+        value: originalPlatform,
+      });
+    }
   });
 
   it('configures the display name input for dynamic type without a fixed height', async () => {
