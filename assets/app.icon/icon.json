@@ -7,7 +7,15 @@
           "fill": "automatic",
           "glass": false,
           "hidden": false,
-          "image-name": "icon-1770908038775.png",
+          "image-name-specializations": [
+            {
+              "value": "icon-1770908038775.png"
+            },
+            {
+              "appearance": "dark",
+              "value": "icon-dark.png"
+            }
+          ],
           "name": "icon-1770908038775",
           "position": {
             "scale": 1,
