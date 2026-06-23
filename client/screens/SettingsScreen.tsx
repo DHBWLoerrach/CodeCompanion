@@ -228,7 +228,7 @@ function SettingRow({
 }
 
 export default function SettingsScreen() {
-  const { theme, refreshTheme } = useTheme();
+  const { theme, isDark, refreshTheme } = useTheme();
   const { t, language, refreshLanguage } = useTranslation();
   const { selectedLanguage } = useProgrammingLanguage();
   const insets = useSafeAreaInsets();
@@ -518,6 +518,7 @@ export default function SettingsScreen() {
                       stackOnAndroid
                     >
                       <SegmentedControl
+                        appearance={isDark ? 'dark' : 'light'}
                         values={['English', 'Deutsch']}
                         selectedIndex={languageIndex}
                         onChange={({ nativeEvent }) => {
@@ -538,6 +539,7 @@ export default function SettingsScreen() {
                     </SettingRow>
                     <SettingRow icon="moon" label={t('theme')} stackOnAndroid>
                       <SegmentedControl
+                        appearance={isDark ? 'dark' : 'light'}
                         values={[
                           getThemeModeLabel('auto'),
                           getThemeModeLabel('light'),

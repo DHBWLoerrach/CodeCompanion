@@ -57,10 +57,12 @@ jest.mock('@expo/ui/community/segmented-control', () => {
   const { View, Pressable, Text } = jest.requireActual('react-native');
 
   return ({
+    appearance,
     values,
     onChange,
     style,
   }: {
+    appearance?: 'dark' | 'light';
     values: string[];
     onChange: (event: {
       nativeEvent: { selectedSegmentIndex: number };
@@ -71,6 +73,7 @@ jest.mock('@expo/ui/community/segmented-control', () => {
       View,
       {
         accessibilityLabel: `segmented-control:${values.join('|')}`,
+        appearance,
         style,
       },
       values.map((value, index) =>
@@ -298,6 +301,37 @@ describe('SettingsScreen integration', () => {
       expect(StyleSheet.flatten(themeControl.props.style)).toEqual(
         expect.objectContaining({ width: '100%' })
       );
+    } finally {
+      Object.defineProperty(Platform, 'OS', {
+        configurable: true,
+        value: originalPlatform,
+      });
+    }
+  });
+
+  it('uses the app light appearance for Android segmented controls', async () => {
+    const originalPlatform = Platform.OS;
+    Object.defineProperty(Platform, 'OS', {
+      configurable: true,
+      value: 'android',
+    });
+
+    try {
+      const screen = render(<SettingsScreen />);
+
+      await waitFor(() => {
+        expect(screen.getByText('preferences')).toBeTruthy();
+      });
+
+      const languageControl = screen.getByLabelText(
+        'segmented-control:English|Deutsch'
+      );
+      const themeControl = screen.getByLabelText(
+        'segmented-control:themeAuto|themeLight|themeDark'
+      );
+
+      expect(languageControl.props.appearance).toBe('light');
+      expect(themeControl.props.appearance).toBe('light');
     } finally {
       Object.defineProperty(Platform, 'OS', {
         configurable: true,
