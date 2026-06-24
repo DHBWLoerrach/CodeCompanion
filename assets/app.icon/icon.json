@@ -5,7 +5,7 @@
       "layers": [
         {
           "fill": "automatic",
-          "glass": false,
+          "glass": true,
           "hidden": false,
           "image-name-specializations": [
             {
@@ -14,6 +14,10 @@
             {
               "appearance": "dark",
               "value": "icon-dark.png"
+            },
+            {
+              "appearance": "tinted",
+              "value": "icon-tinted.png"
             }
           ],
           "name": "icon-1770908038775",
@@ -28,8 +32,8 @@
         "opacity": 0
       },
       "translucency": {
-        "enabled": false,
-        "value": 0
+        "enabled": true,
+        "value": 0.5
       }
     }
   ],
