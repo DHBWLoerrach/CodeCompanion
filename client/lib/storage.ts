@@ -87,12 +87,14 @@ const defaultProfile: UserProfile = {
   avatarIndex: 0,
 };
 
-const defaultProgress: ProgressData = {
-  totalQuestions: 0,
-  correctAnswers: 0,
-  topicProgress: {},
-  achievements: [],
-};
+function createDefaultProgress(): ProgressData {
+  return {
+    totalQuestions: 0,
+    correctAnswers: 0,
+    topicProgress: {},
+    achievements: [],
+  };
+}
 
 const defaultStreak: StreakData = {
   currentStreak: 0,
@@ -147,9 +149,9 @@ export const storage = {
   async getProgress(): Promise<ProgressData> {
     try {
       const data = await AsyncStorage.getItem(STORAGE_KEYS.PROGRESS);
-      return data ? JSON.parse(data) : defaultProgress;
+      return data ? JSON.parse(data) : createDefaultProgress();
     } catch {
-      return defaultProgress;
+      return createDefaultProgress();
     }
   },
 

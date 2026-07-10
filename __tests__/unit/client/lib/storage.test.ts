@@ -10,6 +10,7 @@ import {
 
 const DEVICE_ID_STORAGE_KEY = 'dhbw_device_id';
 const LEVEL_HINT_KEY = 'dhbw_level_hint_seen';
+const PROGRESS_KEY = 'dhbw_progress';
 const STREAK_KEY = 'dhbw_streak';
 const SETTINGS_KEY = 'dhbw_settings';
 
@@ -278,6 +279,20 @@ describe('storage state updates', () => {
   });
 
   describe('clearAllData', () => {
+    it('returns empty progress immediately after reset in the same runtime', async () => {
+      await storage.updateTopicProgress('javascript', 'variables', 5, 4);
+
+      await storage.clearAllData();
+
+      expect(await storage.getProgress()).toEqual({
+        totalQuestions: 0,
+        correctAnswers: 0,
+        topicProgress: {},
+        achievements: [],
+      });
+      expect(await AsyncStorage.getItem(PROGRESS_KEY)).toBeNull();
+    });
+
     it('keeps the device ID and one-time guidance flags while removing other local app data', async () => {
       await AsyncStorage.setItem(DEVICE_ID_STORAGE_KEY, 'device-uuid');
       await storage.setSelectedLanguage('python');
