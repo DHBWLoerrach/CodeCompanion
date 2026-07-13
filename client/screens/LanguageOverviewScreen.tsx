@@ -18,6 +18,7 @@ import {
 } from '@/constants/theme';
 import { useProgrammingLanguage } from '@/contexts/ProgrammingLanguageContext';
 import { useTheme } from '@/contexts/ThemeContext';
+import { useReducedMotion } from '@/hooks/useReducedMotion';
 import { useTranslation } from '@/hooks/useTranslation';
 import {
   getLanguageFlowOrigin,
@@ -38,16 +39,20 @@ type SectionProps = {
 
 function OverviewSection({ color, delay, items, title }: SectionProps) {
   const { theme } = useTheme();
+  const isReducedMotionEnabled = useReducedMotion();
 
   return (
     <EaseView
-      initialAnimate={{ opacity: 0, translateY: 16 }}
+      initialAnimate={{
+        opacity: 0,
+        translateY: isReducedMotionEnabled ? 0 : 16,
+      }}
       animate={{ opacity: 1, translateY: 0 }}
       transition={{
         type: 'timing',
-        duration: 320,
+        duration: isReducedMotionEnabled ? 160 : 320,
         easing: [0.455, 0.03, 0.515, 0.955],
-        delay,
+        delay: isReducedMotionEnabled ? 0 : delay,
       }}
     >
       <SurfaceCard style={styles.sectionCard} topAccentColor={color}>
@@ -81,6 +86,7 @@ export default function LanguageOverviewScreen() {
   const { selectedLanguageId, setSelectedLanguage } = useProgrammingLanguage();
   const router = useRouter();
   const insets = useSafeAreaInsets();
+  const isReducedMotionEnabled = useReducedMotion();
   const {
     languageId: languageIdParam,
     mode: modeParam,
@@ -277,11 +283,14 @@ export default function LanguageOverviewScreen() {
           showsVerticalScrollIndicator={false}
         >
           <EaseView
-            initialAnimate={{ opacity: 0, translateY: 18 }}
+            initialAnimate={{
+              opacity: 0,
+              translateY: isReducedMotionEnabled ? 0 : 18,
+            }}
             animate={{ opacity: 1, translateY: 0 }}
             transition={{
               type: 'timing',
-              duration: 360,
+              duration: isReducedMotionEnabled ? 160 : 360,
               easing: [0.455, 0.03, 0.515, 0.955],
             }}
           >

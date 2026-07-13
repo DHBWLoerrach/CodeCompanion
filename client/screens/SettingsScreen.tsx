@@ -23,7 +23,6 @@ import { SurfaceCard } from '@/components/SurfaceCard';
 import { useTheme } from '@/contexts/ThemeContext';
 import { usePressAnimation } from '@/hooks/usePressAnimation';
 import { useTranslation } from '@/hooks/useTranslation';
-import { getDefaultTextCap } from '@/lib/accessibility';
 import { getLanguageDisplayName } from '@/lib/languages';
 import {
   Spacing,
@@ -54,12 +53,16 @@ interface AvatarOptionProps {
 
 function AvatarOption({ icon, index, selected, onSelect }: AvatarOptionProps) {
   const { theme } = useTheme();
+  const { t } = useTranslation();
   const { animate, transition, handlePressIn, handlePressOut } =
     usePressAnimation(0.96);
 
   return (
     <EaseView animate={animate} transition={transition}>
       <Pressable
+        accessibilityLabel={`${t('avatar')} ${index + 1}`}
+        accessibilityRole="radio"
+        accessibilityState={{ selected }}
         style={[
           styles.avatarOption,
           {
@@ -79,8 +82,14 @@ function AvatarOption({ icon, index, selected, onSelect }: AvatarOptionProps) {
 }
 
 function AvatarSelector({ selectedIndex, onSelect }: AvatarSelectorProps) {
+  const { t } = useTranslation();
+
   return (
-    <View style={styles.avatarGrid}>
+    <View
+      accessibilityLabel={t('avatar')}
+      accessibilityRole="radiogroup"
+      style={styles.avatarGrid}
+    >
       {AVATARS.map((icon, index) => (
         <AvatarOption
           key={index}
@@ -440,7 +449,6 @@ export default function SettingsScreen() {
               </ThemedText>
               <TextInput
                 allowFontScaling
-                maxFontSizeMultiplier={getDefaultTextCap('body')}
                 testID="settings-display-name-input"
                 style={[
                   styles.textInput,

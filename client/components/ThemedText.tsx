@@ -2,7 +2,7 @@ import { Text, type TextProps } from 'react-native';
 
 import { useTheme } from '@/contexts/ThemeContext';
 import { Typography } from '@/constants/theme';
-import { getDefaultTextCap, type ThemedTextType } from '@/lib/accessibility';
+import { type ThemedTextType } from '@/lib/accessibility';
 
 type ThemedTextProps = TextProps & {
   lightColor?: string;
@@ -15,12 +15,9 @@ export function ThemedText({
   lightColor,
   darkColor,
   type = 'body',
-  maxFontSizeMultiplier,
   ...rest
 }: ThemedTextProps) {
   const { theme, isDark } = useTheme();
-  const resolvedMaxFontSizeMultiplier =
-    maxFontSizeMultiplier ?? getDefaultTextCap(type);
 
   const getColor = () => {
     if (isDark && darkColor) {
@@ -66,10 +63,6 @@ export function ThemedText({
   };
 
   return (
-    <Text
-      maxFontSizeMultiplier={resolvedMaxFontSizeMultiplier}
-      style={[{ color: getColor() }, getTypeStyle(), style]}
-      {...rest}
-    />
+    <Text style={[{ color: getColor() }, getTypeStyle(), style]} {...rest} />
   );
 }

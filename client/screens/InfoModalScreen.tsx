@@ -177,7 +177,13 @@ export default function InfoModalScreen() {
     <>
       <Stack.Screen
         options={{
-          headerLeft: () => <HeaderIconButton icon="x" onPress={handleClose} />,
+          headerLeft: () => (
+            <HeaderIconButton
+              accessibilityLabel={t('close')}
+              icon="x"
+              onPress={handleClose}
+            />
+          ),
         }}
       />
       <Stack.Screen.Title>{title}</Stack.Screen.Title>

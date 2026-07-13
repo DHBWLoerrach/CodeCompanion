@@ -10,6 +10,7 @@ import { ThemedText } from '@/components/ThemedText';
 import { useProgrammingLanguage } from '@/contexts/ProgrammingLanguageContext';
 import { useTheme } from '@/contexts/ThemeContext';
 import { usePressAnimation } from '@/hooks/usePressAnimation';
+import { useReducedMotion } from '@/hooks/useReducedMotion';
 import { useTranslation } from '@/hooks/useTranslation';
 import {
   getLanguageFlowOrigin,
@@ -45,6 +46,7 @@ function LanguageCard({
 }: LanguageCardProps) {
   const { theme } = useTheme();
   const { t } = useTranslation();
+  const isReducedMotionEnabled = useReducedMotion();
   const { animate, transition, handlePressIn, handlePressOut } =
     usePressAnimation(0.985);
   const chevronTint = useMemo(
@@ -65,13 +67,16 @@ function LanguageCard({
 
   return (
     <EaseView
-      initialAnimate={{ opacity: 0, translateY: 20 }}
+      initialAnimate={{
+        opacity: 0,
+        translateY: isReducedMotionEnabled ? 0 : 20,
+      }}
       animate={{ opacity: 1, translateY: 0 }}
       transition={{
         type: 'timing',
-        duration: 300,
+        duration: isReducedMotionEnabled ? 160 : 300,
         easing: [0.455, 0.03, 0.515, 0.955],
-        delay: index * 80,
+        delay: isReducedMotionEnabled ? 0 : index * 80,
       }}
     >
       <EaseView animate={animate} transition={transition}>
@@ -175,9 +180,9 @@ export default function LanguageSelectScreen() {
   const returnTo = getLanguageFlowReturnTarget(returnToParam);
   const canNavigateBack = origin !== undefined;
 
-  const handleSelectLanguage = async (language: ProgrammingLanguage) => {
+  const handleSelectLanguage = (language: ProgrammingLanguage) => {
     if (process.env.EXPO_OS === 'ios') {
-      await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+      void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     }
 
     router.push({

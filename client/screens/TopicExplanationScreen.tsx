@@ -166,7 +166,13 @@ export default function TopicExplanationScreen() {
         options={{
           headerLeft: router.canGoBack()
             ? undefined
-            : () => <HeaderIconButton icon="x" onPress={handleClose} />,
+            : () => (
+                <HeaderIconButton
+                  accessibilityLabel={t('close')}
+                  icon="x"
+                  onPress={handleClose}
+                />
+              ),
         }}
       />
       <Stack.Screen.Title>{title}</Stack.Screen.Title>

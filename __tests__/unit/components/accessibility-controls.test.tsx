@@ -39,10 +39,12 @@ jest.mock('@/contexts/ThemeContext', () => ({
 }));
 
 describe('accessibility-aware controls', () => {
-  it('applies the default cap to themed body text', () => {
+  it('leaves themed body text uncapped', () => {
     const screen = render(<ThemedText type="body">Body text</ThemedText>);
 
-    expect(screen.getByText('Body text').props.maxFontSizeMultiplier).toBe(1.6);
+    expect(
+      screen.getByText('Body text').props.maxFontSizeMultiplier
+    ).toBeUndefined();
   });
 
   it('caps status badge labels as dense controls', () => {

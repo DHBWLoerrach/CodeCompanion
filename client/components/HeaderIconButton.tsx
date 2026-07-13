@@ -15,6 +15,7 @@ import { usePressAnimation } from '@/hooks/usePressAnimation';
 const HEADER_ICON_BUTTON_SIZE = 36;
 
 interface HeaderIconButtonProps {
+  accessibilityLabel: string;
   icon: string;
   onPress: () => void;
   color?: string;
@@ -25,6 +26,7 @@ interface HeaderIconButtonProps {
 }
 
 export function HeaderIconButton({
+  accessibilityLabel,
   icon,
   onPress,
   color,
@@ -40,6 +42,8 @@ export function HeaderIconButton({
   return (
     <EaseView animate={animate} transition={transition}>
       <Pressable
+        accessibilityLabel={accessibilityLabel}
+        accessibilityRole="button"
         testID={testID}
         style={[styles.button, style]}
         onPress={onPress}

@@ -1,5 +1,4 @@
 import {
-  getDefaultTextCap,
   getDenseControlTextCap,
   getFontScaleCategory,
   getTabLabel,
@@ -31,11 +30,7 @@ describe('accessibility helpers', () => {
     expect(shouldUseAccessibilityLayout(1.35, 768)).toBe(false);
   });
 
-  it('returns text caps for content and dense controls', () => {
-    expect(getDefaultTextCap('body')).toBe(1.6);
-    expect(getDefaultTextCap('h4')).toBe(1.6);
-    expect(getDefaultTextCap('caption')).toBe(1.4);
-    expect(getDefaultTextCap('label')).toBe(1.4);
+  it('returns a text cap for dense controls', () => {
     expect(getDenseControlTextCap()).toBe(1.2);
   });
 

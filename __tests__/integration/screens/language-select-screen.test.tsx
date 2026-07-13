@@ -1,5 +1,6 @@
 import React from 'react';
 import { fireEvent, render, waitFor } from '@testing-library/react-native';
+import * as Haptics from 'expo-haptics';
 import LanguageSelectScreen from '@/screens/LanguageSelectScreen';
 
 const mockPush = jest.fn();
@@ -93,6 +94,16 @@ describe('LanguageSelectScreen integration', () => {
     mockStackBackButton.mockReset();
     mockSelectedLanguageId = null;
     mockSearchParams = {};
+    jest.mocked(Haptics.impactAsync).mockResolvedValue();
+  });
+
+  it('navigates without waiting for haptic feedback', () => {
+    jest.mocked(Haptics.impactAsync).mockReturnValue(new Promise(() => {}));
+    const screen = render(<LanguageSelectScreen />);
+
+    fireEvent.press(screen.getByTestId('language-select-option-javascript'));
+
+    expect(mockPush).toHaveBeenCalledTimes(1);
   });
 
   it('opens the overview screen with the selected language id', async () => {

@@ -36,6 +36,7 @@ import { useTheme } from '@/contexts/ThemeContext';
 import { useTranslation } from '@/hooks/useTranslation';
 import { useCloseHandler } from '@/hooks/useCloseHandler';
 import { usePressAnimation } from '@/hooks/usePressAnimation';
+import { useReducedMotion } from '@/hooks/useReducedMotion';
 import {
   DEFAULT_QUIZ_QUESTION_COUNT,
   EXPLORE_QUIZ_MODE,
@@ -192,6 +193,7 @@ function AnswerButton({
   testID,
 }: AnswerButtonProps) {
   const { theme } = useTheme();
+  const { t } = useTranslation();
   const {
     animate,
     transition,
@@ -231,10 +233,23 @@ function AnswerButton({
 
   const optionLabel = String.fromCharCode(65 + index);
   const hasHighlightedAnswerState = selected || (showResult && isCorrectAnswer);
+  const resultLabel = showResult
+    ? isCorrectAnswer
+      ? t('correctTitle')
+      : selected
+        ? t('incorrectShort')
+        : undefined
+    : undefined;
+  const accessibilityLabel = [optionLabel, text, resultLabel]
+    .filter(Boolean)
+    .join(', ');
 
   return (
     <EaseView animate={animate} transition={transition}>
       <Pressable
+        accessibilityLabel={accessibilityLabel}
+        accessibilityRole="radio"
+        accessibilityState={{ disabled, selected }}
         testID={testID}
         onPress={onPress}
         onPressIn={handlePressIn}
@@ -302,6 +317,7 @@ export default function QuizSessionScreen() {
   const { theme } = useTheme();
   const { t, language } = useTranslation();
   const insets = useSafeAreaInsets();
+  const isReducedMotionEnabled = useReducedMotion();
   const router = useRouter();
   const { topicId, topicIds, count, programmingLanguage, quizMode, returnTo } =
     useLocalSearchParams<{
@@ -811,6 +827,7 @@ export default function QuizSessionScreen() {
 
   const renderCloseButton = () => (
     <HeaderIconButton
+      accessibilityLabel={t('close')}
       testID="quiz-close-button"
       icon="x"
       onPress={handleRequestClose}
@@ -1000,7 +1017,11 @@ export default function QuizSessionScreen() {
             ) : null}
           </SurfaceCard>
 
-          <View style={styles.answersContainer}>
+          <View
+            accessibilityLabel={t('answerOptions')}
+            accessibilityRole="radiogroup"
+            style={styles.answersContainer}
+          >
             {currentQuestion.options.map((option, index) => (
               <AnswerButton
                 key={index}
@@ -1025,7 +1046,7 @@ export default function QuizSessionScreen() {
               <EaseView
                 animate={{
                   opacity: showExplanation ? 1 : 0,
-                  translateY: showExplanation ? 0 : 8,
+                  translateY: showExplanation || isReducedMotionEnabled ? 0 : 8,
                 }}
                 transition={{
                   type: 'timing',

@@ -225,6 +225,7 @@ describe('QuizSessionScreen integration', () => {
     expect(headerLeft).toBeDefined();
 
     const headerButton = render(headerLeft!());
+    expect(headerButton.getByLabelText('close')).toBeTruthy();
     fireEvent.press(headerButton.getByTestId('quiz-close-button'));
   }
 
@@ -249,6 +250,13 @@ describe('QuizSessionScreen integration', () => {
       programmingLanguage: 'javascript',
     });
 
+    const firstAnswer = screen.getByTestId('quiz-answer-0');
+    expect(firstAnswer.props.accessibilityRole).toBe('radio');
+    expect(firstAnswer.props.accessibilityState).toEqual({
+      disabled: false,
+      selected: false,
+    });
+
     fireEvent.press(screen.getByText('Option A'));
     fireEvent.press(screen.getByText('submitAnswer'));
 
@@ -257,6 +265,13 @@ describe('QuizSessionScreen integration', () => {
         screen.getByText('Because const creates block-scoped bindings.')
       ).toBeTruthy();
     });
+    expect(firstAnswer.props.accessibilityState).toEqual({
+      disabled: true,
+      selected: true,
+    });
+    expect(firstAnswer.props.accessibilityLabel).toBe(
+      'A, Option A, incorrectShort'
+    );
 
     fireEvent.press(screen.getByText('viewResults'));
 

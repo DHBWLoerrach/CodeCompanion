@@ -1,5 +1,7 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
+import { __resetAccessibilityPreferencesForTests } from '@/hooks/useReducedMotion';
+
 jest.mock('@react-native-async-storage/async-storage', () =>
   require('@react-native-async-storage/async-storage/jest/async-storage-mock')
 );
@@ -43,6 +45,7 @@ jest.mock('react-native-keyboard-controller', () => {
 });
 
 beforeEach(async () => {
+  __resetAccessibilityPreferencesForTests();
   await AsyncStorage.clear();
   jest.clearAllMocks();
 });

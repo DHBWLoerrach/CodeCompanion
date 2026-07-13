@@ -11,6 +11,7 @@ import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
 import { BorderRadius, Shadows, Spacing, withOpacity } from '@/constants/theme';
 import { useTheme } from '@/contexts/ThemeContext';
+import { useReducedMotion } from '@/hooks/useReducedMotion';
 import { useTranslation } from '@/hooks/useTranslation';
 import { storage } from '@/lib/storage';
 
@@ -27,11 +28,19 @@ export default function WelcomeScreen() {
   const { t } = useTranslation();
   const insets = useSafeAreaInsets();
   const router = useRouter();
+  const isReducedMotionEnabled = useReducedMotion();
   const logoRotateX = useRef(new Animated.Value(0)).current;
   const logoRotateY = useRef(new Animated.Value(0)).current;
   const logoRotateZ = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
+    if (isReducedMotionEnabled) {
+      logoRotateX.setValue(0);
+      logoRotateY.setValue(0);
+      logoRotateZ.setValue(0);
+      return;
+    }
+
     let isActive = true;
     let currentAnimation: Animated.CompositeAnimation | null = null;
 
@@ -74,7 +83,7 @@ export default function WelcomeScreen() {
       isActive = false;
       currentAnimation?.stop();
     };
-  }, [logoRotateX, logoRotateY, logoRotateZ]);
+  }, [isReducedMotionEnabled, logoRotateX, logoRotateY, logoRotateZ]);
 
   const logoRotateXDeg = logoRotateX.interpolate({
     inputRange: [-1, 1],
@@ -126,11 +135,14 @@ export default function WelcomeScreen() {
         showsVerticalScrollIndicator={false}
       >
         <EaseView
-          initialAnimate={{ opacity: 0, translateY: 20 }}
+          initialAnimate={{
+            opacity: 0,
+            translateY: isReducedMotionEnabled ? 0 : 20,
+          }}
           animate={{ opacity: 1, translateY: 0 }}
           transition={{
             type: 'timing',
-            duration: 450,
+            duration: isReducedMotionEnabled ? 160 : 450,
             easing: [0.455, 0.03, 0.515, 0.955],
           }}
           style={styles.heroSection}
@@ -175,13 +187,16 @@ export default function WelcomeScreen() {
         </EaseView>
 
         <EaseView
-          initialAnimate={{ opacity: 0, translateY: 20 }}
+          initialAnimate={{
+            opacity: 0,
+            translateY: isReducedMotionEnabled ? 0 : 20,
+          }}
           animate={{ opacity: 1, translateY: 0 }}
           transition={{
             type: 'timing',
-            duration: 450,
+            duration: isReducedMotionEnabled ? 160 : 450,
             easing: [0.455, 0.03, 0.515, 0.955],
-            delay: 120,
+            delay: isReducedMotionEnabled ? 0 : 120,
           }}
           style={styles.ctaWrap}
         >

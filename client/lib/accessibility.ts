@@ -48,24 +48,6 @@ export function shouldUseAccessibilityLayout(fontScale: number, width: number) {
   );
 }
 
-export function getDefaultTextCap(type: ThemedTextType) {
-  switch (type) {
-    case 'h1':
-    case 'h2':
-    case 'h3':
-    case 'h4':
-    case 'body':
-    case 'link':
-      return 1.6;
-    case 'small':
-    case 'caption':
-    case 'code':
-    case 'label':
-    default:
-      return 1.4;
-  }
-}
-
 export function getDenseControlTextCap() {
   return DENSE_CONTROL_MAX_FONT_SCALE;
 }

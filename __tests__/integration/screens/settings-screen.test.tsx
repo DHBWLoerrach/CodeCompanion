@@ -189,6 +189,12 @@ describe('SettingsScreen integration', () => {
     expect(mockStackTitle).toHaveBeenCalledWith(
       expect.objectContaining({ children: 'settings' })
     );
+    const avatarOptions = screen.getAllByRole('radio');
+    expect(avatarOptions).toHaveLength(4);
+    expect(avatarOptions[0].props.accessibilityLabel).toBe('avatar 1');
+    expect(avatarOptions[0].props.accessibilityState).toEqual({
+      selected: true,
+    });
 
     fireEvent.press(changeTechnologyButton);
 
@@ -349,7 +355,7 @@ describe('SettingsScreen integration', () => {
     const style = StyleSheet.flatten(input.props.style);
 
     expect(input.props.allowFontScaling).toBe(true);
-    expect(input.props.maxFontSizeMultiplier).toBe(1.6);
+    expect(input.props.maxFontSizeMultiplier).toBeUndefined();
     expect(style.minHeight).toBe(48);
     expect(style.height).toBeUndefined();
   });
