@@ -6,9 +6,9 @@ Mobile Lern- und Übungsapp für Programmiergrundlagen an der DHBW Lörrach.
 
 Code Companion unterstützt Studierende beim selbstgesteuerten Lernen:
 
-- Themenbasiertes Lernen mit Curricula für JavaScript, Python und Java
+- Themenbasiertes Lernen mit Curricula für JavaScript, Python, Java und Rust
 - KI-gestützte Quiz-Generierung pro Thema oder als Mixed Quiz
-- KI-Erklärungen zu Themen als Markdown-Modal
+- Statische Erklärungen zu Themen als Markdown-Ansicht
 - Fortschritt, Skill-Level und Lernstreaks pro Programmiersprache
 - App-Lokalisierung (Deutsch/Englisch) und Theme-Modi (System/Hell/Dunkel)
 - Produktfokus ausschließlich auf Android und iOS; keine geplante Webapp
@@ -21,16 +21,16 @@ Die App wurde am Studienzentrum IT-Management & Informatik (SZI) der DHBW Lörra
 
 ## Datenschutz
 
-- Es werden keine benutzerbezogenen Daten auf Servern gespeichert.
-- Lernfortschritt, Profil und Einstellungen liegen ausschließlich lokal auf dem Gerät (AsyncStorage).
+- Lernfortschritt, Profil und Einstellungen liegen ausschließlich lokal auf dem Gerät (AsyncStorage) und werden nicht serverseitig gespeichert.
+- Bei aktiviertem Quota-Feature speichert Supabase ausschließlich einen SHA-256-Hash der lokalen Geräte-ID sowie Endpoint und Nutzungsdatum; keine rohe Geräte-ID und keine Lerninhalte.
 
 ## Tech Stack
 
-- Expo SDK 55 + React Native 0.83 + React 19.2
-- Expo Router 6 (file-based routing)
+- Expo SDK 57 + React Native 0.86 + React 19.2
+- Expo Router 57 (file-based routing)
 - React Query
 - Expo API Routes (`app/api/*`) über `web.output="server"` für serverseitige Endpunkte
-- OpenAI Responses API (Server-seitig in `server/quiz.ts`)
+- OpenAI Responses API (serverseitig über `server/quiz.ts` und `server/quiz/`)
 - AsyncStorage (lokale Persistenz)
 
 ## Projektstruktur
@@ -38,7 +38,7 @@ Die App wurde am Studienzentrum IT-Management & Informatik (SZI) der DHBW Lörra
 ```text
 app/                            Expo Router Routen + API Routes
   (tabs)/                       Learn, Practice, Progress
-  api/                          quiz + topic explain endpoints
+  api/quiz/                     generate + generate-mixed API Routes
   _layout.tsx                   globale Provider + Stack-Layout
 
 client/
@@ -50,14 +50,19 @@ client/
   constants/                    Design-Tokens
 
 server/
-  quiz.ts                       Prompting + OpenAI-Integration
-  topic-prompts.ts              Topic-ID -> Prompt-Mapping je Sprache
+  quiz.ts                       Orchestrierung der Quiz-Generierung
+  quiz/                         OpenAI-Transport, Prompts, Parsing, Validierung
+  quota.ts                      serverseitige Quota-Prüfung
+  supabase.ts                   serverseitiger Supabase-Admin-Client
   validation.ts                 Request-Validierung für API Routes
   logging.ts                    API-Error-Logging
 
 shared/
   curriculum/                   JSON-Curricula + Loader/Validierung
+  topic-prompts/                Topic-ID -> Prompt-Mapping je Sprache
+  explanations/                 statische Erklärungen je Sprache/Locale
   programming-language.ts       unterstützte Programmiersprachen
+  api-quota.ts                  gemeinsamer Quota-Vertrag
   skill-level.ts                Shared Types (Skill/Difficulty)
 
 __tests__/
@@ -139,6 +144,15 @@ Beide Dateien müssen gemeinsam committed werden.
   - `API_QUOTA_ENABLED=true`
   - `SUPABASE_URL` und `SUPABASE_SECRET_KEY` müssen gesetzt sein
   - Nur gegen eine dedizierte Dev-/Test-Supabase-Instanz testen, nie gegen Produktion
+
+### Aktiver Quota-Vertrag
+
+Die am 2026-07-13 bestätigten Runtime-Limits gelten jeweils pro UTC-Tag:
+
+- 15 Requests insgesamt pro Gerät
+- davon maximal 12 für `quiz/generate`
+- davon maximal 6 für `quiz/generate-mixed`
+- 400 Requests global über beide Endpunkte
 
 ## Supabase-Setup für Entwicklungsumgebung
 
@@ -223,8 +237,7 @@ Die Supabase-Anbindung ist nur relevant für:
 - `POST /api/quiz/generate`
 - `POST /api/quiz/generate-mixed`
 
-Für Deployments müssen dieselben Variablen zusätzlich in der EAS-Environment gesetzt werden.
-Mehr Kontext zur Architektur und zum Rollout steht in `docs/specs/rate-limits/rate-limiting-plan-v4.md`.
+Für Deployments müssen dieselben Variablen zusätzlich in der EAS-Environment gesetzt werden. Der aktive Quota-Vertrag liegt in `shared/api-quota.ts`, `server/quota.ts` und `server/supabase.ts`.
 
 ## Entwicklung starten
 
@@ -275,7 +288,7 @@ Request-Body:
 - `count` (number, optional, 1-20, default 5)
 - `language` (`en` | `de`, optional, default `en`)
 - `skillLevel` (number, optional, default 1)
-- `programmingLanguage` (`javascript` | `python` | `java`, optional, default `javascript`)
+- `programmingLanguage` (`javascript` | `python` | `java` | `rust`, optional, default `javascript`)
 
 ### `POST /api/quiz/generate-mixed`
 
@@ -288,7 +301,7 @@ Request-Body:
 - `count` (number, optional, 1-20, default 10)
 - `language` (`en` | `de`, optional, default `en`)
 - `skillLevel` (number, optional, default 1)
-- `programmingLanguage` (`javascript` | `python` | `java`, optional, default `javascript`)
+- `programmingLanguage` (`javascript` | `python` | `java` | `rust`, optional, default `javascript`)
 - `topicIds` (string[], optional, max 20; wenn leer, zufällige Topics)
 
 ## Curricula und Inhalte
