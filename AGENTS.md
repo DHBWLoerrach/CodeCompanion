@@ -2,21 +2,21 @@
 
 ## Project Overview
 
-DHBW Code Companion is a mobile learning app for programming topics (Expo SDK 55, React Native 0.83, React 19.2, Expo Router).
+DHBW Code Companion is a mobile learning app for programming topics (Expo SDK 57, React Native 0.86, React 19.2, Expo Router 57).
 
-- Supports multiple programming languages (JavaScript, Python, Java) via JSON curricula in `shared/curriculum/`.
+- Supports multiple programming languages (JavaScript, Python, Java, Rust) via JSON curricula in `shared/curriculum/`.
 - Supports app localization (German/English) via `client/lib/i18n.ts` and `client/contexts/LanguageContext.tsx`.
-- AI quiz and explanation generation runs through OpenAI Responses API in server-side API routes.
+- AI quiz generation runs through the OpenAI Responses API in server-side API routes; topic explanations are static JSON in `shared/explanations/`.
 - Quiz generation can be protected by optional Supabase-backed server-side rate limiting for the two quiz POST routes.
-- User profile, settings, progress, and streak data are stored locally (AsyncStorage), with no server-side user data storage.
+- User profile, settings, progress, and streak data are stored locally (AsyncStorage). When quota is enabled, Supabase stores only a hash of the device ID plus endpoint and usage date; it does not store learning progress or profile data.
 - Product scope is Android/iOS only; `web.output="server"` exists to host Expo API routes, not a planned web app.
 
 ## Project Structure & Module Organization
 
 - `app/`: Expo Router file-based routes and API endpoints (`app/api/*+api.ts`).
 - `client/`: app UI and client logic (`components/`, `screens/`, `hooks/`, `lib/`, `constants/`, `contexts/`).
-- `server/`: server-only route logic (for example `server/quiz.ts`, `server/validation.ts`, `server/logging.ts`, `server/crypto.ts`, `server/quota.ts`, `server/supabase.ts`).
-- `shared/`: runtime-neutral shared types/data (`shared/curriculum/`, `shared/topic-prompts/`, `shared/programming-language.ts`, `shared/skill-level.ts`, `shared/api-quota.ts`).
+- `server/`: server-only route logic (for example `server/quiz.ts`, `server/quiz/`, `server/validation.ts`, `server/logging.ts`, `server/crypto.ts`, `server/quota.ts`, `server/supabase.ts`).
+- `shared/`: runtime-neutral shared types/data (`shared/curriculum/`, `shared/topic-prompts/`, `shared/explanations/`, `shared/programming-language.ts`, `shared/skill-level.ts`, `shared/api-quota.ts`).
 - `__tests__/unit` and `__tests__/integration`: Jest test suites.
 - `e2e/maestro`: Maestro end-to-end flows.
 - `test/setup.ts`: Jest setup/mocks.
@@ -70,7 +70,7 @@ DHBW Code Companion is a mobile learning app for programming topics (Expo SDK 55
 - API routes:
   - `POST /api/quiz/generate`
   - `POST /api/quiz/generate-mixed`
-- API requests may include `programmingLanguage` (`javascript` | `python` | `java`), defaulting to `javascript` when omitted.
+- API requests may include `programmingLanguage` (`javascript` | `python` | `java` | `rust`), defaulting to `javascript` when omitted.
 - When `API_QUOTA_ENABLED=true`, the client sends `X-Device-Id` on the two quiz POST routes only; the server hashes it and checks quota in Supabase before any OpenAI call.
 - Quota helpers live in `server/quota.ts` and `server/supabase.ts`; shared quota contracts live in `shared/api-quota.ts`.
 - The persistent device ID is stored client-side in `client/lib/device-id.ts` and must not be removed by `storage.clearAllData()` or "reset progress".
