@@ -159,45 +159,22 @@ Die am 2026-07-13 bestätigten Runtime-Limits gelten jeweils pro UTC-Tag:
 Supabase wird in diesem Projekt aktuell nur für das serverseitige Quota-Feature benötigt.
 Für den normalen lokalen Entwicklungsalltag bleibt `API_QUOTA_ENABLED=false`.
 
-Wichtiger Stand heute:
-
-- Es gibt aktuell kein `supabase/`-Verzeichnis mit committed Migrationen.
-- Das benötigte Schema wird derzeit manuell im Supabase SQL Editor angelegt.
+Das versionierte Schema liegt in `supabase/migrations/20260713000000_create_api_usage.sql`. Die Migration ist die Source of Truth für Tabelle, Constraints, Indizes und RLS-Konfiguration.
 
 ### 1. Dev-/Test-Projekt anlegen
 
 Ein dediziertes Supabase-Projekt für Entwicklung oder Integrationstests anlegen.
 Nie gegen das Produktionsprojekt entwickeln oder testen.
 
-### 2. SQL für die Quota-Tabelle ausführen
+### 2. Migration anwenden
 
-Im Supabase SQL Editor folgendes ausführen:
-
-```sql
-create table public.api_usage (
-  id bigint generated always as identity primary key,
-  device_id_hash text not null,
-  endpoint text not null check (endpoint in ('quiz/generate', 'quiz/generate-mixed')),
-  usage_date date not null default ((now() at time zone 'utc')::date),
-  created_at timestamptz not null default now()
-);
-
-create index idx_api_usage_device_day
-  on public.api_usage (device_id_hash, usage_date);
-
-create index idx_api_usage_device_day_endpoint
-  on public.api_usage (device_id_hash, usage_date, endpoint);
-
-create index idx_api_usage_global_day
-  on public.api_usage (usage_date);
-
-alter table public.api_usage enable row level security;
-```
+Die committed Migration über den normalen Supabase-Migrationsworkflow des Teams auf das dedizierte Projekt anwenden. Sie darf weder aus der mobilen App noch gegen ein ungeprüftes Produktionsprojekt ausgeführt werden.
 
 Danach prüfen:
 
 - `public.api_usage` existiert
 - RLS ist aktiv
+- Es existieren keine Client-Policies für die Tabelle
 
 ### 3. Projekt-URL und Secret Key übernehmen
 
@@ -208,7 +185,7 @@ Aus dem Supabase-Projekt werden für dieses Repo benötigt:
 
 `SUPABASE_SECRET_KEY` ist rein serverseitig und darf niemals über `EXPO_PUBLIC_*` exponiert werden.
 
-### 4. `.env.local` für den Integrationsmodus setzen
+### 4. `.env.local` für den App-Integrationsmodus setzen
 
 ```bash
 OPENAI_API_KEY=...
