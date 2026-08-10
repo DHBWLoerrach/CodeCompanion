@@ -3,7 +3,7 @@ import * as https from 'node:https';
 const OPENAI_RESPONSES_URL = 'https://api.openai.com/v1/responses';
 const DEFAULT_OPENAI_TIMEOUT_MS = 30_000;
 
-export const DEFAULT_OPENAI_MODEL = 'gpt-5.4-nano';
+export const DEFAULT_OPENAI_MODEL = 'gpt-5.6-luna';
 
 export function quizMaxOutputTokens(count: number): number {
   return Math.min(8192, Math.max(4096, count * 300));

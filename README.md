@@ -114,7 +114,7 @@ Beide Dateien müssen gemeinsam committed werden.
 ### Optional
 
 - `OPENAI_MODEL`
-  - Modellname, Standard: `gpt-5.4-nano`.
+  - Modellname, Standard: `gpt-5.6-luna`.
 - `EXPO_PUBLIC_API_URL`
   - Basis-URL für API-Calls im Client (für Deployments erforderlich).
 - `API_QUOTA_ENABLED`
@@ -189,7 +189,7 @@ Aus dem Supabase-Projekt werden für dieses Repo benötigt:
 
 ```bash
 OPENAI_API_KEY=...
-OPENAI_MODEL=gpt-5.4-nano
+OPENAI_MODEL=gpt-5.6-luna
 EXPO_PUBLIC_API_URL=
 API_QUOTA_ENABLED=true
 SUPABASE_URL=...

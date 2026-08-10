@@ -90,7 +90,7 @@ DHBW Code Companion is a mobile learning app for programming topics (Expo SDK 57
 ## Environment Variables
 
 - `OPENAI_API_KEY`: required for AI endpoints; server-side only.
-- `OPENAI_MODEL`: optional, default `gpt-5.4-nano`.
+- `OPENAI_MODEL`: optional, default `gpt-5.6-luna`.
 - `EXPO_PUBLIC_API_URL`: client API base URL for deployments.
 - `API_QUOTA_ENABLED`: optional feature flag for quiz rate limiting; local default is `false`.
 - `SUPABASE_URL`: required only when `API_QUOTA_ENABLED=true`.

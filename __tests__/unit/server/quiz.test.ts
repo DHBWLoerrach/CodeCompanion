@@ -183,7 +183,7 @@ describe('server/quiz', () => {
         };
       };
 
-      expect(payload.model).toBe('gpt-5.4-nano');
+      expect(payload.model).toBe('gpt-5.6-luna');
       expect(payload.text.format.type).toBe('json_schema');
       expect(payload.text.format.name).toBe('quiz_questions');
       expect(payload.text.format.strict).toBe(true);
