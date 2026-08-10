@@ -20,6 +20,9 @@
       "android": {
         "serviceAccountKeyPath": "$HOME/Documents/google-play-upload-key.json",
         "track": "beta"
+      },
+      "ios": {
+        "ascAppId": "6758941958"
       }
     }
   }
