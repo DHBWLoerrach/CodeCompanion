@@ -3,6 +3,7 @@ import {
   generateQuizQuestions,
 } from '@server/quiz';
 import { QuizValidationError } from '@server/quiz/errors';
+import { DEFAULT_OPENAI_MODEL } from '@shared/openai-model';
 
 type MockResponseInit = {
   ok?: boolean;
@@ -183,7 +184,7 @@ describe('server/quiz', () => {
         };
       };
 
-      expect(payload.model).toBe('gpt-5.6-luna');
+      expect(payload.model).toBe(DEFAULT_OPENAI_MODEL);
       expect(payload.text.format.type).toBe('json_schema');
       expect(payload.text.format.name).toBe('quiz_questions');
       expect(payload.text.format.strict).toBe(true);

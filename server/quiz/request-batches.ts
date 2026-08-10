@@ -1,14 +1,11 @@
 import type { QuizDifficultyLevel } from '@shared/skill-level';
 import type { ProgrammingLanguageId } from '@shared/programming-language';
+import { DEFAULT_OPENAI_MODEL } from '@shared/openai-model';
 import {
   resolveProgrammingLanguageContext,
   resolveTopicDescription,
 } from './context';
-import {
-  DEFAULT_OPENAI_MODEL,
-  quizMaxOutputTokens,
-  requestQuizResponseText,
-} from './openai';
+import { quizMaxOutputTokens, requestQuizResponseText } from './openai';
 import {
   parseAndNormalizeQuizQuestions,
   validateStructuredMixedQuizQuestions,

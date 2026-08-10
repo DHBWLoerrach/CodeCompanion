@@ -3,11 +3,13 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const OPENAI_RESPONSES_URL = 'https://api.openai.com/v1/responses';
-const DEFAULT_MODEL = 'gpt-5.6-luna';
 const DEFAULT_TIMEOUT_MS = 300_000;
 const DEFAULT_MAX_ATTEMPTS = 3;
 const SUPPORTED_LANGUAGES = ['en', 'de'] as const;
 
+const { DEFAULT_OPENAI_MODEL } = await import(
+  new URL('../shared/openai-model.ts', import.meta.url).href
+);
 const programmingLanguageModule = await import(
   new URL('../shared/programming-language.ts', import.meta.url).href
 );
@@ -208,7 +210,7 @@ Keep the total length to about 500-700 words.
 ${contextExclusion ? `${contextExclusion}.` : ''}`;
 
   return {
-    model: process.env.OPENAI_MODEL || DEFAULT_MODEL,
+    model: process.env.OPENAI_MODEL || DEFAULT_OPENAI_MODEL,
     instructions: `You are an experienced ${programmingLanguageName} programming tutor explaining concepts to university students. ${
       language === 'de' ? 'Respond in German.' : 'Respond in English.'
     } Use clear, concise language and practical examples.`,
