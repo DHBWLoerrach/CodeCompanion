@@ -57,6 +57,8 @@ DHBW Code Companion is a mobile learning app for programming topics (Expo SDK 57
 - Preferred commit style from history: clear and concise (< 80 chars, e.g. "Add quiz generation API route" or "Fix theme context bug").
 - Before committing: `npm run check:types && npm run lint && npm run check:format && npm test`
 - Commit messages must be in English and concise (<= 80 chars recommended).
+- Create every commit with `Erik Behrends <behrends@users.noreply.github.com>` as both author and committer. `.agents/setup` configures this identity in the repository-local Git config for new orb checkouts; do not change global Git configuration.
+- Never add a `Co-authored-by` trailer to a commit message.
 
 ## Architecture Notes
 

@@ -6,6 +6,10 @@ cd "$repo_root"
 
 started_at=$SECONDS
 
+echo "[setup] Configuring repository-local Git identity"
+git config --local user.name "Erik Behrends"
+git config --local user.email "behrends@users.noreply.github.com"
+
 echo "[setup] Checking Node.js and npm"
 command -v node >/dev/null || {
   echo "[setup] Node.js is required (version 20 or newer)" >&2
