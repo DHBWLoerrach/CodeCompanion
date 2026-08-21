@@ -1,0 +1,20 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+repo_root="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+cd "$repo_root"
+
+echo "[resume] Checking orb workspace"
+command -v node >/dev/null || {
+  echo "[resume] Node.js is unavailable; rerun .agents/setup" >&2
+  exit 1
+}
+command -v npm >/dev/null || {
+  echo "[resume] npm is unavailable; rerun .agents/setup" >&2
+  exit 1
+}
+[[ -f node_modules/.package-lock.json ]] || {
+  echo "[resume] Dependencies are missing; rerun .agents/setup" >&2
+  exit 1
+}
+echo "[resume] Ready"
