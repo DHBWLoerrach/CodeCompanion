@@ -222,6 +222,48 @@ describe('LearnScreen integration', () => {
     });
   });
 
+  it('opens a selected topic from a category card', async () => {
+    const screen = render(<LearnScreen />);
+
+    await waitFor(() => {
+      expect(screen.getByTestId('learn-topic-data-types')).toBeTruthy();
+    });
+    fireEvent.press(screen.getByTestId('learn-topic-data-types'));
+
+    expect(mockPush).toHaveBeenCalledWith({
+      pathname: '/topic/[topicId]',
+      params: { topicId: 'data-types' },
+    });
+  });
+
+  it('opens a selected topic from the due topics section', async () => {
+    mockUseTopicProgress.mockReturnValue({
+      topicProgress: {},
+      loading: false,
+      dueTopics: [
+        {
+          id: 'variables',
+          category: 'fundamentals',
+          order: 1,
+          prerequisites: [],
+          optional: false,
+        },
+      ],
+    });
+
+    const screen = render(<LearnScreen />);
+
+    await waitFor(() => {
+      expect(screen.getByTestId('learn-due-topic-variables')).toBeTruthy();
+    });
+    fireEvent.press(screen.getByTestId('learn-due-topic-variables'));
+
+    expect(mockPush).toHaveBeenCalledWith({
+      pathname: '/topic/[topicId]',
+      params: { topicId: 'variables' },
+    });
+  });
+
   it('does not force the next-step status line to full width on compact cards', async () => {
     mockUseTopicProgress.mockReturnValue({
       topicProgress: {
