@@ -27,9 +27,9 @@ let mockSearchParams: {
 
 jest.mock('expo-router', () => ({
   Stack: jest
-    .requireActual<
-      typeof import('../../../test/expo-router-stack')
-    >('../../../test/expo-router-stack')
+    .requireActual<typeof import('../../../test/expo-router-stack')>(
+      '../../../test/expo-router-stack'
+    )
     .createMockExpoRouterStack({
       onTitle: (props) => mockStackTitle(props),
     }),
@@ -113,16 +113,16 @@ describe('SessionSummaryScreen integration', () => {
     };
   });
 
-  it('dismisses directly to learn when returning to topics from the modal flow', () => {
-    const screen = render(<SessionSummaryScreen />);
+  it('dismisses directly to learn when returning to topics from the modal flow', async () => {
+    const screen = await render(<SessionSummaryScreen />);
 
-    fireEvent.press(screen.getByTestId('summary-back-to-topics-button'));
+    await fireEvent.press(screen.getByTestId('summary-back-to-topics-button'));
 
     expect(mockDismissTo).toHaveBeenCalledWith('/learn');
     expect(mockReplace).not.toHaveBeenCalled();
   });
 
-  it('returns to practice when the quiz started from the practice tab', () => {
+  it('returns to practice when the quiz started from the practice tab', async () => {
     mockSearchParams = {
       score: '3',
       total: '5',
@@ -132,28 +132,28 @@ describe('SessionSummaryScreen integration', () => {
       returnTo: 'practice',
     };
 
-    const screen = render(<SessionSummaryScreen />);
+    const screen = await render(<SessionSummaryScreen />);
 
     expect(screen.getByText('backToPractice')).toBeTruthy();
 
-    fireEvent.press(screen.getByTestId('summary-back-to-topics-button'));
+    await fireEvent.press(screen.getByTestId('summary-back-to-topics-button'));
 
     expect(mockDismissTo).toHaveBeenCalledWith('/practice');
     expect(mockReplace).not.toHaveBeenCalled();
   });
 
-  it('replaces to learn when no dismiss context exists', () => {
+  it('replaces to learn when no dismiss context exists', async () => {
     mockCanDismiss = false;
 
-    const screen = render(<SessionSummaryScreen />);
+    const screen = await render(<SessionSummaryScreen />);
 
-    fireEvent.press(screen.getByTestId('summary-back-to-topics-button'));
+    await fireEvent.press(screen.getByTestId('summary-back-to-topics-button'));
 
     expect(mockReplace).toHaveBeenCalledWith('/learn');
     expect(mockDismissTo).not.toHaveBeenCalled();
   });
 
-  it('replays explore quizzes with the same topic pool', () => {
+  it('replays explore quizzes with the same topic pool', async () => {
     mockSearchParams = {
       score: '3',
       total: '5',
@@ -165,11 +165,11 @@ describe('SessionSummaryScreen integration', () => {
       topicIds: 'operators,null-undefined,strings-template-literals',
     };
 
-    const screen = render(<SessionSummaryScreen />);
+    const screen = await render(<SessionSummaryScreen />);
 
     expect(screen.getAllByText('exploreQuiz')).toHaveLength(2);
 
-    fireEvent.press(screen.getByTestId('summary-practice-again-button'));
+    await fireEvent.press(screen.getByTestId('summary-practice-again-button'));
 
     expect(mockReplace).toHaveBeenCalledWith({
       pathname: '/quiz-session',

@@ -1,6 +1,6 @@
 import React from 'react';
 import { Text } from 'react-native';
-import { render, waitFor } from '@testing-library/react-native';
+import { act, render, waitFor } from '@testing-library/react-native';
 import { LanguageProvider, useLanguage } from '@/contexts/LanguageContext';
 import { getDeviceLocale } from '@/lib/device-locale';
 import { storage } from '@/lib/storage';
@@ -28,6 +28,18 @@ function TestConsumer() {
   return <Text>{`${language}:${String(isLoading)}`}</Text>;
 }
 
+// `await render` flushes resolved promises, so keep the load pending to observe
+// the loading state.
+function deferHasStoredSettings() {
+  let resolve: (value: boolean) => void = () => {};
+  mockStorage.hasStoredSettings.mockReturnValue(
+    new Promise((res) => {
+      resolve = res;
+    })
+  );
+  return (value: boolean) => resolve(value);
+}
+
 describe('LanguageProvider', () => {
   beforeEach(() => {
     mockGetDeviceLocale.mockReturnValue('en-US');
@@ -41,14 +53,19 @@ describe('LanguageProvider', () => {
 
   it('uses german on first start when the device locale is german', async () => {
     mockGetDeviceLocale.mockReturnValue('de-DE');
+    const resolveHasStoredSettings = deferHasStoredSettings();
 
-    const screen = render(
+    const screen = await render(
       <LanguageProvider>
         <TestConsumer />
       </LanguageProvider>
     );
 
     expect(screen.getByText('de:true')).toBeTruthy();
+
+    await act(async () => {
+      resolveHasStoredSettings(false);
+    });
 
     await waitFor(() => {
       expect(screen.getByText('de:false')).toBeTruthy();
@@ -70,7 +87,7 @@ describe('LanguageProvider', () => {
       themeMode: 'auto',
     });
 
-    const screen = render(
+    const screen = await render(
       <LanguageProvider>
         <TestConsumer />
       </LanguageProvider>
@@ -87,7 +104,7 @@ describe('LanguageProvider', () => {
     mockGetDeviceLocale.mockReturnValue('de-DE');
     mockStorage.hasStoredSettings.mockRejectedValue(new Error('storage error'));
 
-    const screen = render(
+    const screen = await render(
       <LanguageProvider>
         <TestConsumer />
       </LanguageProvider>
@@ -100,14 +117,19 @@ describe('LanguageProvider', () => {
 
   it('uses english on first start when the device locale is not german', async () => {
     mockGetDeviceLocale.mockReturnValue('fr-FR');
+    const resolveHasStoredSettings = deferHasStoredSettings();
 
-    const screen = render(
+    const screen = await render(
       <LanguageProvider>
         <TestConsumer />
       </LanguageProvider>
     );
 
     expect(screen.getByText('en:true')).toBeTruthy();
+
+    await act(async () => {
+      resolveHasStoredSettings(false);
+    });
 
     await waitFor(() => {
       expect(screen.getByText('en:false')).toBeTruthy();
@@ -123,10 +145,10 @@ describe('LanguageProvider', () => {
 });
 
 describe('useLanguage without provider', () => {
-  it('returns the device-locale fallback lazily', () => {
+  it('returns the device-locale fallback lazily', async () => {
     mockGetDeviceLocale.mockReturnValue('de-DE');
 
-    const screen = render(<TestConsumer />);
+    const screen = await render(<TestConsumer />);
 
     expect(screen.getByText('de:false')).toBeTruthy();
     expect(mockStorage.hasStoredSettings).not.toHaveBeenCalled();

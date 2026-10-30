@@ -10,9 +10,9 @@ let mockSearchParams: { topicId?: string; programmingLanguage?: string } = {};
 
 jest.mock('expo-router', () => ({
   Stack: jest
-    .requireActual<
-      typeof import('../../../test/expo-router-stack')
-    >('../../../test/expo-router-stack')
+    .requireActual<typeof import('../../../test/expo-router-stack')>(
+      '../../../test/expo-router-stack'
+    )
     .createMockExpoRouterStack({
       onTitle: (props) => mockStackTitle(props),
       onBackButton: (props) => mockStackBackButton(props),
@@ -100,7 +100,7 @@ describe('TopicExplanationScreen integration', () => {
   it('renders static explanations without issuing a network request', async () => {
     mockGetTopicExplanation.mockReturnValue('## Static explanation');
 
-    const screen = render(<TopicExplanationScreen />);
+    const screen = await render(<TopicExplanationScreen />);
 
     await waitFor(() => {
       expect(screen.getByText('## Static explanation')).toBeTruthy();
@@ -113,7 +113,7 @@ describe('TopicExplanationScreen integration', () => {
   it('shows a static unavailable message when no explanation exists', async () => {
     mockGetTopicExplanation.mockReturnValue(undefined);
 
-    const screen = render(<TopicExplanationScreen />);
+    const screen = await render(<TopicExplanationScreen />);
 
     await waitFor(() => {
       expect(screen.getByText('explanationUnavailable')).toBeTruthy();

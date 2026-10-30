@@ -14,8 +14,7 @@ type InlineCodeTextProps = Omit<
 };
 
 export type TextSegment =
-  | { kind: 'text'; content: string }
-  | { kind: 'code'; content: string };
+  { kind: 'text'; content: string } | { kind: 'code'; content: string };
 
 export function parseInlineCodeSegments(text: string): TextSegment[] {
   const segments: TextSegment[] = [];

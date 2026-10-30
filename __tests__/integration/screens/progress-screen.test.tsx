@@ -33,9 +33,9 @@ const mockTranslations: Record<'en' | 'de', Record<string, string>> = {
 
 jest.mock('expo-router', () => ({
   Stack: jest
-    .requireActual<
-      typeof import('../../../test/expo-router-stack')
-    >('../../../test/expo-router-stack')
+    .requireActual<typeof import('../../../test/expo-router-stack')>(
+      '../../../test/expo-router-stack'
+    )
     .createMockExpoRouterStack({
       onScreen: (props) => mockStackScreen(props),
     }),
@@ -153,7 +153,7 @@ describe('ProgressScreen integration', () => {
   });
 
   it('configures the progress header options and renders loaded content', async () => {
-    const screen = render(<ProgressScreen />);
+    const screen = await render(<ProgressScreen />);
 
     await waitFor(() => {
       expect(screen.getByText('Student')).toBeTruthy();
@@ -172,7 +172,7 @@ describe('ProgressScreen integration', () => {
   });
 
   it('keeps the settings header action on the progress screen', async () => {
-    render(<ProgressScreen />);
+    await render(<ProgressScreen />);
 
     await waitFor(() => {
       expect(mockStackScreen).toHaveBeenCalledWith(
@@ -188,14 +188,14 @@ describe('ProgressScreen integration', () => {
       mockStackScreen.mock.calls.at(-1)?.[0]?.options?.headerRight;
     expect(headerRight).toBeDefined();
 
-    const headerButton = render(headerRight!());
-    fireEvent.press(headerButton.getByTestId('open-settings-button'));
+    const headerButton = await render(headerRight!());
+    await fireEvent.press(headerButton.getByTestId('open-settings-button'));
 
     expect(mockPush).toHaveBeenCalledWith('/settings');
   });
 
   it('starts the week display with Sunday in English', async () => {
-    const screen = render(<ProgressScreen />);
+    const screen = await render(<ProgressScreen />);
 
     await waitFor(() => {
       expect(screen.getByText('Student')).toBeTruthy();
@@ -219,7 +219,7 @@ describe('ProgressScreen integration', () => {
   it('starts the week display with Monday in German', async () => {
     mockLanguage = 'de';
 
-    const screen = render(<ProgressScreen />);
+    const screen = await render(<ProgressScreen />);
 
     await waitFor(() => {
       expect(screen.getByText('Student')).toBeTruthy();

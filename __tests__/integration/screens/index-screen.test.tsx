@@ -45,7 +45,7 @@ describe('Index screen routing', () => {
   it('redirects first-time users to welcome', async () => {
     mockHasSeenWelcome.mockResolvedValue(false);
 
-    const screen = render(<Index />);
+    const screen = await render(<Index />);
 
     await waitFor(() => {
       expect(screen.getByText('/welcome')).toBeTruthy();
@@ -55,7 +55,7 @@ describe('Index screen routing', () => {
   it('redirects returning users without a selected language to language select', async () => {
     mockHasSeenWelcome.mockResolvedValue(true);
 
-    const screen = render(<Index />);
+    const screen = await render(<Index />);
 
     await waitFor(() => {
       expect(screen.getByText('/language-select')).toBeTruthy();
@@ -69,7 +69,7 @@ describe('Index screen routing', () => {
       isLanguageSelected: true,
     });
 
-    const screen = render(<Index />);
+    const screen = await render(<Index />);
 
     await waitFor(() => {
       expect(screen.getByText('/learn')).toBeTruthy();

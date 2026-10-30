@@ -67,7 +67,7 @@ describe('BottomActionBar material', () => {
   });
 
   it('uses blur without a hard separator in the standard iOS path', async () => {
-    const screen = render(
+    const screen = await render(
       <BottomActionBar>
         <Text>Action</Text>
       </BottomActionBar>
@@ -88,7 +88,7 @@ describe('BottomActionBar material', () => {
       value: 'android',
     });
 
-    const screen = render(
+    const screen = await render(
       <BottomActionBar>
         <Text>Action</Text>
       </BottomActionBar>
@@ -107,7 +107,7 @@ describe('BottomActionBar material', () => {
   it('uses a solid surface when reduced transparency is enabled', async () => {
     reduceTransparencySpy.mockResolvedValue(true);
 
-    const screen = render(
+    const screen = await render(
       <BottomActionBar>
         <Text>Action</Text>
       </BottomActionBar>
@@ -125,7 +125,7 @@ describe('BottomActionBar material', () => {
   it('uses a solid surface and strong separator for high contrast', async () => {
     highContrastSpy.mockResolvedValue(true);
 
-    const screen = render(
+    const screen = await render(
       <BottomActionBar>
         <Text>Action</Text>
       </BottomActionBar>

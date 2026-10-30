@@ -43,7 +43,6 @@
       "expo-router",
       "expo-font",
       "expo-localization",
-      "react-native-enriched-markdown",
       "expo-status-bar"
     ],
     "experiments": {

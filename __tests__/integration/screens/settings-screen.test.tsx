@@ -18,9 +18,9 @@ const mockStorage = {
 
 jest.mock('expo-router', () => ({
   Stack: jest
-    .requireActual<
-      typeof import('../../../test/expo-router-stack')
-    >('../../../test/expo-router-stack')
+    .requireActual<typeof import('../../../test/expo-router-stack')>(
+      '../../../test/expo-router-stack'
+    )
     .createMockExpoRouterStack({
       onTitle: (props) => mockStackTitle(props),
     }),
@@ -180,7 +180,7 @@ describe('SettingsScreen integration', () => {
   });
 
   it('opens language select with back navigation enabled', async () => {
-    const screen = render(<SettingsScreen />);
+    const screen = await render(<SettingsScreen />);
 
     const changeTechnologyButton = await waitFor(() =>
       screen.getByTestId('settings-change-technology-button')
@@ -196,7 +196,7 @@ describe('SettingsScreen integration', () => {
       selected: true,
     });
 
-    fireEvent.press(changeTechnologyButton);
+    await fireEvent.press(changeTechnologyButton);
 
     expect(mockPush).toHaveBeenCalledWith({
       pathname: '/language-select',
@@ -205,13 +205,13 @@ describe('SettingsScreen integration', () => {
   });
 
   it('opens the current focus overview in read-only mode', async () => {
-    const screen = render(<SettingsScreen />);
+    const screen = await render(<SettingsScreen />);
 
     const infoButton = await waitFor(() =>
       screen.getByTestId('settings-current-focus-info-button')
     );
 
-    fireEvent.press(infoButton);
+    await fireEvent.press(infoButton);
 
     expect(mockPush).toHaveBeenCalledWith({
       pathname: './language-overview',
@@ -224,14 +224,14 @@ describe('SettingsScreen integration', () => {
   });
 
   it('flushes a pending profile save when leaving the screen before the debounce finishes', async () => {
-    const screen = render(<SettingsScreen />);
+    const screen = await render(<SettingsScreen />);
 
     const input = await waitFor(() =>
       screen.getByTestId('settings-display-name-input')
     );
 
-    fireEvent.changeText(input, 'Erik');
-    screen.unmount();
+    await fireEvent.changeText(input, 'Erik');
+    await screen.unmount();
 
     await waitFor(() => {
       expect(mockStorage.setProfile).toHaveBeenCalledWith({
@@ -242,7 +242,7 @@ describe('SettingsScreen integration', () => {
   });
 
   it('applies language/theme immediately and autosaves profile changes', async () => {
-    const screen = render(<SettingsScreen />);
+    const screen = await render(<SettingsScreen />);
 
     await waitFor(() => {
       expect(screen.getByText('preferences')).toBeTruthy();
@@ -250,7 +250,7 @@ describe('SettingsScreen integration', () => {
 
     expect(screen.queryByText('saveChanges')).toBeNull();
 
-    fireEvent.press(screen.getByText('Deutsch'));
+    await fireEvent.press(screen.getByText('Deutsch'));
     await waitFor(() => {
       expect(mockStorage.setSettings).toHaveBeenCalledWith({
         language: 'de',
@@ -259,7 +259,7 @@ describe('SettingsScreen integration', () => {
       expect(mockRefreshLanguage).toHaveBeenCalled();
     });
 
-    fireEvent.press(screen.getByText('themeDark'));
+    await fireEvent.press(screen.getByText('themeDark'));
     await waitFor(() => {
       expect(mockStorage.setSettings).toHaveBeenCalledWith({
         language: 'de',
@@ -268,7 +268,7 @@ describe('SettingsScreen integration', () => {
       expect(mockRefreshTheme).toHaveBeenCalled();
     });
 
-    fireEvent.changeText(screen.getByDisplayValue('Student'), 'Erik');
+    await fireEvent.changeText(screen.getByDisplayValue('Student'), 'Erik');
 
     await waitFor(() => {
       expect(mockStorage.setProfile).toHaveBeenCalledWith({
@@ -288,7 +288,7 @@ describe('SettingsScreen integration', () => {
     });
 
     try {
-      const screen = render(<SettingsScreen />);
+      const screen = await render(<SettingsScreen />);
 
       await waitFor(() => {
         expect(screen.getByText('preferences')).toBeTruthy();
@@ -323,7 +323,7 @@ describe('SettingsScreen integration', () => {
     });
 
     try {
-      const screen = render(<SettingsScreen />);
+      const screen = await render(<SettingsScreen />);
 
       await waitFor(() => {
         expect(screen.getByText('preferences')).toBeTruthy();
@@ -347,7 +347,7 @@ describe('SettingsScreen integration', () => {
   });
 
   it('configures the display name input for dynamic type without a fixed height', async () => {
-    const screen = render(<SettingsScreen />);
+    const screen = await render(<SettingsScreen />);
 
     const input = await waitFor(() =>
       screen.getByTestId('settings-display-name-input')

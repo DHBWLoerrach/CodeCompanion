@@ -14,9 +14,9 @@ const mockMarkLevelHintSeen = jest.fn().mockResolvedValue(undefined);
 
 jest.mock('expo-router', () => ({
   Stack: jest
-    .requireActual<
-      typeof import('../../../test/expo-router-stack')
-    >('../../../test/expo-router-stack')
+    .requireActual<typeof import('../../../test/expo-router-stack')>(
+      '../../../test/expo-router-stack'
+    )
     .createMockExpoRouterStack({
       onTitle: (props) => mockStackTitle(props),
     }),
@@ -161,7 +161,7 @@ describe('TopicDetailScreen integration', () => {
   it('navigates to the explanation screen when a static explanation exists', async () => {
     mockHasTopicExplanation.mockReturnValue(true);
 
-    const screen = render(<TopicDetailScreen />);
+    const screen = await render(<TopicDetailScreen />);
 
     await waitFor(() => {
       expect(screen.getByText('Variables')).toBeTruthy();
@@ -172,7 +172,7 @@ describe('TopicDetailScreen integration', () => {
 
     const explainButton = screen.getByTestId('topic-explain-button');
 
-    fireEvent.press(explainButton);
+    await fireEvent.press(explainButton);
 
     expect(mockPush).toHaveBeenCalledWith({
       pathname: '/topic-explanation',
@@ -183,7 +183,7 @@ describe('TopicDetailScreen integration', () => {
   it('disables the explanation button when no static explanation exists', async () => {
     mockHasTopicExplanation.mockReturnValue(false);
 
-    const screen = render(<TopicDetailScreen />);
+    const screen = await render(<TopicDetailScreen />);
 
     await waitFor(() => {
       expect(screen.getByText('Variables')).toBeTruthy();
@@ -191,7 +191,7 @@ describe('TopicDetailScreen integration', () => {
 
     const explainButton = screen.getByTestId('topic-explain-button');
 
-    fireEvent.press(explainButton);
+    await fireEvent.press(explainButton);
 
     expect(mockPush).not.toHaveBeenCalled();
   });
@@ -199,13 +199,13 @@ describe('TopicDetailScreen integration', () => {
   it('starts a quiz from the inline action when no progress exists', async () => {
     mockHasTopicExplanation.mockReturnValue(true);
 
-    const screen = render(<TopicDetailScreen />);
+    const screen = await render(<TopicDetailScreen />);
 
     await waitFor(() => {
       expect(screen.getByTestId('topic-start-quiz-button')).toBeTruthy();
     });
 
-    fireEvent.press(screen.getByTestId('topic-start-quiz-button'));
+    await fireEvent.press(screen.getByTestId('topic-start-quiz-button'));
 
     expect(mockPush).toHaveBeenCalledWith({
       pathname: '/quiz-session',
@@ -216,7 +216,7 @@ describe('TopicDetailScreen integration', () => {
   it('toggles the level explanation when no progress exists', async () => {
     mockHasTopicExplanation.mockReturnValue(true);
 
-    const screen = render(<TopicDetailScreen />);
+    const screen = await render(<TopicDetailScreen />);
 
     await waitFor(() => {
       expect(screen.getByTestId('topic-level-info-button')).toBeTruthy();
@@ -224,11 +224,11 @@ describe('TopicDetailScreen integration', () => {
 
     expect(screen.queryByText('levelInfoText')).toBeNull();
 
-    fireEvent.press(screen.getByTestId('topic-level-info-button'));
+    await fireEvent.press(screen.getByTestId('topic-level-info-button'));
 
     expect(screen.getByText('levelInfoText')).toBeTruthy();
 
-    fireEvent.press(screen.getByTestId('topic-level-info-button'));
+    await fireEvent.press(screen.getByTestId('topic-level-info-button'));
 
     await waitFor(() => {
       expect(screen.queryByText('levelInfoText')).toBeNull();
@@ -249,13 +249,13 @@ describe('TopicDetailScreen integration', () => {
       },
     });
 
-    const screen = render(<TopicDetailScreen />);
+    const screen = await render(<TopicDetailScreen />);
 
     await waitFor(() => {
       expect(screen.getByTestId('topic-level-info-button')).toBeTruthy();
     });
 
-    fireEvent.press(screen.getByTestId('topic-level-info-button'));
+    await fireEvent.press(screen.getByTestId('topic-level-info-button'));
 
     expect(screen.getByText('levelInfoText')).toBeTruthy();
   });
@@ -274,7 +274,7 @@ describe('TopicDetailScreen integration', () => {
       },
     });
 
-    const screen = render(<TopicDetailScreen />);
+    const screen = await render(<TopicDetailScreen />);
 
     await waitFor(() => {
       expect(screen.getByTestId('topic-progress-stats')).toBeTruthy();

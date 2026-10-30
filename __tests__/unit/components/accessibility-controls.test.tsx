@@ -39,24 +39,26 @@ jest.mock('@/contexts/ThemeContext', () => ({
 }));
 
 describe('accessibility-aware controls', () => {
-  it('leaves themed body text uncapped', () => {
-    const screen = render(<ThemedText type="body">Body text</ThemedText>);
+  it('leaves themed body text uncapped', async () => {
+    const screen = await render(<ThemedText type="body">Body text</ThemedText>);
 
     expect(
       screen.getByText('Body text').props.maxFontSizeMultiplier
     ).toBeUndefined();
   });
 
-  it('caps status badge labels as dense controls', () => {
-    const screen = render(<StatusBadge color="#000000" label="Dense badge" />);
+  it('caps status badge labels as dense controls', async () => {
+    const screen = await render(
+      <StatusBadge color="#000000" label="Dense badge" />
+    );
 
     expect(screen.getByText('Dense badge').props.maxFontSizeMultiplier).toBe(
       1.2
     );
   });
 
-  it('uses minHeight for buttons and caps the button label', () => {
-    const screen = render(
+  it('uses minHeight for buttons and caps the button label', async () => {
+    const screen = await render(
       <PrimaryButton
         testID="primary-button"
         label="Continue"

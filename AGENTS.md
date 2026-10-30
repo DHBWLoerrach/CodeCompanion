@@ -2,7 +2,7 @@
 
 ## Project Overview
 
-DHBW Code Companion is a mobile learning app for programming topics (Expo SDK 57, React Native 0.86, React 19.2, Expo Router 57).
+DHBW Code Companion is a mobile learning app for programming topics (Expo SDK 58, React Native 0.88, React 19.3, Expo Router 58).
 
 - Supports multiple programming languages (JavaScript, Python, Java, Rust) via JSON curricula in `shared/curriculum/`.
 - Supports app localization (German/English) via `client/lib/i18n.ts` and `client/contexts/LanguageContext.tsx`.

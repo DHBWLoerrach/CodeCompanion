@@ -26,8 +26,8 @@ Die App wurde am Studienzentrum IT-Management & Informatik (SZI) der DHBW Lörra
 
 ## Tech Stack
 
-- Expo SDK 57 + React Native 0.86 + React 19.2
-- Expo Router 57 (file-based routing)
+- Expo SDK 58 + React Native 0.88 + React 19.3
+- Expo Router 58 (file-based routing)
 - React Query
 - Expo API Routes (`app/api/*`) über `web.output="server"` für serverseitige Endpunkte
 - OpenAI Responses API (serverseitig über `server/quiz.ts` und `server/quiz/`)

@@ -16,9 +16,9 @@ const mockUseWindowDimensions = jest.fn(() => ({
 
 jest.mock('expo-router', () => ({
   Stack: jest
-    .requireActual<
-      typeof import('../../../test/expo-router-stack')
-    >('../../../test/expo-router-stack')
+    .requireActual<typeof import('../../../test/expo-router-stack')>(
+      '../../../test/expo-router-stack'
+    )
     .createMockExpoRouterStack({
       onScreen: (props) => mockStackScreen(props),
       onTitle: (props) => mockStackTitle(props),
@@ -172,7 +172,7 @@ describe('LearnScreen integration', () => {
   });
 
   it('renders the contextual subtitle in screen content', async () => {
-    const screen = render(<LearnScreen />);
+    const screen = await render(<LearnScreen />);
 
     await waitFor(() => {
       expect(screen.getByText('learnScreenSubtitle')).toBeTruthy();
@@ -190,7 +190,7 @@ describe('LearnScreen integration', () => {
   });
 
   it('hides next-step cards for categories with unmet prerequisites', async () => {
-    const screen = render(<LearnScreen />);
+    const screen = await render(<LearnScreen />);
 
     await waitFor(() => {
       expect(screen.getAllByText('nextStep')).toHaveLength(1);
@@ -214,7 +214,7 @@ describe('LearnScreen integration', () => {
       dueTopics: [],
     });
 
-    const screen = render(<LearnScreen />);
+    const screen = await render(<LearnScreen />);
 
     await waitFor(() => {
       expect(screen.getByText('nextStep')).toBeTruthy();
@@ -223,12 +223,12 @@ describe('LearnScreen integration', () => {
   });
 
   it('opens a selected topic from a category card', async () => {
-    const screen = render(<LearnScreen />);
+    const screen = await render(<LearnScreen />);
 
     await waitFor(() => {
       expect(screen.getByTestId('learn-topic-data-types')).toBeTruthy();
     });
-    fireEvent.press(screen.getByTestId('learn-topic-data-types'));
+    await fireEvent.press(screen.getByTestId('learn-topic-data-types'));
 
     expect(mockPush).toHaveBeenCalledWith({
       pathname: '/topic/[topicId]',
@@ -251,12 +251,12 @@ describe('LearnScreen integration', () => {
       ],
     });
 
-    const screen = render(<LearnScreen />);
+    const screen = await render(<LearnScreen />);
 
     await waitFor(() => {
       expect(screen.getByTestId('learn-due-topic-variables')).toBeTruthy();
     });
-    fireEvent.press(screen.getByTestId('learn-due-topic-variables'));
+    await fireEvent.press(screen.getByTestId('learn-due-topic-variables'));
 
     expect(mockPush).toHaveBeenCalledWith({
       pathname: '/topic/[topicId]',
@@ -279,7 +279,7 @@ describe('LearnScreen integration', () => {
       dueTopics: [],
     });
 
-    const screen = render(<LearnScreen />);
+    const screen = await render(<LearnScreen />);
 
     await waitFor(() => {
       expect(screen.getByText('Variables')).toBeTruthy();
@@ -301,7 +301,7 @@ describe('LearnScreen integration', () => {
       fontScale: 1.35,
     });
 
-    const screen = render(<LearnScreen />);
+    const screen = await render(<LearnScreen />);
 
     await waitFor(() => {
       expect(screen.getByText('Fundamentals')).toBeTruthy();
@@ -337,7 +337,7 @@ describe('LearnScreen integration', () => {
       dueTopics: [],
     });
 
-    const screen = render(<LearnScreen />);
+    const screen = await render(<LearnScreen />);
 
     await waitFor(() => {
       expect(screen.getByText('Variables')).toBeTruthy();
@@ -356,7 +356,7 @@ describe('LearnScreen integration', () => {
   });
 
   it('keeps the settings header action on the learn screen', async () => {
-    render(<LearnScreen />);
+    await render(<LearnScreen />);
 
     await waitFor(() => {
       expect(mockStackScreen).toHaveBeenCalledWith(
@@ -372,8 +372,8 @@ describe('LearnScreen integration', () => {
       mockStackScreen.mock.calls.at(-1)?.[0]?.options?.headerRight;
     expect(headerRight).toBeDefined();
 
-    const headerButton = render(headerRight!());
-    fireEvent.press(headerButton.getByTestId('open-settings-button'));
+    const headerButton = await render(headerRight!());
+    await fireEvent.press(headerButton.getByTestId('open-settings-button'));
 
     expect(mockPush).toHaveBeenCalledWith('/settings');
   });
@@ -406,7 +406,7 @@ describe('LearnScreen integration', () => {
       ],
     });
 
-    const screen = render(<LearnScreen />);
+    const screen = await render(<LearnScreen />);
 
     await waitFor(() => {
       expect(screen.getByTestId('learn-due-row-variables')).toBeTruthy();
@@ -445,7 +445,7 @@ describe('LearnScreen integration', () => {
       ],
     });
 
-    const screen = render(<LearnScreen />);
+    const screen = await render(<LearnScreen />);
 
     await waitFor(() => {
       expect(

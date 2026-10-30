@@ -1,5 +1,5 @@
 import { AccessibilityInfo } from 'react-native';
-import { renderHook, waitFor } from '@testing-library/react-native';
+import { act, renderHook, waitFor } from '@testing-library/react-native';
 
 import {
   __resetAccessibilityPreferencesForTests,
@@ -21,20 +21,32 @@ describe('useReducedMotion', () => {
     reduceMotionSpy.mockRestore();
   });
 
-  it('enables regular motion synchronously while the native preference loads', () => {
+  it('enables regular motion synchronously while the native preference loads', async () => {
     reduceMotionSpy.mockReturnValue(new Promise(() => {}));
 
-    const { result } = renderHook(() => useReducedMotion());
+    const { result } = await renderHook(() => useReducedMotion());
 
     expect(result.current).toBe(false);
   });
 
   it('updates when the native reduced-motion preference is enabled', async () => {
-    reduceMotionSpy.mockResolvedValue(true);
+    // `await renderHook` flushes resolved promises, so keep the load pending to
+    // observe the initial value.
+    let resolvePreference: (value: boolean) => void = () => {};
+    reduceMotionSpy.mockReturnValue(
+      new Promise((resolve) => {
+        resolvePreference = resolve;
+      })
+    );
 
-    const { result } = renderHook(() => useReducedMotion());
+    const { result } = await renderHook(() => useReducedMotion());
 
     expect(result.current).toBe(false);
+
+    await act(async () => {
+      resolvePreference(true);
+    });
+
     await waitFor(() => {
       expect(result.current).toBe(true);
     });

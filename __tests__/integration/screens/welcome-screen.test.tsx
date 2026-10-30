@@ -74,9 +74,9 @@ describe('WelcomeScreen integration', () => {
   });
 
   it('marks the welcome screen as seen and replaces to language select', async () => {
-    const screen = render(<WelcomeScreen />);
+    const screen = await render(<WelcomeScreen />);
 
-    fireEvent.press(screen.getByTestId('welcome-get-started-button'));
+    await fireEvent.press(screen.getByTestId('welcome-get-started-button'));
 
     await waitFor(() => {
       expect(mockMarkWelcomeSeen).toHaveBeenCalled();

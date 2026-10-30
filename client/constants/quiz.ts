@@ -6,8 +6,7 @@ export const LEARN_QUIZ_RETURN_TARGET = 'learn';
 export const PRACTICE_QUIZ_RETURN_TARGET = 'practice';
 
 export type QuizReturnTarget =
-  | typeof LEARN_QUIZ_RETURN_TARGET
-  | typeof PRACTICE_QUIZ_RETURN_TARGET;
+  typeof LEARN_QUIZ_RETURN_TARGET | typeof PRACTICE_QUIZ_RETURN_TARGET;
 
 export type QuizReturnPath = '/learn' | '/practice';
 

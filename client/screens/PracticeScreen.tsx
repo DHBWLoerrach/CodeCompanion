@@ -1,5 +1,11 @@
 import React, { useMemo, useRef } from 'react';
-import { View, ScrollView, StyleSheet, Pressable } from 'react-native';
+import {
+  View,
+  ScrollView,
+  StyleSheet,
+  Pressable,
+  type ScrollViewInstance,
+} from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Stack, useRouter } from 'expo-router';
 import { EaseView } from 'react-native-ease';
@@ -375,7 +381,7 @@ export default function PracticeScreen() {
   const languageId = selectedLanguage?.id ?? 'javascript';
   const router = useRouter();
   const insets = useSafeAreaInsets();
-  const scrollViewRef = useRef<ScrollView>(null);
+  const scrollViewRef = useRef<ScrollViewInstance>(null);
   const categorySectionY = useRef(0);
 
   const { topicProgress, loading, dueTopics, hasQuizHistory } =

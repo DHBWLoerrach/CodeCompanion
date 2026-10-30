@@ -54,15 +54,14 @@ let mockSearchParams: {
 
 jest.mock('expo-router', () => ({
   Stack: jest
-    .requireActual<
-      typeof import('../../../test/expo-router-stack')
-    >('../../../test/expo-router-stack')
+    .requireActual<typeof import('../../../test/expo-router-stack')>(
+      '../../../test/expo-router-stack'
+    )
     .createMockExpoRouterStack({
       onScreen: (props) => {
         mockStackScreen(props);
         mockHeaderOptions = props.options as
-          | { headerLeft?: () => React.ReactElement }
-          | undefined;
+          { headerLeft?: () => React.ReactElement } | undefined;
       },
       onTitle: (props) => mockStackTitle(props),
       onBackButton: (props) => mockStackBackButton(props),
@@ -220,17 +219,17 @@ describe('QuizSessionScreen integration', () => {
     alertSpy.mockRestore();
   });
 
-  function pressHeaderCloseButton() {
+  async function pressHeaderCloseButton() {
     const headerLeft = mockHeaderOptions?.headerLeft;
     expect(headerLeft).toBeDefined();
 
-    const headerButton = render(headerLeft!());
+    const headerButton = await render(headerLeft!());
     expect(headerButton.getByLabelText('close')).toBeTruthy();
-    fireEvent.press(headerButton.getByTestId('quiz-close-button'));
+    await fireEvent.press(headerButton.getByTestId('quiz-close-button'));
   }
 
   it('loads questions, submits answer, persists progress, and navigates to summary', async () => {
-    const screen = render(<QuizSessionScreen />);
+    const screen = await render(<QuizSessionScreen />);
 
     await waitFor(() => {
       expect(screen.getByText('What is const?')).toBeTruthy();
@@ -257,8 +256,8 @@ describe('QuizSessionScreen integration', () => {
       selected: false,
     });
 
-    fireEvent.press(screen.getByText('Option A'));
-    fireEvent.press(screen.getByText('submitAnswer'));
+    await fireEvent.press(screen.getByText('Option A'));
+    await fireEvent.press(screen.getByText('submitAnswer'));
 
     await waitFor(() => {
       expect(
@@ -273,7 +272,7 @@ describe('QuizSessionScreen integration', () => {
       'A, Option A, incorrectShort'
     );
 
-    fireEvent.press(screen.getByText('viewResults'));
+    await fireEvent.press(screen.getByText('viewResults'));
 
     await waitFor(() => {
       expect(mockStorage.recordPractice).toHaveBeenCalledTimes(1);
@@ -311,14 +310,14 @@ describe('QuizSessionScreen integration', () => {
       returnTo: 'practice',
     };
 
-    const screen = render(<QuizSessionScreen />);
+    const screen = await render(<QuizSessionScreen />);
 
     await waitFor(() => {
       expect(screen.getByText('What is const?')).toBeTruthy();
     });
 
-    fireEvent.press(screen.getByText('Option A'));
-    fireEvent.press(screen.getByText('submitAnswer'));
+    await fireEvent.press(screen.getByText('Option A'));
+    await fireEvent.press(screen.getByText('submitAnswer'));
 
     await waitFor(() => {
       expect(
@@ -326,7 +325,7 @@ describe('QuizSessionScreen integration', () => {
       ).toBeTruthy();
     });
 
-    fireEvent.press(screen.getByText('viewResults'));
+    await fireEvent.press(screen.getByText('viewResults'));
 
     await waitFor(() => {
       expect(mockReplace).toHaveBeenCalledTimes(1);
@@ -343,20 +342,20 @@ describe('QuizSessionScreen integration', () => {
   it('opens the topic explanation from the quiz result when available', async () => {
     mockHasTopicExplanation.mockReturnValue(true);
 
-    const screen = render(<QuizSessionScreen />);
+    const screen = await render(<QuizSessionScreen />);
 
     await waitFor(() => {
       expect(screen.getByText('What is const?')).toBeTruthy();
     });
 
-    fireEvent.press(screen.getByText('Option A'));
-    fireEvent.press(screen.getByText('submitAnswer'));
+    await fireEvent.press(screen.getByText('Option A'));
+    await fireEvent.press(screen.getByText('submitAnswer'));
 
     await waitFor(() => {
       expect(screen.getByTestId('quiz-topic-explanation-button')).toBeTruthy();
     });
 
-    fireEvent.press(screen.getByTestId('quiz-topic-explanation-button'));
+    await fireEvent.press(screen.getByTestId('quiz-topic-explanation-button'));
 
     expect(mockPush).toHaveBeenCalledWith({
       pathname: '/topic-explanation',
@@ -389,20 +388,20 @@ describe('QuizSessionScreen integration', () => {
       }),
     });
 
-    const screen = render(<QuizSessionScreen />);
+    const screen = await render(<QuizSessionScreen />);
 
     await waitFor(() => {
       expect(screen.getByText('Question 1')).toBeTruthy();
     });
 
-    fireEvent.press(screen.getByText('Option A'));
-    fireEvent.press(screen.getByText('submitAnswer'));
+    await fireEvent.press(screen.getByText('Option A'));
+    await fireEvent.press(screen.getByText('submitAnswer'));
 
     await waitFor(() => {
       expect(screen.getByTestId('quiz-topic-explanation-button')).toBeTruthy();
     });
 
-    fireEvent.press(screen.getByTestId('quiz-topic-explanation-button'));
+    await fireEvent.press(screen.getByTestId('quiz-topic-explanation-button'));
 
     expect(mockPush).toHaveBeenCalledWith({
       pathname: '/topic-explanation',
@@ -428,7 +427,7 @@ describe('QuizSessionScreen integration', () => {
       }),
     });
 
-    const screen = render(<QuizSessionScreen />);
+    const screen = await render(<QuizSessionScreen />);
 
     await waitFor(() => {
       expect(screen.getByText('What is x after let x;?')).toBeTruthy();
@@ -439,12 +438,12 @@ describe('QuizSessionScreen integration', () => {
     expect(undefinedAnswer).toBeTruthy();
     expect(screen.queryByText('`undefined`')).toBeNull();
 
-    fireEvent.press(undefinedAnswer);
+    await fireEvent.press(undefinedAnswer);
     expect(undefinedAnswer).toHaveStyle({
       color: '#FFFFFF',
       backgroundColor: 'rgba(255, 255, 255, 0.18)',
     });
-    fireEvent.press(screen.getByText('submitAnswer'));
+    await fireEvent.press(screen.getByText('submitAnswer'));
 
     await waitFor(() => {
       expect(
@@ -489,7 +488,7 @@ describe('QuizSessionScreen integration', () => {
       }),
     });
 
-    const screen = render(<QuizSessionScreen />);
+    const screen = await render(<QuizSessionScreen />);
 
     await waitFor(() => {
       expect(screen.getByText('Question 1')).toBeTruthy();
@@ -503,22 +502,22 @@ describe('QuizSessionScreen integration', () => {
       programmingLanguage: 'javascript',
     });
 
-    fireEvent.press(screen.getByText('Option A'));
-    fireEvent.press(screen.getByText('submitAnswer'));
+    await fireEvent.press(screen.getByText('Option A'));
+    await fireEvent.press(screen.getByText('submitAnswer'));
     await waitFor(() => {
       expect(screen.getByText('Explanation 1')).toBeTruthy();
     });
-    fireEvent.press(screen.getByText('nextQuestion'));
+    await fireEvent.press(screen.getByText('nextQuestion'));
 
     await waitFor(() => {
       expect(screen.getByText('Question 2')).toBeTruthy();
     });
-    fireEvent.press(screen.getByText('Option A'));
-    fireEvent.press(screen.getByText('submitAnswer'));
+    await fireEvent.press(screen.getByText('Option A'));
+    await fireEvent.press(screen.getByText('submitAnswer'));
     await waitFor(() => {
       expect(screen.getByText('Explanation 2')).toBeTruthy();
     });
-    fireEvent.press(screen.getByText('viewResults'));
+    await fireEvent.press(screen.getByText('viewResults'));
 
     await waitFor(() => {
       expect(mockReplace).toHaveBeenCalled();
@@ -559,7 +558,7 @@ describe('QuizSessionScreen integration', () => {
       achievements: [],
     });
 
-    const screen = render(<QuizSessionScreen />);
+    const screen = await render(<QuizSessionScreen />);
 
     await waitFor(() => {
       expect(screen.getByText('What is const?')).toBeTruthy();
@@ -644,7 +643,7 @@ describe('QuizSessionScreen integration', () => {
       }),
     });
 
-    const screen = render(<QuizSessionScreen />);
+    const screen = await render(<QuizSessionScreen />);
 
     await waitFor(() => {
       expect(screen.getByText('Question 1')).toBeTruthy();
@@ -662,32 +661,32 @@ describe('QuizSessionScreen integration', () => {
       }
     );
 
-    fireEvent.press(screen.getByText('Option A'));
-    fireEvent.press(screen.getByText('submitAnswer'));
+    await fireEvent.press(screen.getByText('Option A'));
+    await fireEvent.press(screen.getByText('submitAnswer'));
     await waitFor(() => {
       expect(screen.getByText('Explanation 1')).toBeTruthy();
     });
-    fireEvent.press(screen.getByText('nextQuestion'));
+    await fireEvent.press(screen.getByText('nextQuestion'));
 
     await waitFor(() => {
       expect(screen.getByText('Question 2')).toBeTruthy();
     });
-    fireEvent.press(screen.getByText('Option A'));
-    fireEvent.press(screen.getByText('submitAnswer'));
+    await fireEvent.press(screen.getByText('Option A'));
+    await fireEvent.press(screen.getByText('submitAnswer'));
     await waitFor(() => {
       expect(screen.getByText('Explanation 2')).toBeTruthy();
     });
-    fireEvent.press(screen.getByText('nextQuestion'));
+    await fireEvent.press(screen.getByText('nextQuestion'));
 
     await waitFor(() => {
       expect(screen.getByText('Question 3')).toBeTruthy();
     });
-    fireEvent.press(screen.getByText('Option A'));
-    fireEvent.press(screen.getByText('submitAnswer'));
+    await fireEvent.press(screen.getByText('Option A'));
+    await fireEvent.press(screen.getByText('submitAnswer'));
     await waitFor(() => {
       expect(screen.getByText('Explanation 3')).toBeTruthy();
     });
-    fireEvent.press(screen.getByText('viewResults'));
+    await fireEvent.press(screen.getByText('viewResults'));
 
     await waitFor(() => {
       expect(mockReplace).toHaveBeenCalled();
@@ -767,7 +766,7 @@ describe('QuizSessionScreen integration', () => {
       achievements: [],
     });
 
-    const screen = render(<QuizSessionScreen />);
+    const screen = await render(<QuizSessionScreen />);
 
     await waitFor(() => {
       expect(screen.getByText('What is const?')).toBeTruthy();
@@ -795,7 +794,7 @@ describe('QuizSessionScreen integration', () => {
       achievements: [],
     });
 
-    const screen = render(<QuizSessionScreen />);
+    const screen = await render(<QuizSessionScreen />);
 
     await waitFor(() => {
       expect(screen.getByText('What is const?')).toBeTruthy();
@@ -824,7 +823,7 @@ describe('QuizSessionScreen integration', () => {
       })
     );
 
-    const screen = render(<QuizSessionScreen />);
+    const screen = await render(<QuizSessionScreen />);
 
     await waitFor(() => {
       expect(screen.getByText('quizRateLimitDeviceTitle')).toBeTruthy();
@@ -833,7 +832,7 @@ describe('QuizSessionScreen integration', () => {
 
     expect(screen.queryByTestId('quiz-retry-button')).toBeNull();
     expect(screen.queryByTestId('quiz-cancel-button')).toBeNull();
-    fireEvent.press(screen.getByTestId('quiz-close-primary-button'));
+    await fireEvent.press(screen.getByTestId('quiz-close-primary-button'));
 
     expect(mockReplace).toHaveBeenCalledWith('/learn');
   });
@@ -848,7 +847,7 @@ describe('QuizSessionScreen integration', () => {
       })
     );
 
-    const screen = render(<QuizSessionScreen />);
+    const screen = await render(<QuizSessionScreen />);
 
     await waitFor(() => {
       expect(screen.getByText('quizRateLimitGlobalTitle')).toBeTruthy();
@@ -858,7 +857,7 @@ describe('QuizSessionScreen integration', () => {
     expect(screen.queryByTestId('quiz-retry-button')).toBeNull();
     expect(screen.queryByTestId('quiz-cancel-button')).toBeNull();
     expect(screen.getByText('understood')).toBeTruthy();
-    fireEvent.press(screen.getByTestId('quiz-close-primary-button'));
+    await fireEvent.press(screen.getByTestId('quiz-close-primary-button'));
 
     expect(mockReplace).toHaveBeenCalledWith('/learn');
   });
@@ -870,7 +869,7 @@ describe('QuizSessionScreen integration', () => {
       })
     );
 
-    const screen = render(<QuizSessionScreen />);
+    const screen = await render(<QuizSessionScreen />);
 
     await waitFor(() => {
       expect(screen.getByText('quizValidationFailedTitle')).toBeTruthy();
@@ -886,7 +885,7 @@ describe('QuizSessionScreen integration', () => {
       })
     );
 
-    const screen = render(<QuizSessionScreen />);
+    const screen = await render(<QuizSessionScreen />);
 
     await waitFor(() => {
       expect(screen.getByText('unableToLoadQuiz')).toBeTruthy();
@@ -897,27 +896,27 @@ describe('QuizSessionScreen integration', () => {
   });
 
   it('closes immediately when no quiz progress exists yet', async () => {
-    render(<QuizSessionScreen />);
+    await render(<QuizSessionScreen />);
 
     await waitFor(() => {
       expect(mockHeaderOptions?.headerLeft).toBeDefined();
     });
 
-    pressHeaderCloseButton();
+    await pressHeaderCloseButton();
 
     expect(alertSpy).not.toHaveBeenCalled();
     expect(mockReplace).toHaveBeenCalledWith('/learn');
   });
 
   it('asks for confirmation before closing when quiz progress would be lost', async () => {
-    const screen = render(<QuizSessionScreen />);
+    const screen = await render(<QuizSessionScreen />);
 
     await waitFor(() => {
       expect(screen.getByText('What is const?')).toBeTruthy();
     });
 
-    fireEvent.press(screen.getByText('Option A'));
-    pressHeaderCloseButton();
+    await fireEvent.press(screen.getByText('Option A'));
+    await pressHeaderCloseButton();
 
     expect(mockReplace).not.toHaveBeenCalled();
     expect(alertSpy).toHaveBeenCalledWith(

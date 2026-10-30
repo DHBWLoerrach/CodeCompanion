@@ -1,5 +1,5 @@
 import React, { useCallback } from 'react';
-import { NativeTabs } from 'expo-router/unstable-native-tabs';
+import { NativeTabs } from 'expo-router/native-tabs';
 import { useFocusEffect } from 'expo-router';
 import { Feather } from '@react-native-vector-icons/feather';
 

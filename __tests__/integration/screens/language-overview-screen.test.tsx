@@ -19,9 +19,9 @@ let mockSearchParams: { languageId?: string; mode?: string; origin?: string } =
 
 jest.mock('expo-router', () => ({
   Stack: jest
-    .requireActual<
-      typeof import('../../../test/expo-router-stack')
-    >('../../../test/expo-router-stack')
+    .requireActual<typeof import('../../../test/expo-router-stack')>(
+      '../../../test/expo-router-stack'
+    )
     .createMockExpoRouterStack({
       onTitle: (props) => mockStackTitle(props),
     }),
@@ -106,7 +106,7 @@ describe('LanguageOverviewScreen integration', () => {
   });
 
   it('renders overview data from the route parameter and curriculum metadata', async () => {
-    const screen = render(<LanguageOverviewScreen />);
+    const screen = await render(<LanguageOverviewScreen />);
     const javascript = getLanguageById('javascript');
     const topicCount =
       javascript?.categories.reduce(
@@ -132,11 +132,13 @@ describe('LanguageOverviewScreen integration', () => {
     mockSelectedLanguageId = 'javascript';
     mockSearchParams = { languageId: 'python' };
 
-    const screen = render(<LanguageOverviewScreen />);
+    const screen = await render(<LanguageOverviewScreen />);
 
     expect(screen.getByText('startWithLanguage')).toBeTruthy();
 
-    fireEvent.press(screen.getByTestId('language-overview-confirm-button'));
+    await fireEvent.press(
+      screen.getByTestId('language-overview-confirm-button')
+    );
 
     await waitFor(() => {
       expect(mockSetSelectedLanguage).toHaveBeenCalledWith('python');
@@ -162,7 +164,7 @@ describe('LanguageOverviewScreen integration', () => {
       },
     });
 
-    const screen = render(<LanguageOverviewScreen />);
+    const screen = await render(<LanguageOverviewScreen />);
 
     await waitFor(() => {
       expect(screen.getByText('continueWithLanguage')).toBeTruthy();
@@ -173,7 +175,7 @@ describe('LanguageOverviewScreen integration', () => {
     mockSelectedLanguageId = 'javascript';
     mockSearchParams = { languageId: 'python', origin: 'header' };
 
-    const screen = render(<LanguageOverviewScreen />);
+    const screen = await render(<LanguageOverviewScreen />);
 
     await waitFor(() => {
       expect(screen.getByText('switchToLanguage')).toBeTruthy();
@@ -184,9 +186,11 @@ describe('LanguageOverviewScreen integration', () => {
     mockSelectedLanguageId = 'javascript';
     mockSearchParams = { languageId: 'javascript', origin: 'settings' };
 
-    const screen = render(<LanguageOverviewScreen />);
+    const screen = await render(<LanguageOverviewScreen />);
 
-    fireEvent.press(screen.getByTestId('language-overview-confirm-button'));
+    await fireEvent.press(
+      screen.getByTestId('language-overview-confirm-button')
+    );
 
     await waitFor(() => {
       expect(mockSetSelectedLanguage).not.toHaveBeenCalled();
@@ -195,16 +199,16 @@ describe('LanguageOverviewScreen integration', () => {
   });
 
   it('returns to the language list when choosing another language', async () => {
-    const screen = render(<LanguageOverviewScreen />);
+    const screen = await render(<LanguageOverviewScreen />);
 
-    fireEvent.press(
+    await fireEvent.press(
       screen.getByTestId('language-overview-choose-another-button')
     );
 
     expect(mockBack).toHaveBeenCalled();
   });
 
-  it('opens as a read-only view from settings and closes without saving', () => {
+  it('opens as a read-only view from settings and closes without saving', async () => {
     mockSelectedLanguageId = 'javascript';
     mockSearchParams = {
       languageId: 'javascript',
@@ -212,11 +216,11 @@ describe('LanguageOverviewScreen integration', () => {
       origin: 'settings',
     };
 
-    const screen = render(<LanguageOverviewScreen />);
+    const screen = await render(<LanguageOverviewScreen />);
 
     expect(screen.queryByTestId('language-overview-confirm-button')).toBeNull();
 
-    fireEvent.press(screen.getByTestId('language-overview-close-button'));
+    await fireEvent.press(screen.getByTestId('language-overview-close-button'));
 
     expect(mockSetSelectedLanguage).not.toHaveBeenCalled();
     expect(mockBack).toHaveBeenCalled();
@@ -226,7 +230,7 @@ describe('LanguageOverviewScreen integration', () => {
     mockCanGoBack = false;
     mockSearchParams = { languageId: 'unknown', origin: 'settings' };
 
-    render(<LanguageOverviewScreen />);
+    await render(<LanguageOverviewScreen />);
 
     await waitFor(() => {
       expect(mockReplace).toHaveBeenCalledWith(
@@ -246,7 +250,7 @@ describe('LanguageOverviewScreen integration', () => {
       origin: 'settings',
     };
 
-    render(<LanguageOverviewScreen />);
+    await render(<LanguageOverviewScreen />);
 
     await waitFor(() => {
       expect(mockDismissTo).toHaveBeenCalledWith('/settings');

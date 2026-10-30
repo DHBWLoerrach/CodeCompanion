@@ -12,9 +12,9 @@ let mockSearchParams: { origin?: string } = {};
 
 jest.mock('expo-router', () => ({
   Stack: jest
-    .requireActual<
-      typeof import('../../../test/expo-router-stack')
-    >('../../../test/expo-router-stack')
+    .requireActual<typeof import('../../../test/expo-router-stack')>(
+      '../../../test/expo-router-stack'
+    )
     .createMockExpoRouterStack({
       onScreen: (props) => mockStackScreen(props),
       onTitle: (props) => mockStackTitle(props),
@@ -97,19 +97,23 @@ describe('LanguageSelectScreen integration', () => {
     jest.mocked(Haptics.impactAsync).mockResolvedValue();
   });
 
-  it('navigates without waiting for haptic feedback', () => {
+  it('navigates without waiting for haptic feedback', async () => {
     jest.mocked(Haptics.impactAsync).mockReturnValue(new Promise(() => {}));
-    const screen = render(<LanguageSelectScreen />);
+    const screen = await render(<LanguageSelectScreen />);
 
-    fireEvent.press(screen.getByTestId('language-select-option-javascript'));
+    await fireEvent.press(
+      screen.getByTestId('language-select-option-javascript')
+    );
 
     expect(mockPush).toHaveBeenCalledTimes(1);
   });
 
   it('opens the overview screen with the selected language id', async () => {
-    const screen = render(<LanguageSelectScreen />);
+    const screen = await render(<LanguageSelectScreen />);
 
-    fireEvent.press(screen.getByTestId('language-select-option-javascript'));
+    await fireEvent.press(
+      screen.getByTestId('language-select-option-javascript')
+    );
 
     await waitFor(() => {
       expect(mockPush).toHaveBeenCalledWith(
@@ -125,9 +129,9 @@ describe('LanguageSelectScreen integration', () => {
     mockSelectedLanguageId = 'javascript';
     mockSearchParams = { origin: 'settings' };
 
-    const screen = render(<LanguageSelectScreen />);
+    const screen = await render(<LanguageSelectScreen />);
 
-    fireEvent.press(screen.getByTestId('language-select-option-python'));
+    await fireEvent.press(screen.getByTestId('language-select-option-python'));
 
     await waitFor(() => {
       expect(mockPush).toHaveBeenCalledWith(
@@ -142,10 +146,10 @@ describe('LanguageSelectScreen integration', () => {
     });
   });
 
-  it('shows the back button and enables gestures only in settings mode', () => {
+  it('shows the back button and enables gestures only in settings mode', async () => {
     mockSearchParams = { origin: 'settings' };
 
-    render(<LanguageSelectScreen />);
+    await render(<LanguageSelectScreen />);
 
     expect(mockStackScreen).toHaveBeenCalledWith(
       expect.objectContaining({
@@ -160,23 +164,23 @@ describe('LanguageSelectScreen integration', () => {
     );
   });
 
-  it('disables the current language in settings mode', () => {
+  it('disables the current language in settings mode', async () => {
     mockSelectedLanguageId = 'javascript';
     mockSearchParams = { origin: 'settings' };
 
-    const screen = render(<LanguageSelectScreen />);
+    const screen = await render(<LanguageSelectScreen />);
     const currentOption = screen.getByTestId(
       'language-select-option-javascript'
     );
 
-    fireEvent.press(currentOption);
+    await fireEvent.press(currentOption);
 
     expect(currentOption.props.accessibilityState).toEqual({ disabled: true });
     expect(mockPush).not.toHaveBeenCalled();
   });
 
-  it('hides the back button outside the settings flow', () => {
-    render(<LanguageSelectScreen />);
+  it('hides the back button outside the settings flow', async () => {
+    await render(<LanguageSelectScreen />);
 
     expect(mockStackScreen).toHaveBeenCalledWith(
       expect.objectContaining({

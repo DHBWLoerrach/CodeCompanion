@@ -15,6 +15,7 @@ import {
   type LayoutChangeEvent,
   type NativeScrollEvent,
   type NativeSyntheticEvent,
+  type ScrollViewInstance,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
@@ -439,7 +440,7 @@ export default function QuizSessionScreen() {
   const [error, setError] = useState<QuizLoadError | null>(null);
   const [isAdvancing, setIsAdvancing] = useState(false);
   const nextInFlightRef = useRef(false);
-  const scrollViewRef = useRef<ScrollView | null>(null);
+  const scrollViewRef = useRef<ScrollViewInstance | null>(null);
   const explanationTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(
     null
   );

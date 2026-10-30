@@ -45,20 +45,22 @@ const baseProps = {
 };
 
 describe('ExplanationCard', () => {
-  it('renders correct title when answer is correct', () => {
-    const screen = render(<ExplanationCard {...baseProps} />);
+  it('renders correct title when answer is correct', async () => {
+    const screen = await render(<ExplanationCard {...baseProps} />);
 
     expect(screen.getByText(/correctTitle/)).toBeTruthy();
   });
 
-  it('renders incorrect title when answer is wrong', () => {
-    const screen = render(<ExplanationCard {...baseProps} isCorrect={false} />);
+  it('renders incorrect title when answer is wrong', async () => {
+    const screen = await render(
+      <ExplanationCard {...baseProps} isCorrect={false} />
+    );
 
     expect(screen.getByText(/incorrectTitle/)).toBeTruthy();
   });
 
-  it('displays resultSentence and explanation text', () => {
-    const screen = render(<ExplanationCard {...baseProps} />);
+  it('displays resultSentence and explanation text', async () => {
+    const screen = await render(<ExplanationCard {...baseProps} />);
 
     expect(screen.getByText(/The expression evaluates to/i)).toBeTruthy();
     expect(
@@ -66,8 +68,8 @@ describe('ExplanationCard', () => {
     ).toBeTruthy();
   });
 
-  it('hides resultSentence when it only repeats the correct answer', () => {
-    const screen = render(
+  it('hides resultSentence when it only repeats the correct answer', async () => {
+    const screen = await render(
       <ExplanationCard {...baseProps} resultSentence="Result: `0`" />
     );
 
@@ -77,14 +79,14 @@ describe('ExplanationCard', () => {
     ).toBeTruthy();
   });
 
-  it('displays takeaway with label', () => {
-    const screen = render(<ExplanationCard {...baseProps} />);
+  it('displays takeaway with label', async () => {
+    const screen = await render(<ExplanationCard {...baseProps} />);
 
     expect(screen.getByText(/takeawayLabel/)).toBeTruthy();
   });
 
-  it('shows commonMistake when provided', () => {
-    const screen = render(
+  it('shows commonMistake when provided', async () => {
+    const screen = await render(
       <ExplanationCard
         {...baseProps}
         commonMistake="Many confuse `??` with `||`."
@@ -95,15 +97,15 @@ describe('ExplanationCard', () => {
     expect(screen.getByText(/Many confuse/i)).toBeTruthy();
   });
 
-  it('does not show commonMistake section when not provided', () => {
-    const screen = render(<ExplanationCard {...baseProps} />);
+  it('does not show commonMistake section when not provided', async () => {
+    const screen = await render(<ExplanationCard {...baseProps} />);
 
     expect(screen.queryByText(/commonMistakeLabel/)).toBeNull();
   });
 
-  it('shows topic explanation button when topicId is provided', () => {
+  it('shows topic explanation button when topicId is provided', async () => {
     const onPressTopic = jest.fn();
-    const screen = render(
+    const screen = await render(
       <ExplanationCard
         {...baseProps}
         topicId="nullish-coalescing"
@@ -114,8 +116,8 @@ describe('ExplanationCard', () => {
     expect(screen.getByTestId('quiz-topic-explanation-button')).toBeTruthy();
   });
 
-  it('does not show topic explanation button when topicId is absent', () => {
-    const screen = render(<ExplanationCard {...baseProps} />);
+  it('does not show topic explanation button when topicId is absent', async () => {
+    const screen = await render(<ExplanationCard {...baseProps} />);
 
     expect(screen.queryByTestId('quiz-topic-explanation-button')).toBeNull();
   });

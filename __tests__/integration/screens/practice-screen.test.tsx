@@ -29,9 +29,9 @@ const fundamentalsTopicIds = (
 
 jest.mock('expo-router', () => ({
   Stack: jest
-    .requireActual<
-      typeof import('../../../test/expo-router-stack')
-    >('../../../test/expo-router-stack')
+    .requireActual<typeof import('../../../test/expo-router-stack')>(
+      '../../../test/expo-router-stack'
+    )
     .createMockExpoRouterStack({
       onScreen: (props) => mockStackScreen(props),
     }),
@@ -178,7 +178,7 @@ describe('PracticeScreen integration', () => {
       (progress?: { topicId?: string }) => progress?.topicId === 'variables'
     );
 
-    const screen = render(<PracticeScreen />);
+    const screen = await render(<PracticeScreen />);
 
     await waitFor(() => {
       expect(screen.getByText('practiceScreenSubtitle')).toBeTruthy();
@@ -200,7 +200,7 @@ describe('PracticeScreen integration', () => {
       })
     );
 
-    fireEvent.press(screen.getByTestId('practice-mode-due'));
+    await fireEvent.press(screen.getByTestId('practice-mode-due'));
 
     expect(mockPush).toHaveBeenCalledWith({
       pathname: '/quiz-session',
@@ -212,7 +212,7 @@ describe('PracticeScreen integration', () => {
     });
 
     mockPush.mockClear();
-    fireEvent.press(screen.getByText('startReview'));
+    await fireEvent.press(screen.getByText('startReview'));
 
     expect(mockPush).toHaveBeenCalledWith({
       pathname: '/quiz-session',
@@ -233,16 +233,16 @@ describe('PracticeScreen integration', () => {
     });
     mockIsTopicDue.mockReturnValue(false);
 
-    const screen = render(<PracticeScreen />);
+    const screen = await render(<PracticeScreen />);
 
     await waitFor(() => {
       expect(screen.getByText('practiceScreenSubtitle')).toBeTruthy();
       expect(screen.getByText('quizModes')).toBeTruthy();
     });
 
-    fireEvent.press(screen.getByText('mixedQuiz'));
-    fireEvent.press(screen.getByText('exploreQuiz'));
-    fireEvent.press(screen.getByText('Fundamentals'));
+    await fireEvent.press(screen.getByText('mixedQuiz'));
+    await fireEvent.press(screen.getByText('exploreQuiz'));
+    await fireEvent.press(screen.getByText('Fundamentals'));
 
     const mixedCall = mockPush.mock.calls.find(([call]) => {
       const route = call as {
@@ -341,7 +341,7 @@ describe('PracticeScreen integration', () => {
     });
     mockIsTopicDue.mockReturnValue(false);
 
-    const screen = render(<PracticeScreen />);
+    const screen = await render(<PracticeScreen />);
 
     await waitFor(() => {
       expect(screen.getByText('mixedQuiz')).toBeTruthy();
@@ -392,13 +392,13 @@ describe('PracticeScreen integration', () => {
     });
     mockIsTopicDue.mockReturnValue(false);
 
-    const screen = render(<PracticeScreen />);
+    const screen = await render(<PracticeScreen />);
 
     await waitFor(() => {
       expect(screen.getByText('exploreQuiz')).toBeTruthy();
     });
 
-    fireEvent.press(screen.getByTestId('practice-mode-explore'));
+    await fireEvent.press(screen.getByTestId('practice-mode-explore'));
 
     expect(mockPush).not.toHaveBeenCalled();
   });
@@ -418,7 +418,7 @@ describe('PracticeScreen integration', () => {
     });
     mockIsTopicDue.mockReturnValue(false);
 
-    const screen = render(<PracticeScreen />);
+    const screen = await render(<PracticeScreen />);
 
     await waitFor(() => {
       expect(screen.getByText('Fundamentals')).toBeTruthy();
@@ -441,7 +441,7 @@ describe('PracticeScreen integration', () => {
     });
     mockIsTopicDue.mockReturnValue(false);
 
-    const screen = render(<PracticeScreen />);
+    const screen = await render(<PracticeScreen />);
 
     await waitFor(() => {
       expect(screen.getByText('noPracticeYet')).toBeTruthy();
@@ -466,7 +466,7 @@ describe('PracticeScreen integration', () => {
     });
     mockIsTopicDue.mockReturnValue(false);
 
-    const screen = render(<PracticeScreen />);
+    const screen = await render(<PracticeScreen />);
 
     await waitFor(() => {
       expect(screen.getByText('noDueTopics')).toBeTruthy();
@@ -483,7 +483,7 @@ describe('PracticeScreen integration', () => {
     });
     mockIsTopicDue.mockReturnValue(false);
 
-    render(<PracticeScreen />);
+    await render(<PracticeScreen />);
 
     await waitFor(() => {
       expect(mockStackScreen).toHaveBeenCalledWith(
@@ -499,8 +499,8 @@ describe('PracticeScreen integration', () => {
       mockStackScreen.mock.calls.at(-1)?.[0]?.options?.headerRight;
     expect(headerRight).toBeDefined();
 
-    const headerButton = render(headerRight!());
-    fireEvent.press(headerButton.getByTestId('open-settings-button'));
+    const headerButton = await render(headerRight!());
+    await fireEvent.press(headerButton.getByTestId('open-settings-button'));
 
     expect(mockPush).toHaveBeenCalledWith('/settings');
   });
