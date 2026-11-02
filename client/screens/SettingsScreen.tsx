@@ -294,6 +294,7 @@ export default function SettingsScreen() {
               </Text>
               <TextInput
                 testID="settings-display-name-input"
+                accessibilityLabel={t('displayName')}
                 defaultValue={profile.displayName}
                 placeholder={t('student')}
                 placeholderTextColor={theme.tabIconDefault}
