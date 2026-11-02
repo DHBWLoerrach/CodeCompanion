@@ -14,6 +14,7 @@ import { useTheme } from '@/contexts/ThemeContext';
 import { useAccessibilityLayout } from '@/hooks/useAccessibilityLayout';
 import { useTopicProgress } from '@/hooks/useTopicProgress';
 import { useTranslation } from '@/hooks/useTranslation';
+import { SettingsToolbar } from '@/components/SettingsToolbar';
 import { getProgrammingLanguageHeaderOptions } from '@/lib/getProgrammingLanguageHeaderOptions';
 import { getRecommendedTopicId } from '@/lib/topic-recommendations';
 import { type Topic } from '@/lib/topics';
@@ -51,6 +52,7 @@ export default function LearnScreen() {
   return (
     <ThemedView style={styles.container}>
       <Stack.Screen options={headerOptions} />
+      <SettingsToolbar />
       <ScrollView
         style={styles.scrollView}
         contentInsetAdjustmentBehavior="automatic"

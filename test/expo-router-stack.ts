@@ -1,4 +1,43 @@
-import type { ReactNode } from 'react';
+import { createElement, Fragment, type ReactNode } from 'react';
+import { Pressable, Text } from 'react-native';
+
+interface MockToolbarButtonProps {
+  accessibilityLabel?: string;
+  children?: ReactNode;
+  hidden?: boolean;
+  disabled?: boolean;
+  onPress?: () => void;
+}
+
+// Renders Stack.Toolbar items as plain pressables so tests can press them by
+// accessibility label, mirroring how VoiceOver/TalkBack and Maestro find them.
+const Toolbar = Object.assign(
+  ({ children }: { children?: ReactNode }) =>
+    createElement(Fragment, null, children),
+  {
+    Button: ({
+      accessibilityLabel,
+      children,
+      hidden,
+      disabled,
+      onPress,
+    }: MockToolbarButtonProps) =>
+      hidden
+        ? null
+        : createElement(
+            Pressable,
+            {
+              accessibilityLabel,
+              accessibilityRole: 'button',
+              disabled,
+              onPress,
+            },
+            typeof children === 'string'
+              ? createElement(Text, null, children)
+              : null
+          ),
+  }
+);
 
 interface MockStackCallbacks {
   onScreen?: (props: { options?: Record<string, unknown> }) => void;
@@ -32,6 +71,7 @@ export function createMockExpoRouterStack({
 
   return {
     Screen,
+    Toolbar,
     Header: (props: { children?: ReactNode }) => {
       onHeader?.(props);
       return null;

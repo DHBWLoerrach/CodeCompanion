@@ -23,6 +23,7 @@ import { useAccessibilityLayout } from '@/hooks/useAccessibilityLayout';
 import { useTranslation } from '@/hooks/useTranslation';
 import { usePressAnimation } from '@/hooks/usePressAnimation';
 import { type TranslationKey } from '@/lib/i18n';
+import { SettingsToolbar } from '@/components/SettingsToolbar';
 import { getProgrammingLanguageHeaderOptions } from '@/lib/getProgrammingLanguageHeaderOptions';
 import {
   useTopicProgress,
@@ -559,6 +560,7 @@ export default function PracticeScreen() {
   return (
     <ThemedView style={styles.container}>
       <Stack.Screen options={headerOptions} />
+      <SettingsToolbar />
       <ScrollView
         ref={scrollViewRef}
         style={styles.scrollView}

@@ -474,33 +474,15 @@ describe('PracticeScreen integration', () => {
     });
   });
 
-  it('keeps the settings header action on the practice screen', async () => {
-    mockGetProgress.mockResolvedValue({
-      totalQuestions: 0,
-      correctAnswers: 0,
-      achievements: [],
-      topicProgress: {},
-    });
-    mockIsTopicDue.mockReturnValue(false);
+  it('shows the native settings toolbar action on the practice screen', async () => {
+    const screen = await render(<PracticeScreen />);
 
-    await render(<PracticeScreen />);
+    const settingsButton = await screen.findByLabelText('settings');
+    expect(
+      mockStackScreen.mock.calls.at(-1)?.[0]?.options?.headerRight
+    ).toBeUndefined();
 
-    await waitFor(() => {
-      expect(mockStackScreen).toHaveBeenCalledWith(
-        expect.objectContaining({
-          options: expect.objectContaining({
-            headerRight: expect.any(Function),
-          }),
-        })
-      );
-    });
-
-    const headerRight =
-      mockStackScreen.mock.calls.at(-1)?.[0]?.options?.headerRight;
-    expect(headerRight).toBeDefined();
-
-    const headerButton = await render(headerRight!());
-    await fireEvent.press(headerButton.getByTestId('open-settings-button'));
+    await fireEvent.press(settingsButton);
 
     expect(mockPush).toHaveBeenCalledWith('/settings');
   });

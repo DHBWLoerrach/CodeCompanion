@@ -15,6 +15,7 @@ import { useAccessibilityLayout } from '@/hooks/useAccessibilityLayout';
 import { usePressAnimation } from '@/hooks/usePressAnimation';
 import { useTranslation } from '@/hooks/useTranslation';
 import { type Language, type TranslationKey } from '@/lib/i18n';
+import { SettingsToolbar } from '@/components/SettingsToolbar';
 import { getProgrammingLanguageHeaderOptions } from '@/lib/getProgrammingLanguageHeaderOptions';
 import {
   Spacing,
@@ -277,6 +278,7 @@ export default function ProgressScreen() {
   return (
     <ThemedView style={styles.container}>
       <Stack.Screen options={headerOptions} />
+      <SettingsToolbar />
       <ScrollView
         style={styles.scrollView}
         contentInsetAdjustmentBehavior="automatic"

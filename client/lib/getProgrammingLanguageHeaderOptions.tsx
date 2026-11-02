@@ -3,11 +3,11 @@ import React from 'react';
 import { Stack } from 'expo-router';
 
 import { ProgrammingLanguageHeaderTitle } from '@/components/ProgrammingLanguageHeaderTitle';
-import { SettingsHeaderButton } from '@/components/SettingsHeaderButton';
 import { type LanguageFlowReturnTarget } from '@/lib/language-flow';
 
 type StackScreenOptions = ComponentProps<typeof Stack.Screen>['options'];
 
+// The settings action is rendered natively via <SettingsToolbar /> in each screen.
 const HEADER_OPTIONS_BY_TARGET: Record<
   LanguageFlowReturnTarget,
   StackScreenOptions
@@ -15,17 +15,14 @@ const HEADER_OPTIONS_BY_TARGET: Record<
   '/learn': {
     headerLeft: () => <ProgrammingLanguageHeaderTitle returnTo="/learn" />,
     headerTitle: '',
-    headerRight: () => <SettingsHeaderButton iconSize={17} />,
   },
   '/practice': {
     headerLeft: () => <ProgrammingLanguageHeaderTitle returnTo="/practice" />,
     headerTitle: '',
-    headerRight: () => <SettingsHeaderButton iconSize={17} />,
   },
   '/progress': {
     headerLeft: () => <ProgrammingLanguageHeaderTitle returnTo="/progress" />,
     headerTitle: '',
-    headerRight: () => <SettingsHeaderButton iconSize={17} />,
   },
 };
 

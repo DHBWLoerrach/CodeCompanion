@@ -355,25 +355,15 @@ describe('LearnScreen integration', () => {
     expect(statusLineStyle.width).toBeUndefined();
   });
 
-  it('keeps the settings header action on the learn screen', async () => {
-    await render(<LearnScreen />);
+  it('shows the native settings toolbar action on the learn screen', async () => {
+    const screen = await render(<LearnScreen />);
 
-    await waitFor(() => {
-      expect(mockStackScreen).toHaveBeenCalledWith(
-        expect.objectContaining({
-          options: expect.objectContaining({
-            headerRight: expect.any(Function),
-          }),
-        })
-      );
-    });
+    const settingsButton = await screen.findByLabelText('settings');
+    expect(
+      mockStackScreen.mock.calls.at(-1)?.[0]?.options?.headerRight
+    ).toBeUndefined();
 
-    const headerRight =
-      mockStackScreen.mock.calls.at(-1)?.[0]?.options?.headerRight;
-    expect(headerRight).toBeDefined();
-
-    const headerButton = await render(headerRight!());
-    await fireEvent.press(headerButton.getByTestId('open-settings-button'));
+    await fireEvent.press(settingsButton);
 
     expect(mockPush).toHaveBeenCalledWith('/settings');
   });

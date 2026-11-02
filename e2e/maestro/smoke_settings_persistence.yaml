@@ -16,9 +16,9 @@ tags:
 - tapOn:
     id: language-overview-confirm-button
 - assertVisible:
-    id: open-settings-button
+    text: 'Settings|Einstellungen'
 - tapOn:
-    id: open-settings-button
+    text: 'Settings|Einstellungen'
 - tapOn:
     id: settings-display-name-input
 - eraseText
@@ -29,5 +29,5 @@ tags:
 - assertVisible:
     id: learn-topic-variables
 - tapOn:
-    id: open-settings-button
+    text: 'Settings|Einstellungen'
 - assertVisible: E2E User
