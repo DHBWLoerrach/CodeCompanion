@@ -1,5 +1,5 @@
 import React from 'react';
-import { Platform, StyleSheet } from 'react-native';
+import { Alert } from 'react-native';
 import { fireEvent, render, waitFor } from '@testing-library/react-native';
 import SettingsScreen from '@/screens/SettingsScreen';
 
@@ -52,42 +52,114 @@ jest.mock('@/components/AppIcon', () => ({
   AppIcon: () => null,
 }));
 
-jest.mock('@expo/ui/community/segmented-control', () => {
+// Native Expo UI views are replaced with plain React Native equivalents so the
+// screen's wiring (callbacks, test IDs, initial values) can be exercised in Jest.
+jest.mock('@expo/ui', () => {
+  const ReactModule = jest.requireActual('react');
+  const {
+    View,
+    Pressable,
+    Text: RNText,
+    TextInput: RNTextInput,
+  } = jest.requireActual('react-native');
+  const h = ReactModule.createElement;
+  const passthrough = ({ children }: { children?: React.ReactNode }) =>
+    h(View, null, children);
+  const renderText = (node: React.ReactNode) =>
+    typeof node === 'string' ? h(RNText, null, node) : node;
+
+  const FieldGroup = Object.assign(passthrough, {
+    Section: ({
+      title,
+      children,
+    }: {
+      title?: string;
+      children?: React.ReactNode;
+    }) => h(View, null, title ? h(RNText, null, title) : null, children),
+  });
+
+  return {
+    Host: passthrough,
+    Column: passthrough,
+    RNHostView: passthrough,
+    FieldGroup,
+    Text: ({ children }: { children?: string }) => h(RNText, null, children),
+    TextInput: ({
+      testID,
+      defaultValue,
+      placeholder,
+      onChangeText,
+    }: {
+      testID?: string;
+      defaultValue?: string;
+      placeholder?: string;
+      onChangeText?: (text: string) => void;
+    }) => h(RNTextInput, { testID, defaultValue, placeholder, onChangeText }),
+    ListItem: ({
+      testID,
+      onPress,
+      leading,
+      trailing,
+      supportingText,
+      children,
+    }: {
+      testID?: string;
+      onPress?: () => void;
+      leading?: React.ReactNode;
+      trailing?: React.ReactNode;
+      supportingText?: React.ReactNode;
+      children?: React.ReactNode;
+    }) =>
+      h(
+        View,
+        null,
+        h(
+          Pressable,
+          { testID, onPress, accessibilityRole: 'button' },
+          leading,
+          renderText(children),
+          renderText(supportingText)
+        ),
+        trailing
+      ),
+  };
+});
+
+jest.mock('@/components/settings/SettingsPickerRow', () => {
   const ReactModule = jest.requireActual('react');
   const { View, Pressable, Text } = jest.requireActual('react-native');
+  const h = ReactModule.createElement;
 
-  return ({
-    appearance,
-    values,
-    onChange,
-    style,
-  }: {
-    appearance?: 'dark' | 'light';
-    values: string[];
-    onChange: (event: {
-      nativeEvent: { selectedSegmentIndex: number };
-    }) => void;
-    style?: unknown;
-  }) =>
-    ReactModule.createElement(
-      View,
-      {
-        accessibilityLabel: `segmented-control:${values.join('|')}`,
-        appearance,
-        style,
-      },
-      values.map((value, index) =>
-        ReactModule.createElement(
-          Pressable,
-          {
-            key: `${value}-${index}`,
-            onPress: () =>
-              onChange({ nativeEvent: { selectedSegmentIndex: index } }),
-          },
-          ReactModule.createElement(Text, null, value)
+  return {
+    SettingsPickerRow: ({
+      label,
+      options,
+      selectedValue,
+      onValueChange,
+      testID,
+    }: {
+      label: string;
+      options: { label: string; value: string }[];
+      selectedValue: string;
+      onValueChange: (value: string) => void;
+      testID?: string;
+    }) =>
+      h(
+        View,
+        {
+          testID,
+          accessibilityLabel: label,
+          accessibilityValue: { text: selectedValue },
+        },
+        options.map((option) =>
+          h(
+            Pressable,
+            { key: option.value, onPress: () => onValueChange(option.value) },
+            h(Text, null, option.label)
+          )
         )
-      )
-    );
+      ),
+  };
 });
 
 jest.mock('@/contexts/ThemeContext', () => ({
@@ -280,83 +352,70 @@ describe('SettingsScreen integration', () => {
     expect(mockBack).not.toHaveBeenCalled();
   });
 
-  it('gives segmented controls a full-width Android layout', async () => {
-    const originalPlatform = Platform.OS;
-    Object.defineProperty(Platform, 'OS', {
-      configurable: true,
-      value: 'android',
+  it('shows the current language and theme in the native picker rows', async () => {
+    mockStorage.getSettings.mockResolvedValue({
+      language: 'de',
+      themeMode: 'dark',
     });
 
-    try {
-      const screen = await render(<SettingsScreen />);
+    const screen = await render(<SettingsScreen />);
 
-      await waitFor(() => {
-        expect(screen.getByText('preferences')).toBeTruthy();
-      });
+    const languagePicker = await waitFor(() =>
+      screen.getByTestId('settings-app-language-picker')
+    );
+    const themePicker = screen.getByTestId('settings-theme-picker');
 
-      const languageControl = screen.getByLabelText(
-        'segmented-control:English|Deutsch'
-      );
-      const themeControl = screen.getByLabelText(
-        'segmented-control:themeAuto|themeLight|themeDark'
-      );
-
-      expect(StyleSheet.flatten(languageControl.props.style)).toEqual(
-        expect.objectContaining({ width: '100%' })
-      );
-      expect(StyleSheet.flatten(themeControl.props.style)).toEqual(
-        expect.objectContaining({ width: '100%' })
-      );
-    } finally {
-      Object.defineProperty(Platform, 'OS', {
-        configurable: true,
-        value: originalPlatform,
-      });
-    }
+    expect(languagePicker.props.accessibilityLabel).toBe('appLanguage');
+    expect(languagePicker.props.accessibilityValue).toEqual({ text: 'de' });
+    expect(themePicker.props.accessibilityLabel).toBe('theme');
+    expect(themePicker.props.accessibilityValue).toEqual({ text: 'dark' });
+    expect(screen.getByText('themeAuto')).toBeTruthy();
+    expect(screen.getByText('themeLight')).toBeTruthy();
   });
 
-  it('uses the app light appearance for Android segmented controls', async () => {
-    const originalPlatform = Platform.OS;
-    Object.defineProperty(Platform, 'OS', {
-      configurable: true,
-      value: 'android',
-    });
-
-    try {
-      const screen = await render(<SettingsScreen />);
-
-      await waitFor(() => {
-        expect(screen.getByText('preferences')).toBeTruthy();
-      });
-
-      const languageControl = screen.getByLabelText(
-        'segmented-control:English|Deutsch'
-      );
-      const themeControl = screen.getByLabelText(
-        'segmented-control:themeAuto|themeLight|themeDark'
-      );
-
-      expect(languageControl.props.appearance).toBe('light');
-      expect(themeControl.props.appearance).toBe('light');
-    } finally {
-      Object.defineProperty(Platform, 'OS', {
-        configurable: true,
-        value: originalPlatform,
-      });
-    }
-  });
-
-  it('configures the display name input for dynamic type without a fixed height', async () => {
+  it('prefills the display name input from the stored profile', async () => {
     const screen = await render(<SettingsScreen />);
 
     const input = await waitFor(() =>
       screen.getByTestId('settings-display-name-input')
     );
-    const style = StyleSheet.flatten(input.props.style);
 
-    expect(input.props.allowFontScaling).toBe(true);
-    expect(input.props.maxFontSizeMultiplier).toBeUndefined();
-    expect(style.minHeight).toBe(48);
-    expect(style.height).toBeUndefined();
+    expect(input.props.defaultValue).toBe('Student');
+    expect(input.props.placeholder).toBe('student');
+  });
+
+  it('confirms before resetting all progress', async () => {
+    const alertSpy = jest.spyOn(Alert, 'alert').mockImplementation(() => {});
+    mockStorage.clearAllData.mockResolvedValue(undefined);
+
+    try {
+      const screen = await render(<SettingsScreen />);
+
+      const resetButton = await waitFor(() =>
+        screen.getByTestId('settings-reset-progress-button')
+      );
+      await fireEvent.press(resetButton);
+
+      expect(alertSpy).toHaveBeenCalledWith(
+        'resetProgress',
+        'resetProgressMessage',
+        expect.any(Array)
+      );
+      expect(mockStorage.clearAllData).not.toHaveBeenCalled();
+
+      const buttons = alertSpy.mock.calls[0][2] as {
+        style?: string;
+        onPress?: () => Promise<void>;
+      }[];
+      const destructive = buttons.find(
+        (button) => button.style === 'destructive'
+      );
+      await destructive?.onPress?.();
+
+      expect(mockStorage.clearAllData).toHaveBeenCalled();
+      expect(mockBack).toHaveBeenCalled();
+    } finally {
+      alertSpy.mockRestore();
+    }
   });
 });

@@ -1,36 +1,31 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import {
-  View,
-  StyleSheet,
-  Pressable,
-  TextInput,
-  Alert,
-  Platform,
-} from 'react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { View, StyleSheet, Pressable, Alert } from 'react-native';
 import { Stack, useRouter } from 'expo-router';
-import SegmentedControl from '@expo/ui/community/segmented-control';
+import {
+  Column,
+  FieldGroup,
+  Host,
+  ListItem,
+  RNHostView,
+  Text,
+  TextInput,
+} from '@expo/ui';
 import Constants from 'expo-constants';
 import { EaseView } from 'react-native-ease';
 
-import { SecondaryButton } from '@/components/ActionButton';
 import { ThemedText } from '@/components/ThemedText';
-import { ThemedView } from '@/components/ThemedView';
-import { KeyboardAwareScrollViewCompat } from '@/components/KeyboardAwareScrollViewCompat';
 import { AppIcon } from '@/components/AppIcon';
 import { LoadingScreen } from '@/components/LoadingScreen';
-import { SurfaceCard } from '@/components/SurfaceCard';
+import {
+  SettingsRowAccessory,
+  SettingsRowIcon,
+} from '@/components/settings/SettingsRowAccessory';
+import { SettingsPickerRow } from '@/components/settings/SettingsPickerRow';
 import { useTheme } from '@/contexts/ThemeContext';
 import { usePressAnimation } from '@/hooks/usePressAnimation';
 import { useTranslation } from '@/hooks/useTranslation';
 import { getLanguageDisplayName } from '@/lib/languages';
-import {
-  Spacing,
-  BorderRadius,
-  Shadows,
-  AvatarColors,
-  AVATARS,
-} from '@/constants/theme';
+import { Spacing, AvatarColors, AVATARS } from '@/constants/theme';
 import {
   storage,
   type UserProfile,
@@ -103,144 +98,10 @@ function AvatarSelector({ selectedIndex, onSelect }: AvatarSelectorProps) {
   );
 }
 
-interface SettingRowProps {
-  icon: string;
-  label: string;
-  children?: React.ReactNode;
-  stackOnAndroid?: boolean;
-}
-
-interface SettingsActionRowProps {
-  accessoryAction?: {
-    accessibilityLabel?: string;
-    icon: string;
-    onPress: () => void;
-    testID?: string;
-    variant?: 'default' | 'subtle';
-  };
-  accessibilityLabel?: string;
-  icon: string;
-  label: string;
-  onPress: () => void;
-  rightContent?: React.ReactNode;
-  showChevron?: boolean;
-  isLast?: boolean;
-  testID?: string;
-}
-
-function SettingsActionRow({
-  accessoryAction,
-  accessibilityLabel,
-  icon,
-  label,
-  onPress,
-  rightContent,
-  showChevron = false,
-  isLast = false,
-  testID,
-}: SettingsActionRowProps) {
-  const { theme } = useTheme();
-  const { animate, transition, handlePressIn, handlePressOut } =
-    usePressAnimation(0.985);
-  const accessoryVariant = accessoryAction?.variant ?? 'default';
-  const accessoryIconColor =
-    accessoryVariant === 'subtle' ? theme.tabIconDefault : theme.secondary;
-
-  return (
-    <EaseView animate={animate} transition={transition}>
-      <Pressable
-        testID={testID}
-        accessibilityLabel={accessibilityLabel}
-        accessibilityRole="button"
-        style={[
-          styles.aboutActionButton,
-          isLast ? styles.aboutActionButtonLast : null,
-          {
-            backgroundColor: theme.backgroundDefault,
-            borderBottomColor: theme.separator,
-          },
-        ]}
-        onPress={onPress}
-        onPressIn={handlePressIn}
-        onPressOut={handlePressOut}
-      >
-        <View style={styles.settingLeft}>
-          <AppIcon name={icon} size={20} color={theme.tabIconDefault} />
-          <ThemedText type="body">{label}</ThemedText>
-        </View>
-        <View style={styles.settingsActionRight}>
-          {rightContent}
-          {accessoryAction ? (
-            <Pressable
-              testID={accessoryAction.testID}
-              accessibilityRole="button"
-              accessibilityLabel={accessoryAction.accessibilityLabel}
-              hitSlop={8}
-              onPress={(event) => {
-                event?.stopPropagation?.();
-                accessoryAction.onPress();
-              }}
-              style={[
-                styles.settingsAccessoryButton,
-                accessoryVariant === 'subtle'
-                  ? null
-                  : { backgroundColor: theme.backgroundSecondary },
-              ]}
-            >
-              <AppIcon
-                name={accessoryAction.icon}
-                size={18}
-                color={accessoryIconColor}
-              />
-            </Pressable>
-          ) : null}
-          {showChevron ? (
-            <AppIcon
-              name="chevron-right"
-              size={20}
-              color={theme.tabIconDefault}
-            />
-          ) : null}
-        </View>
-      </Pressable>
-    </EaseView>
-  );
-}
-
-function SettingRow({
-  icon,
-  label,
-  children,
-  stackOnAndroid = false,
-}: SettingRowProps) {
-  const { theme } = useTheme();
-  const isStacked = stackOnAndroid && Platform.OS === 'android';
-
-  return (
-    <View
-      style={[
-        styles.settingRow,
-        isStacked ? styles.settingRowStacked : null,
-        {
-          backgroundColor: theme.backgroundDefault,
-          borderBottomColor: theme.separator,
-        },
-      ]}
-    >
-      <View style={styles.settingLeft}>
-        <AppIcon name={icon} size={20} color={theme.tabIconDefault} />
-        <ThemedText type="body">{label}</ThemedText>
-      </View>
-      {children}
-    </View>
-  );
-}
-
 export default function SettingsScreen() {
   const { theme, isDark, refreshTheme } = useTheme();
   const { t, language, refreshLanguage } = useTranslation();
   const { selectedLanguage } = useProgrammingLanguage();
-  const insets = useSafeAreaInsets();
   const router = useRouter();
 
   const [profile, setProfile] = useState<UserProfile | null>(null);
@@ -409,231 +270,191 @@ export default function SettingsScreen() {
     );
   }
 
+  const themeModes: ThemeMode[] = ['auto', 'light', 'dark'];
+
   return (
     <>
       <Stack.Screen.Title>{t('settings')}</Stack.Screen.Title>
-      <ThemedView style={styles.container}>
-        <KeyboardAwareScrollViewCompat
-          style={styles.scrollView}
-          contentContainerStyle={[
-            styles.scrollContent,
-            {
-              paddingTop: Spacing.xl,
-              paddingBottom: Spacing['3xl'] + insets.bottom,
-            },
-          ]}
-        >
-          <View style={styles.section}>
-            <ThemedText
-              type="label"
-              style={[styles.sectionTitle, { color: theme.tabIconDefault }]}
-            >
-              {t('profile')}
-            </ThemedText>
-            <SurfaceCard style={styles.card}>
-              <ThemedText type="label" style={styles.fieldLabel}>
-                {t('avatar')}
-              </ThemedText>
-              <AvatarSelector
-                selectedIndex={profile.avatarIndex}
-                onSelect={(index) =>
-                  setProfile({ ...profile, avatarIndex: index })
-                }
-              />
-
-              <ThemedText
-                type="label"
-                style={[styles.fieldLabel, { marginTop: Spacing.lg }]}
-              >
+      <Host style={styles.container} colorScheme={isDark ? 'dark' : 'light'}>
+        <FieldGroup>
+          <FieldGroup.Section title={t('profile')}>
+            <RNHostView matchContents={{ vertical: true }}>
+              <View style={styles.avatarRow}>
+                <AvatarSelector
+                  selectedIndex={profile.avatarIndex}
+                  onSelect={(index) =>
+                    setProfile({ ...profile, avatarIndex: index })
+                  }
+                />
+              </View>
+            </RNHostView>
+            <Column spacing={4}>
+              <Text textStyle={{ fontSize: 13, color: theme.tabIconDefault }}>
                 {t('displayName')}
-              </ThemedText>
+              </Text>
               <TextInput
-                allowFontScaling
                 testID="settings-display-name-input"
-                style={[
-                  styles.textInput,
-                  {
-                    backgroundColor: theme.backgroundSecondary,
-                    color: theme.text,
-                    borderColor: theme.cardBorder,
-                  },
-                ]}
-                value={profile.displayName}
-                onChangeText={(text) =>
-                  setProfile({ ...profile, displayName: text })
-                }
+                defaultValue={profile.displayName}
                 placeholder={t('student')}
                 placeholderTextColor={theme.tabIconDefault}
+                autoCapitalize="words"
+                autoCorrect={false}
+                returnKeyType="done"
+                onChangeText={(text) =>
+                  setProfile((current) =>
+                    current ? { ...current, displayName: text } : current
+                  )
+                }
+                style={{ width: '100%', paddingVertical: Spacing.xs }}
               />
-            </SurfaceCard>
-          </View>
+            </Column>
+          </FieldGroup.Section>
 
-          <View style={styles.section}>
-            <ThemedText
-              type="label"
-              style={[styles.sectionTitle, { color: theme.tabIconDefault }]}
-            >
-              {t('preferences')}
-            </ThemedText>
-            <View style={styles.settingsGroup}>
-              {(() => {
-                const languageIndex = settings.language === 'en' ? 0 : 1;
-                const themeModes: ThemeMode[] = ['auto', 'light', 'dark'];
-                const themeIndex = Math.max(
-                  0,
-                  themeModes.indexOf(settings.themeMode)
-                );
-
-                return (
-                  <>
-                    <SettingsActionRow
-                      accessibilityLabel={`${t('changeTechnology')}: ${selectedLanguageName}`}
-                      accessoryAction={
-                        selectedLanguage
-                          ? {
-                              accessibilityLabel: t(
-                                'viewCurrentFocusInfo'
-                              ).replace('{name}', selectedLanguageName),
-                              icon: 'info',
-                              onPress: () =>
-                                router.push({
-                                  pathname: './language-overview',
-                                  params: {
-                                    languageId: selectedLanguage.id,
-                                    mode: 'view',
-                                    origin: 'settings',
-                                  },
-                                }),
-                              testID: 'settings-current-focus-info-button',
-                              variant: 'subtle',
-                            }
-                          : undefined
-                      }
-                      icon="code"
-                      label={selectedLanguageName}
-                      showChevron
-                      testID="settings-change-technology-button"
-                      onPress={() =>
-                        router.push({
-                          pathname: '/language-select',
-                          params: { origin: 'settings' },
-                        })
-                      }
+          <FieldGroup.Section title={t('preferences')}>
+            <ListItem
+              testID="settings-change-technology-button"
+              onPress={() =>
+                router.push({
+                  pathname: '/language-select',
+                  params: { origin: 'settings' },
+                })
+              }
+              leading={<SettingsRowIcon name="code" />}
+              supportingText={t('changeTechnology')}
+              trailing={
+                <SettingsRowAccessory>
+                  <View style={styles.trailingRow}>
+                    {selectedLanguage ? (
+                      <Pressable
+                        testID="settings-current-focus-info-button"
+                        accessibilityRole="button"
+                        accessibilityLabel={t('viewCurrentFocusInfo').replace(
+                          '{name}',
+                          selectedLanguageName
+                        )}
+                        hitSlop={8}
+                        style={styles.accessoryButton}
+                        onPress={() =>
+                          router.push({
+                            pathname: './language-overview',
+                            params: {
+                              languageId: selectedLanguage.id,
+                              mode: 'view',
+                              origin: 'settings',
+                            },
+                          })
+                        }
+                      >
+                        <AppIcon
+                          name="info"
+                          size={20}
+                          color={theme.tabIconDefault}
+                        />
+                      </Pressable>
+                    ) : null}
+                    <AppIcon
+                      name="chevron-right"
+                      size={18}
+                      color={theme.tabIconDefault}
                     />
-                    <SettingRow
-                      icon="globe"
-                      label={t('appLanguage')}
-                      stackOnAndroid
-                    >
-                      <SegmentedControl
-                        appearance={isDark ? 'dark' : 'light'}
-                        values={['English', 'Deutsch']}
-                        selectedIndex={languageIndex}
-                        onChange={({ nativeEvent }) => {
-                          if (settingsUpdateInFlightRef.current) return;
-                          const nextLanguage =
-                            nativeEvent.selectedSegmentIndex === 0
-                              ? 'en'
-                              : 'de';
-                          applyLanguage(nextLanguage);
-                        }}
-                        style={[
-                          styles.segmentedControl,
-                          Platform.OS === 'android'
-                            ? styles.segmentedControlAndroid
-                            : null,
-                        ]}
-                      />
-                    </SettingRow>
-                    <SettingRow icon="moon" label={t('theme')} stackOnAndroid>
-                      <SegmentedControl
-                        appearance={isDark ? 'dark' : 'light'}
-                        values={[
-                          getThemeModeLabel('auto'),
-                          getThemeModeLabel('light'),
-                          getThemeModeLabel('dark'),
-                        ]}
-                        selectedIndex={themeIndex}
-                        onChange={({ nativeEvent }) => {
-                          if (settingsUpdateInFlightRef.current) return;
-                          const nextMode =
-                            themeModes[nativeEvent.selectedSegmentIndex] ??
-                            'auto';
-                          applyThemeMode(nextMode);
-                        }}
-                        style={[
-                          styles.segmentedControlWide,
-                          Platform.OS === 'android'
-                            ? styles.segmentedControlAndroid
-                            : null,
-                        ]}
-                      />
-                    </SettingRow>
-                  </>
-                );
-              })()}
-            </View>
-          </View>
-
-          <View style={styles.section}>
-            <ThemedText
-              type="label"
-              style={[styles.sectionTitle, { color: theme.tabIconDefault }]}
+                  </View>
+                </SettingsRowAccessory>
+              }
             >
-              {t('about')}
-            </ThemedText>
-            <View style={styles.settingsGroup}>
-              <SettingsActionRow
-                icon="info"
-                label={t('aboutThisApp')}
-                showChevron
-                onPress={() =>
-                  router.push({
-                    pathname: '/info-modal',
-                    params: { type: 'about' },
-                  })
-                }
-              />
-              <SettingsActionRow
-                icon="file-text"
-                label={t('imprint')}
-                showChevron
-                onPress={() =>
-                  router.push({
-                    pathname: '/info-modal',
-                    params: { type: 'imprint' },
-                  })
-                }
-                isLast
-              />
-              <View
-                style={[
-                  styles.settingRow,
-                  { backgroundColor: theme.backgroundDefault },
-                ]}
-              >
-                <View style={styles.settingLeft}>
-                  <AppIcon name="tag" size={20} color={theme.tabIconDefault} />
-                  <ThemedText type="body">{t('version')}</ThemedText>
-                </View>
-                <ThemedText type="body" style={{ color: theme.tabIconDefault }}>
-                  {Constants.expoConfig?.version ?? '1.0.0'}
-                </ThemedText>
-              </View>
-            </View>
-          </View>
+              {selectedLanguageName}
+            </ListItem>
+            <SettingsPickerRow<'en' | 'de'>
+              icon="globe"
+              sfSymbol="globe"
+              label={t('appLanguage')}
+              options={[
+                { label: 'English', value: 'en' },
+                { label: 'Deutsch', value: 'de' },
+              ]}
+              selectedValue={settings.language}
+              onValueChange={applyLanguage}
+              testID="settings-app-language-picker"
+            />
+            <SettingsPickerRow<ThemeMode>
+              icon="moon"
+              sfSymbol="circle.lefthalf.filled"
+              label={t('theme')}
+              options={themeModes.map((mode) => ({
+                label: getThemeModeLabel(mode),
+                value: mode,
+              }))}
+              selectedValue={settings.themeMode}
+              onValueChange={applyThemeMode}
+              testID="settings-theme-picker"
+            />
+          </FieldGroup.Section>
 
-          <SecondaryButton
-            testID="settings-reset-progress-button"
-            color={theme.error}
-            icon="trash-2"
-            label={t('resetAllProgress')}
-            onPress={handleResetProgress}
-            style={styles.dangerButton}
-          />
-        </KeyboardAwareScrollViewCompat>
-      </ThemedView>
+          <FieldGroup.Section title={t('about')}>
+            <ListItem
+              onPress={() =>
+                router.push({
+                  pathname: '/info-modal',
+                  params: { type: 'about' },
+                })
+              }
+              leading={<SettingsRowIcon name="info" />}
+              trailing={<SettingsRowChevron />}
+            >
+              {t('aboutThisApp')}
+            </ListItem>
+            <ListItem
+              onPress={() =>
+                router.push({
+                  pathname: '/info-modal',
+                  params: { type: 'imprint' },
+                })
+              }
+              leading={<SettingsRowIcon name="file-text" />}
+              trailing={<SettingsRowChevron />}
+            >
+              {t('imprint')}
+            </ListItem>
+            <ListItem
+              leading={<SettingsRowIcon name="tag" />}
+              trailing={
+                <SettingsRowAccessory>
+                  <ThemedText
+                    type="body"
+                    style={{ color: theme.tabIconDefault }}
+                  >
+                    {Constants.expoConfig?.version ?? '1.0.0'}
+                  </ThemedText>
+                </SettingsRowAccessory>
+              }
+            >
+              {t('version')}
+            </ListItem>
+          </FieldGroup.Section>
+
+          <FieldGroup.Section>
+            <ListItem
+              testID="settings-reset-progress-button"
+              onPress={handleResetProgress}
+              leading={<SettingsRowIcon name="trash-2" color={theme.error} />}
+            >
+              <Text textStyle={{ color: theme.error }}>
+                {t('resetAllProgress')}
+              </Text>
+            </ListItem>
+          </FieldGroup.Section>
+        </FieldGroup>
+      </Host>
     </>
+  );
+}
+
+function SettingsRowChevron() {
+  const { theme } = useTheme();
+
+  return (
+    <SettingsRowAccessory>
+      <AppIcon name="chevron-right" size={18} color={theme.tabIconDefault} />
+    </SettingsRowAccessory>
   );
 }
 
@@ -641,25 +462,8 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
   },
-  scrollView: {
-    flex: 1,
-  },
-  scrollContent: {
-    padding: Spacing.lg,
-    gap: Spacing.xl,
-  },
-  section: {
-    gap: Spacing.md,
-  },
-  sectionTitle: {
-    textTransform: 'uppercase',
-    letterSpacing: 0.5,
-  },
-  card: {
-    gap: Spacing.sm,
-  },
-  fieldLabel: {
-    marginBottom: Spacing.sm,
+  avatarRow: {
+    paddingVertical: Spacing.sm,
   },
   avatarGrid: {
     flexDirection: 'row',
@@ -673,78 +477,15 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  textInput: {
-    borderRadius: BorderRadius.sm,
-    borderWidth: 1,
-    fontSize: 16,
-    minHeight: 48,
-    paddingHorizontal: Spacing.md,
-    paddingVertical: Spacing.sm,
-  },
-  settingsGroup: {
-    borderRadius: BorderRadius.md,
-    overflow: 'hidden',
-    ...Shadows.card,
-  },
-  settingRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    padding: Spacing.lg,
-    borderBottomWidth: StyleSheet.hairlineWidth,
-  },
-  settingRowStacked: {
-    alignItems: 'stretch',
-    flexDirection: 'column',
-    gap: Spacing.md,
-  },
-  aboutActionButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    padding: Spacing.lg,
-    borderBottomWidth: StyleSheet.hairlineWidth,
-  },
-  aboutActionButtonLast: {
-    borderBottomWidth: 0,
-  },
-  settingsAccessoryButton: {
-    alignItems: 'center',
-    borderCurve: 'continuous',
-    borderRadius: BorderRadius.full,
-    height: 32,
-    justifyContent: 'center',
-    width: 32,
-  },
-  settingsActionRight: {
+  trailingRow: {
     alignItems: 'center',
     flexDirection: 'row',
     gap: Spacing.sm,
   },
-  settingLeft: {
-    flexDirection: 'row',
+  accessoryButton: {
     alignItems: 'center',
-    gap: Spacing.md,
-  },
-  segmentedControl: {
-    minWidth: 160,
-    maxWidth: 200,
-    alignSelf: 'flex-end',
-    flexShrink: 1,
-  },
-  segmentedControlWide: {
-    minWidth: 200,
-    maxWidth: 240,
-    alignSelf: 'flex-end',
-    flexShrink: 1,
-  },
-  segmentedControlAndroid: {
-    alignSelf: 'stretch',
-    maxWidth: undefined,
-    minWidth: undefined,
-    width: '100%',
-  },
-  dangerButton: {
-    marginTop: Spacing.sm,
+    height: 32,
+    justifyContent: 'center',
+    width: 32,
   },
 });
