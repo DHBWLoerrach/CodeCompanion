@@ -68,6 +68,11 @@ DHBW Code Companion is a mobile learning app for programming topics (Expo SDK 58
 - Animations use `react-native-ease` (`EaseView`) — state-driven via `animate`/`transition` props. The shared `usePressAnimation` hook (`client/hooks/usePressAnimation.ts`) returns `{ animate, transition, handlePressIn, handlePressOut }` for press-scale effects.
 - `expo.web.output = "server"` is enabled so Expo API routes can run on EAS Hosting; do not assume this implies a supported browser app surface.
 - Keep `expo-system-ui` as a direct dependency while `expo.userInterfaceStyle` remains `"automatic"` in `app.json`.
+- Native UI via `@expo/ui` (SwiftUI on iOS, Jetpack Compose on Android) is used for platform controls only, not for branded content (quiz, cards, explanations stay React Native):
+  - Header actions use `Stack.Toolbar` from Expo Router (see `client/components/SettingsToolbar.tsx`); toolbar buttons have no `testID`, so tests and Maestro target their accessibility label.
+  - The settings screen uses universal `FieldGroup`/`ListItem` inside a `Host`. Put React Native content into `ListItem` leading/trailing slots via `SettingsRowAccessory` (`client/components/settings/`): iOS wraps slot content in `RNHostView` itself, Android does not.
+  - Only universal `ListItem` children become proper rows in an Android `FieldGroup.Section`; any other component is wrapped in an extra row. Platform-specific rows (for example `SettingsPickerRow.ios.tsx` / `.android.tsx`) must account for that.
+  - Jest tests mock `@expo/ui` with plain React Native views (see `__tests__/integration/screens/settings-screen.test.tsx`).
 - API routes:
   - `POST /api/quiz/generate`
   - `POST /api/quiz/generate-mixed`
